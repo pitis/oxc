@@ -109,6 +109,9 @@ impl<'a> Traverse<'a> for Normalize {
         decl: &mut VariableDeclaration<'a>,
         ctx: &mut TraverseCtx<'a>,
     ) {
+        if ctx.is_tree_shake_only() {
+            PeepholeOptimizations::record_const_arrow_dead_arguments(decl, ctx);
+        }
         if self.options.convert_const_to_let {
             Self::convert_const_to_let(decl, ctx);
         }

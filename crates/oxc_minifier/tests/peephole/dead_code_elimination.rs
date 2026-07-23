@@ -1056,3 +1056,56 @@ fn dce_keeps_implicitly_observable_bindings() {
         options,
     );
 }
+
+// https://github.com/oxc-project/oxc/issues/23866
+#[test]
+fn dce_drops_dead_trailing_const_arrow_arguments() {
+    test(
+        "const foo = async (assets) => ({}); export default await foo({ bar: 'baz' })",
+        "const foo = async (assets) => ({}); export default await foo()",
+    );
+
+    // Dropping the argument also removes a nested dynamic import that would
+    // otherwise keep an unnecessary chunk alive in Rolldown.
+    test(
+        "const foo = async (assets) => ({}); export default await foo({ image: () => import('./image.js') })",
+        "const foo = async (assets) => ({}); export default await foo()",
+    );
+    test(
+        "export const foo = async (unused) => bar(); foo({ image: () => import('./image.js') })",
+        "export const foo = async (unused) => bar(); foo()",
+    );
+    test(
+        "const foo = (unused) => { bar() }; foo(1); foo(2)",
+        "const foo = (unused) => { bar() }; foo(); foo()",
+    );
+    test(
+        "const call = () => foo(1); const foo = (unused) => bar(); call()",
+        "const call = () => foo(); const foo = (unused) => bar(); call()",
+    );
+}
+
+#[test]
+fn dce_keeps_observable_trailing_const_arrow_arguments() {
+    test_same("const foo = (unused) => bar(); foo(sideEffect())");
+    test_same("let foo = (unused) => bar(); foo(1); foo = replacement");
+    test_same("function foo(unused) { bar() } foo(1)");
+    test_same("const foo = (unused) => eval(\"unused\"); consume(foo(1))");
+    test_same("const foo = (a, b) => bar(b); foo(1, 2)");
+    test_same("const foo = (unused = sideEffect()) => bar(); foo(1)");
+    test_same("const foo = ({ unused }) => bar(); foo(value)");
+    test_same("const foo = (...args) => bar(args); foo(1)");
+    test_same("const foo = function(unused) { return arguments.length }; consume(foo(1))");
+    test_same("const foo = (unused) => bar(); foo(...values)");
+    test_same(
+        "class Base {} class Derived extends Base { constructor() { const foo = (unused) => bar(); foo(this); super() } } consume(new Derived())",
+    );
+    test_same_source_type(
+        "function outer(object) { const foo = (unused) => bar(); with (object) foo(1) } outer(source)",
+        SourceType::cjs().with_script(true),
+    );
+    test_same_source_type(
+        "const foo = (unused) => bar(); function outer() { eval(\"var foo = function(value) { return value }\"); consume(foo(1)) } outer()",
+        SourceType::cjs(),
+    );
+}
