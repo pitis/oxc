@@ -151,7 +151,7 @@ oxc_span = { version = "0.141.0", path = "crates/oxc_span" } # Source positions
 oxc_str = { version = "0.141.0", path = "crates/oxc_str" } # String types
 oxc_syntax = { version = "0.141.0", path = "crates/oxc_syntax" } # Syntax utilities
 oxc_transform_napi = { version = "0.141.0", path = "napi/transform" } # Node.js transformer binding
-oxc_transform_react_napi = { version = "0.141.0", path = "napi/transform_react" } # Node.js React Compiler binding
+oxc_transform_react_napi = { version = "0.141.0", path = "napi/transform-react" } # Node.js React Compiler binding
 oxc_transformer = { version = "0.141.0", path = "crates/oxc_transformer" } # Code transformation
 oxc_transformer_plugins = { version = "0.141.0", path = "crates/oxc_transformer_plugins" } # Transformer plugins
 oxc_traverse = { version = "0.141.0", path = "crates/oxc_traverse" } # AST traversal

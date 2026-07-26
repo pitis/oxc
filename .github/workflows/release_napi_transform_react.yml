@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - napi/transform_react/package.json
+      - napi/transform-react/package.json
       - .github/workflows/release_napi_transform_react.yml
       - .github/workflows/reusable_release_napi.yml
 
@@ -21,7 +21,6 @@ jobs:
     name: Release NAPI React Transform
     uses: ./.github/workflows/reusable_release_napi.yml
     with:
-      name: transform_react
-      npm-name: oxc-transform-react
+      name: transform-react
     permissions:
       id-token: write # for `pnpm publish --provenance`

@@ -9,10 +9,6 @@ on:
         required: true
         type: string
         description: "The component name"
-      npm-name:
-        required: false
-        type: string
-        description: "The npm package name when it is not oxc-<component>"
 
 jobs:
   check:
@@ -28,7 +24,7 @@ jobs:
         id: check
         with:
           file-name: napi/${{ inputs.name }}/package.json
-          file-url: https://unpkg.com/${{ inputs.npm-name != '' && inputs.npm-name || format('oxc-{0}', inputs.name) }}@latest/package.json
+          file-url: https://unpkg.com/oxc-${{ inputs.name }}@latest/package.json
 
   build:
     needs: check
