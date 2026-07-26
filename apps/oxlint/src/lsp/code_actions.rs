@@ -52,7 +52,8 @@ pub fn apply_fix_code_actions(action: LinterCodeAction, uri: &Uri) -> Vec<CodeAc
             && matches!(
                 fixed.lsp_kind,
                 FixedContentKind::LintRule(_) | FixedContentKind::UnusedDirective
-            );
+            )
+            && !matches!(fixed.kind, FixKind::IgnoreFix);
         if preferred {
             // only the first fix can be preferred, if there are multiple fixes available.
             preferred_possible = false;

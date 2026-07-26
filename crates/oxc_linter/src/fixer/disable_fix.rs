@@ -1,6 +1,6 @@
 use oxc_span::Span;
 
-use crate::{Fix, FixKind};
+use crate::{Fix, FixKind, Message};
 use std::borrow::Cow;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8,6 +8,23 @@ enum DisableDirective {
     NextLine,
     Line,
     Section,
+}
+
+impl Message {
+    pub fn add_ignore_fix(&mut self, section_offset: u32, source_text: &str) {
+        let Some(message_rule) = &self.rule else { return };
+        // If the error is exactly at the section offset and has 0 span length, it means that the file is the problem
+        // and attaching a ignore comment would not ignore the error.
+        // This is because the ignore comment would need to be placed before the error offset, which is not possible.
+        if self.span.start == section_offset && self.span.end == section_offset {
+            return;
+        }
+        let rule_name = message_rule.short_canonical_name();
+        self.fixes.extend_fix(vec![
+            disable_for_this_line(&rule_name, self.span.start, section_offset, source_text),
+            disable_for_this_section(&rule_name, section_offset, source_text),
+        ]);
+    }
 }
 
 pub fn disable_for_this_line(
@@ -25,7 +42,7 @@ pub fn disable_for_this_line(
             message: Some(Cow::Owned(message)),
             content: Cow::Owned(format!(" {rule_name}")),
             span: Span::empty(existing_comment_end),
-            kind: FixKind::SafeFix,
+            kind: FixKind::IgnoreFix,
         };
     }
 
@@ -54,7 +71,7 @@ pub fn disable_for_this_line(
             message: Some(Cow::Owned(message)),
             content: Cow::Owned(format!(" {rule_name}")),
             span: Span::empty(existing_comment_end),
-            kind: FixKind::SafeFix,
+            kind: FixKind::IgnoreFix,
         };
     }
 
@@ -77,7 +94,7 @@ pub fn disable_for_this_line(
             "{content_prefix}{whitespace_string}// oxlint-disable-next-line {rule_name}\n"
         )),
         span: Span::empty(insert_offset),
-        kind: FixKind::SafeFix,
+        kind: FixKind::IgnoreFix,
     }
 }
 
@@ -96,7 +113,7 @@ pub fn disable_for_this_section(rule_name: &str, section_offset: u32, source_tex
             message: Some(Cow::Owned(message)),
             content: Cow::Owned(format!(" {rule_name}")),
             span: Span::empty(existing_comment_end),
-            kind: FixKind::SafeFix,
+            kind: FixKind::IgnoreFix,
         };
     }
 
@@ -106,7 +123,7 @@ pub fn disable_for_this_section(rule_name: &str, section_offset: u32, source_tex
         message: Some(Cow::Owned(message)),
         content: Cow::Owned(content),
         span: Span::empty(insert_offset),
-        kind: FixKind::SafeFix,
+        kind: FixKind::IgnoreFix,
     }
 }
 
