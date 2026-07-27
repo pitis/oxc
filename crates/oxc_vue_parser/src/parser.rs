@@ -1,0 +1,482 @@
+//! Template source → [`Node`] tree.
+//!
+//! Error-tolerant by construction: anything unrecognised becomes
+//! [`Node::Raw`] and unclosed elements recover at their parent's boundary,
+//! so malformed markup degrades to pass-through rather than an error.
+
+use oxc_span::Span;
+
+use crate::ast::{
+    Attribute, AttributeValue, Comment, Directive, DirectiveArgument, DirectiveShorthand, Element,
+    Interpolation, Node, Text, is_raw_text_element, is_void_element,
+};
+
+/// Parse Vue template source into a node tree.
+///
+/// `source` is the template contents (what sits between `<template>` and
+/// `</template>`), and spans are relative to it. To get spans relative to a
+/// whole `.vue` file, offset them by the block's content start.
+pub fn parse_template(source: &str) -> Vec<Node<'_>> {
+    let mut parser = Parser { source: source.as_bytes(), text: source, position: 0, depth: 0 };
+    parser.children(None)
+}
+
+/// Recursion guard: beyond this depth elements are captured as raw text.
+const MAX_DEPTH: u32 = 256;
+
+struct Parser<'a> {
+    source: &'a [u8],
+    text: &'a str,
+    position: u32,
+    depth: u32,
+}
+
+impl<'a> Parser<'a> {
+    #[inline]
+    fn at(&self, offset: u32) -> u8 {
+        *self.source.get((self.position + offset) as usize).unwrap_or(&0)
+    }
+
+    #[inline]
+    fn eof(&self) -> bool {
+        self.position as usize >= self.source.len()
+    }
+
+    #[inline]
+    fn len(&self) -> u32 {
+        u32::try_from(self.source.len()).unwrap_or(u32::MAX)
+    }
+
+    fn starts_with(&self, pattern: &str) -> bool {
+        self.source[(self.position as usize).min(self.source.len())..]
+            .starts_with(pattern.as_bytes())
+    }
+
+    fn slice(&self, span: Span) -> &'a str {
+        &self.text[span.start as usize..span.end as usize]
+    }
+
+    /// Parse children until the closing tag of `parent`, or end of input.
+    /// The caller consumes the closing tag.
+    fn children(&mut self, parent: Option<&str>) -> Vec<Node<'a>> {
+        let mut nodes = Vec::new();
+        if self.depth > MAX_DEPTH {
+            let start = self.position;
+            self.position = self.len();
+            if start < self.position {
+                nodes.push(Node::Raw(Span::new(start, self.position)));
+            }
+            return nodes;
+        }
+        loop {
+            if self.eof() {
+                return nodes;
+            }
+            let byte = self.at(0);
+
+            if byte == b'<' {
+                // HTML implied end tags: `<li>a<li>b` are siblings — a new
+                // `<li>` closes the previous one. Leave the tag for the
+                // grandparent loop.
+                if let Some(parent) = parent
+                    && self.at(1) != b'/'
+                    && self.at(1) != b'!'
+                    && self.opening_tag_closes(parent)
+                {
+                    return nodes;
+                }
+                if self.at(1) == b'/' {
+                    // A closing tag belongs to whoever opened it; an orphan
+                    // closing tag (no matching parent) is skipped as raw.
+                    if parent.is_some() {
+                        return nodes;
+                    }
+                    let start = self.position;
+                    self.consume_closing_tag();
+                    nodes.push(Node::Raw(Span::new(start, self.position)));
+                    continue;
+                }
+                if self.starts_with("<!--") {
+                    nodes.push(self.comment());
+                    continue;
+                }
+                if self.at(1) == b'!' || self.at(1) == b'?' {
+                    let start = self.position;
+                    while !self.eof() && self.at(0) != b'>' {
+                        self.position += 1;
+                    }
+                    self.position = (self.position + 1).min(self.len());
+                    nodes.push(Node::Raw(Span::new(start, self.position)));
+                    continue;
+                }
+                if let Some(node) = self.element() {
+                    nodes.push(node);
+                    continue;
+                }
+                // A bare `<` that does not begin a tag: fall through as text.
+            }
+
+            if byte == b'{' && self.at(1) == b'{' {
+                nodes.push(self.interpolation());
+                continue;
+            }
+
+            // Plain text up to the next construct.
+            let start = self.position;
+            loop {
+                if self.eof() {
+                    break;
+                }
+                let current = self.at(0);
+                if current == b'<' || (current == b'{' && self.at(1) == b'{') {
+                    break;
+                }
+                self.position += 1;
+            }
+            if self.position == start {
+                // Guarantee progress on a stray delimiter.
+                self.position += 1;
+            }
+            let span = Span::new(start, self.position);
+            nodes.push(Node::Text(Text { span, value: self.slice(span) }));
+        }
+    }
+
+    fn comment(&mut self) -> Node<'a> {
+        let start = self.position;
+        self.position += 4; // `<!--`
+        let content_start = self.position;
+        while !self.eof() && !self.starts_with("-->") {
+            self.position += 1;
+        }
+        let content_end = self.position;
+        self.position = (self.position + 3).min(self.len());
+        let content_span = Span::new(content_start, content_end);
+        Node::Comment(Comment {
+            span: Span::new(start, self.position),
+            content_span,
+            content: self.slice(content_span),
+        })
+    }
+
+    fn interpolation(&mut self) -> Node<'a> {
+        let start = self.position;
+        self.position += 2; // `{{`
+        let expression_start = self.position;
+        while !self.eof() && (self.at(0) != b'}' || self.at(1) != b'}') {
+            self.position += 1;
+        }
+        let expression_end = self.position;
+        self.position = (self.position + 2).min(self.len());
+        let expression_span = Span::new(expression_start, expression_end);
+        Node::Interpolation(Interpolation {
+            span: Span::new(start, self.position),
+            expression_span,
+            expression: self.slice(expression_span),
+        })
+    }
+
+    fn element(&mut self) -> Option<Node<'a>> {
+        let start = self.position;
+        self.position += 1; // `<`
+        let name_start = self.position;
+        while !self.eof() {
+            let current = self.at(0);
+            if current.is_ascii_whitespace() || current == b'>' || current == b'/' {
+                break;
+            }
+            self.position += 1;
+        }
+        let name_span = Span::new(name_start, self.position);
+        if name_span.start == name_span.end {
+            self.position = start;
+            return None;
+        }
+        let name = self.slice(name_span);
+
+        let attributes = self.attributes();
+        let mut self_closing = false;
+        if self.at(0) == b'/' {
+            self_closing = true;
+            self.position += 1;
+        }
+        if self.at(0) == b'>' {
+            self.position += 1;
+        }
+
+        let is_void = is_void_element(name);
+        if self_closing || is_void {
+            return Some(Node::Element(Element {
+                span: Span::new(start, self.position),
+                name,
+                name_span,
+                attributes,
+                children: Vec::new(),
+                self_closing,
+                is_void,
+                raw_text: None,
+                unclosed: false,
+            }));
+        }
+
+        if is_raw_text_element(name) {
+            let body_start = self.position;
+            while !self.eof() {
+                if self.at(0) == b'<' && self.closing_tag_matches(name) {
+                    break;
+                }
+                self.position += 1;
+            }
+            let raw_text = Span::new(body_start, self.position);
+            let unclosed = self.eof();
+            self.consume_closing_tag();
+            return Some(Node::Element(Element {
+                span: Span::new(start, self.position),
+                name,
+                name_span,
+                attributes,
+                children: Vec::new(),
+                self_closing: false,
+                is_void: false,
+                raw_text: Some(raw_text),
+                unclosed,
+            }));
+        }
+
+        self.depth += 1;
+        let children = self.children(Some(name));
+        self.depth -= 1;
+        // Recover from a mismatched closing tag: only consume it when it
+        // matches this element; otherwise the element is unclosed and the
+        // tag is left for an ancestor.
+        let unclosed =
+            !(self.at(0) == b'<' && self.at(1) == b'/' && self.closing_tag_matches(name));
+        if !unclosed {
+            self.consume_closing_tag();
+        }
+        Some(Node::Element(Element {
+            span: Span::new(start, self.position),
+            name,
+            name_span,
+            attributes,
+            children,
+            self_closing: false,
+            is_void: false,
+            raw_text: None,
+            unclosed,
+        }))
+    }
+
+    /// Whether the opening tag at the current `<` position implicitly closes
+    /// an open `parent` element (HTML implied end tags).
+    fn opening_tag_closes(&self, parent: &str) -> bool {
+        let rest = &self.text[(self.position as usize + 1).min(self.text.len())..];
+        let name_end = rest
+            .find(|c: char| c.is_ascii_whitespace() || c == '>' || c == '/')
+            .unwrap_or(rest.len());
+        implicitly_closes(parent, &rest[..name_end])
+    }
+
+    /// Whether the source at the current `<` position is `</name` (ASCII
+    /// case-insensitive), followed by whitespace, `>` or EOF.
+    fn closing_tag_matches(&self, name: &str) -> bool {
+        let rest = &self.source[(self.position as usize).min(self.source.len())..];
+        let Some(rest) = rest.strip_prefix(b"</") else {
+            return false;
+        };
+        if rest.len() < name.len() || !rest[..name.len()].eq_ignore_ascii_case(name.as_bytes()) {
+            return false;
+        }
+        matches!(rest.get(name.len()), None | Some(b'>' | b'/'))
+            || rest[name.len()].is_ascii_whitespace()
+    }
+
+    fn consume_closing_tag(&mut self) {
+        if self.at(0) == b'<' && self.at(1) == b'/' {
+            while !self.eof() && self.at(0) != b'>' {
+                self.position += 1;
+            }
+            self.position = (self.position + 1).min(self.len());
+        }
+    }
+
+    fn attributes(&mut self) -> Vec<Attribute<'a>> {
+        let mut attributes = Vec::new();
+        loop {
+            while !self.eof() && self.at(0).is_ascii_whitespace() {
+                self.position += 1;
+            }
+            if self.eof() || self.at(0) == b'>' || (self.at(0) == b'/' && self.at(1) == b'>') {
+                return attributes;
+            }
+
+            let name_start = self.position;
+            while !self.eof() {
+                let current = self.at(0);
+                if current.is_ascii_whitespace()
+                    || current == b'='
+                    || current == b'>'
+                    || (current == b'/' && self.at(1) == b'>')
+                {
+                    break;
+                }
+                self.position += 1;
+            }
+            let name_span = Span::new(name_start, self.position);
+            if name_span.start == name_span.end {
+                // Guarantee progress on a stray character.
+                self.position += 1;
+                continue;
+            }
+            let name = self.slice(name_span);
+
+            let mut value = None;
+            if self.at(0) == b'=' {
+                self.position += 1;
+                let quote = self.at(0);
+                if quote == b'"' || quote == b'\'' {
+                    self.position += 1;
+                    let value_start = self.position;
+                    while !self.eof() && self.at(0) != quote {
+                        self.position += 1;
+                    }
+                    let span = Span::new(value_start, self.position);
+                    value = Some(AttributeValue { span, text: self.slice(span), quote });
+                    self.position = (self.position + 1).min(self.len());
+                } else {
+                    let value_start = self.position;
+                    while !self.eof() && !self.at(0).is_ascii_whitespace() && self.at(0) != b'>' {
+                        self.position += 1;
+                    }
+                    let span = Span::new(value_start, self.position);
+                    value = Some(AttributeValue { span, text: self.slice(span), quote: 0 });
+                }
+            }
+
+            let directive = parse_directive(name, name_span);
+            attributes.push(Attribute {
+                span: Span::new(name_span.start, self.position),
+                name,
+                name_span,
+                value,
+                directive,
+            });
+        }
+    }
+}
+
+/// HTML implied end tags (WHATWG "generate implied end tags" subset):
+/// an opening `next` tag ends an unclosed `open` element.
+fn implicitly_closes(open: &str, next: &str) -> bool {
+    const P_CLOSERS: &[&str] = &[
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "details",
+        "div",
+        "dl",
+        "fieldset",
+        "figcaption",
+        "figure",
+        "footer",
+        "form",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hgroup",
+        "hr",
+        "main",
+        "menu",
+        "nav",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "ul",
+    ];
+    let eq = |candidate: &str| next.eq_ignore_ascii_case(candidate);
+    let open_is = |candidate: &str| open.eq_ignore_ascii_case(candidate);
+    if open_is("li") {
+        eq("li")
+    } else if open_is("dt") || open_is("dd") {
+        eq("dt") || eq("dd")
+    } else if open_is("option") {
+        eq("option") || eq("optgroup")
+    } else if open_is("optgroup") {
+        eq("optgroup")
+    } else if open_is("tr") {
+        eq("tr")
+    } else if open_is("td") || open_is("th") {
+        eq("td") || eq("th") || eq("tr")
+    } else if open_is("thead") || open_is("tbody") {
+        eq("tbody") || eq("tfoot")
+    } else if open_is("rt") || open_is("rp") {
+        eq("rt") || eq("rp")
+    } else if open_is("p") {
+        P_CLOSERS.iter().any(|closer| eq(closer))
+    } else {
+        false
+    }
+}
+
+/// Decompose a raw attribute name into its directive parts, if it is one.
+fn parse_directive(name: &str, name_span: Span) -> Option<Directive<'_>> {
+    let (directive_name, shorthand, rest, rest_offset) = match name.as_bytes().first()? {
+        b':' => ("bind", Some(DirectiveShorthand::Bind), &name[1..], 1u32),
+        b'.' => ("bind", Some(DirectiveShorthand::BindProp), &name[1..], 1),
+        b'@' => ("on", Some(DirectiveShorthand::On), &name[1..], 1),
+        b'#' => ("slot", Some(DirectiveShorthand::Slot), &name[1..], 1),
+        _ => {
+            let rest = name.strip_prefix("v-")?;
+            // `v-if`, `v-else-if`, `v-on:click`, `v-bind:x`, `v-my-directive`…
+            // The directive name runs to the first `:` or `.`.
+            let name_end = rest.find([':', '.']).unwrap_or(rest.len());
+            let directive_name = &rest[..name_end];
+            let after = &rest[name_end..];
+            let (after, offset) = if let Some(stripped) = after.strip_prefix(':') {
+                (stripped, 2 + u32::try_from(name_end).unwrap_or(u32::MAX).saturating_add(1))
+            } else {
+                (after, 2 + u32::try_from(name_end).unwrap_or(u32::MAX))
+            };
+            (directive_name, None, after, offset)
+        }
+    };
+
+    // `rest` is `argument.mod1.mod2` (argument may be empty, e.g. `v-if`,
+    // or bracketed for dynamic arguments: `[key].mod`).
+    let mut modifiers = Vec::new();
+    let argument_len = if rest.starts_with('[') {
+        rest.find(']').map_or(rest.len(), |index| index + 1)
+    } else {
+        rest.find('.').unwrap_or(rest.len())
+    };
+    let (argument_text, modifier_text) = rest.split_at(argument_len);
+    for modifier in modifier_text.split('.') {
+        if !modifier.is_empty() {
+            modifiers.push(modifier);
+        }
+    }
+    let argument = if argument_text.is_empty() {
+        None
+    } else {
+        let argument_start = name_span.start + rest_offset;
+        Some(DirectiveArgument {
+            span: Span::new(
+                argument_start,
+                argument_start + u32::try_from(argument_text.len()).unwrap_or(u32::MAX),
+            ),
+            text: argument_text,
+            dynamic: argument_text.starts_with('['),
+        })
+    };
+
+    // `.prop` shorthand implies the `prop` modifier in Vue's model; keep the
+    // written modifiers only — consumers can special-case `BindProp`.
+    Some(Directive { name: directive_name, argument, modifiers, shorthand })
+}

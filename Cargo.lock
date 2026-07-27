@@ -2820,6 +2820,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxc_vue_parser"
+version = "0.0.1"
+dependencies = [
+ "oxc_span",
+]
+
+[[package]]
 name = "oxfmt"
 version = "0.61.0"
 dependencies = [
