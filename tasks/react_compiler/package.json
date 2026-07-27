@@ -10,6 +10,7 @@
     "@babel/plugin-transform-react-jsx": "^8.0.0",
     "@babel/plugin-transform-typescript": "^8.0.0",
     "babel-plugin-react-compiler": "1.0.0",
+    "oxc-transform": "link:../../napi/transform",
     "oxc-transform-react": "link:../../napi/transform-react"
   }
 }

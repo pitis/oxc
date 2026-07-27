@@ -5,9 +5,14 @@ the local `oxc-transform-react` NAPI package for every `.jsx` and `.tsx` file in
 a directory. Both pipelines run React Compiler first, remove TypeScript syntax,
 and lower JSX with the automatic runtime.
 
-Build the native binding and pass a directory to scan:
+Before comparing, the Babel output is parsed and printed by `oxc-transform`
+with no transforms enabled. This ensures both outputs use Oxc code generation
+and removes printer-only differences.
+
+Build the native bindings and pass a directory to scan:
 
 ```sh
+pnpm --dir napi/transform build-test
 pnpm --dir napi/transform-react build-test
 pnpm --filter react_compiler compare ./path/to/source
 ```

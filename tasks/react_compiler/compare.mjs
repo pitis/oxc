@@ -6,7 +6,8 @@ import { transformSync as babelTransformSync } from "@babel/core";
 import transformReactJsx from "@babel/plugin-transform-react-jsx";
 import transformTypescript from "@babel/plugin-transform-typescript";
 import reactCompiler from "babel-plugin-react-compiler";
-import { transformSync as oxcTransformSync } from "oxc-transform-react";
+import { transformSync as oxcCodegenSync } from "oxc-transform";
+import { transformSync as oxcReactCompilerSync } from "oxc-transform-react";
 
 const SOURCE_EXTENSIONS = new Set([".jsx", ".tsx"]);
 
@@ -92,13 +93,24 @@ function transformWithBabel(filename, sourceText) {
   });
 
   assert(result?.code, "Babel did not produce code");
-  return result.code;
+
+  const normalizedResult = oxcCodegenSync(filename, result.code, {
+    lang: "js",
+    sourceType: "unambiguous",
+  });
+  assertNoErrors(normalizedResult, "Oxc failed to codegen Babel output");
+  assert(normalizedResult.code, "Oxc did not codegen Babel output");
+  return normalizedResult.code;
 }
 
 function transformWithOxc(filename, sourceText) {
-  const result = oxcTransformSync(filename, sourceText);
-  const errors = result.errors.filter(({ severity }) => severity === "Error");
-  assert.deepEqual(errors, [], errors.map(({ message }) => message).join("\n"));
+  const result = oxcReactCompilerSync(filename, sourceText);
+  assertNoErrors(result, "oxc-transform-react failed");
   assert(result.code, "oxc-transform-react did not produce code");
   return result.code;
+}
+
+function assertNoErrors(result, message) {
+  const errors = result.errors.filter(({ severity }) => severity === "Error");
+  assert.equal(errors.length, 0, `${message}\n${errors.map(({ message }) => message).join("\n")}`);
 }

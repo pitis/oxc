@@ -545,6 +545,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: 1.0.0
         version: 1.0.0
+      oxc-transform:
+        specifier: link:../../napi/transform
+        version: link:../../napi/transform
       oxc-transform-react:
         specifier: link:../../napi/transform-react
         version: link:../../napi/transform-react
