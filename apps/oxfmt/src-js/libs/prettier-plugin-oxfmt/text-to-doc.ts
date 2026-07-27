@@ -13,11 +13,16 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   //   - In case of ts-in-md, `filepath` is overridden as `dummy.tx(x)` to distinguish TSX or TS
   //   - NOTE: tsx-in-vue is not supported since there is no signal from Prettier to detect it
   //     - Prettier is using `maybeJSXRe.test(sourceText)` to detect, but it's slow!
-  const isTS = parser === "typescript" || parser === "babel-ts";
+  const isTS =
+    parser === "typescript" ||
+    parser === "babel-ts" ||
+    parser === "__ts_expression" ||
+    parser === "__vue_ts_expression" ||
+    parser === "__vue_ts_event_binding";
   const embeddedSourceExt = isTS ? (filepath?.endsWith(".tsx") ? "tsx" : "ts") : "jsx";
 
-  // Detect context from Prettier's internal flags
-  const parentContext = detectParentContext(parentParser!, textToDocOptions);
+  // Detect context from the (pseudo-)parser name and Prettier's internal flags
+  const parentContext = detectParentContext(parser as string, parentParser!, textToDocOptions);
 
   const docJSON = await jsTextToDoc(
     embeddedSourceExt,
@@ -31,7 +36,31 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   }
 
   // SAFETY: Rust side returns Prettier's `Doc` JSON wrapped with `{ doc, refs }` for sharing.
-  const { doc, refs } = JSON.parse(docJSON) as { doc: unknown; refs: unknown[] };
+  // Expression fragments may carry 2 extra fields:
+  // - `parseError`: the text did not parse; reported as data because Prettier's
+  //   `v-on` printer falls back from the expression form to the event-handler
+  //   (statements) form only on a Babel-shaped syntax error
+  // - `expressionRoot`: root node type for Prettier's `__onHtmlBindingRoot` hook,
+  //   which drives the hug-vs-expand layout of attribute values
+  const { doc, refs, parseError, expressionRoot } = JSON.parse(docJSON) as {
+    doc: unknown;
+    refs: unknown[];
+    parseError?: boolean;
+    expressionRoot?: string;
+  };
+
+  if (parseError) {
+    throw new Error("`oxfmt::textToDoc()` failed to parse the fragment", {
+      cause: { code: "BABEL_PARSER_SYNTAX_ERROR" },
+    });
+  }
+
+  if (expressionRoot) {
+    // `shouldHugJsExpression` only reads `.type`, a minimal fake AST is enough.
+    (
+      textToDocOptions as { __onHtmlBindingRoot?: (ast: unknown, options: unknown) => void }
+    ).__onHtmlBindingRoot?.({ type: expressionRoot }, textToDocOptions);
+  }
 
   // Fast path for no refs (common when formatting small AST fragments).
   if (refs.length === 0) return doc as Doc;
@@ -80,14 +109,40 @@ function resolveRefs(node: unknown, rawRefs: unknown[], cache: unknown[]): unkno
 }
 
 /**
- * Detects Vue fragment mode from Prettier's internal flags.
+ * Detects the fragment mode from the (pseudo-)parser name and Prettier's internal flags.
  *
- * When Prettier formats Vue SFC templates, it calls textToDoc with special flags:
+ * Prettier's HTML/Vue embeds request expression fragments through pseudo-parser names:
+ * - `__(js|ts)_expression`: plain expression (`v-if`, `v-show`, `v-for` right-hand side,
+ *   and the first attempt for `v-on`/`@event`)
+ * - `__vue(_ts)_expression`: Vue expression (`{{ ... }}` interpolations, `v-bind`/`:prop`)
+ * - `__vue(_ts)_event_binding`: `v-on`/`@event` fallback, parsed as statement(s)
+ * The attribute-vs-interpolation position arrives as `__isInHtmlAttribute`.
+ *
+ * When Prettier formats Vue SFC templates with a regular parser, it instead
+ * signals the fragment through special flags:
  * - `__isVueForBindingLeft`: v-for left-hand side (e.g., `(item, index)` in `v-for="(item, index) in items"`)
  * - `__isVueBindings`: v-slot bindings (e.g., `{ item }` in `#default="{ item }"`)
  * - `__isEmbeddedTypescriptGenericParameters`: `<script generic="...">` type parameters
  */
-function detectParentContext(parentParser: string, options: Record<string, unknown>): string {
+function detectParentContext(
+  parser: string,
+  parentParser: string,
+  options: Record<string, unknown>,
+): string {
+  switch (parser) {
+    case "__js_expression":
+    case "__ts_expression":
+    case "__vue_expression":
+    case "__vue_ts_expression":
+      return "__isInHtmlAttribute" in options
+        ? "expression-attribute"
+        : "expression-interpolation";
+    case "__vue_event_binding":
+    case "__vue_ts_event_binding":
+      return "event-handler";
+    default:
+  }
+
   if (parentParser === "vue") {
     if ("__isVueForBindingLeft" in options) return "vue-for-binding-left";
     if ("__isVueBindings" in options) return "vue-bindings";

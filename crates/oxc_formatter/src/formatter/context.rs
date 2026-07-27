@@ -106,6 +106,12 @@ pub struct JsFormatContext<'ast> {
     /// When non-empty, StringLiterals should be sorted as Tailwind classes.
     tailwind_context_stack: Vec<TailwindContextEntry>,
 
+    /// Whether the formatted code sits inside a double-quoted HTML attribute
+    /// (js-in-xxx fragments). String literals are then forced to single quotes
+    /// regardless of their content, mirroring Prettier's `__isInHtmlAttribute`:
+    /// a swap to double quotes would be entity-escaped to `&quot;` by the host.
+    embedded_in_html_attribute: bool,
+
     external_callbacks: ExternalCallbacks,
 }
 
@@ -165,8 +171,21 @@ impl<'ast> JsFormatContext<'ast> {
             quote_needed_stack: Vec::new(),
             tailwind_classes: Vec::new(),
             tailwind_context_stack: Vec::new(),
+            embedded_in_html_attribute: false,
             external_callbacks: external_callbacks.unwrap_or_default(),
         }
+    }
+
+    /// See the `embedded_in_html_attribute` field.
+    #[must_use]
+    pub fn with_embedded_in_html_attribute(mut self, yes: bool) -> Self {
+        self.embedded_in_html_attribute = yes;
+        self
+    }
+
+    /// See the `embedded_in_html_attribute` field.
+    pub fn embedded_in_html_attribute(&self) -> bool {
+        self.embedded_in_html_attribute
     }
 
     /// Returns a reference to the program's comments.

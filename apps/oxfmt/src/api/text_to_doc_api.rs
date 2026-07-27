@@ -24,7 +24,6 @@ use crate::{
 };
 
 /// Fragment kind for embedded JS/TS contexts.
-#[expect(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug)]
 enum FragmentKind {
     /// `v-for` left-hand side: `(item, index) in items` → formats `item, index` part.
@@ -33,6 +32,15 @@ enum FragmentKind {
     VueBindings,
     /// `<script generic="T extends Foo">` → formats type parameters without angle brackets.
     VueScriptGeneric,
+    /// A bare expression inside a double-quoted attribute:
+    /// `v-if`/`v-show` and other simple directives, `v-bind`/`:prop`,
+    /// the `v-for` right-hand side, and the expression form of `v-on`/`@event`.
+    ExpressionAttribute,
+    /// A bare expression inside an interpolation: `{{ ... }}`.
+    ExpressionInterpolation,
+    /// Statement(s) of an inline event handler: `v-on`/`@event` values that
+    /// did not parse as a single expression.
+    EventHandler,
 }
 
 /// `js_text_to_doc()` implementation for NAPI API.
@@ -61,6 +69,9 @@ pub fn run(
         "vue-for-binding-left" => Some(FragmentKind::VueForBindingLeft),
         "vue-bindings" => Some(FragmentKind::VueBindings),
         "vue-script-generic" => Some(FragmentKind::VueScriptGeneric),
+        "expression-attribute" => Some(FragmentKind::ExpressionAttribute),
+        "expression-interpolation" => Some(FragmentKind::ExpressionInterpolation),
+        "event-handler" => Some(FragmentKind::EventHandler),
         // "vue-script", "svelte-script"
         _ => None,
     };
@@ -207,29 +218,65 @@ fn run_fragment(
         FragmentKind::VueForBindingLeft => FragmentContext::FunctionParamsAsBindingLhs,
         FragmentKind::VueBindings => FragmentContext::FunctionParamsAsBinding,
         FragmentKind::VueScriptGeneric => FragmentContext::TypeParameters,
+        FragmentKind::ExpressionAttribute => {
+            FragmentContext::Expression { in_html_attribute: true }
+        }
+        FragmentKind::ExpressionInterpolation => {
+            FragmentContext::Expression { in_html_attribute: false }
+        }
+        FragmentKind::EventHandler => FragmentContext::EventHandlerStatements,
     };
 
     let allocator = Allocator::default();
-    let formatted = match oxc_formatter::format_fragment(
+    let fragment = match oxc_formatter::format_fragment(
         &allocator,
         source_text,
         source_type,
         *format_options,
         context,
     ) {
-        Ok(formatted) => formatted,
+        Ok(fragment) => fragment,
         Err(err) => {
             debug!("`oxc_formatter::format_fragment()` failed: {err:?}");
+            // The expression/event-handler kinds report parse failures as data
+            // instead of a generic error: Prettier's `v-on` printer needs a
+            // recognizable syntax error to fall back from the expression form
+            // to the event-handler (statements) form.
+            if matches!(
+                kind,
+                FragmentKind::ExpressionAttribute
+                    | FragmentKind::ExpressionInterpolation
+                    | FragmentKind::EventHandler
+            ) {
+                return Some(serde_json::json!({ "parseError": true }));
+            }
             return None;
         }
     };
 
+    let expression_root = fragment.expression_root;
     let (elements, sorted_tailwind_classes) =
-        formatted.into_document().into_elements_and_tailwind_classes();
-    Some(
+        fragment.formatted.into_document().into_elements_and_tailwind_classes();
+    let mut doc_json =
         to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes)
-            .expect("Formatter IR to Prettier Doc conversion should not fail"),
-    )
+            .expect("Formatter IR to Prettier Doc conversion should not fail");
+
+    // Report the root expression kind so the JS side can feed Prettier's
+    // `__onHtmlBindingRoot` hook (hug-vs-expand layout for attribute values).
+    if let (Some(root), Some(object)) = (expression_root, doc_json.as_object_mut()) {
+        use oxc_formatter::ExpressionRootKind;
+        let estree_type = match root {
+            ExpressionRootKind::ObjectExpression => "ObjectExpression",
+            ExpressionRootKind::ArrayExpression => "ArrayExpression",
+            ExpressionRootKind::TemplateLiteral => "TemplateLiteral",
+            ExpressionRootKind::StringLiteral => "StringLiteral",
+            // Any type outside the hug list behaves the same; `Unknown` is not
+            // a real estree type, it only needs to miss `shouldHugJsExpression`.
+            ExpressionRootKind::Other => "Unknown",
+        };
+        object.insert("expressionRoot".to_string(), Value::String(estree_type.to_string()));
+    }
+    Some(doc_json)
 }
 
 // ---

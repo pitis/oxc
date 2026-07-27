@@ -146,7 +146,11 @@ impl<'a, 'b> BinaryLikeExpression<'a, 'b> {
             AstNodes::ReturnStatement(_)
             | AstNodes::ThrowStatement(_)
             | AstNodes::ForStatement(_)
-            | AstNodes::TemplateLiteral(_) => true,
+            | AstNodes::TemplateLiteral(_)
+            // An expression directly under `Program` only occurs for
+            // `FragmentContext::Expression` roots (js-in-xxx), where the host
+            // wraps the fragment and indents; matches Prettier's `JsExpressionRoot`.
+            | AstNodes::Program(_) => true,
             AstNodes::JSXExpressionContainer(container) => {
                 matches!(container.parent(), AstNodes::JSXAttribute(_))
             }

@@ -70,6 +70,56 @@ pub enum FragmentContext {
     ///
     /// Input wrap: `type T<PARAMS> = any`
     TypeParameters,
+    /// A bare expression (e.g. Vue `v-if` / `v-bind` values, `{{ ... }}` interpolations).
+    ///
+    /// Input: the raw expression text, NOT pre-wrapped.
+    /// (Prettier's `__js_expression` parser family receives the bare text,
+    /// so there is no host-side wrap to mirror;
+    /// `format_fragment` wraps internally as `(EXPR\n);` to parse it.)
+    ///
+    /// `in_html_attribute` selects the preferred quote style:
+    /// inside a double-quoted attribute single quotes are preferred,
+    /// while outside one (an interpolation) the configured quote style is kept.
+    Expression { in_html_attribute: bool },
+    /// Statement(s) from an inline event handler (e.g. Vue `@click` values that
+    /// do not parse as a single expression).
+    ///
+    /// Input: the raw statements text, NOT pre-wrapped.
+    ///
+    /// A lone expression statement keeps or drops its trailing semicolon
+    /// following the same rule as Prettier's `__vue_event_binding` parser
+    /// (which mirrors the Vue compiler's inline-handler detection):
+    /// the semicolon is printed only when the expression is a function/arrow
+    /// expression, a member expression, or an identifier other than `undefined`.
+    /// This is semantic, not stylistic: in Vue, a handler value with a trailing
+    /// semicolon compiles as an inline statement rather than a method reference.
+    EventHandlerStatements,
+}
+
+/// Classification of the root node of a [`FragmentContext::Expression`] fragment.
+///
+/// Embedders need this for Prettier's hug-vs-expand layout decision
+/// (`shouldHugJsExpression` in `language-html/embed/utilities.js`):
+/// object/array literals hug the attribute quotes, other expressions expand
+/// with an indented soft line break. Variant names match the estree node types
+/// the decision is keyed on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ExpressionRootKind {
+    ObjectExpression,
+    ArrayExpression,
+    TemplateLiteral,
+    StringLiteral,
+    Other,
+}
+
+/// Result of [`format_fragment`]: the formatted IR plus fragment metadata.
+pub struct FormattedFragment<'a> {
+    pub formatted: Formatted<'a, JsFormatContext<'a>>,
+    /// `Some` for [`FragmentContext::Expression`] and
+    /// [`FragmentContext::EventHandlerStatements`], `None` for the other contexts.
+    /// An event-handler fragment always reports [`ExpressionRootKind::Other`]:
+    /// its root is the statement list, which never hugs.
+    pub expression_root: Option<ExpressionRootKind>,
 }
 
 /// Format an entire JS/TS program from source text, text-in entry point.
@@ -103,17 +153,34 @@ pub fn format_fragment<'a>(
     source_type: SourceType,
     options: JsFormatOptions,
     context: FragmentContext,
-) -> Result<Formatted<'a, JsFormatContext<'a>>, OxcDiagnostic> {
+) -> Result<FormattedFragment<'a>, OxcDiagnostic> {
+    // `Expression` receives bare text; wrap it so leading `{` parses as an
+    // object literal instead of a block, and a trailing `//` comment cannot
+    // swallow the closing delimiter. `preserve_parens` is disabled in
+    // `parse_for_format`, so the synthetic parens leave no AST node behind.
+    let source_text = if matches!(context, FragmentContext::Expression { .. }) {
+        allocator.alloc_str(&format!("({source_text}\n);"))
+    } else {
+        source_text
+    };
     let program = parse(allocator, source_text, source_type)?;
 
-    // For now, every fragment context sits inside a double-quoted attribute,
-    // so single quotes avoid clashing with the surrounding attribute delimiter.
+    // Fragment contexts sitting inside a double-quoted attribute prefer single
+    // quotes to avoid clashing with the surrounding attribute delimiter.
+    // Interpolations are not inside an attribute, so they keep the configured style.
     //
     // NOTE: Since this options is just the preferred quote (not a forced),
     // this may not be enough for all cases.
     // But it seems fine for almost all cases, so leave it for now.
-    let options = JsFormatOptions { quote_style: QuoteStyle::Single, ..options };
+    let in_html_attribute =
+        !matches!(context, FragmentContext::Expression { in_html_attribute: false });
+    let options = if in_html_attribute {
+        JsFormatOptions { quote_style: QuoteStyle::Single, ..options }
+    } else {
+        options
+    };
 
+    let mut expression_root = None;
     let formatted = match context {
         FragmentContext::FunctionParamsAsBindingLhs | FragmentContext::FunctionParamsAsBinding => {
             let Some(Statement::FunctionDeclaration(func)) = program.body.first() else {
@@ -135,6 +202,7 @@ pub fn format_fragment<'a>(
                 source_type,
                 &program.comments,
                 None,
+                in_html_attribute,
             )
         }
         FragmentContext::TypeParameters => {
@@ -156,11 +224,145 @@ pub fn format_fragment<'a>(
                 source_type,
                 &program.comments,
                 None,
+                in_html_attribute,
             )
+        }
+        FragmentContext::Expression { .. } => {
+            // Exactly one statement is required: text like `a); (b` would
+            // otherwise wrap into two statements and silently format only the first.
+            let [Statement::ExpressionStatement(stmt)] = program.body.as_slice() else {
+                return Err(OxcDiagnostic::error("Expected a single expression fragment"));
+            };
+            let expression = &stmt.expression;
+            expression_root = Some(classify_expression_root(expression));
+            // Parent the expression under the `Program` node rather than `Dummy`:
+            // expression formatting reads the parent (trailing-comment bounds,
+            // parenthesization), and a `Program` parent matches no parens rule —
+            // the same "root expression" semantics as Prettier's `JsExpressionRoot`.
+            let program_node = allocator.alloc(AstNode::new(program, AstNodes::Dummy(), allocator));
+            let node = AstNode::new(expression, AstNodes::Program(program_node), allocator);
+            format_node(
+                allocator,
+                options,
+                &node,
+                program.source_text,
+                source_type,
+                &program.comments,
+                None,
+                in_html_attribute,
+            )
+        }
+        FragmentContext::EventHandlerStatements => {
+            // The root of an event-handler fragment is the whole statement list
+            // (Prettier reports the `Program` node to `__onHtmlBindingRoot`),
+            // which is never in the hug list.
+            expression_root = Some(ExpressionRootKind::Other);
+            // A comments-only handler (e.g. `@click="/* hello */"`) has nothing
+            // to format; `Program`'s trailing-comments path would prepend a
+            // space, so print the dangling comments directly instead.
+            if program.body.is_empty() && program.directives.is_empty() {
+                let content = formatter::prelude::format_with(|f| {
+                    formatter::trivia::format_dangling_comments(program.span).fmt(f);
+                });
+                format_node(
+                    allocator,
+                    options,
+                    &content,
+                    program.source_text,
+                    source_type,
+                    &program.comments,
+                    None,
+                    in_html_attribute,
+                )
+            }
+            // A lone expression statement gets the Vue inline-handler semicolon
+            // rule; anything else (multiple statements, declarations, directives)
+            // is formatted as a plain program under the normal semicolon option.
+            else if let ([Statement::ExpressionStatement(stmt)], []) =
+                (program.body.as_slice(), program.directives.as_slice())
+            {
+                let with_semicolon = keeps_event_handler_semicolon(&stmt.expression);
+                // See the `Expression` arm for why the parent is the `Program` node.
+                let program_node =
+                    allocator.alloc(AstNode::new(program, AstNodes::Dummy(), allocator));
+                let node =
+                    AstNode::new(&stmt.expression, AstNodes::Program(program_node), allocator);
+                let content = formatter::prelude::format_with(|f| {
+                    write!(f, [node]);
+                    if with_semicolon {
+                        write!(f, [";"]);
+                    }
+                });
+                format_node(
+                    allocator,
+                    options,
+                    &content,
+                    program.source_text,
+                    source_type,
+                    &program.comments,
+                    None,
+                    in_html_attribute,
+                )
+            } else {
+                let node = AstNode::new(program, AstNodes::Dummy(), allocator);
+                format_node(
+                    allocator,
+                    options,
+                    &node,
+                    program.source_text,
+                    source_type,
+                    &program.comments,
+                    None,
+                    in_html_attribute,
+                )
+            }
         }
     };
 
-    Ok(formatted)
+    Ok(FormattedFragment { formatted, expression_root })
+}
+
+/// See [`ExpressionRootKind`].
+fn classify_expression_root(expression: &Expression) -> ExpressionRootKind {
+    match expression {
+        Expression::ObjectExpression(_) => ExpressionRootKind::ObjectExpression,
+        Expression::ArrayExpression(_) => ExpressionRootKind::ArrayExpression,
+        Expression::TemplateLiteral(_) => ExpressionRootKind::TemplateLiteral,
+        Expression::StringLiteral(_) => ExpressionRootKind::StringLiteral,
+        _ => ExpressionRootKind::Other,
+    }
+}
+
+/// The Vue inline-handler semicolon rule for [`FragmentContext::EventHandlerStatements`].
+///
+/// Mirrors Prettier's `shouldPrintSemicolon` for `__vue_event_binding`
+/// (`language-js/print/expression-statement.js`), which in turn mirrors the
+/// Vue compiler's inline-handler detection: TS assertion wrappers are unwrapped
+/// first, then function/arrow expressions, member expressions (including
+/// optional chains ending in a member access), and identifiers other than
+/// `undefined` keep their semicolon.
+fn keeps_event_handler_semicolon(expression: &Expression) -> bool {
+    match expression {
+        Expression::TSAsExpression(e) => keeps_event_handler_semicolon(&e.expression),
+        Expression::TSTypeAssertion(e) => keeps_event_handler_semicolon(&e.expression),
+        Expression::TSNonNullExpression(e) => keeps_event_handler_semicolon(&e.expression),
+        Expression::TSInstantiationExpression(e) => keeps_event_handler_semicolon(&e.expression),
+        Expression::TSSatisfiesExpression(e) => keeps_event_handler_semicolon(&e.expression),
+        Expression::FunctionExpression(_)
+        | Expression::ArrowFunctionExpression(_)
+        | Expression::StaticMemberExpression(_)
+        | Expression::ComputedMemberExpression(_)
+        | Expression::PrivateFieldExpression(_) => true,
+        Expression::ChainExpression(chain) => match &chain.expression {
+            ChainElement::StaticMemberExpression(_)
+            | ChainElement::ComputedMemberExpression(_)
+            | ChainElement::PrivateFieldExpression(_) => true,
+            ChainElement::TSNonNullExpression(e) => keeps_event_handler_semicolon(&e.expression),
+            ChainElement::CallExpression(_) => false,
+        },
+        Expression::Identifier(identifier) => identifier.name != "undefined",
+        _ => false,
+    }
 }
 
 /// Format an already-parsed program, special-purpose AST-in entry point.
@@ -187,6 +389,7 @@ pub fn format_program<'a>(
         program.source_type,
         &program.comments,
         external_callbacks,
+        false,
     )
 }
 
@@ -250,9 +453,11 @@ fn format_node<'a, F: Format<'a, JsFormatContext<'a>>>(
     source_type: SourceType,
     comments: &'a [Comment],
     external_callbacks: Option<ExternalCallbacks>,
+    embedded_in_html_attribute: bool,
 ) -> Formatted<'a, JsFormatContext<'a>> {
     let context =
-        JsFormatContext::new(source_text, source_type, comments, options, external_callbacks);
+        JsFormatContext::new(source_text, source_type, comments, options, external_callbacks)
+            .with_embedded_in_html_attribute(embedded_in_html_attribute);
     formatter::format(
         context,
         allocator,

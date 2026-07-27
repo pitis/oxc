@@ -661,7 +661,11 @@ impl NeedsParentheses<'_> for AstNode<'_, AssignmentExpression<'_>> {
             AstNodes::TSPropertySignature(_) |
             // Never need parentheses in these contexts:
             // - `a = (b = c)` = nested assignments don't need extra parens
-            AstNodes::AssignmentExpression(_) => false,
+            AstNodes::AssignmentExpression(_) |
+            // A `Program` parent only occurs for `FragmentContext::Expression`
+            // roots (js-in-xxx), which never need parens;
+            // matches Prettier's `path.isRoot` early exit for `JsExpressionRoot`.
+            AstNodes::Program(_) => false,
             // Computed member expressions: need parens when assignment is the object
             // - `obj[(a = b)]` parens needed for explicitness
             // - `(a = b)[obj]` = parens needed for object
@@ -697,7 +701,11 @@ impl NeedsParentheses<'_> for AstNode<'_, SequenceExpression<'_>> {
             AstNodes::ReturnStatement(_)
             | AstNodes::ThrowStatement(_)
             // There's a precedence for writing `x++, y++`
-            | AstNodes::ForStatement(_) => false,
+            | AstNodes::ForStatement(_)
+            // A `Program` parent only occurs for `FragmentContext::Expression`
+            // roots (js-in-xxx), which never need parens;
+            // matches Prettier's `path.isRoot` early exit for `JsExpressionRoot`.
+            | AstNodes::Program(_) => false,
             AstNodes::ExpressionStatement(stmt) => !stmt.is_arrow_function_body(),
             _ => true,
         }

@@ -166,8 +166,9 @@ static TAILWIND_PARSERS: phf::Set<&'static str> = phf_set! {
 };
 
 /// Parsers(files) that can embed JS/TS code and benefit from oxfmt plugin.
-/// For now, expressions are not supported.
-/// - e.g. `__vue_expression` in `vue`, `__ng_directive` in `angular`
+/// This covers both `<script>` contents and expression fragments
+/// (`__(js|ts)_expression`, `__vue(_ts)_expression`, `__vue(_ts)_event_binding`).
+/// Angular-style fragments (e.g. `__ng_directive`) are not supported yet.
 #[cfg(feature = "napi")]
 static OXFMT_PARSERS: phf::Set<&'static str> = phf_set! {
     // "html",

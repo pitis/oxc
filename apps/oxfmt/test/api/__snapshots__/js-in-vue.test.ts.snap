@@ -58,6 +58,37 @@ exports[`Format js-in-vue with prettier-plugin-oxfmt > should format .vue w/ tem
 "
 `;
 
+exports[`Format js-in-vue with prettier-plugin-oxfmt > should format template expressions (directives, v-bind, v-for RHS) 1`] = `
+"<template>
+  <div v-if="someCondition && otherCondition">x</div>
+  <div v-show="!visible">y</div>
+  <li v-for="(item, idx) in items.filter((i) => i > 0)">{{ item }}</li>
+  <div :class="{ active: isActive, 'text-danger': hasError }">z</div>
+  <div :class="['a', 'b', { c: d }]">arr</div>
+  <input :value="\`hello \${name}\`" />
+</template>
+"
+`;
+
+exports[`Format js-in-vue with prettier-plugin-oxfmt > should format v-on values, preserving inline-handler semicolon semantics 1`] = `
+"<template>
+  <button @click="count++">a</button>
+  <button @click="doSomething(a, b)">b</button>
+  <button
+    @click="
+      a++;
+      b++;
+    "
+  >
+    c
+  </button>
+  <button @click="foo;">d</button>
+  <button @click="foo">e</button>
+  <button @click="(e) => handle(e, 'x')">f</button>
+</template>
+"
+`;
+
 exports[`Format js-in-vue with prettier-plugin-oxfmt > should preserve gql block-string blank lines through a .vue script 1`] = `
 "<script setup>
 const q = graphql\`
