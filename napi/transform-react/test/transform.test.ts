@@ -145,6 +145,30 @@ describe("transformSync", () => {
     expect(result.code).toContain("[CSS_VAR]");
     expect(result.code).toContain("import { CSS_VAR }");
   });
+
+  it("continues after an incompatible library bailout", () => {
+    const result = transformSync(
+      "Components.tsx",
+      `import { useReactTable } from "@tanstack/react-table";
+      function Table() {
+        const table = useReactTable({});
+        return <div>{table}</div>;
+      }
+      export function Component(props: { text: string }) {
+        return <span>{props.text}</span>;
+      }`,
+    );
+
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toMatchObject({
+      severity: "Warning",
+      message: "[ReactCompiler] IncompatibleLibrary: Use of incompatible library",
+    });
+    expect(result.errors.some((error) => error.message.includes("Unexpected error"))).toBe(false);
+    expect(result.code).toContain("react/compiler-runtime");
+    expect(result.code).not.toContain("props: { text: string }");
+    expect(result.code).not.toContain("<span");
+  });
 });
 
 describe("transform", () => {
