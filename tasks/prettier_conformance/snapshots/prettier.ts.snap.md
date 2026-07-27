@@ -1,10 +1,9 @@
-ts compatibility: 628/659 (95.30%), 15 files skipped
+ts compatibility: 629/659 (95.45%), 15 files skipped
 
 # Failed
 
 | Spec path | Failed or Passed | Match ratio |
 | :-------- | :--------------: | :---------: |
-| typescript/arrow/return-type/18588.ts | 💥 | 58.82% |
 | typescript/as/comments/17407.ts | 💥 | 47.06% |
 | typescript/call/callee-comments.ts | 💥 | 75.00% |
 | typescript/cast/18406.ts | 💥 | 84.21% |
