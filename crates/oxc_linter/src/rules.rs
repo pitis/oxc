@@ -869,6 +869,7 @@ pub(crate) mod vue {
     pub mod next_tick_style;
     pub mod no_arrow_functions_in_watch;
     pub mod no_async_in_computed_properties;
+    pub mod no_child_content;
     pub mod no_computed_properties_in_data;
     pub mod no_deprecated_data_object_declaration;
     pub mod no_deprecated_delete_set;
@@ -883,6 +884,7 @@ pub(crate) mod vue {
     pub mod no_expose_after_await;
     pub mod no_import_compiler_macros;
     pub mod no_lifecycle_after_await;
+    pub mod no_lone_template;
     pub mod no_multiple_slot_args;
     pub mod no_parsing_error;
     pub mod no_required_prop_with_default;
@@ -891,10 +893,15 @@ pub(crate) mod vue {
     pub mod no_reserved_props;
     pub mod no_shared_component_data;
     pub mod no_side_effects_in_computed_properties;
+    pub mod no_template_key;
+    pub mod no_textarea_mustache;
     pub mod no_this_in_before_route_enter;
+    pub mod no_useless_template_attributes;
+    pub mod no_v_for_template_key_on_child;
     pub mod no_watch_after_await;
     pub mod prefer_import_from_vue;
     pub mod prop_name_casing;
+    pub mod require_component_is;
     pub mod require_default_export;
     pub mod require_default_prop;
     pub mod require_direct_export;

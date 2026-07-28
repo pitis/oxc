@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-template-key): '<template>' cannot be keyed. Place the key on real elements instead.
+   ╭─[no_template_key.tsx:1:21]
+ 1 │ <template><template key="foo"></template></template>
+   ·                     ─────────
+   ╰────
+  help: Move the `key`/`:key` onto the element(s) `<template>` wraps, or add `v-for` to the `<template>` if that's what needs the key.
+
+  ⚠ vue(no-template-key): '<template>' cannot be keyed. Place the key on real elements instead.
+   ╭─[no_template_key.tsx:1:21]
+ 1 │ <template><template :key="foo"></template></template>
+   ·                     ──────────
+   ╰────
+  help: Move the `key`/`:key` onto the element(s) `<template>` wraps, or add `v-for` to the `<template>` if that's what needs the key.
+
+  ⚠ vue(no-template-key): '<template>' cannot be keyed. Place the key on real elements instead.
+   ╭─[no_template_key.tsx:1:21]
+ 1 │ <template><template v-bind:key="foo"></template></template>
+   ·                     ────────────────
+   ╰────
+  help: Move the `key`/`:key` onto the element(s) `<template>` wraps, or add `v-for` to the `<template>` if that's what needs the key.
+
+  ⚠ vue(no-template-key): '<template>' cannot be keyed. Place the key on real elements instead.
+   ╭─[no_template_key.tsx:1:33]
+ 1 │ <template><template v-if="cond" :key="foo"></template></template>
+   ·                                 ──────────
+   ╰────
+  help: Move the `key`/`:key` onto the element(s) `<template>` wraps, or add `v-for` to the `<template>` if that's what needs the key.
+
+  ⚠ vue(no-template-key): '<template>' cannot be keyed. Place the key on real elements instead.
+   ╭─[no_template_key.tsx:1:26]
+ 1 │ <template><div><template key="foo"></template></div></template>
+   ·                          ─────────
+   ╰────
+  help: Move the `key`/`:key` onto the element(s) `<template>` wraps, or add `v-for` to the `<template>` if that's what needs the key.

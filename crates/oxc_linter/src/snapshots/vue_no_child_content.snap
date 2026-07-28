@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-html directive.
+   ╭─[no_child_content.tsx:1:29]
+ 1 │ <template><div v-html="raw"><span>content</span></div></template>
+   ·                             ────────────────────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-html directive.
+   ╭─[no_child_content.tsx:1:29]
+ 1 │ <template><div v-html="raw"><!-- comment --></div></template>
+   ·                             ────────────────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-html directive.
+   ╭─[no_child_content.tsx:1:29]
+ 1 │ <template><div v-html='raw'>{{ text }}</div></template>
+   ·                             ──────────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-text directive.
+   ╭─[no_child_content.tsx:1:27]
+ 1 │ <template><div v-text="t">hello</div></template>
+   ·                           ─────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-custom-directive directive.
+   ╭─[no_child_content.tsx:1:39]
+ 1 │ <template><div v-custom-directive="x">hello</div></template>
+   ·                                       ─────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.

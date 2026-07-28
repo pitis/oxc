@@ -59,6 +59,13 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
     match rule {
         RuleEnum::VueRequireVForKey(rule) => Some(rule),
         RuleEnum::VueNoDuplicateAttributes(rule) => Some(rule),
+        RuleEnum::VueNoTemplateKey(rule) => Some(rule),
+        RuleEnum::VueNoTextareaMustache(rule) => Some(rule),
+        RuleEnum::VueRequireComponentIs(rule) => Some(rule),
+        RuleEnum::VueNoLoneTemplate(rule) => Some(rule),
+        RuleEnum::VueNoUselessTemplateAttributes(rule) => Some(rule),
+        RuleEnum::VueNoVForTemplateKeyOnChild(rule) => Some(rule),
+        RuleEnum::VueNoChildContent(rule) => Some(rule),
         RuleEnum::VueValidVIf(rule) => Some(rule),
         RuleEnum::VueValidVElse(rule) => Some(rule),
         RuleEnum::VueValidVElseIf(rule) => Some(rule),
