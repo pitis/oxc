@@ -68,12 +68,23 @@ impl<'a> SfcBlock<'a> {
 /// matching how Vue's own SFC compiler treats it; non-whitespace stray
 /// content is still surfaced via [`Sfc::orphan_spans`] rather than being
 /// silently dropped.
+///
+/// `source` is parsed as a whole, so every span this function returns
+/// (`SfcBlock::span`, `SfcBlock::content_span`, `Sfc::orphan_spans`) is
+/// already file-relative — no offsetting needed. This holds even for a
+/// nested `<template>` block: because `parse_sfc` never re-parses an
+/// extracted substring, `base_offset` never enters the picture here. A
+/// consumer that instead extracts `block.content` and re-parses it
+/// standalone via [`parse_template`] must pass `block.content_span.start` as
+/// that call's `base_offset` to keep spans file-relative.
 pub fn parse_sfc(source: &str) -> Sfc<'_> {
     // The template parser already implements exactly the tag scanning,
     // attribute parsing, raw-text and nesting rules needed at the top level:
-    // `script`/`style` are raw-text elements, `template` nests.
+    // `script`/`style` are raw-text elements, `template` nests. Parsing the
+    // whole file (base_offset 0) rather than re-parsing extracted block
+    // content is what keeps every span file-relative by construction.
     // A `.vue` file at the top level IS a tiny HTML document.
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let mut blocks = Vec::new();
     let mut orphan_spans = Vec::new();
     for node in nodes {

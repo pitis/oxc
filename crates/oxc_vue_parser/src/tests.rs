@@ -12,7 +12,7 @@ fn only_element<'a>(nodes: &'a [Node<'a>]) -> &'a crate::ast::Element<'a> {
 
 #[test]
 fn parses_element_tree_with_text_and_interpolation() {
-    let nodes = parse_template("<div class=\"a\">hi {{ name }}!</div>");
+    let nodes = parse_template("<div class=\"a\">hi {{ name }}!</div>", 0);
     let div = only_element(&nodes);
     assert_eq!(div.name, "div");
     assert_eq!(div.attributes.len(), 1);
@@ -30,6 +30,7 @@ fn parses_element_tree_with_text_and_interpolation() {
 fn decomposes_directives() {
     let nodes = parse_template(
         r#"<input v-if="ok" :value="v" @keyup.enter.stop="go" v-on:click="c" #default v-bind:[key].sync="d" v-my-thing:arg.m="x" />"#,
+        0,
     );
     let input = only_element(&nodes);
     let directive =
@@ -70,7 +71,7 @@ fn decomposes_directives() {
 
 #[test]
 fn void_and_self_closing_elements_have_no_children() {
-    let nodes = parse_template("<br><Item :x=\"1\" /><img src=\"a\">");
+    let nodes = parse_template("<br><Item :x=\"1\" /><img src=\"a\">", 0);
     let names: Vec<_> = nodes
         .iter()
         .filter_map(|node| if let Node::Element(element) = node { Some(element) } else { None })
@@ -88,7 +89,7 @@ fn raw_text_elements_keep_bodies_verbatim() {
     // below) — `textarea` is used here instead to exercise the same
     // byte-preservation behavior for genuine raw-text elements.
     let source = "<textarea>  <div> not parsed {{ x }}  </textarea>";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let textarea = only_element(&nodes);
     let raw = textarea.raw_text.expect("raw text");
     assert_eq!(&source[raw.start as usize..raw.end as usize], "  <div> not parsed {{ x }}  ");
@@ -102,7 +103,7 @@ fn pre_parses_children_normally() {
     // `<pre>` (only whitespace *rendering* differs) and Vue compiles
     // directives inside it, so it must parse like any other element.
     let source = "<pre><code v-if=\"x\">{{ y }}</code></pre>";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let pre = only_element(&nodes);
     assert!(pre.raw_text.is_none());
     assert_eq!(pre.children.len(), 1);
@@ -131,7 +132,7 @@ fn nested_pre_does_not_produce_a_stray_top_level_raw() {
     // other element, the ancestor-aware closing-tag matching handles
     // nesting correctly and no such artifact appears.
     let source = "<pre><pre>x</pre></pre>";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     assert_eq!(nodes.len(), 1, "no stray top-level Raw node");
     let outer = only_element(&nodes);
     assert_eq!(outer.name, "pre");
@@ -148,7 +149,7 @@ fn nested_pre_does_not_produce_a_stray_top_level_raw() {
 #[test]
 fn unterminated_comment_is_flagged() {
     let source = "<!-- never closed";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     assert_eq!(nodes.len(), 1);
     let Node::Comment(comment) = &nodes[0] else {
         panic!("expected comment");
@@ -160,7 +161,7 @@ fn unterminated_comment_is_flagged() {
 #[test]
 fn terminated_comment_is_not_flagged() {
     let source = "<!-- closed -->";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let Node::Comment(comment) = &nodes[0] else {
         panic!("expected comment");
     };
@@ -171,7 +172,7 @@ fn terminated_comment_is_not_flagged() {
 #[test]
 fn unterminated_interpolation_is_flagged() {
     let source = "{{ never closed";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     assert_eq!(nodes.len(), 1);
     let Node::Interpolation(interpolation) = &nodes[0] else {
         panic!("expected interpolation");
@@ -183,7 +184,7 @@ fn unterminated_interpolation_is_flagged() {
 #[test]
 fn terminated_interpolation_is_not_flagged() {
     let source = "{{ closed }}";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let Node::Interpolation(interpolation) = &nodes[0] else {
         panic!("expected interpolation");
     };
@@ -194,7 +195,7 @@ fn terminated_interpolation_is_not_flagged() {
 #[test]
 fn unterminated_attribute_value_is_flagged() {
     let source = "<div class=\"never closed";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let div = only_element(&nodes);
     let value = div.attributes[0].value.as_ref().expect("attribute value");
     assert!(value.unterminated);
@@ -204,7 +205,7 @@ fn unterminated_attribute_value_is_flagged() {
 #[test]
 fn terminated_attribute_value_is_not_flagged() {
     let source = "<div class=\"closed\">";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let div = only_element(&nodes);
     let value = div.attributes[0].value.as_ref().expect("attribute value");
     assert!(!value.unterminated);
@@ -213,7 +214,7 @@ fn terminated_attribute_value_is_not_flagged() {
 
 #[test]
 fn recovers_from_unclosed_elements() {
-    let nodes = parse_template("<ul><li>a<li>b</ul>");
+    let nodes = parse_template("<ul><li>a<li>b</ul>", 0);
     let ul = only_element(&nodes);
     assert_eq!(ul.name, "ul");
     let list_items: Vec<_> = ul
@@ -229,7 +230,7 @@ fn recovers_from_unclosed_elements() {
 
 #[test]
 fn comments_and_doctype() {
-    let nodes = parse_template("<!-- note --><!DOCTYPE html><span>x</span>");
+    let nodes = parse_template("<!-- note --><!DOCTYPE html><span>x</span>", 0);
     assert!(matches!(&nodes[0], Node::Comment(comment) if comment.content == " note "));
     assert!(matches!(&nodes[1], Node::Raw(_)));
 }
@@ -263,12 +264,98 @@ fn template_reparse_of_sfc_block_content() {
     let source = "<template>\n  <button @click=\"n++\">{{ n }}</button>\n</template>\n";
     let sfc = parse_sfc(source);
     let template = &sfc.blocks[0];
-    let nodes = parse_template(template.content);
+    let nodes = parse_template(template.content, 0);
     let button = only_element(&nodes);
     assert_eq!(button.name, "button");
     let directive = button.attributes[0].directive.as_ref().unwrap();
     assert_eq!(directive.name, "on");
     assert_eq!(directive.argument.as_ref().unwrap().text, "click");
+}
+
+#[test]
+fn template_reparse_with_base_offset_is_file_relative() {
+    // A downstream consumer typically extracts `SfcBlock::content` and
+    // re-parses it independently (e.g. to build a fresh tree without
+    // re-splitting the whole file). Passing `content_span.start` as
+    // `base_offset` must make every span in that independent parse line up
+    // with offsets into the *original* file, not into the substring.
+    let source = "<template>\n  <button @click=\"n++\">{{ n }}</button>\n</template>\n";
+    let sfc = parse_sfc(source);
+    let template = &sfc.blocks[0];
+    let nodes = parse_template(template.content, template.content_span.start);
+    let button = only_element(&nodes);
+    assert_eq!(button.name, "button");
+    let directive = button.attributes[0].directive.as_ref().unwrap();
+    let argument = directive.argument.as_ref().unwrap();
+
+    // Slicing the *original* `source` (not `template.content`) at these
+    // spans must recover the expected text: proof the spans are
+    // file-relative, not content-relative.
+    assert_eq!(
+        &source[button.span.start as usize..button.span.end as usize],
+        "<button @click=\"n++\">{{ n }}</button>"
+    );
+    assert_eq!(&source[argument.span.start as usize..argument.span.end as usize], "click");
+}
+
+#[test]
+fn base_offset_zero_vs_n_shifts_every_span_by_exactly_n() {
+    // Walk the whole tree for two parses of the same source differing only
+    // in `base_offset`, and check every span (including nested attribute,
+    // directive-argument, and child spans) differs by exactly `n`.
+    const N: u32 = 1000;
+    let source = "<div v-if=\"a\"><span :key=\"k\">{{ x }}</span><!-- c --></div>tail";
+    let zero = parse_template(source, 0);
+    let shifted = parse_template(source, N);
+    assert_spans_shifted_by(&zero, &shifted, N);
+}
+
+fn assert_spans_shifted_by(zero: &[Node], shifted: &[Node], n: u32) {
+    assert_eq!(zero.len(), shifted.len());
+    for (a, b) in zero.iter().zip(shifted.iter()) {
+        assert_eq!(b.span().start, a.span().start + n);
+        assert_eq!(b.span().end, a.span().end + n);
+        match (a, b) {
+            (Node::Element(a), Node::Element(b)) => {
+                assert_eq!(b.name_span.start, a.name_span.start + n);
+                assert_eq!(b.name_span.end, a.name_span.end + n);
+                assert_eq!(b.open_tag_end, a.open_tag_end + n);
+                assert_eq!(a.raw_text.is_some(), b.raw_text.is_some());
+                if let (Some(a_raw), Some(b_raw)) = (a.raw_text, b.raw_text) {
+                    assert_eq!(b_raw.start, a_raw.start + n);
+                    assert_eq!(b_raw.end, a_raw.end + n);
+                }
+                assert_eq!(a.attributes.len(), b.attributes.len());
+                for (a_attr, b_attr) in a.attributes.iter().zip(b.attributes.iter()) {
+                    assert_eq!(b_attr.span.start, a_attr.span.start + n);
+                    assert_eq!(b_attr.span.end, a_attr.span.end + n);
+                    assert_eq!(b_attr.name_span.start, a_attr.name_span.start + n);
+                    assert_eq!(b_attr.name_span.end, a_attr.name_span.end + n);
+                    if let (Some(a_value), Some(b_value)) = (&a_attr.value, &b_attr.value) {
+                        assert_eq!(b_value.span.start, a_value.span.start + n);
+                        assert_eq!(b_value.span.end, a_value.span.end + n);
+                    }
+                    if let (Some(a_dir), Some(b_dir)) = (&a_attr.directive, &b_attr.directive)
+                        && let (Some(a_arg), Some(b_arg)) = (&a_dir.argument, &b_dir.argument)
+                    {
+                        assert_eq!(b_arg.span.start, a_arg.span.start + n);
+                        assert_eq!(b_arg.span.end, a_arg.span.end + n);
+                    }
+                }
+                assert_spans_shifted_by(&a.children, &b.children, n);
+            }
+            (Node::Comment(a), Node::Comment(b)) => {
+                assert_eq!(b.content_span.start, a.content_span.start + n);
+                assert_eq!(b.content_span.end, a.content_span.end + n);
+            }
+            (Node::Interpolation(a), Node::Interpolation(b)) => {
+                assert_eq!(b.expression_span.start, a.expression_span.start + n);
+                assert_eq!(b.expression_span.end, a.expression_span.end + n);
+            }
+            (Node::Text(_), Node::Text(_)) | (Node::Raw(_), Node::Raw(_)) => {}
+            _ => panic!("node kind mismatch between base_offset 0 and {n} parses"),
+        }
+    }
 }
 
 /// Sibling nodes must tile `[start, end)` with no gaps or overlaps, and
@@ -319,7 +406,7 @@ fn stray_closing_tag_does_not_truncate_sfc_block() {
         template.content
     );
 
-    let nodes = parse_template(template.content);
+    let nodes = parse_template(template.content, 0);
     assert_contiguous(&nodes, 0, u32::try_from(template.content.len()).unwrap());
 }
 
@@ -333,7 +420,7 @@ fn stray_closing_tag_is_dropped_without_closing_the_open_element() {
     // source, so `div` is legitimately `unclosed` at EOF — same as it
     // would be with the stray tag removed entirely).
     let source = "<div></span><p>x</p>";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let div = only_element(&nodes);
     assert_eq!(div.name, "div");
     assert!(div.unclosed, "no real </div> exists in the source");
@@ -360,7 +447,7 @@ fn closing_tag_matching_outer_ancestor_still_cascades_unclosed() {
     // behavior that makes `<div><p></div>` recover sensibly, and the fix
     // for the no-match case must not disturb it.
     let source = "<div><p></div><i>y</i>";
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     let elements: Vec<_> = nodes
         .iter()
         .filter_map(|node| if let Node::Element(element) = node { Some(element) } else { None })
@@ -442,6 +529,6 @@ fn orphan_closing_tag_at_sfc_top_level_does_not_fabricate_a_block() {
     assert_eq!(sfc.blocks.len(), 1, "orphan </template> must not become a phantom block");
     assert_eq!(sfc.blocks[0].name, "script");
 
-    let nodes = parse_template(source);
+    let nodes = parse_template(source, 0);
     assert_contiguous(&nodes, 0, u32::try_from(source.len()).unwrap());
 }

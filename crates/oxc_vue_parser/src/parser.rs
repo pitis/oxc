@@ -14,11 +14,81 @@ use crate::ast::{
 /// Parse Vue template source into a node tree.
 ///
 /// `source` is the template contents (what sits between `<template>` and
-/// `</template>`), and spans are relative to it. To get spans relative to a
-/// whole `.vue` file, offset them by the block's content start.
-pub fn parse_template(source: &str) -> Vec<Node<'_>> {
+/// `</template>`, or a whole `.vue` file when parsing top-level SFC
+/// structure). `base_offset` is added to every span in the returned tree, so
+/// spans are file-relative *by construction* rather than by convention:
+///
+/// - Parsing `source` standalone (it already starts at byte 0 of whatever
+///   you consider "the file")? Pass `0`.
+/// - Parsing a block's content extracted from a larger `.vue` file (e.g.
+///   `SfcBlock::content`)? Pass `block.content_span.start` so the returned
+///   spans point back into the original file, not into the substring.
+///
+/// This is a single `O(n)` pass over the produced tree after parsing — it
+/// does not re-scan `source`, so there is no per-node or per-query cost
+/// beyond the one-time shift.
+pub fn parse_template(source: &str, base_offset: u32) -> Vec<Node<'_>> {
     let mut parser = Parser { source: source.as_bytes(), text: source, position: 0, depth: 0 };
-    parser.children(&Ancestors::Root)
+    let mut nodes = parser.children(&Ancestors::Root);
+    shift_nodes(&mut nodes, base_offset);
+    nodes
+}
+
+/// Shift every span in `nodes` (recursively, including attributes and
+/// directives) by `offset`. `u32` addition, no overflow checks: callers are
+/// bound by the same "source length fits in `u32`" assumption the rest of
+/// the crate already makes for span offsets.
+fn shift_nodes(nodes: &mut [Node<'_>], offset: u32) {
+    if offset == 0 {
+        return;
+    }
+    for node in nodes {
+        shift_node(node, offset);
+    }
+}
+
+fn shift_span(span: Span, offset: u32) -> Span {
+    Span::new(span.start + offset, span.end + offset)
+}
+
+fn shift_node(node: &mut Node<'_>, offset: u32) {
+    match node {
+        Node::Element(element) => {
+            element.span = shift_span(element.span, offset);
+            element.name_span = shift_span(element.name_span, offset);
+            element.open_tag_end += offset;
+            if let Some(raw_text) = &mut element.raw_text {
+                *raw_text = shift_span(*raw_text, offset);
+            }
+            for attribute in &mut element.attributes {
+                shift_attribute(attribute, offset);
+            }
+            shift_nodes(&mut element.children, offset);
+        }
+        Node::Text(text) => text.span = shift_span(text.span, offset),
+        Node::Interpolation(interpolation) => {
+            interpolation.span = shift_span(interpolation.span, offset);
+            interpolation.expression_span = shift_span(interpolation.expression_span, offset);
+        }
+        Node::Comment(comment) => {
+            comment.span = shift_span(comment.span, offset);
+            comment.content_span = shift_span(comment.content_span, offset);
+        }
+        Node::Raw(span) => *span = shift_span(*span, offset),
+    }
+}
+
+fn shift_attribute(attribute: &mut Attribute<'_>, offset: u32) {
+    attribute.span = shift_span(attribute.span, offset);
+    attribute.name_span = shift_span(attribute.name_span, offset);
+    if let Some(value) = &mut attribute.value {
+        value.span = shift_span(value.span, offset);
+    }
+    if let Some(directive) = &mut attribute.directive
+        && let Some(argument) = &mut directive.argument
+    {
+        argument.span = shift_span(argument.span, offset);
+    }
 }
 
 /// Recursion guard: beyond this depth elements are captured as raw text.

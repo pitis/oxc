@@ -6,11 +6,16 @@
 //! - [`parse_sfc`] splits a `.vue` file into its top-level blocks
 //!   (`<template>`, `<script>`, `<style>`, custom blocks) without touching
 //!   their contents. Raw-text blocks (`script`/`style`) never nest;
-//!   `<template>` does.
+//!   `<template>` does. It parses the whole file in one pass, so every span
+//!   it returns is already file-relative.
 //! - [`parse_template`] parses template source into a [`ast::Node`] tree:
 //!   elements with fully decomposed attributes (directives, `v-bind`/`:`,
 //!   `v-on`/`@`, `v-slot`/`#`, modifiers), `{{ ... }}` interpolations,
-//!   comments, and text runs.
+//!   comments, and text runs. It takes a `base_offset` that is added to
+//!   every span in the result, so spans are file-relative *by construction*:
+//!   pass `block.content_span.start` when re-parsing an [`SfcBlock`]'s
+//!   extracted content, or `0` for standalone template text that already
+//!   starts at byte 0.
 //!
 //! The parser never fails: malformed markup degrades to [`ast::Node::Raw`]
 //! pass-through spans rather than errors, so consumers (formatter, linter)

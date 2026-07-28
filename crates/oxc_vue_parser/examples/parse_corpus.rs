@@ -29,7 +29,10 @@ fn main() {
                 continue;
             }
             templates += 1;
-            let nodes = parse_template(block.content);
+            // Standalone re-parse of the extracted block content: base_offset
+            // 0 keeps spans relative to `block.content` so they can be
+            // checked against `block.content.len()` below.
+            let nodes = parse_template(block.content, 0);
             if let Err(message) =
                 check_contiguous(&nodes, 0, u32::try_from(block.content.len()).unwrap())
             {
