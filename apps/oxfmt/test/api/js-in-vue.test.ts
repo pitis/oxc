@@ -199,7 +199,7 @@ const a = \`
     expect(result2.code).toBe(result.code);
   });
 
-  it("should leave unparsable template expressions untouched", async () => {
+  it("should leave unparsable template expressions untouched, but report them", async () => {
     const input = `
 <template>
   <div v-if="a &&& b">x</div>
@@ -207,8 +207,46 @@ const a = \`
 `;
     const result = await format("a.vue", input);
 
+    // Output is unchanged: Prettier emits the fragment verbatim (byte-parity),
+    // and the file still counts as successfully formatted (`errors` stays empty).
     expect(result.code).toContain(`v-if="a &&& b"`);
     expect(result.errors).toStrictEqual([]);
+    // ...but the failure is no longer silent.
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0].message).toContain("syntax error in embedded script:");
+    expect(result.warnings[0].message).toContain("a &&& b");
+    expect(result.warnings[0].message).not.toContain("internal error:");
+  });
+
+  it("should report an unparsable <script> block while leaving it untouched", async () => {
+    const input = `
+<script lang="ts">
+const a = ;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("const a = ;");
+    expect(result.errors).toStrictEqual([]);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0].message).toContain("syntax error in embedded script:");
+  });
+
+  it("should not report v-on values that only fail the expression parse", async () => {
+    // `@click="a++; b++"` legitimately fails the `__js_expression` attempt and
+    // is re-formatted as statements. That recovery must stay silent.
+    const input = `
+<template>
+  <button @click="a++; b++">c</button>
+  <button @click="foo;">d</button>
+</template>
+`;
+    const result = await format("a.vue", input);
+
+    // Reformatted as statements by the `__vue_event_binding` fallback.
+    expect(result.code).toContain("a++;\n      b++;");
+    expect(result.errors).toStrictEqual([]);
+    expect(result.warnings).toStrictEqual([]);
   });
 
   it("should print Vue 2 filter sequences with the leading-| layout", async () => {

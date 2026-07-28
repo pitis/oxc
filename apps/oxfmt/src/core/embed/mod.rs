@@ -26,11 +26,22 @@ pub mod string_channel;
 // `external_formatter` is the producer of these types via its `wrap_*` functions,
 // and orchestration is the consumer.
 
+/// A successful `formatFile` delegation.
+///
+/// `warnings` carries non-fatal problems the JS side hit while formatting the
+/// file: today, embedded JS/TS fragments that Prettier's `textToDoc()` swallow
+/// left unformatted. They never fail the format, they are only surfaced to the
+/// user (API `errors`, CLI warning diagnostics).
+pub struct FormatFileOutput {
+    pub code: String,
+    pub warnings: Vec<String>,
+}
+
 /// Callback function type for formatting files with config.
-/// Takes (options, code) and returns formatted code or an error.
+/// Takes (options, code) and returns formatted code (plus warnings) or an error.
 /// The `options` Value is owned and includes `parser` and `filepath` set by the caller.
 pub type FormatFileWithConfigCallback =
-    Arc<dyn Fn(Value, &str) -> Result<String, String> + Send + Sync>;
+    Arc<dyn Fn(Value, &str) -> Result<FormatFileOutput, String> + Send + Sync>;
 
 /// Callback function type for formatting embedded code with config.
 /// Takes (options, code) and returns formatted code or an error.

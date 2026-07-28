@@ -1,4 +1,9 @@
 import { jsTextToDoc } from "../../index";
+import {
+  reportEmbeddedFailure,
+  reportEmbeddedSuccess,
+  type EmbeddedFailureKind,
+} from "../embedded-warnings";
 import type { Parser, Doc } from "prettier";
 
 /// Prettier's "known file type" check — when the filepath has one of these
@@ -56,6 +61,7 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
     refs?: unknown[];
     parseError?: boolean;
     expressionRoot?: string;
+    error?: { kind?: string; message?: string };
   };
 
   // SAFETY: Rust side returns Prettier's `Doc` JSON wrapped with `{ doc, refs }` for sharing.
@@ -65,40 +71,76 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   //   (statements) form only on a Babel-shaped syntax error
   // - `expressionRoot`: root node type for Prettier's `__onHtmlBindingRoot` hook,
   //   which drives the hug-vs-expand layout of attribute values
+  // A failed call instead returns `{ error: { kind: "syntax" | "internal", message } }`
+  // (plus `parseError` for the fragment kinds `v-on` falls back from).
   let payload: DocPayload | null = null;
+  // Failures are remembered per kind, NOT "first response wins": an internal
+  // failure means oxfmt is broken and must never be reported as (nor masquerade
+  // behind) an earlier attempt's syntax error.
+  let syntaxFailure: string | null = null;
+  let internalFailure: string | null = null;
+
   for (const ext of extAttempts) {
-    const docJSON = await jsTextToDoc(
-      ext,
-      embeddedSourceText,
-      _oxfmtPluginOptionsJson as string,
-      parentContext,
-    );
-    const attempt = docJSON === null ? null : (JSON.parse(docJSON) as DocPayload);
-    // Keep the first response so a genuine syntax error still reports as
-    // `parseError` data after all attempts fail.
-    payload ??= attempt;
-    if (attempt !== null && !attempt.parseError) {
-      payload = attempt;
-      break;
+    let attempt: DocPayload | null;
+    try {
+      const docJSON = await jsTextToDoc(
+        ext,
+        embeddedSourceText,
+        _oxfmtPluginOptionsJson as string,
+        parentContext,
+      );
+      attempt = docJSON === null ? null : (JSON.parse(docJSON) as DocPayload);
+    } catch (error) {
+      // A rejected NAPI promise (a Rust panic, a binding-load failure, ...)
+      // never reaches the Rust-side classifier, so classify it here.
+      internalFailure ??= toDetail(error);
+      continue;
     }
+
+    if (attempt === null) {
+      internalFailure ??= "`oxfmt::textToDoc()` returned no payload";
+      continue;
+    }
+    if (attempt.error) {
+      const detail = attempt.error.message || "no details available";
+      if (attempt.error.kind === "internal") internalFailure ??= detail;
+      else syntaxFailure ??= detail;
+      // Keep the failure payload: it carries the `parseError` marker below.
+      payload ??= attempt;
+      continue;
+    }
+
+    payload = attempt;
+    break;
   }
 
-  if (payload === null) {
-    throw new Error("`oxfmt::textToDoc()` failed. Use `OXC_LOG` env var to see Rust-side logs.");
+  if (payload === null || payload.error) {
+    // Internal wins: a syntax error from an earlier attempt is not the cause
+    // when the run actually broke inside oxfmt.
+    const kind: EmbeddedFailureKind = internalFailure === null ? "syntax" : "internal";
+    const detail = internalFailure ?? syntaxFailure ?? "no details available";
+    reportEmbeddedFailure(kind, embeddedSourceText, parentContext, detail);
+
+    // Prettier swallows whatever is thrown here and emits the fragment verbatim,
+    // except for the Babel-shaped syntax error its `v-on` printer falls back on
+    // (`language-html/embed/vue-attributes.js`). An internal failure must NOT
+    // claim to be that, so the cause is attached only for a real syntax error
+    // on a fragment kind Rust marked with `parseError`.
+    if (kind === "syntax" && payload?.parseError) {
+      throw new Error(`\`oxfmt::textToDoc()\` failed to parse the fragment: ${detail}`, {
+        cause: { code: "BABEL_PARSER_SYNTAX_ERROR" },
+      });
+    }
+    throw new Error(`\`oxfmt::textToDoc()\` failed (${kind}): ${detail}`);
   }
 
-  const { doc, refs, parseError, expressionRoot } = payload as {
+  reportEmbeddedSuccess(embeddedSourceText);
+
+  const { doc, refs, expressionRoot } = payload as {
     doc: unknown;
     refs: unknown[];
-    parseError?: boolean;
     expressionRoot?: string;
   };
-
-  if (parseError) {
-    throw new Error("`oxfmt::textToDoc()` failed to parse the fragment", {
-      cause: { code: "BABEL_PARSER_SYNTAX_ERROR" },
-    });
-  }
 
   if (expressionRoot) {
     // `shouldHugJsExpression` only reads `.type`, a minimal fake AST is enough.
@@ -115,6 +157,12 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   const cache: unknown[] = Array.from({ length: refs.length });
   return resolveRefs(doc, refs, cache) as Doc;
 };
+
+/** Best-effort message for a thrown value crossing the NAPI boundary. */
+function toDetail(error: unknown): string {
+  if (error instanceof Error) return error.message || String(error);
+  return String(error);
+}
 
 /**
  * Rust emits `Interned` sub-trees once into `refs` and references them via `{ _REF: <id> }` placeholders,
@@ -205,5 +253,11 @@ function detectParentContext(
     return "svelte-script";
   }
 
-  return parentParser;
+  // Everything else is a full-program embed named after its host parser
+  // ("markdown", "mdx", "html", ...). A `__`-prefixed name is one of Prettier's
+  // pseudo-parsers, which always requests a *fragment*: reaching here means this
+  // plugin registered a pseudo-parser the switch above never mapped. Forwarding
+  // it would silently format the fragment as a full program, so let the Rust
+  // side reject it as an internal error instead.
+  return parser.startsWith("__") ? parser : parentParser;
 }

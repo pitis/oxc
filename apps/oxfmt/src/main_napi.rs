@@ -40,7 +40,7 @@ pub async fn run_cli(
     #[napi(ts_arg_type = "(numThreads: number) => Promise<void>")]
     init_external_formatter_cb: JsInitExternalFormatterCb,
     #[napi(
-        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>"
+        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>"
     )]
     format_file_cb: JsFormatFileCb,
     #[napi(ts_arg_type = "(options: Record<string, any>, code: string) => Promise<string | null>")]
@@ -140,8 +140,12 @@ pub async fn run_cli(
 pub struct FormatResult {
     /// The formatted code.
     pub code: String,
-    /// Parse and format errors.
+    /// Parse and format errors. Non-empty means `code` is the unformatted input.
     pub errors: Vec<OxcError>,
+    /// Non-fatal problems: the file formatted, but something inside it did not.
+    /// Today: embedded JS/TS fragments (`.vue` scripts, template expressions)
+    /// that Prettier's `textToDoc()` swallow left unformatted.
+    pub warnings: Vec<OxcError>,
 }
 
 /// NAPI based format API entry point.
@@ -158,7 +162,7 @@ pub async fn format(
     source_text: String,
     options: Option<Value>,
     #[napi(
-        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>"
+        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>"
     )]
     format_file_cb: JsFormatFileCb,
     #[napi(ts_arg_type = "(options: Record<string, any>, code: string) => Promise<string | null>")]
@@ -172,7 +176,7 @@ pub async fn format(
     )]
     sort_tailwind_classes_cb: JsSortTailwindClassesCb,
 ) -> FormatResult {
-    let format_api::ApiFormatResult { code, errors } = format_api::run(
+    let format_api::ApiFormatResult { code, errors, warnings } = format_api::run(
         &filename,
         source_text,
         options,
@@ -182,7 +186,7 @@ pub async fn format(
         sort_tailwind_classes_cb,
     );
 
-    FormatResult { code, errors }
+    FormatResult { code, errors, warnings }
 }
 
 // ---
@@ -200,7 +204,7 @@ pub async fn js_text_to_doc(
     oxfmt_plugin_options_json: String,
     parent_context: String,
     #[napi(
-        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>"
+        ts_arg_type = "(options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>"
     )]
     format_file_cb: JsFormatFileCb,
     #[napi(ts_arg_type = "(options: Record<string, any>, code: string) => Promise<string | null>")]

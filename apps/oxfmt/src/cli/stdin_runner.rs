@@ -158,7 +158,12 @@ impl StdinRunner {
 
         // Use `block_in_place()` to avoid nested async runtime access
         match tokio::task::block_in_place(|| source_formatter.format(&source_text, strategy)) {
-            FormatResult::Success { code, .. } => {
+            FormatResult::Success { code, warnings, .. } => {
+                // Non-fatal: stdout keeps carrying only the formatted code,
+                // warnings go to stderr and do not change the exit code.
+                for warning in warnings {
+                    utils::print_and_flush(stderr, &format!("{warning}\n"));
+                }
                 utils::print_and_flush(stdout, &code);
                 CliRunResult::FormatSucceeded
             }

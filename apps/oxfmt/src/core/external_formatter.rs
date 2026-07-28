@@ -21,7 +21,7 @@ use oxc_formatter_css::CssFormatOptions;
 use oxc_formatter_graphql::GraphqlFormatOptions;
 
 use crate::core::embed::{
-    self, FormatEmbeddedDocWithConfigCallback, FormatEmbeddedWithConfigCallback,
+    self, FormatEmbeddedDocWithConfigCallback, FormatEmbeddedWithConfigCallback, FormatFileOutput,
     FormatFileWithConfigCallback, TailwindWithConfigCallback,
 };
 
@@ -220,7 +220,7 @@ impl ExternalFormatter {
 
     /// Format non-js file using the JS callback.
     /// The `options` Value should already have `parser` and `filepath` set by the caller.
-    pub fn format_file(&self, options: Value, code: &str) -> Result<String, String> {
+    pub fn format_file(&self, options: Value, code: &str) -> Result<FormatFileOutput, String> {
         (self.format_file)(options, code)
     }
 
@@ -393,22 +393,26 @@ fn wrap_format_file(
     })
 }
 
-/// The `{ ok, code?, error? }` payload returned by the JS `formatFile` callback.
+/// The `{ ok, code?, warnings?, error? }` payload returned by the JS `formatFile` callback.
 /// Recoverable formatter errors are passed as data instead of a rejected Promise,
 /// so dropping a `napi::Error` never reaches `napi_reference_unref` during TSFN teardown.
+/// `warnings` uses the same data channel for non-fatal problems (see [`FormatFileOutput`]).
 #[derive(serde::Deserialize)]
 struct FormatFileResult {
     ok: bool,
     code: Option<String>,
+    warnings: Option<Vec<String>>,
     error: Option<String>,
 }
 
-fn parse_format_file_result(result: Value) -> Result<String, String> {
+fn parse_format_file_result(result: Value) -> Result<FormatFileOutput, String> {
     let result: FormatFileResult = serde_json::from_value(result)
         .map_err(|_| "File formatting returned an unexpected result".to_string())?;
 
     if result.ok {
-        result.code.ok_or_else(|| "File formatting result missing `code`".to_string())
+        let code =
+            result.code.ok_or_else(|| "File formatting result missing `code`".to_string())?;
+        Ok(FormatFileOutput { code, warnings: result.warnings.unwrap_or_default() })
     } else {
         Err(result
             .error
@@ -509,25 +513,36 @@ mod tests {
 
     #[test]
     fn parse_format_file_result_accepts_success_object() {
-        let result = parse_format_file_result(json!({ "ok": true, "code": "formatted" }));
-        assert_eq!(result, Ok("formatted".to_string()));
+        let result = parse_format_file_result(json!({ "ok": true, "code": "formatted" })).unwrap();
+        assert_eq!(result.code, "formatted");
+        assert!(result.warnings.is_empty());
+    }
+
+    #[test]
+    fn parse_format_file_result_carries_warnings() {
+        let result = parse_format_file_result(
+            json!({ "ok": true, "code": "formatted", "warnings": ["syntax error in embedded script: oops"] }),
+        )
+        .unwrap();
+        assert_eq!(result.code, "formatted");
+        assert_eq!(result.warnings, vec!["syntax error in embedded script: oops".to_string()]);
     }
 
     #[test]
     fn parse_format_file_result_preserves_error_message() {
         let result = parse_format_file_result(json!({ "ok": false, "error": "Unexpected token" }));
-        assert_eq!(result, Err("Unexpected token".to_string()));
+        assert_eq!(result.err(), Some("Unexpected token".to_string()));
     }
 
     #[test]
     fn parse_format_file_result_falls_back_for_empty_error() {
         let result = parse_format_file_result(json!({ "ok": false, "error": "" }));
-        assert_eq!(result, Err("File formatting failed".to_string()));
+        assert_eq!(result.err(), Some("File formatting failed".to_string()));
     }
 
     #[test]
     fn parse_format_file_result_rejects_unexpected_shape() {
         let result = parse_format_file_result(json!("formatted"));
-        assert_eq!(result, Err("File formatting returned an unexpected result".to_string()));
+        assert_eq!(result.err(), Some("File formatting returned an unexpected result".to_string()));
     }
 }

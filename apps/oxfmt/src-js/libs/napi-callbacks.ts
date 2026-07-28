@@ -9,14 +9,22 @@
  * carrying recoverable failures as data instead of rejecting.
  */
 
-export type FormatFileResult = { ok: true; code: string } | { ok: false; error: string };
+export type FormatFileResult =
+  | { ok: true; code: string; warnings: string[] }
+  | { ok: false; error: string };
 
 /**
- * Wrap a `formatFile`-shaped `Promise<string>` so it never rejects, preserving the error message.
+ * Wrap a `formatFile`-shaped `Promise<{ code, warnings }>` so it never rejects,
+ * preserving the error message.
+ *
+ * `warnings` travels on the success shape: they are non-fatal (the file did
+ * format), so Rust surfaces them without failing the run.
  */
-export async function toFormatFileResult(run: Promise<string>): Promise<FormatFileResult> {
+export async function toFormatFileResult(
+  run: Promise<{ code: string; warnings: string[] }>,
+): Promise<FormatFileResult> {
   return run
-    .then((code) => ({ ok: true as const, code }))
+    .then(({ code, warnings }) => ({ ok: true as const, code, warnings }))
     .catch((err) => ({ ok: false as const, error: errorToMessage(err) }));
 }
 

@@ -34,13 +34,19 @@ export declare const enum Severity {
  * # Panics
  * Panics if the current working directory cannot be determined.
  */
-export declare function format(filename: string, sourceText: string, options: any | undefined | null, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<FormatResult>
+export declare function format(filename: string, sourceText: string, options: any | undefined | null, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<FormatResult>
 
 export interface FormatResult {
   /** The formatted code. */
   code: string
-  /** Parse and format errors. */
+  /** Parse and format errors. Non-empty means `code` is the unformatted input. */
   errors: Array<OxcError>
+  /**
+   * Non-fatal problems: the file formatted, but something inside it did not.
+   * Today: embedded JS/TS fragments (`.vue` scripts, template expressions)
+   * that Prettier's `textToDoc()` swallow left unformatted.
+   */
+  warnings: Array<OxcError>
 }
 
 /**
@@ -49,7 +55,7 @@ export interface FormatResult {
  * This API is specialized for JS/TS snippets embedded in non-JS files.
  * Unlike `format()`, it is called only for js-in-xxx `textToDoc()` flow.
  */
-export declare function jsTextToDoc(sourceExt: string, sourceText: string, oxfmtPluginOptionsJson: string, parentContext: string, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<string | null>
+export declare function jsTextToDoc(sourceExt: string, sourceText: string, oxfmtPluginOptionsJson: string, parentContext: string, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<string | null>
 
 /**
  * NAPI based JS CLI entry point.
@@ -67,4 +73,4 @@ export declare function jsTextToDoc(sourceExt: string, sourceText: string, oxfmt
  * - `mode`: If main logic will run in JS side, use this to indicate which mode
  * - `exitCode`: If main logic already ran in Rust side, return the exit code
  */
-export declare function runCli(args: Array<string>, loadJsConfigCb: (path: string) => Promise<any>, initExternalFormatterCb: (numThreads: number) => Promise<void>, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindcssClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<[string, number | undefined | null]>
+export declare function runCli(args: Array<string>, loadJsConfigCb: (path: string) => Promise<any>, initExternalFormatterCb: (numThreads: number) => Promise<void>, formatFileCb: (options: Record<string, any>, code: string) => Promise<{ ok: true; code: string; warnings: string[] } | { ok: false; error: string }>, formatEmbeddedCb: (options: Record<string, any>, code: string) => Promise<string | null>, formatEmbeddedDocCb: (options: Record<string, any>, texts: string[]) => Promise<string[] | null>, sortTailwindcssClassesCb: (options: Record<string, any>, classes: string[]) => Promise<string[] | null>): Promise<[string, number | undefined | null]>
