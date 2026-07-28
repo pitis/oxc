@@ -5,10 +5,7 @@ use oxc_vue_parser::ast::{Element, Node};
 
 use crate::{
     rule::Rule,
-    utils::{
-        VUE_RESERVED_DEPRECATED_HTML_ELEMENTS, VUE_RESERVED_HTML_ELEMENTS,
-        VUE_RESERVED_KEBAB_CASE_ELEMENTS, VUE_RESERVED_SVG_ELEMENTS,
-    },
+    utils::{has_directive, is_custom_component, start_tag_span, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -62,17 +59,11 @@ impl Rule for RequireVForKey {}
 
 impl VueTemplateRule for RequireVForKey {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
-        walk(nodes, ctx);
-    }
-}
-
-fn walk<'a>(nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
-    for node in nodes {
-        let Node::Element(element) = node else { continue };
-        if has_directive(element, "for", None) {
-            check_key(element, ctx);
-        }
-        walk(&element.children, ctx);
+        walk_elements(nodes, &mut |element| {
+            if has_directive(element, "for", None) {
+                check_key(element, ctx);
+            }
+        });
     }
 }
 
@@ -92,101 +83,6 @@ fn check_key<'a>(element: &Element<'a>, ctx: &mut VueTemplateContext<'a>) {
     } else if !is_custom_component(element) {
         ctx.diagnostic(require_key_diagnostic(start_tag_span(element, ctx.source_text())));
     }
-}
-
-fn has_directive(element: &Element<'_>, name: &str, argument: Option<&str>) -> bool {
-    element.attributes.iter().any(|attribute| {
-        attribute.directive.as_ref().is_some_and(|directive| {
-            directive.name == name
-                && match argument {
-                    None => true,
-                    Some(expected) => directive
-                        .argument
-                        .as_ref()
-                        .is_some_and(|arg| !arg.dynamic && arg.text == expected),
-                }
-        })
-    })
-}
-
-/// eslint-plugin-vue's `isCustomComponent`: an `is` attribute / `v-bind:is` /
-/// `v-is` makes any element a component; otherwise an element is custom when
-/// its name is not a well-known HTML/SVG/MathML element. SFC template names
-/// are case-sensitive (`<DIV>` resolves as a component in an SFC).
-fn is_custom_component(element: &Element<'_>) -> bool {
-    let has_is = element.attributes.iter().any(|attribute| {
-        if let Some(directive) = &attribute.directive {
-            directive.name == "is"
-                || (directive.name == "bind"
-                    && directive
-                        .argument
-                        .as_ref()
-                        .is_some_and(|arg| !arg.dynamic && arg.text == "is"))
-        } else {
-            attribute.name.eq_ignore_ascii_case("is")
-        }
-    });
-    if has_is {
-        return true;
-    }
-
-    let name = element.name;
-    !(VUE_RESERVED_HTML_ELEMENTS.contains(name)
-        || VUE_RESERVED_DEPRECATED_HTML_ELEMENTS.contains(name)
-        || VUE_RESERVED_SVG_ELEMENTS.contains(name)
-        || VUE_RESERVED_KEBAB_CASE_ELEMENTS.contains(name)
-        || MATHML_ELEMENTS.contains(&name))
-}
-
-/// MathML element names (eslint-plugin-vue checks these alongside HTML/SVG).
-const MATHML_ELEMENTS: &[&str] = &[
-    "annotation",
-    "annotation-xml",
-    "maction",
-    "math",
-    "menclose",
-    "merror",
-    "mfenced",
-    "mfrac",
-    "mi",
-    "mmultiscripts",
-    "mn",
-    "mo",
-    "mover",
-    "mpadded",
-    "mphantom",
-    "mprescripts",
-    "mroot",
-    "mrow",
-    "ms",
-    "mspace",
-    "msqrt",
-    "mstyle",
-    "msub",
-    "msubsup",
-    "msup",
-    "mtable",
-    "mtd",
-    "mtext",
-    "mtr",
-    "munder",
-    "munderover",
-    "semantics",
-];
-
-/// The span of the element's start tag, `<name ...attributes>`; mirrors
-/// eslint-plugin-vue reporting on `element.startTag`. Attribute values may
-/// contain `>`, so the scan starts after the last attribute.
-fn start_tag_span(element: &Element<'_>, source_text: &str) -> Span {
-    let scan_from =
-        element.attributes.last().map_or(element.name_span.end, |attribute| attribute.span.end);
-    let bytes = source_text.as_bytes();
-    let mut index = scan_from as usize;
-    while index < bytes.len() && bytes[index] != b'>' {
-        index += 1;
-    }
-    let end = u32::try_from((index + 1).min(bytes.len())).unwrap_or(element.span.end);
-    Span::new(element.span.start, end.min(element.span.end))
 }
 
 #[cfg(test)]

@@ -11,6 +11,7 @@ use serde::Deserialize;
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},
+    utils::walk_elements,
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -85,11 +86,9 @@ impl VueTemplateRule for NoDuplicateAttributes {
 
 impl NoDuplicateAttributes {
     fn walk<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
-        for node in nodes {
-            let Node::Element(element) = node else { continue };
+        walk_elements(nodes, &mut |element| {
             self.check_element_attributes(&element.attributes, ctx);
-            self.walk(&element.children, ctx);
-        }
+        });
     }
 
     fn check_element_attributes<'a>(
