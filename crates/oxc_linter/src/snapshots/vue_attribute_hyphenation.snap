@@ -44,3 +44,15 @@ assertion_line: 490
  1 │ <template><MyComponent :my-prop="a" /></template>
    ·                        ────────
    ╰────
+
+  ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
+   ╭─[attribute_hyphenation.tsx:1:28]
+ 1 │ <template><IgnoredTagExtra myProp="a" /></template>
+   ·                            ──────
+   ╰────
+
+  ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
+   ╭─[attribute_hyphenation.tsx:1:25]
+ 1 │ <template><MyIgnoredTag myProp="a" /></template>
+   ·                         ──────
+   ╰────

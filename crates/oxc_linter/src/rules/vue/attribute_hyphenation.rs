@@ -8,7 +8,10 @@ use serde::Deserialize;
 
 use crate::{
     rule::{Rule, TupleRuleConfig},
-    utils::{AlwaysNever, deserialize_regex_vec, is_custom_component, vue_casing, walk_elements},
+    utils::{
+        AlwaysNever, deserialize_to_regexp_group_vec, is_custom_component, vue_casing,
+        walk_elements,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -27,9 +30,12 @@ pub struct AttributeHyphenationOptions {
     /// in addition to the built-in `data-`/`aria-`/`slot-scope`/SVG-weird-case
     /// list.
     ignore: Vec<String>,
-    /// Regex patterns; a custom element whose tag name matches any of them is
-    /// skipped entirely.
-    #[serde(deserialize_with = "deserialize_regex_vec")]
+    /// Tag-name patterns; a custom element whose raw tag name matches any of
+    /// them is skipped entirely. Each entry is either a bare tag name
+    /// (matched as an exact, case-sensitive string — not a substring) or a
+    /// `"/pattern/flags"` regex literal, mirroring eslint-plugin-vue's
+    /// `toRegExpGroupMatcher`.
+    #[serde(deserialize_with = "deserialize_to_regexp_group_vec")]
     ignore_tags: Vec<Regex>,
 }
 
@@ -368,10 +374,18 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // `ignoreTags` option.
+            // `ignoreTags` option: bare string is an exact (anchored) match,
+            // not a substring search.
             (
                 r#"<template><IgnoredTag myProp="a" /></template>"#,
                 Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `ignoreTags` option: `"/pattern/flags"` regex-literal form.
+            (
+                r#"<template><IgnoredTag myProp="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["/^Ignored/"] }])),
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
@@ -431,6 +445,22 @@ mod tests {
             (
                 r#"<template><MyComponent :my-prop="a" /></template>"#,
                 Some(json!(["never"])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `ignoreTags` bare string is an exact match, not a substring
+            // search: a superstring tag name is still checked.
+            (
+                r#"<template><IgnoredTagExtra myProp="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // ...and a tag name that merely *contains* the pattern as a
+            // substring is still checked too.
+            (
+                r#"<template><MyIgnoredTag myProp="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
                 None,
                 Some(PathBuf::from("test.vue")),
             ),

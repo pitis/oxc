@@ -8,7 +8,10 @@ use serde::Deserialize;
 
 use crate::{
     rule::{Rule, TupleRuleConfig},
-    utils::{AlwaysNever, deserialize_regex_vec, is_custom_component, vue_casing, walk_elements},
+    utils::{
+        AlwaysNever, deserialize_to_regexp_group_vec, is_custom_component, vue_casing,
+        walk_elements,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -25,9 +28,12 @@ fn cannot_be_hyphenated_diagnostic(text: &str, span: Span) -> OxcDiagnostic {
 pub struct VOnEventHyphenationOptions {
     /// Event names (matched as a substring) that are never reported.
     ignore: Vec<String>,
-    /// Regex patterns; a custom element whose tag name matches any of them is
-    /// skipped entirely.
-    #[serde(deserialize_with = "deserialize_regex_vec")]
+    /// Tag-name patterns; a custom element whose raw tag name matches any of
+    /// them is skipped entirely. Each entry is either a bare tag name
+    /// (matched as an exact, case-sensitive string — not a substring) or a
+    /// `"/pattern/flags"` regex literal, mirroring eslint-plugin-vue's
+    /// `toRegExpGroupMatcher`.
+    #[serde(deserialize_with = "deserialize_to_regexp_group_vec")]
     ignore_tags: Vec<Regex>,
     /// Accepted for compatibility with upstream's `autofix` option key; this
     /// rule never applies fixes (oxlint doesn't fix Vue template rules), so
@@ -204,10 +210,18 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // `ignoreTags` option.
+            // `ignoreTags` option: bare string is an exact (anchored)
+            // match, not a substring search.
             (
                 r#"<template><IgnoredTag @myEvent="a" /></template>"#,
                 Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `ignoreTags` option: `"/pattern/flags"` regex-literal form.
+            (
+                r#"<template><IgnoredTag @myEvent="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["/^Ignored/"] }])),
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
@@ -240,6 +254,22 @@ mod tests {
             (
                 r#"<template><MyComponent @my-event="a" /></template>"#,
                 Some(json!(["never"])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `ignoreTags` bare string is an exact match, not a substring
+            // search: a superstring tag name is still checked.
+            (
+                r#"<template><IgnoredTagExtra @myEvent="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // ...and a tag name that merely *contains* the pattern as a
+            // substring is still checked too.
+            (
+                r#"<template><MyIgnoredTag @myEvent="a" /></template>"#,
+                Some(json!(["always", { "ignoreTags": ["IgnoredTag"] }])),
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
