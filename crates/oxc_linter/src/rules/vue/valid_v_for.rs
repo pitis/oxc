@@ -224,6 +224,27 @@ fn check_for_value<'a>(
 
     let aliases_raw = &raw[..sep_start];
     if aliases_raw.trim().is_empty() {
+        // A blank *unparenthesized* alias, e.g. `v-for=" in items"`, mirrors
+        // `parseVForExpression`'s own `if (!processed.aliases.trim()) return
+        // throwEmptyError(...)` guard — which runs unconditionally, before
+        // upstream ever builds `for (let [...] in/of ...);` and regardless
+        // of whether the (nonexistent, here) alias list would have been
+        // parenthesized. That throw is what makes `node.value.expression`
+        // null for this input, and `valid-v-for.js`'s handler bails out via
+        // `if (expr == null) return;` with **zero** diagnostics — verified
+        // by running the real `eslint@9.39.4` + `vue-eslint-parser@10.4.1` +
+        // `eslint-plugin-vue@10.9.1` stack against `v-for=" in items"`
+        // (`vue/valid-v-for` reports nothing), while the same harness does
+        // correctly report `vue/valid-v-for` violations for other inputs
+        // (argument/modifier/no-value/missing-key cases all still fire) and
+        // does still report `invalidEmptyAlias` for a genuine hole like
+        // `(value, , index) in items` — so this isn't upstream silencing
+        // everything, just this specific "wholly blank, no parens" shape.
+        // Do not remove this early return without re-verifying against the
+        // real parser first; the equivalent-looking `elements.first()`
+        // check a few lines below is for a *different* case (a parenthesized
+        // alias list, e.g. `(, key) in items`, that reaches a real
+        // `ArrayPattern` parse) and is not a substitute for this guard.
         return;
     }
     let delimiter = &raw[sep_start..sep_end];
@@ -376,6 +397,19 @@ mod tests {
             // logic silently ignores.
             (
                 r#"<template><div v-for="items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A blank *unparenthesized* alias (found an ` in `/` of ` but
+            // nothing before it): also silently ignored upstream, same
+            // `aliases.trim()` guard as the "no separator" case above.
+            // Verified directly against real eslint-plugin-vue 10.9.1 +
+            // vue-eslint-parser 10.4.1 — reports nothing for this input,
+            // while still correctly reporting other violations (see
+            // `check_for_value`'s doc comment on the matching early return).
+            (
+                r#"<template><div v-for=" in items" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
