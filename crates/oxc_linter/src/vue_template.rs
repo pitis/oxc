@@ -566,3 +566,97 @@ fn push_messages(
         messages.push(message);
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::path::PathBuf;
+
+    use crate::{
+        rule::{RuleMeta, RuleRunFunctionsImplemented, RuleRunner},
+        rules::{vue::block_order::BlockOrder, vue::valid_v_text::ValidVText},
+        tester::Tester,
+    };
+
+    /// Template and SFC rules have an empty `impl Rule`, so they must be classified as
+    /// implementing no run function at all. Otherwise the node-visiting runner puts them
+    /// in the "run on every AST node" bucket and pays a virtual call per node, per rule,
+    /// for rules that can never report from there.
+    #[test]
+    fn externally_dispatched_rules_implement_no_run_functions() {
+        assert_eq!(<ValidVText as RuleRunner>::RUN_FUNCTIONS, RuleRunFunctionsImplemented::None);
+        assert_eq!(<BlockOrder as RuleRunner>::RUN_FUNCTIONS, RuleRunFunctionsImplemented::None);
+
+        for run_functions in
+            [<ValidVText as RuleRunner>::RUN_FUNCTIONS, <BlockOrder as RuleRunner>::RUN_FUNCTIONS]
+        {
+            assert!(!run_functions.is_run_implemented());
+            assert!(!run_functions.is_run_once_implemented());
+            assert!(!run_functions.is_run_on_jest_node_implemented());
+        }
+    }
+
+    /// Nothing may be classified as "implements no run function" unless something other
+    /// than the node-visiting runner dispatches it: the Vue template/SFC pass in this
+    /// module, or tsgolint for the type-aware rules.
+    #[test]
+    fn run_less_rules_are_dispatched_elsewhere() {
+        for rule in crate::rules::RULES.iter() {
+            if rule.run_info() != RuleRunFunctionsImplemented::None {
+                continue;
+            }
+            assert!(
+                rule.is_tsgolint_rule()
+                    || super::as_vue_template_rule(rule).is_some()
+                    || super::as_vue_sfc_rule(rule).is_some(),
+                "rule {}/{} implements no run function and is dispatched by nothing, so it can never report",
+                rule.plugin_name(),
+                rule.name()
+            );
+        }
+    }
+
+    /// ...and they must still report, because they are dispatched by this module rather
+    /// than by the node-visiting runner.
+    #[test]
+    fn template_rules_still_report_on_vue_files() {
+        Tester::new(
+            ValidVText::NAME,
+            ValidVText::PLUGIN,
+            vec![(
+                r#"<template><div v-text="message" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            )],
+            vec![(
+                r"<template><div v-text /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            )],
+        )
+        .test();
+    }
+
+    /// Same guard for the SFC pass, which uses a different dispatch entry point.
+    #[test]
+    fn sfc_rules_still_report_on_vue_files() {
+        Tester::new(
+            BlockOrder::NAME,
+            BlockOrder::PLUGIN,
+            vec![(
+                r"<script>1</script><template><div/></template><style>.a{}</style>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            )],
+            vec![(
+                r"<style>.a{}</style><script>1</script><template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            )],
+        )
+        .test();
+    }
+}

@@ -63,7 +63,10 @@ pub fn generate_rule_runner_impls() -> io::Result<()> {
     for rule in &rule_entries {
         // Try to open the rule source file and use syn to detect node types
         let mut detected_types: NodeTypeSet = NodeTypeSet::new();
-        let mut rule_run_info: FxHashSet<String> = FxHashSet::default();
+        // `None` means we could not inspect the rule's `impl Rule` block at all, which is
+        // distinct from `Some(<empty set>)`, meaning the block exists and implements no
+        // run functions.
+        let mut rule_run_info: Option<FxHashSet<String>> = None;
 
         if let Some(src_path) = find_rule_source_file(&root, rule)
             && let Ok(src_contents) = fs::read_to_string(&src_path)
@@ -73,7 +76,7 @@ pub fn generate_rule_runner_impls() -> io::Result<()> {
                 detected_types.extend(node_types);
             }
 
-            rule_run_info.extend(detect_rule_run_implementations(&file, rule));
+            rule_run_info = detect_rule_run_implementations(&file, rule);
         }
 
         let node_types_init = if detected_types.is_empty() {
@@ -82,17 +85,18 @@ pub fn generate_rule_runner_impls() -> io::Result<()> {
             format!("Some(&{})", detected_types.to_ast_type_bitset_string())
         };
 
-        let rule_run_info_init = if rule_run_info.len() == 1 {
-            match rule_run_info.iter().next().map(String::as_str) {
-                Some("run") => "RuleRunFunctionsImplemented::Run".to_string(),
-                Some("run_once") => "RuleRunFunctionsImplemented::RunOnce".to_string(),
-                Some("run_on_jest_node") => {
-                    "RuleRunFunctionsImplemented::RunOnJestNode".to_string()
-                }
-                _ => "RuleRunFunctionsImplemented::Unknown".to_string(),
-            }
-        } else {
-            "RuleRunFunctionsImplemented::Unknown".to_string()
+        let rule_run_info_init = match rule_run_info.as_ref() {
+            // The `impl Rule` block is empty, so no run function can ever do anything.
+            // The rule is either inert or dispatched by something other than the
+            // node-visiting runner (Vue template/SFC rules, tsgolint type-aware rules).
+            Some(funcs) if funcs.is_empty() => "RuleRunFunctionsImplemented::None",
+            Some(funcs) if funcs.len() == 1 => match funcs.iter().next().map(String::as_str) {
+                Some("run") => "RuleRunFunctionsImplemented::Run",
+                Some("run_once") => "RuleRunFunctionsImplemented::RunOnce",
+                Some("run_on_jest_node") => "RuleRunFunctionsImplemented::RunOnJestNode",
+                _ => "RuleRunFunctionsImplemented::Unknown",
+            },
+            _ => "RuleRunFunctionsImplemented::Unknown",
         };
 
         write!(
@@ -196,14 +200,15 @@ fn detect_top_level_node_types(
     None
 }
 
-/// Detect which `run` functions are implemented for a given rule. Returns a set of the function names
-/// that are implemented, and an empty set otherwise.
-fn detect_rule_run_implementations(file: &File, rule: &RuleEntry) -> FxHashSet<String> {
+/// Detect which `run` functions are implemented for a given rule.
+///
+/// Returns `Some(<names of the implemented functions>)`, which is empty when the rule's
+/// `impl Rule` block implements no run functions at all. Returns `None` when the `impl Rule`
+/// block could not be found, in which case nothing can be concluded about the rule.
+fn detect_rule_run_implementations(file: &File, rule: &RuleEntry) -> Option<FxHashSet<String>> {
     let mut set = FxHashSet::default();
 
-    let Some(rule_impl) = find_rule_impl_block(file, &rule.rule_struct_name()) else {
-        return FxHashSet::default();
-    };
+    let rule_impl = find_rule_impl_block(file, &rule.rule_struct_name())?;
 
     // In order to be very conservative about only generating correct info, we will consider *all*
     // functions that are implemented in the rule impl. Then, we will only remove a few known functions
@@ -232,7 +237,7 @@ fn detect_rule_run_implementations(file: &File, rule: &RuleEntry) -> FxHashSet<S
         set.insert(func);
     }
 
-    set
+    Some(set)
 }
 
 /// Result of attempting to collect node type variants.

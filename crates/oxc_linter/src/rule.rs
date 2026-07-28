@@ -368,6 +368,15 @@ pub trait RuleRunner: Rule {
 pub enum RuleRunFunctionsImplemented {
     /// Unknown which functions are implemented.
     Unknown,
+    /// No run function is implemented at all.
+    ///
+    /// The rule's `impl Rule` block is empty (apart from functions that do not
+    /// affect run behavior, such as `from_configuration`), so the node-visiting
+    /// runner must never call into it. Such rules are either dispatched through a
+    /// separate mechanism — e.g. Vue template/SFC rules, dispatched through the
+    /// `VueTemplateRule` / `VueSfcRule` traits in `vue_template.rs` — or run outside
+    /// of oxlint entirely, like the type-aware rules executed by tsgolint.
+    None,
     /// Only `run` is implemented
     Run,
     /// Only `run_once` is implemented
