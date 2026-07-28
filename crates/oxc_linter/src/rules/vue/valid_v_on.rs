@@ -329,12 +329,15 @@ const KEY_ALIASES: &[&str] = &[
 ];
 
 /// ECMAScript keywords that are *always* a syntax error when they stand
-/// alone as an expression (unlike `this`/`super`/`true`/`false`/`null`,
-/// which parse fine on their own, or the strict-mode-only future-reserved
-/// words `yield`/`await`/`static`/`public`/`private`/`protected`/
-/// `interface`/`package`/`implements`/`let`, which parse as ordinary
-/// identifiers in the non-strict function body Vue template expressions run
-/// in). Used to approximate eslint-plugin-vue's `!node.value.expression`
+/// alone as an expression (unlike `this`/`true`/`false`/`null`, which parse
+/// fine on their own as `ThisExpression`/`Literal` nodes, or the
+/// strict-mode-only future-reserved words `yield`/`await`/`static`/
+/// `public`/`private`/`protected`/`interface`/`package`/`implements`/`let`,
+/// which parse as ordinary identifiers in the non-strict function body Vue
+/// template expressions run in). `super` is included: unlike `this`, a bare
+/// `super` with no following `.`/`[`/call is *always* a syntax error — it's
+/// only valid immediately followed by a member access or, in a constructor,
+/// a call. Used to approximate eslint-plugin-vue's `!node.value.expression`
 /// (an expression parse failure) for the `avoidKeyword` check: since this
 /// parser doesn't parse directive values as JS, a bare value whose whole
 /// text is one of these words is the only case in which it can *know*, from
@@ -368,6 +371,7 @@ const ALWAYS_RESERVED_WORDS: &[&str] = &[
     "instanceof",
     "new",
     "return",
+    "super",
     "switch",
     "throw",
     "try",
@@ -583,6 +587,14 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // `this` parses fine standalone (unlike `super`), so it's not
+            // flagged as a bare keyword.
+            (
+                r#"<template><button @click="this" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
         ];
 
@@ -617,6 +629,13 @@ mod tests {
             // Bare JS keyword as value.
             (
                 r#"<template><button @click="delete" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Bare `super`: always a SyntaxError standalone, unlike `this`.
+            (
+                r#"<template><button @click="super" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

@@ -1,7 +1,9 @@
+use oxc_allocator::Allocator;
+use oxc_ast::ast::{BindingPattern, ForStatementLeft, Statement};
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
-use oxc_span::Span;
-use oxc_syntax::identifier::{is_identifier_part, is_identifier_start};
+use oxc_parser::Parser;
+use oxc_span::{GetSpan, SourceType, Span};
 use oxc_vue_parser::ast::{AttributeValue, Element, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -36,12 +38,6 @@ fn unexpected_modifier_diagnostic(span: Span) -> OxcDiagnostic {
 fn expected_value_diagnostic(span: Span) -> OxcDiagnostic {
     OxcDiagnostic::warn("'v-for' directives require that attribute value.")
         .with_help("Give `v-for` an iteration expression, e.g. `v-for=\"item in items\"`.")
-        .with_label(span)
-}
-
-fn unexpected_expression_diagnostic(span: Span) -> OxcDiagnostic {
-    OxcDiagnostic::warn("'v-for' directives require the special syntax '<alias> in <expression>'.")
-        .with_help("Use the form `item in items` or `(item, index) in items`.")
         .with_label(span)
 }
 
@@ -87,6 +83,22 @@ declare_oxc_lint!(
     /// un-keyed custom component in a loop loses per-item identity across
     /// re-renders.
     ///
+    /// ### Deviations from eslint-plugin-vue
+    ///
+    /// Upstream parses the `<alias> in/of <expression>` value through its
+    /// own JS parser by rewriting it as `for (let [<alias>] in/of
+    /// <expression>);` and forcing the alias list through real `ArrayPattern`
+    /// grammar. This rule mirrors that exact mechanism using `oxc_parser`
+    /// (see `check_for_value`'s doc comment) rather than reimplementing the
+    /// grammar textually, so alias validity (a non-pattern element like a
+    /// number or a member expression, or a value that fails to parse at all,
+    /// e.g. no top-level ` in `/` of `) matches upstream's parse-or-silently-
+    /// ignore behavior. Not reproduced: `isUsingIterationVar` — upstream
+    /// additionally checks that a `:key` binding on a `v-for`'d element
+    /// actually *references* one of the declared aliases; that needs
+    /// resolving identifier references against declared bindings, i.e. real
+    /// scope analysis, which isn't available to template rules.
+    ///
     /// ### Examples
     ///
     /// Examples of **incorrect** code for this rule:
@@ -94,8 +106,7 @@ declare_oxc_lint!(
     /// <template>
     ///   <div v-for="item in items" v-bind:key.foo="item.id" />
     ///   <div v-for:foo="item in items" />
-    ///   <div v-for="items" />
-    ///   <div v-for="(item, 1) in items" />
+    ///   <div v-for="(value, , index) in items" />
     ///   <MyRow v-for="item in items" />
     /// </template>
     /// ```
@@ -172,170 +183,141 @@ fn check_key<'a>(element: &Element<'a>, ctx: &mut VueTemplateContext<'a>) {
     }
 }
 
-/// eslint-plugin-vue's `create`'s `VAttribute[...]` handler body from the
-/// `expr.type !== "VForExpression"` check onward.
+/// The literal prefix this rule wraps the alias list in — see
+/// [`check_for_value`].
+const FOR_SNIPPET_PREFIX: &str = "for(let [";
+
+/// eslint-plugin-vue's `create`'s v-for handler body from the
+/// `expr.type !== "VForExpression"` check onward — reimplemented by actually
+/// mirroring how upstream's own parser (`vue-eslint-parser`'s
+/// `parseVForExpression`) gets there, rather than inspecting the raw text.
 ///
-/// Deviation: upstream parses `value` as a JS expression and works off the
-/// resulting `VForExpression` AST node (`expr.left` gives `[value, key,
-/// index]` patterns directly, and a value that fails to parse at all is
-/// silently ignored — `expr == null` returns early with no report). This
-/// parser doesn't parse directive values as JS, so this reimplements the
-/// grammar textually: split on the first top-level (bracket/quote-depth 0)
-/// ` in `/` of `, optionally strip one layer of wrapping parens from the
-/// alias list, then split that on top-level commas. `key`/`index` aliases
-/// are validated as plain identifiers via the same identifier-character
-/// tables oxc's own parser uses. The one case this can't reproduce is
-/// upstream's "silently ignore a value that fails to parse entirely" — a
-/// value with no top-level ` in `/` of ` at all (e.g. `v-for="items"`,
-/// `v-for="1 +"`) always reports `unexpectedExpression` here, whereas
-/// upstream only reports it when the value parses to a non-`VForExpression`
-/// AST and stays silent on a genuine syntax error. The `isUsingIterationVar`
-/// check (that a `:key` binding actually references one of the `v-for`
-/// aliases) is skipped entirely — it requires resolving identifier
-/// references against declared pattern names, which needs real scope
-/// analysis this parser doesn't have.
+/// Upstream rewrites the directive value into `for (let [<aliases>]
+/// in/of <expression>);` (dropping one layer of wrapping parens from
+/// `<aliases>` first, if present) and parses *that* as a real `for`
+/// statement — forcing the alias list through actual `ArrayPattern` grammar.
+/// Concretely this means: a non-pattern alias (a number literal, a member
+/// expression, …) makes the *entire* parse fail, a hole (`(value, , index)`)
+/// is a real array-pattern elision, and a trailing comma
+/// (`(item, index,) in items`) does *not* manufacture a phantom element —
+/// all exactly like a plain `let [a, b] = x;` would behave. Any parse
+/// failure (this rule found no top-level ` in `/` of ` at all, the alias
+/// list was blank, or the rewritten `for` statement doesn't parse) is
+/// treated exactly like upstream's `if (expr == null) return;`: silently
+/// ignored, not reported. (Given the rewrite always produces a
+/// `VForExpression`-shaped node on success, upstream's own
+/// `expr.type !== "VForExpression"` branch — the source of the old
+/// `unexpectedExpression` message — is dead code against the parser
+/// version this was verified against, so this doesn't reproduce it either.)
+///
+/// This parser instance mirrors upstream's mechanism, not its text: it
+/// builds a small synthetic snippet and parses that with `oxc_parser`,
+/// mapping the resulting `key`/`index` binding spans back into `value`'s
+/// original source range for diagnostics.
 fn check_for_value<'a>(
     value: &AttributeValue<'a>,
     allow_empty_alias: bool,
     ctx: &mut VueTemplateContext<'a>,
 ) {
     let raw = value.text;
-    let Some((sep_start, sep_end)) = find_for_separator(raw) else {
-        ctx.diagnostic(unexpected_expression_diagnostic(value.span));
-        return;
-    };
-    if raw[sep_end..].trim().is_empty() {
-        ctx.diagnostic(unexpected_expression_diagnostic(value.span));
+    let Some((sep_start, sep_end)) = find_for_separator(raw) else { return };
+
+    let aliases_raw = &raw[..sep_start];
+    if aliases_raw.trim().is_empty() {
         return;
     }
+    let delimiter = &raw[sep_start..sep_end];
+    let iterator_raw = &raw[sep_end..];
 
-    let (aliases_trimmed, aliases_start) = trim_with_offset(&raw[..sep_start]);
-    let (parts, has_parens): (Vec<(usize, &str)>, bool) = if aliases_trimmed.len() >= 2
-        && aliases_trimmed.starts_with('(')
-        && aliases_trimmed.ends_with(')')
-    {
-        let inner = &aliases_trimmed[1..aliases_trimmed.len() - 1];
-        let inner_start = aliases_start + 1;
-        (
-            split_top_level_commas(inner)
-                .into_iter()
-                .map(|(offset, text)| (inner_start + offset, text))
-                .collect(),
-            true,
-        )
-    } else {
-        (vec![(aliases_start, aliases_trimmed)], false)
+    let trimmed = aliases_raw.trim();
+    let (inner, inner_raw_offset, has_parens) =
+        if trimmed.len() >= 2 && trimmed.starts_with('(') && trimmed.ends_with(')') {
+            let leading_ws = aliases_raw.len() - aliases_raw.trim_start().len();
+            (&trimmed[1..trimmed.len() - 1], leading_ws + 1, true)
+        } else {
+            (aliases_raw, 0usize, false)
+        };
+
+    let snippet = format!("{FOR_SNIPPET_PREFIX}{inner}]{delimiter}{iterator_raw});");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return;
+    }
+    let left = match parser_ret.program.body.first() {
+        Some(Statement::ForInStatement(statement)) => &statement.left,
+        Some(Statement::ForOfStatement(statement)) => &statement.left,
+        _ => return,
     };
+    let ForStatementLeft::VariableDeclaration(declaration) = left else { return };
+    let Some(declarator) = declaration.declarations.first() else { return };
+    let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return };
+    let elements = &array_pattern.elements;
 
-    let value_missing = parts.first().is_none_or(|(_, text)| text.trim().is_empty());
-    if value_missing && !allow_empty_alias {
+    let value_present = elements.first().is_some_and(Option::is_some);
+    if !value_present && !allow_empty_alias {
         ctx.diagnostic(invalid_empty_alias_diagnostic(value.span));
     }
 
-    if has_parens {
-        if let Some(&(offset, text)) = parts.get(1) {
-            check_key_or_index_alias(text, offset, value, allow_empty_alias, ctx);
-        }
-        if let Some(&(offset, text)) = parts.get(2) {
-            check_key_or_index_alias(text, offset, value, allow_empty_alias, ctx);
-        }
-    }
-}
-
-/// Validates a `key`/`index` alias slot: eslint-plugin-vue's `isValidAlias`
-/// (present and an `Identifier`, or empty when `allowEmptyAlias`).
-fn check_key_or_index_alias<'a>(
-    text: &str,
-    offset_in_value: usize,
-    value: &AttributeValue<'a>,
-    allow_empty_alias: bool,
-    ctx: &mut VueTemplateContext<'a>,
-) {
-    let (trimmed, trimmed_offset) = trim_with_offset(text);
-    if trimmed.is_empty() {
-        if !allow_empty_alias {
-            ctx.diagnostic(invalid_empty_alias_diagnostic(value.span));
-        }
+    if !has_parens {
         return;
     }
-    if !is_valid_identifier_name(trimmed) {
-        let start = value.span.start + u32::try_from(offset_in_value + trimmed_offset).unwrap_or(0);
-        let end = start + u32::try_from(trimmed.len()).unwrap_or(0);
-        ctx.diagnostic(invalid_alias_diagnostic(trimmed, Span::new(start, end)));
-    }
-}
 
-/// Whether `text` is a single valid JS identifier (what `isValidAlias`
-/// requires of `key`/`index`).
-fn is_valid_identifier_name(text: &str) -> bool {
-    let mut chars = text.chars();
-    let Some(first) = chars.next() else { return false };
-    is_identifier_start(first) && chars.all(is_identifier_part)
-}
+    let prefix_len = u32::try_from(FOR_SNIPPET_PREFIX.len()).unwrap_or(0);
+    let inner_raw_offset = u32::try_from(inner_raw_offset).unwrap_or(0);
 
-/// The byte offset within `raw` where its trimmed content starts, alongside
-/// the trimmed text itself.
-fn trim_with_offset(raw: &str) -> (&str, usize) {
-    let start = raw.len() - raw.trim_start().len();
-    (raw.trim(), start)
-}
-
-/// The first top-level (bracket/quote-depth 0) ` in ` or ` of ` in `text`,
-/// as `(separator_start, separator_end)` byte offsets.
-fn find_for_separator(text: &str) -> Option<(usize, usize)> {
-    let mut depth: i32 = 0;
-    let mut quote: Option<char> = None;
-    for (byte_pos, ch) in text.char_indices() {
-        if let Some(q) = quote {
-            if ch == q {
-                quote = None;
+    let mut check_slot = |slot: Option<&Option<BindingPattern<'_>>>| {
+        let Some(slot) = slot else { return };
+        match slot {
+            None => {
+                if !allow_empty_alias {
+                    ctx.diagnostic(invalid_empty_alias_diagnostic(value.span));
+                }
             }
+            Some(BindingPattern::BindingIdentifier(_)) => {}
+            Some(pattern) => {
+                let pattern_span = pattern.span();
+                let raw_start = pattern_span.start - prefix_len + inner_raw_offset;
+                let raw_end = pattern_span.end - prefix_len + inner_raw_offset;
+                let text = &raw[raw_start as usize..raw_end as usize];
+                let span = Span::new(value.span.start + raw_start, value.span.start + raw_end);
+                ctx.diagnostic(invalid_alias_diagnostic(text, span));
+            }
+        }
+    };
+    check_slot(elements.get(1));
+    check_slot(elements.get(2));
+}
+
+/// Mirrors vue-eslint-parser's `ALIAS_ITERATOR` regex —
+/// `/^([\s\S]*?(?:\s|\)))(\bin\b|\bof\b)([\s\S]*)$/u` — the first (leftmost)
+/// whole-word `in`/`of` immediately preceded by whitespace or `)`. Upstream's
+/// regex has no bracket/quote awareness, so this doesn't add any either.
+fn find_for_separator(text: &str) -> Option<(usize, usize)> {
+    let chars: Vec<(usize, char)> = text.char_indices().collect();
+    for (index, &(byte_pos, _)) in chars.iter().enumerate() {
+        let preceded_ok = index > 0 && {
+            let previous = chars[index - 1].1;
+            previous.is_whitespace() || previous == ')'
+        };
+        if !preceded_ok {
             continue;
         }
-        match ch {
-            '"' | '\'' | '`' => quote = Some(ch),
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            _ => {}
-        }
-        if depth == 0 && quote.is_none() {
-            for sep in [" in ", " of "] {
-                if text[byte_pos..].starts_with(sep) {
-                    return Some((byte_pos, byte_pos + sep.len()));
-                }
+        for keyword in ["in", "of"] {
+            if !text[byte_pos..].starts_with(keyword) {
+                continue;
+            }
+            let after = byte_pos + keyword.len();
+            let word_boundary_ok = match text[after..].chars().next() {
+                None => true,
+                Some(next) => !(next.is_alphanumeric() || next == '_' || next == '$'),
+            };
+            if word_boundary_ok {
+                return Some((byte_pos, after));
             }
         }
     }
     None
-}
-
-/// Splits `text` on top-level (bracket/quote-depth 0) commas, pairing each
-/// piece with its byte offset within `text`.
-fn split_top_level_commas(text: &str) -> Vec<(usize, &str)> {
-    let mut parts = Vec::new();
-    let mut depth: i32 = 0;
-    let mut quote: Option<char> = None;
-    let mut start = 0usize;
-    for (byte_pos, ch) in text.char_indices() {
-        if let Some(q) = quote {
-            if ch == q {
-                quote = None;
-            }
-            continue;
-        }
-        match ch {
-            '"' | '\'' | '`' => quote = Some(ch),
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            ',' if depth == 0 => {
-                parts.push((start, &text[start..byte_pos]));
-                start = byte_pos + ch.len_utf8();
-            }
-            _ => {}
-        }
-    }
-    parts.push((start, &text[start..]));
-    parts
 }
 
 #[cfg(test)]
@@ -377,6 +359,37 @@ mod tests {
             // Destructured value alias, own shape unchecked.
             (
                 r#"<template><div v-for="{ a, b } in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Trailing comma: a real ArrayPattern has exactly 2 elements
+            // here, no phantom empty 3rd slot.
+            (
+                r#"<template><div v-for="(item, index,) in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // No top-level ` in `/` of ` at all: upstream's parser throws
+            // before ever producing an expression, which its own rule
+            // logic silently ignores.
+            (
+                r#"<template><div v-for="items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A non-pattern element anywhere in the alias list makes the
+            // *whole* parse fail — upstream silently ignores this too.
+            (
+                r#"<template><div v-for="(item, 1) in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div v-for="(item, key, foo.bar) in items" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
@@ -436,30 +449,31 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // Not the special syntax.
+            // Invalid key alias: a syntactically valid pattern (destructured
+            // object) that just isn't a plain Identifier.
             (
-                r#"<template><div v-for="items" /></template>"#,
+                r#"<template><div v-for="(item, {a, b}) in items" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // Invalid key alias (not an identifier).
+            // Invalid index alias: same, an array pattern.
             (
-                r#"<template><div v-for="(item, 1) in items" /></template>"#,
+                r#"<template><div v-for="(item, key, [a, b]) in items" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // Invalid index alias.
-            (
-                r#"<template><div v-for="(item, key, foo.bar) in items" /></template>"#,
-                None,
-                None,
-                Some(PathBuf::from("test.vue")),
-            ),
-            // Empty key alias, option off.
+            // Empty key alias (a real hole), option off.
             (
                 r#"<template><div v-for="(value, , index) in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Empty value alias, option off.
+            (
+                r#"<template><div v-for="(, key) in items" /></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

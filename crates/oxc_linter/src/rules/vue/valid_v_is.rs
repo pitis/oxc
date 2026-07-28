@@ -55,6 +55,22 @@ declare_oxc_lint!(
     /// on a custom component, or with an argument/modifier/no value, either
     /// fails to compile or does nothing useful.
     ///
+    /// ### Deviations from eslint-plugin-vue
+    ///
+    /// Upstream's "is this a native HTML element" check is namespace-based
+    /// (`node.namespace === NS.HTML`, tracked by its HTML5-spec parser from
+    /// real element nesting — e.g. `<svg>`'s descendants are SVG-namespaced
+    /// even if a tag name looks like an HTML one). This rule instead reuses
+    /// [`is_reserved_element_name`](crate::utils::is_reserved_element_name),
+    /// a static name-list check with no ancestor/namespace tracking (the
+    /// same simplification `is_custom_component` already makes, used
+    /// throughout this rule family). The only place this can disagree with
+    /// upstream is an SVG/MathML-named tag (e.g. `<path>`) used *outside*
+    /// any real `<svg>`/`<math>` ancestor — upstream would flag it (HTML
+    /// namespace, unknown HTML name); this rule treats it as a known name
+    /// and stays silent. Namespace-correct HTML, SVG, and MathML usage is
+    /// unaffected.
+    ///
     /// ### Examples
     ///
     /// Examples of **incorrect** code for this rule:

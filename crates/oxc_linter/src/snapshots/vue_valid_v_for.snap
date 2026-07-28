@@ -31,24 +31,17 @@ assertion_line: 490
    ╰────
   help: Give `v-for` an iteration expression, e.g. `v-for="item in items"`.
 
-  ⚠ vue(valid-v-for): 'v-for' directives require the special syntax '<alias> in <expression>'.
-   ╭─[valid_v_for.tsx:1:23]
- 1 │ <template><div v-for="items" /></template>
-   ·                       ─────
-   ╰────
-  help: Use the form `item in items` or `(item, index) in items`.
-
-  ⚠ vue(valid-v-for): Invalid alias '1'.
+  ⚠ vue(valid-v-for): Invalid alias '{a, b}'.
    ╭─[valid_v_for.tsx:1:30]
- 1 │ <template><div v-for="(item, 1) in items" /></template>
-   ·                              ─
+ 1 │ <template><div v-for="(item, {a, b}) in items" /></template>
+   ·                              ──────
    ╰────
   help: Key and index aliases must be plain identifiers.
 
-  ⚠ vue(valid-v-for): Invalid alias 'foo.bar'.
+  ⚠ vue(valid-v-for): Invalid alias '[a, b]'.
    ╭─[valid_v_for.tsx:1:35]
- 1 │ <template><div v-for="(item, key, foo.bar) in items" /></template>
-   ·                                   ───────
+ 1 │ <template><div v-for="(item, key, [a, b]) in items" /></template>
+   ·                                   ──────
    ╰────
   help: Key and index aliases must be plain identifiers.
 
@@ -56,6 +49,13 @@ assertion_line: 490
    ╭─[valid_v_for.tsx:1:23]
  1 │ <template><div v-for="(value, , index) in items" /></template>
    ·                       ─────────────────────────
+   ╰────
+  help: Give the alias a name, or enable the `allowEmptyAlias` option.
+
+  ⚠ vue(valid-v-for): Invalid empty alias.
+   ╭─[valid_v_for.tsx:1:23]
+ 1 │ <template><div v-for="(, key) in items" /></template>
+   ·                       ────────────────
    ╰────
   help: Give the alias a name, or enable the `allowEmptyAlias` option.
 

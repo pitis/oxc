@@ -37,3 +37,10 @@ assertion_line: 490
    ·                           ──────
    ╰────
   help: Use a method reference or an inline statement instead of a bare keyword.
+
+  ⚠ vue(valid-v-on): Avoid using JavaScript keyword as "v-on" value: super.
+   ╭─[valid_v_on.tsx:1:27]
+ 1 │ <template><button @click="super" /></template>
+   ·                           ─────
+   ╰────
+  help: Use a method reference or an inline statement instead of a bare keyword.
