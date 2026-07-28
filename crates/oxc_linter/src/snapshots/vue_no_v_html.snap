@@ -1,0 +1,32 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="rawHtml" /></template>
+   ·                ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="rawHtml">child content ignored by the check</div></template>
+   ·                ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:19]
+ 1 │ <template><MyComp v-html="rawHtml" /></template>
+   ·                   ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html /></template>
+   ·                ──────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.

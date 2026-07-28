@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-use-v-if-with-v-for): This 'v-if' should be moved to the wrapper element.
+   ╭─[no_use_v_if_with_v_for.tsx:1:38]
+ 1 │ <template><div v-for="item in items" v-if="show" /></template>
+   ·                                      ───────────
+   ╰────
+  help: Wrap the `v-for`'d element in a parent and move `v-if` there, or use a computed property to pre-filter the list.
+
+  ⚠ vue(no-use-v-if-with-v-for): The 'items' variable inside 'v-for' directive should be replaced with a computed property that returns filtered array instead. You should not mix 'v-for' with 'v-if'.
+   ╭─[no_use_v_if_with_v_for.tsx:1:38]
+ 1 │ <template><div v-for="item in items" v-if="item.active" /></template>
+   ·                                      ──────────────────
+   ╰────
+  help: Move the filtering into a computed property and `v-for` over that instead.
+
+  ⚠ vue(no-use-v-if-with-v-for): The 'items' variable inside 'v-for' directive should be replaced with a computed property that returns filtered array instead. You should not mix 'v-for' with 'v-if'.
+   ╭─[no_use_v_if_with_v_for.tsx:1:38]
+ 1 │ <template><div v-for="item in items" v-if="item.active && other" /></template>
+   ·                                      ───────────────────────────
+   ╰────
+  help: Move the filtering into a computed property and `v-for` over that instead.
+
+  ⚠ vue(no-use-v-if-with-v-for): The 'items' variable inside 'v-for' directive should be replaced with a computed property that returns filtered array instead. You should not mix 'v-for' with 'v-if'.
+   ╭─[no_use_v_if_with_v_for.tsx:1:47]
+ 1 │ <template><div v-for="(item, index) in items" v-if="index % 2 === 0" /></template>
+   ·                                               ──────────────────────
+   ╰────
+  help: Move the filtering into a computed property and `v-for` over that instead.
+
+  ⚠ vue(no-use-v-if-with-v-for): This 'v-if' should be moved to the wrapper element.
+   ╭─[no_use_v_if_with_v_for.tsx:1:38]
+ 1 │ <template><div v-for="item in items" v-if="show" /></template>
+   ·                                      ───────────
+   ╰────
+  help: Wrap the `v-for`'d element in a parent and move `v-if` there, or use a computed property to pre-filter the list.

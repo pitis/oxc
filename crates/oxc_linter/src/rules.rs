@@ -879,6 +879,7 @@ pub(crate) mod vue {
     pub mod no_deprecated_props_default_this;
     pub mod no_deprecated_vue_config_keycodes;
     pub mod no_dupe_keys;
+    pub mod no_dupe_v_else_if;
     pub mod no_duplicate_attributes;
     pub mod no_export_in_script_setup;
     pub mod no_expose_after_await;
@@ -896,8 +897,11 @@ pub(crate) mod vue {
     pub mod no_template_key;
     pub mod no_textarea_mustache;
     pub mod no_this_in_before_route_enter;
+    pub mod no_use_v_if_with_v_for;
     pub mod no_useless_template_attributes;
     pub mod no_v_for_template_key_on_child;
+    pub mod no_v_html;
+    pub mod no_v_text_v_html_on_component;
     pub mod no_watch_after_await;
     pub mod prefer_import_from_vue;
     pub mod prop_name_casing;
@@ -909,10 +913,12 @@ pub(crate) mod vue {
     pub mod require_prop_types;
     pub mod require_render_return;
     pub mod require_slots_as_functions;
+    pub mod require_toggle_inside_transition;
     pub mod require_typed_ref;
     pub mod require_v_for_key;
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
+    pub mod use_v_on_exact;
     pub mod valid_attribute_name;
     pub mod valid_define_emits;
     pub mod valid_define_options;

@@ -84,6 +84,12 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueValidVSlot(rule) => Some(rule),
         RuleEnum::VueValidAttributeName(rule) => Some(rule),
         RuleEnum::VueNoParsingError(rule) => Some(rule),
+        RuleEnum::VueNoVHtml(rule) => Some(rule),
+        RuleEnum::VueNoVTextVHtmlOnComponent(rule) => Some(rule),
+        RuleEnum::VueUseVOnExact(rule) => Some(rule),
+        RuleEnum::VueNoDupeVElseIf(rule) => Some(rule),
+        RuleEnum::VueRequireToggleInsideTransition(rule) => Some(rule),
+        RuleEnum::VueNoUseVIfWithVFor(rule) => Some(rule),
         _ => None,
     }
 }
