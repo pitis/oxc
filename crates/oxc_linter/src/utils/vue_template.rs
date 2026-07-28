@@ -203,6 +203,41 @@ pub fn walk_elements_with_siblings<'e, 'a>(
     }
 }
 
+/// The span of the `index`-th modifier (0-based, in [`Directive::modifiers`]
+/// source order) within an attribute's raw name text — e.g. the `native` in
+/// `v-on:keyup.native`, or the `13` in `@keyup.13.stop`.
+///
+/// [`Directive::modifiers`] keeps only the modifier text, not its span, so
+/// rules that need to report on the modifier's own node (eslint-plugin-vue's
+/// `VIdentifier`) rather than the whole directive key — e.g.
+/// `no-deprecated-v-on-native-modifier`, `no-deprecated-v-on-number-modifiers`
+/// — recompute it here. This scans `attribute.name_span`'s source text for
+/// `.`-delimited segments, tracking `[`/`]` depth so a literal `.` inside a
+/// dynamic argument (e.g. `:[a.b].sync`) isn't mistaken for a modifier
+/// boundary. `index` is assumed in range (callers get it from iterating
+/// `Directive::modifiers` itself).
+pub fn directive_modifier_span(attribute: &Attribute<'_>, source_text: &str, index: usize) -> Span {
+    let name_span = attribute.name_span;
+    let text = &source_text[name_span.start as usize..name_span.end as usize];
+
+    let mut depth = 0i32;
+    let mut dot_positions = Vec::new();
+    for (byte_index, ch) in text.char_indices() {
+        match ch {
+            '[' => depth += 1,
+            ']' => depth -= 1,
+            '.' if depth == 0 => dot_positions.push(byte_index),
+            _ => {}
+        }
+    }
+
+    let start = dot_positions.get(index).map_or(text.len(), |&position| position + 1);
+    let end = dot_positions.get(index + 1).copied().unwrap_or(text.len());
+    let start = u32::try_from(start).unwrap_or(name_span.end - name_span.start);
+    let end = u32::try_from(end).unwrap_or(start);
+    Span::new(name_span.start + start, name_span.start + end)
+}
+
 /// The nearest preceding `Element` sibling of `nodes[index]` within `nodes`,
 /// skipping over any `Text`/`Interpolation`/`Comment`/`Raw` nodes in between —
 /// eslint-plugin-vue's `utils.prevSibling`, which only ever tracks `VElement`

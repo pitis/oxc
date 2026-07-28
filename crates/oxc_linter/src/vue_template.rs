@@ -95,6 +95,13 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueVBindStyle(rule) => Some(rule),
         RuleEnum::VueVOnStyle(rule) => Some(rule),
         RuleEnum::VueVSlotStyle(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedScopeAttribute(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedSlotAttribute(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedSlotScopeAttribute(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedVBindSync(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedVIs(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedVOnNativeModifier(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedVOnNumberModifiers(rule) => Some(rule),
         _ => None,
     }
 }

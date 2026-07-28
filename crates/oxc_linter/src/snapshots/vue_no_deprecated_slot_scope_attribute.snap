@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot-scope="{a}"><a /></template></LinkList></template>
+   ·                               ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot-scope><a /></template></LinkList></template>
+   ·                               ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:24]
+ 1 │ <template><LinkList><a slot-scope="{a}" /></LinkList></template>
+   ·                        ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot-scope="{a}" slot="foo"><a /></template></LinkList></template>
+   ·                               ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot-scope="{a}" :slot="arg"><a /></template></LinkList></template>
+   ·                               ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
+   ╭─[no_deprecated_slot_scope_attribute.tsx:1:24]
+ 1 │ <template><LinkList><a SLOT-SCOPE="{a}" /></LinkList></template>
+   ·                        ──────────
+   ╰────
+  help: Vue 3 removed `slot-scope`; use `v-slot` instead.

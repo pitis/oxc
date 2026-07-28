@@ -828,6 +828,13 @@ pub use crate::rules::vue::no_deprecated_destroyed_lifecycle::NoDeprecatedDestro
 pub use crate::rules::vue::no_deprecated_events_api::NoDeprecatedEventsApi as VueNoDeprecatedEventsApi;
 pub use crate::rules::vue::no_deprecated_model_definition::NoDeprecatedModelDefinition as VueNoDeprecatedModelDefinition;
 pub use crate::rules::vue::no_deprecated_props_default_this::NoDeprecatedPropsDefaultThis as VueNoDeprecatedPropsDefaultThis;
+pub use crate::rules::vue::no_deprecated_scope_attribute::NoDeprecatedScopeAttribute as VueNoDeprecatedScopeAttribute;
+pub use crate::rules::vue::no_deprecated_slot_attribute::NoDeprecatedSlotAttribute as VueNoDeprecatedSlotAttribute;
+pub use crate::rules::vue::no_deprecated_slot_scope_attribute::NoDeprecatedSlotScopeAttribute as VueNoDeprecatedSlotScopeAttribute;
+pub use crate::rules::vue::no_deprecated_v_bind_sync::NoDeprecatedVBindSync as VueNoDeprecatedVBindSync;
+pub use crate::rules::vue::no_deprecated_v_is::NoDeprecatedVIs as VueNoDeprecatedVIs;
+pub use crate::rules::vue::no_deprecated_v_on_native_modifier::NoDeprecatedVOnNativeModifier as VueNoDeprecatedVOnNativeModifier;
+pub use crate::rules::vue::no_deprecated_v_on_number_modifiers::NoDeprecatedVOnNumberModifiers as VueNoDeprecatedVOnNumberModifiers;
 pub use crate::rules::vue::no_deprecated_vue_config_keycodes::NoDeprecatedVueConfigKeycodes as VueNoDeprecatedVueConfigKeycodes;
 pub use crate::rules::vue::no_dupe_keys::NoDupeKeys as VueNoDupeKeys;
 pub use crate::rules::vue::no_dupe_v_else_if::NoDupeVElseIf as VueNoDupeVElseIf;
@@ -1732,6 +1739,13 @@ pub enum RuleEnum {
     VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi),
     VueNoDeprecatedModelDefinition(VueNoDeprecatedModelDefinition),
     VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis),
+    VueNoDeprecatedScopeAttribute(VueNoDeprecatedScopeAttribute),
+    VueNoDeprecatedSlotAttribute(VueNoDeprecatedSlotAttribute),
+    VueNoDeprecatedSlotScopeAttribute(VueNoDeprecatedSlotScopeAttribute),
+    VueNoDeprecatedVBindSync(VueNoDeprecatedVBindSync),
+    VueNoDeprecatedVIs(VueNoDeprecatedVIs),
+    VueNoDeprecatedVOnNativeModifier(VueNoDeprecatedVOnNativeModifier),
+    VueNoDeprecatedVOnNumberModifiers(VueNoDeprecatedVOnNumberModifiers),
     VueNoDeprecatedVueConfigKeycodes(VueNoDeprecatedVueConfigKeycodes),
     VueNoDupeKeys(VueNoDupeKeys),
     VueNoDupeVElseIf(VueNoDupeVElseIf),
@@ -2724,8 +2738,18 @@ const VUE_NO_DEPRECATED_EVENTS_API_ID: usize = VUE_NO_DEPRECATED_DESTROYED_LIFEC
 const VUE_NO_DEPRECATED_MODEL_DEFINITION_ID: usize = VUE_NO_DEPRECATED_EVENTS_API_ID + 1usize;
 const VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID: usize =
     VUE_NO_DEPRECATED_MODEL_DEFINITION_ID + 1usize;
-const VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID: usize =
+const VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID: usize =
     VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID + 1usize;
+const VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID: usize = VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID + 1usize;
+const VUE_NO_DEPRECATED_SLOT_SCOPE_ATTRIBUTE_ID: usize =
+    VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID + 1usize;
+const VUE_NO_DEPRECATED_V_BIND_SYNC_ID: usize = VUE_NO_DEPRECATED_SLOT_SCOPE_ATTRIBUTE_ID + 1usize;
+const VUE_NO_DEPRECATED_V_IS_ID: usize = VUE_NO_DEPRECATED_V_BIND_SYNC_ID + 1usize;
+const VUE_NO_DEPRECATED_V_ON_NATIVE_MODIFIER_ID: usize = VUE_NO_DEPRECATED_V_IS_ID + 1usize;
+const VUE_NO_DEPRECATED_V_ON_NUMBER_MODIFIERS_ID: usize =
+    VUE_NO_DEPRECATED_V_ON_NATIVE_MODIFIER_ID + 1usize;
+const VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID: usize =
+    VUE_NO_DEPRECATED_V_ON_NUMBER_MODIFIERS_ID + 1usize;
 const VUE_NO_DUPE_KEYS_ID: usize = VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID + 1usize;
 const VUE_NO_DUPE_V_ELSE_IF_ID: usize = VUE_NO_DUPE_KEYS_ID + 1usize;
 const VUE_NO_DUPLICATE_ATTRIBUTES_ID: usize = VUE_NO_DUPE_V_ELSE_IF_ID + 1usize;
@@ -3743,6 +3767,15 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VUE_NO_DEPRECATED_EVENTS_API_ID,
             Self::VueNoDeprecatedModelDefinition(_) => VUE_NO_DEPRECATED_MODEL_DEFINITION_ID,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID,
+            Self::VueNoDeprecatedScopeAttribute(_) => VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID,
+            Self::VueNoDeprecatedSlotAttribute(_) => VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => VUE_NO_DEPRECATED_SLOT_SCOPE_ATTRIBUTE_ID,
+            Self::VueNoDeprecatedVBindSync(_) => VUE_NO_DEPRECATED_V_BIND_SYNC_ID,
+            Self::VueNoDeprecatedVIs(_) => VUE_NO_DEPRECATED_V_IS_ID,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VUE_NO_DEPRECATED_V_ON_NATIVE_MODIFIER_ID,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VUE_NO_DEPRECATED_V_ON_NUMBER_MODIFIERS_ID
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID,
             Self::VueNoDupeKeys(_) => VUE_NO_DUPE_KEYS_ID,
             Self::VueNoDupeVElseIf(_) => VUE_NO_DUPE_V_ELSE_IF_ID,
@@ -4747,6 +4780,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::NAME,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::NAME,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::NAME,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::NAME,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::NAME,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::NAME,
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::NAME,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::NAME,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VueNoDeprecatedVOnNativeModifier::NAME,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => VueNoDeprecatedVOnNumberModifiers::NAME,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::NAME,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::NAME,
             Self::VueNoDupeVElseIf(_) => VueNoDupeVElseIf::NAME,
@@ -5809,6 +5849,17 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::CATEGORY,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::CATEGORY,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::CATEGORY,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::CATEGORY,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::CATEGORY,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::CATEGORY
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::CATEGORY,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::CATEGORY,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VueNoDeprecatedVOnNativeModifier::CATEGORY,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::CATEGORY
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::CATEGORY,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::CATEGORY,
             Self::VueNoDupeVElseIf(_) => VueNoDupeVElseIf::CATEGORY,
@@ -6814,6 +6865,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::FIX,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::FIX,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::FIX,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::FIX,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::FIX,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::FIX,
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::FIX,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::FIX,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VueNoDeprecatedVOnNativeModifier::FIX,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => VueNoDeprecatedVOnNumberModifiers::FIX,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::FIX,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::FIX,
             Self::VueNoDupeVElseIf(_) => VueNoDupeVElseIf::FIX,
@@ -8082,6 +8140,21 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedPropsDefaultThis(_) => {
                 VueNoDeprecatedPropsDefaultThis::documentation()
+            }
+            Self::VueNoDeprecatedScopeAttribute(_) => {
+                VueNoDeprecatedScopeAttribute::documentation()
+            }
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::documentation(),
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::documentation()
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::documentation(),
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::documentation(),
+            Self::VueNoDeprecatedVOnNativeModifier(_) => {
+                VueNoDeprecatedVOnNativeModifier::documentation()
+            }
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::documentation()
             }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => {
                 VueNoDeprecatedVueConfigKeycodes::documentation()
@@ -10521,6 +10594,30 @@ impl RuleEnum {
                 VueNoDeprecatedPropsDefaultThis::config_schema(generator)
                     .or_else(|| VueNoDeprecatedPropsDefaultThis::schema(generator))
             }
+            Self::VueNoDeprecatedScopeAttribute(_) => {
+                VueNoDeprecatedScopeAttribute::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedScopeAttribute::schema(generator))
+            }
+            Self::VueNoDeprecatedSlotAttribute(_) => {
+                VueNoDeprecatedSlotAttribute::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedSlotAttribute::schema(generator))
+            }
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedSlotScopeAttribute::schema(generator))
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::config_schema(generator)
+                .or_else(|| VueNoDeprecatedVBindSync::schema(generator)),
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::config_schema(generator)
+                .or_else(|| VueNoDeprecatedVIs::schema(generator)),
+            Self::VueNoDeprecatedVOnNativeModifier(_) => {
+                VueNoDeprecatedVOnNativeModifier::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedVOnNativeModifier::schema(generator))
+            }
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedVOnNumberModifiers::schema(generator))
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => {
                 VueNoDeprecatedVueConfigKeycodes::config_schema(generator)
                     .or_else(|| VueNoDeprecatedVueConfigKeycodes::schema(generator))
@@ -11525,6 +11622,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => "vue",
             Self::VueNoDeprecatedModelDefinition(_) => "vue",
             Self::VueNoDeprecatedPropsDefaultThis(_) => "vue",
+            Self::VueNoDeprecatedScopeAttribute(_) => "vue",
+            Self::VueNoDeprecatedSlotAttribute(_) => "vue",
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => "vue",
+            Self::VueNoDeprecatedVBindSync(_) => "vue",
+            Self::VueNoDeprecatedVIs(_) => "vue",
+            Self::VueNoDeprecatedVOnNativeModifier(_) => "vue",
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => "vue",
             Self::VueNoDeprecatedVueConfigKeycodes(_) => "vue",
             Self::VueNoDupeKeys(_) => "vue",
             Self::VueNoDupeVElseIf(_) => "vue",
@@ -14236,6 +14340,33 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => Ok(Self::VueNoDeprecatedPropsDefaultThis(
                 VueNoDeprecatedPropsDefaultThis::from_configuration(value)?,
             )),
+            Self::VueNoDeprecatedScopeAttribute(_) => Ok(Self::VueNoDeprecatedScopeAttribute(
+                VueNoDeprecatedScopeAttribute::from_configuration(value)?,
+            )),
+            Self::VueNoDeprecatedSlotAttribute(_) => Ok(Self::VueNoDeprecatedSlotAttribute(
+                VueNoDeprecatedSlotAttribute::from_configuration(value)?,
+            )),
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                Ok(Self::VueNoDeprecatedSlotScopeAttribute(
+                    VueNoDeprecatedSlotScopeAttribute::from_configuration(value)?,
+                ))
+            }
+            Self::VueNoDeprecatedVBindSync(_) => Ok(Self::VueNoDeprecatedVBindSync(
+                VueNoDeprecatedVBindSync::from_configuration(value)?,
+            )),
+            Self::VueNoDeprecatedVIs(_) => {
+                Ok(Self::VueNoDeprecatedVIs(VueNoDeprecatedVIs::from_configuration(value)?))
+            }
+            Self::VueNoDeprecatedVOnNativeModifier(_) => {
+                Ok(Self::VueNoDeprecatedVOnNativeModifier(
+                    VueNoDeprecatedVOnNativeModifier::from_configuration(value)?,
+                ))
+            }
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                Ok(Self::VueNoDeprecatedVOnNumberModifiers(
+                    VueNoDeprecatedVOnNumberModifiers::from_configuration(value)?,
+                ))
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => {
                 Ok(Self::VueNoDeprecatedVueConfigKeycodes(
                     VueNoDeprecatedVueConfigKeycodes::from_configuration(value)?,
@@ -15262,6 +15393,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedVIs(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.to_configuration(),
             Self::VueNoDupeKeys(rule) => rule.to_configuration(),
             Self::VueNoDupeVElseIf(rule) => rule.to_configuration(),
@@ -16153,6 +16291,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedVIs(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run(node, ctx),
             Self::VueNoDupeKeys(rule) => rule.run(node, ctx),
             Self::VueNoDupeVElseIf(rule) => rule.run(node, ctx),
@@ -17056,6 +17201,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedVIs(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_once(ctx),
             Self::VueNoDupeKeys(rule) => rule.run_once(ctx),
             Self::VueNoDupeVElseIf(rule) => rule.run_once(ctx),
@@ -18074,6 +18226,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedVIs(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDupeKeys(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDupeVElseIf(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18980,6 +19139,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedVIs(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.should_run(ctx),
             Self::VueNoDupeKeys(rule) => rule.should_run(ctx),
             Self::VueNoDupeVElseIf(rule) => rule.should_run(ctx),
@@ -20246,6 +20412,21 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => {
                 VueNoDeprecatedPropsDefaultThis::IS_TSGOLINT_RULE
             }
+            Self::VueNoDeprecatedScopeAttribute(_) => {
+                VueNoDeprecatedScopeAttribute::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => {
+                VueNoDeprecatedVOnNativeModifier::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::IS_TSGOLINT_RULE
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => {
                 VueNoDeprecatedVueConfigKeycodes::IS_TSGOLINT_RULE
             }
@@ -21318,6 +21499,17 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::VERSION,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::VERSION,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::VERSION,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::VERSION,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::VERSION,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::VERSION
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::VERSION,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::VERSION,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VueNoDeprecatedVOnNativeModifier::VERSION,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::VERSION
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::VERSION,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::VERSION,
             Self::VueNoDupeVElseIf(_) => VueNoDupeVElseIf::VERSION,
@@ -22419,6 +22611,19 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::HAS_CONFIG,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::HAS_CONFIG,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::HAS_CONFIG,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::HAS_CONFIG,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::HAS_CONFIG,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => {
+                VueNoDeprecatedSlotScopeAttribute::HAS_CONFIG
+            }
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::HAS_CONFIG,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::HAS_CONFIG,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => {
+                VueNoDeprecatedVOnNativeModifier::HAS_CONFIG
+            }
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => {
+                VueNoDeprecatedVOnNumberModifiers::HAS_CONFIG
+            }
             Self::VueNoDeprecatedVueConfigKeycodes(_) => {
                 VueNoDeprecatedVueConfigKeycodes::HAS_CONFIG
             }
@@ -23429,6 +23634,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::INFO,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::INFO,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::INFO,
+            Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::INFO,
+            Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::INFO,
+            Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::INFO,
+            Self::VueNoDeprecatedVBindSync(_) => VueNoDeprecatedVBindSync::INFO,
+            Self::VueNoDeprecatedVIs(_) => VueNoDeprecatedVIs::INFO,
+            Self::VueNoDeprecatedVOnNativeModifier(_) => VueNoDeprecatedVOnNativeModifier::INFO,
+            Self::VueNoDeprecatedVOnNumberModifiers(_) => VueNoDeprecatedVOnNumberModifiers::INFO,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::INFO,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::INFO,
             Self::VueNoDupeVElseIf(_) => VueNoDupeVElseIf::INFO,
@@ -24326,6 +24538,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.types_info(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.types_info(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.types_info(),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.types_info(),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.types_info(),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.types_info(),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.types_info(),
+            Self::VueNoDeprecatedVIs(rule) => rule.types_info(),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.types_info(),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.types_info(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.types_info(),
             Self::VueNoDupeKeys(rule) => rule.types_info(),
             Self::VueNoDupeVElseIf(rule) => rule.types_info(),
@@ -25216,6 +25435,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_info(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_info(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_info(),
+            Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_info(),
+            Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_info(),
+            Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_info(),
+            Self::VueNoDeprecatedVBindSync(rule) => rule.run_info(),
+            Self::VueNoDeprecatedVIs(rule) => rule.run_info(),
+            Self::VueNoDeprecatedVOnNativeModifier(rule) => rule.run_info(),
+            Self::VueNoDeprecatedVOnNumberModifiers(rule) => rule.run_info(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_info(),
             Self::VueNoDupeKeys(rule) => rule.run_info(),
             Self::VueNoDupeVElseIf(rule) => rule.run_info(),
@@ -26240,6 +26466,13 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi::default()),
         RuleEnum::VueNoDeprecatedModelDefinition(VueNoDeprecatedModelDefinition::default()),
         RuleEnum::VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis::default()),
+        RuleEnum::VueNoDeprecatedScopeAttribute(VueNoDeprecatedScopeAttribute::default()),
+        RuleEnum::VueNoDeprecatedSlotAttribute(VueNoDeprecatedSlotAttribute::default()),
+        RuleEnum::VueNoDeprecatedSlotScopeAttribute(VueNoDeprecatedSlotScopeAttribute::default()),
+        RuleEnum::VueNoDeprecatedVBindSync(VueNoDeprecatedVBindSync::default()),
+        RuleEnum::VueNoDeprecatedVIs(VueNoDeprecatedVIs::default()),
+        RuleEnum::VueNoDeprecatedVOnNativeModifier(VueNoDeprecatedVOnNativeModifier::default()),
+        RuleEnum::VueNoDeprecatedVOnNumberModifiers(VueNoDeprecatedVOnNumberModifiers::default()),
         RuleEnum::VueNoDeprecatedVueConfigKeycodes(VueNoDeprecatedVueConfigKeycodes::default()),
         RuleEnum::VueNoDupeKeys(VueNoDupeKeys::default()),
         RuleEnum::VueNoDupeVElseIf(VueNoDupeVElseIf::default()),

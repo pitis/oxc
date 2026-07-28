@@ -5227,6 +5227,47 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
+impl RuleRunner for crate::rules::vue::no_deprecated_scope_attribute::NoDeprecatedScopeAttribute {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::no_deprecated_slot_attribute::NoDeprecatedSlotAttribute {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner
+    for crate::rules::vue::no_deprecated_slot_scope_attribute::NoDeprecatedSlotScopeAttribute
+{
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::no_deprecated_v_bind_sync::NoDeprecatedVBindSync {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::no_deprecated_v_is::NoDeprecatedVIs {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner
+    for crate::rules::vue::no_deprecated_v_on_native_modifier::NoDeprecatedVOnNativeModifier
+{
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner
+    for crate::rules::vue::no_deprecated_v_on_number_modifiers::NoDeprecatedVOnNumberModifiers
+{
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
 impl RuleRunner
     for crate::rules::vue::no_deprecated_vue_config_keycodes::NoDeprecatedVueConfigKeycodes
 {

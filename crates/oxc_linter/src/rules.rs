@@ -878,6 +878,13 @@ pub(crate) mod vue {
     pub mod no_deprecated_events_api;
     pub mod no_deprecated_model_definition;
     pub mod no_deprecated_props_default_this;
+    pub mod no_deprecated_scope_attribute;
+    pub mod no_deprecated_slot_attribute;
+    pub mod no_deprecated_slot_scope_attribute;
+    pub mod no_deprecated_v_bind_sync;
+    pub mod no_deprecated_v_is;
+    pub mod no_deprecated_v_on_native_modifier;
+    pub mod no_deprecated_v_on_number_modifiers;
     pub mod no_deprecated_vue_config_keycodes;
     pub mod no_dupe_keys;
     pub mod no_dupe_v_else_if;

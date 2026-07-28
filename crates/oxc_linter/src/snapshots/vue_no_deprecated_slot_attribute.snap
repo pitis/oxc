@@ -1,0 +1,53 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot><a /></template></LinkList></template>
+   ·                               ────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template slot="name"><a /></template></LinkList></template>
+   ·                               ────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template v-bind:slot="name"><a /></template></LinkList></template>
+   ·                               ───────────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:31]
+ 1 │ <template><LinkList><template :slot="slot.name"><a /></template></LinkList></template>
+   ·                               ─────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:24]
+ 1 │ <template><LinkList><a :slot="name" /></LinkList></template>
+   ·                        ─────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:26]
+ 1 │ <template><LinkList><two slot="two" /></LinkList></template>
+   ·                          ────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:27]
+ 1 │ <template><OtherList><one slot="one" /></OtherList></template>
+   ·                           ────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
