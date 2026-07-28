@@ -827,6 +827,8 @@ pub use crate::rules::vue::no_computed_properties_in_data::NoComputedPropertiesI
 pub use crate::rules::vue::no_deprecated_data_object_declaration::NoDeprecatedDataObjectDeclaration as VueNoDeprecatedDataObjectDeclaration;
 pub use crate::rules::vue::no_deprecated_delete_set::NoDeprecatedDeleteSet as VueNoDeprecatedDeleteSet;
 pub use crate::rules::vue::no_deprecated_destroyed_lifecycle::NoDeprecatedDestroyedLifecycle as VueNoDeprecatedDestroyedLifecycle;
+pub use crate::rules::vue::no_deprecated_dollar_listeners_api::NoDeprecatedDollarListenersApi as VueNoDeprecatedDollarListenersApi;
+pub use crate::rules::vue::no_deprecated_dollar_scopedslots_api::NoDeprecatedDollarScopedslotsApi as VueNoDeprecatedDollarScopedslotsApi;
 pub use crate::rules::vue::no_deprecated_events_api::NoDeprecatedEventsApi as VueNoDeprecatedEventsApi;
 pub use crate::rules::vue::no_deprecated_filter::NoDeprecatedFilter as VueNoDeprecatedFilter;
 pub use crate::rules::vue::no_deprecated_functional_template::NoDeprecatedFunctionalTemplate as VueNoDeprecatedFunctionalTemplate;
@@ -883,6 +885,7 @@ pub use crate::rules::vue::require_typed_ref::RequireTypedRef as VueRequireTyped
 pub use crate::rules::vue::require_v_for_key::RequireVForKey as VueRequireVForKey;
 pub use crate::rules::vue::return_in_computed_property::ReturnInComputedProperty as VueReturnInComputedProperty;
 pub use crate::rules::vue::return_in_emits_validator::ReturnInEmitsValidator as VueReturnInEmitsValidator;
+pub use crate::rules::vue::this_in_template::ThisInTemplate as VueThisInTemplate;
 pub use crate::rules::vue::use_v_on_exact::UseVOnExact as VueUseVOnExact;
 pub use crate::rules::vue::v_bind_style::VBindStyle as VueVBindStyle;
 pub use crate::rules::vue::v_on_event_hyphenation::VOnEventHyphenation as VueVOnEventHyphenation;
@@ -1745,6 +1748,8 @@ pub enum RuleEnum {
     VueNoDeprecatedDataObjectDeclaration(VueNoDeprecatedDataObjectDeclaration),
     VueNoDeprecatedDeleteSet(VueNoDeprecatedDeleteSet),
     VueNoDeprecatedDestroyedLifecycle(VueNoDeprecatedDestroyedLifecycle),
+    VueNoDeprecatedDollarListenersApi(VueNoDeprecatedDollarListenersApi),
+    VueNoDeprecatedDollarScopedslotsApi(VueNoDeprecatedDollarScopedslotsApi),
     VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi),
     VueNoDeprecatedFilter(VueNoDeprecatedFilter),
     VueNoDeprecatedFunctionalTemplate(VueNoDeprecatedFunctionalTemplate),
@@ -1801,6 +1806,7 @@ pub enum RuleEnum {
     VueRequireVForKey(VueRequireVForKey),
     VueReturnInComputedProperty(VueReturnInComputedProperty),
     VueReturnInEmitsValidator(VueReturnInEmitsValidator),
+    VueThisInTemplate(VueThisInTemplate),
     VueUseVOnExact(VueUseVOnExact),
     VueVBindStyle(VueVBindStyle),
     VueVOnEventHyphenation(VueVOnEventHyphenation),
@@ -2750,7 +2756,11 @@ const VUE_NO_DEPRECATED_DATA_OBJECT_DECLARATION_ID: usize =
 const VUE_NO_DEPRECATED_DELETE_SET_ID: usize =
     VUE_NO_DEPRECATED_DATA_OBJECT_DECLARATION_ID + 1usize;
 const VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID: usize = VUE_NO_DEPRECATED_DELETE_SET_ID + 1usize;
-const VUE_NO_DEPRECATED_EVENTS_API_ID: usize = VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID + 1usize;
+const VUE_NO_DEPRECATED_DOLLAR_LISTENERS_API_ID: usize =
+    VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID + 1usize;
+const VUE_NO_DEPRECATED_DOLLAR_SCOPEDSLOTS_API_ID: usize =
+    VUE_NO_DEPRECATED_DOLLAR_LISTENERS_API_ID + 1usize;
+const VUE_NO_DEPRECATED_EVENTS_API_ID: usize = VUE_NO_DEPRECATED_DOLLAR_SCOPEDSLOTS_API_ID + 1usize;
 const VUE_NO_DEPRECATED_FILTER_ID: usize = VUE_NO_DEPRECATED_EVENTS_API_ID + 1usize;
 const VUE_NO_DEPRECATED_FUNCTIONAL_TEMPLATE_ID: usize = VUE_NO_DEPRECATED_FILTER_ID + 1usize;
 const VUE_NO_DEPRECATED_HTML_ELEMENT_IS_ID: usize =
@@ -2814,7 +2824,8 @@ const VUE_REQUIRE_TYPED_REF_ID: usize = VUE_REQUIRE_TOGGLE_INSIDE_TRANSITION_ID 
 const VUE_REQUIRE_V_FOR_KEY_ID: usize = VUE_REQUIRE_TYPED_REF_ID + 1usize;
 const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_V_FOR_KEY_ID + 1usize;
 const VUE_RETURN_IN_EMITS_VALIDATOR_ID: usize = VUE_RETURN_IN_COMPUTED_PROPERTY_ID + 1usize;
-const VUE_USE_V_ON_EXACT_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usize;
+const VUE_THIS_IN_TEMPLATE_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usize;
+const VUE_USE_V_ON_EXACT_ID: usize = VUE_THIS_IN_TEMPLATE_ID + 1usize;
 const VUE_V_BIND_STYLE_ID: usize = VUE_USE_V_ON_EXACT_ID + 1usize;
 const VUE_V_ON_EVENT_HYPHENATION_ID: usize = VUE_V_BIND_STYLE_ID + 1usize;
 const VUE_V_ON_STYLE_ID: usize = VUE_V_ON_EVENT_HYPHENATION_ID + 1usize;
@@ -3789,6 +3800,10 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedDeleteSet(_) => VUE_NO_DEPRECATED_DELETE_SET_ID,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID,
+            Self::VueNoDeprecatedDollarListenersApi(_) => VUE_NO_DEPRECATED_DOLLAR_LISTENERS_API_ID,
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VUE_NO_DEPRECATED_DOLLAR_SCOPEDSLOTS_API_ID
+            }
             Self::VueNoDeprecatedEventsApi(_) => VUE_NO_DEPRECATED_EVENTS_API_ID,
             Self::VueNoDeprecatedFilter(_) => VUE_NO_DEPRECATED_FILTER_ID,
             Self::VueNoDeprecatedFunctionalTemplate(_) => VUE_NO_DEPRECATED_FUNCTIONAL_TEMPLATE_ID,
@@ -3849,6 +3864,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VUE_REQUIRE_V_FOR_KEY_ID,
             Self::VueReturnInComputedProperty(_) => VUE_RETURN_IN_COMPUTED_PROPERTY_ID,
             Self::VueReturnInEmitsValidator(_) => VUE_RETURN_IN_EMITS_VALIDATOR_ID,
+            Self::VueThisInTemplate(_) => VUE_THIS_IN_TEMPLATE_ID,
             Self::VueUseVOnExact(_) => VUE_USE_V_ON_EXACT_ID,
             Self::VueVBindStyle(_) => VUE_V_BIND_STYLE_ID,
             Self::VueVOnEventHyphenation(_) => VUE_V_ON_EVENT_HYPHENATION_ID,
@@ -4809,6 +4825,10 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::NAME,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::NAME,
+            Self::VueNoDeprecatedDollarListenersApi(_) => VueNoDeprecatedDollarListenersApi::NAME,
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::NAME
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::NAME,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::NAME,
             Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::NAME,
@@ -4867,6 +4887,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::NAME,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::NAME,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::NAME,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::NAME,
             Self::VueUseVOnExact(_) => VueUseVOnExact::NAME,
             Self::VueVBindStyle(_) => VueVBindStyle::NAME,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::NAME,
@@ -5885,6 +5906,12 @@ impl RuleEnum {
             Self::VueNoDeprecatedDestroyedLifecycle(_) => {
                 VueNoDeprecatedDestroyedLifecycle::CATEGORY
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::CATEGORY
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::CATEGORY
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::CATEGORY,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::CATEGORY,
             Self::VueNoDeprecatedFunctionalTemplate(_) => {
@@ -5949,6 +5976,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::CATEGORY,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::CATEGORY,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::CATEGORY,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::CATEGORY,
             Self::VueUseVOnExact(_) => VueUseVOnExact::CATEGORY,
             Self::VueVBindStyle(_) => VueVBindStyle::CATEGORY,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::CATEGORY,
@@ -6910,6 +6938,10 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::FIX,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::FIX,
+            Self::VueNoDeprecatedDollarListenersApi(_) => VueNoDeprecatedDollarListenersApi::FIX,
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::FIX
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::FIX,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::FIX,
             Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::FIX,
@@ -6968,6 +7000,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::FIX,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::FIX,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::FIX,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::FIX,
             Self::VueUseVOnExact(_) => VueUseVOnExact::FIX,
             Self::VueVBindStyle(_) => VueVBindStyle::FIX,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::FIX,
@@ -8189,6 +8222,12 @@ impl RuleEnum {
             Self::VueNoDeprecatedDestroyedLifecycle(_) => {
                 VueNoDeprecatedDestroyedLifecycle::documentation()
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::documentation()
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::documentation()
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::documentation(),
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::documentation(),
             Self::VueNoDeprecatedFunctionalTemplate(_) => {
@@ -8273,6 +8312,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::documentation(),
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::documentation(),
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::documentation(),
+            Self::VueThisInTemplate(_) => VueThisInTemplate::documentation(),
             Self::VueUseVOnExact(_) => VueUseVOnExact::documentation(),
             Self::VueVBindStyle(_) => VueVBindStyle::documentation(),
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::documentation(),
@@ -10657,6 +10697,14 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::config_schema(generator)
                     .or_else(|| VueNoDeprecatedDestroyedLifecycle::schema(generator))
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedDollarListenersApi::schema(generator))
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedDollarScopedslotsApi::schema(generator))
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::config_schema(generator)
                 .or_else(|| VueNoDeprecatedEventsApi::schema(generator)),
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::config_schema(generator)
@@ -10821,6 +10869,8 @@ impl RuleEnum {
                 VueReturnInEmitsValidator::config_schema(generator)
                     .or_else(|| VueReturnInEmitsValidator::schema(generator))
             }
+            Self::VueThisInTemplate(_) => VueThisInTemplate::config_schema(generator)
+                .or_else(|| VueThisInTemplate::schema(generator)),
             Self::VueUseVOnExact(_) => VueUseVOnExact::config_schema(generator)
                 .or_else(|| VueUseVOnExact::schema(generator)),
             Self::VueVBindStyle(_) => {
@@ -11712,6 +11762,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(_) => "vue",
             Self::VueNoDeprecatedDeleteSet(_) => "vue",
             Self::VueNoDeprecatedDestroyedLifecycle(_) => "vue",
+            Self::VueNoDeprecatedDollarListenersApi(_) => "vue",
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => "vue",
             Self::VueNoDeprecatedEventsApi(_) => "vue",
             Self::VueNoDeprecatedFilter(_) => "vue",
             Self::VueNoDeprecatedFunctionalTemplate(_) => "vue",
@@ -11768,6 +11820,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => "vue",
             Self::VueReturnInComputedProperty(_) => "vue",
             Self::VueReturnInEmitsValidator(_) => "vue",
+            Self::VueThisInTemplate(_) => "vue",
             Self::VueUseVOnExact(_) => "vue",
             Self::VueVBindStyle(_) => "vue",
             Self::VueVOnEventHyphenation(_) => "vue",
@@ -14435,6 +14488,16 @@ impl RuleEnum {
                     VueNoDeprecatedDestroyedLifecycle::from_configuration(value)?,
                 ))
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                Ok(Self::VueNoDeprecatedDollarListenersApi(
+                    VueNoDeprecatedDollarListenersApi::from_configuration(value)?,
+                ))
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                Ok(Self::VueNoDeprecatedDollarScopedslotsApi(
+                    VueNoDeprecatedDollarScopedslotsApi::from_configuration(value)?,
+                ))
+            }
             Self::VueNoDeprecatedEventsApi(_) => Ok(Self::VueNoDeprecatedEventsApi(
                 VueNoDeprecatedEventsApi::from_configuration(value)?,
             )),
@@ -14617,6 +14680,9 @@ impl RuleEnum {
             Self::VueReturnInEmitsValidator(_) => Ok(Self::VueReturnInEmitsValidator(
                 VueReturnInEmitsValidator::from_configuration(value)?,
             )),
+            Self::VueThisInTemplate(_) => {
+                Ok(Self::VueThisInTemplate(VueThisInTemplate::from_configuration(value)?))
+            }
             Self::VueUseVOnExact(_) => {
                 Ok(Self::VueUseVOnExact(VueUseVOnExact::from_configuration(value)?))
             }
@@ -15515,6 +15581,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedFilter(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.to_configuration(),
@@ -15571,6 +15639,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.to_configuration(),
             Self::VueReturnInComputedProperty(rule) => rule.to_configuration(),
             Self::VueReturnInEmitsValidator(rule) => rule.to_configuration(),
+            Self::VueThisInTemplate(rule) => rule.to_configuration(),
             Self::VueUseVOnExact(rule) => rule.to_configuration(),
             Self::VueVBindStyle(rule) => rule.to_configuration(),
             Self::VueVOnEventHyphenation(rule) => rule.to_configuration(),
@@ -16420,6 +16489,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedFilter(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run(node, ctx),
@@ -16476,6 +16547,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.run(node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run(node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run(node, ctx),
+            Self::VueThisInTemplate(rule) => rule.run(node, ctx),
             Self::VueUseVOnExact(rule) => rule.run(node, ctx),
             Self::VueVBindStyle(rule) => rule.run(node, ctx),
             Self::VueVOnEventHyphenation(rule) => rule.run(node, ctx),
@@ -17337,6 +17409,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedFilter(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_once(ctx),
@@ -17393,6 +17467,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.run_once(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_once(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_once(ctx),
+            Self::VueThisInTemplate(rule) => rule.run_once(ctx),
             Self::VueUseVOnExact(rule) => rule.run_once(ctx),
             Self::VueVBindStyle(rule) => rule.run_once(ctx),
             Self::VueVOnEventHyphenation(rule) => rule.run_once(ctx),
@@ -18369,6 +18444,10 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedFilter(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18427,6 +18506,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueThisInTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueUseVOnExact(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueVBindStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueVOnEventHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -19289,6 +19369,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedFilter(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.should_run(ctx),
@@ -19345,6 +19427,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.should_run(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.should_run(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.should_run(ctx),
+            Self::VueThisInTemplate(rule) => rule.should_run(ctx),
             Self::VueUseVOnExact(rule) => rule.should_run(ctx),
             Self::VueVBindStyle(rule) => rule.should_run(ctx),
             Self::VueVOnEventHyphenation(rule) => rule.should_run(ctx),
@@ -20565,6 +20648,12 @@ impl RuleEnum {
             Self::VueNoDeprecatedDestroyedLifecycle(_) => {
                 VueNoDeprecatedDestroyedLifecycle::IS_TSGOLINT_RULE
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::IS_TSGOLINT_RULE
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::IS_TSGOLINT_RULE,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::IS_TSGOLINT_RULE,
             Self::VueNoDeprecatedFunctionalTemplate(_) => {
@@ -20649,6 +20738,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::IS_TSGOLINT_RULE,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::IS_TSGOLINT_RULE,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::IS_TSGOLINT_RULE,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::IS_TSGOLINT_RULE,
             Self::VueUseVOnExact(_) => VueUseVOnExact::IS_TSGOLINT_RULE,
             Self::VueVBindStyle(_) => VueVBindStyle::IS_TSGOLINT_RULE,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::IS_TSGOLINT_RULE,
@@ -21669,6 +21759,12 @@ impl RuleEnum {
             Self::VueNoDeprecatedDestroyedLifecycle(_) => {
                 VueNoDeprecatedDestroyedLifecycle::VERSION
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::VERSION
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::VERSION
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::VERSION,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::VERSION,
             Self::VueNoDeprecatedFunctionalTemplate(_) => {
@@ -21733,6 +21829,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::VERSION,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::VERSION,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::VERSION,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::VERSION,
             Self::VueUseVOnExact(_) => VueUseVOnExact::VERSION,
             Self::VueVBindStyle(_) => VueVBindStyle::VERSION,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::VERSION,
@@ -22790,6 +22887,12 @@ impl RuleEnum {
             Self::VueNoDeprecatedDestroyedLifecycle(_) => {
                 VueNoDeprecatedDestroyedLifecycle::HAS_CONFIG
             }
+            Self::VueNoDeprecatedDollarListenersApi(_) => {
+                VueNoDeprecatedDollarListenersApi::HAS_CONFIG
+            }
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::HAS_CONFIG
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::HAS_CONFIG,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::HAS_CONFIG,
             Self::VueNoDeprecatedFunctionalTemplate(_) => {
@@ -22862,6 +22965,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::HAS_CONFIG,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::HAS_CONFIG,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::HAS_CONFIG,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::HAS_CONFIG,
             Self::VueUseVOnExact(_) => VueUseVOnExact::HAS_CONFIG,
             Self::VueVBindStyle(_) => VueVBindStyle::HAS_CONFIG,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::HAS_CONFIG,
@@ -23824,6 +23928,10 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::INFO,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::INFO,
+            Self::VueNoDeprecatedDollarListenersApi(_) => VueNoDeprecatedDollarListenersApi::INFO,
+            Self::VueNoDeprecatedDollarScopedslotsApi(_) => {
+                VueNoDeprecatedDollarScopedslotsApi::INFO
+            }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::INFO,
             Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::INFO,
             Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::INFO,
@@ -23882,6 +23990,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(_) => VueRequireVForKey::INFO,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::INFO,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::INFO,
+            Self::VueThisInTemplate(_) => VueThisInTemplate::INFO,
             Self::VueUseVOnExact(_) => VueUseVOnExact::INFO,
             Self::VueVBindStyle(_) => VueVBindStyle::INFO,
             Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::INFO,
@@ -24735,6 +24844,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.types_info(),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.types_info(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.types_info(),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.types_info(),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.types_info(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.types_info(),
             Self::VueNoDeprecatedFilter(rule) => rule.types_info(),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.types_info(),
@@ -24791,6 +24902,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.types_info(),
             Self::VueReturnInComputedProperty(rule) => rule.types_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.types_info(),
+            Self::VueThisInTemplate(rule) => rule.types_info(),
             Self::VueUseVOnExact(rule) => rule.types_info(),
             Self::VueVBindStyle(rule) => rule.types_info(),
             Self::VueVOnEventHyphenation(rule) => rule.types_info(),
@@ -25639,6 +25751,8 @@ impl RuleEnum {
             Self::VueNoDeprecatedDataObjectDeclaration(rule) => rule.run_info(),
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_info(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_info(),
+            Self::VueNoDeprecatedDollarListenersApi(rule) => rule.run_info(),
+            Self::VueNoDeprecatedDollarScopedslotsApi(rule) => rule.run_info(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_info(),
             Self::VueNoDeprecatedFilter(rule) => rule.run_info(),
             Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_info(),
@@ -25695,6 +25809,7 @@ impl RuleEnum {
             Self::VueRequireVForKey(rule) => rule.run_info(),
             Self::VueReturnInComputedProperty(rule) => rule.run_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.run_info(),
+            Self::VueThisInTemplate(rule) => rule.run_info(),
             Self::VueUseVOnExact(rule) => rule.run_info(),
             Self::VueVBindStyle(rule) => rule.run_info(),
             Self::VueVOnEventHyphenation(rule) => rule.run_info(),
@@ -26677,6 +26792,10 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         ),
         RuleEnum::VueNoDeprecatedDeleteSet(VueNoDeprecatedDeleteSet::default()),
         RuleEnum::VueNoDeprecatedDestroyedLifecycle(VueNoDeprecatedDestroyedLifecycle::default()),
+        RuleEnum::VueNoDeprecatedDollarListenersApi(VueNoDeprecatedDollarListenersApi::default()),
+        RuleEnum::VueNoDeprecatedDollarScopedslotsApi(
+            VueNoDeprecatedDollarScopedslotsApi::default(),
+        ),
         RuleEnum::VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi::default()),
         RuleEnum::VueNoDeprecatedFilter(VueNoDeprecatedFilter::default()),
         RuleEnum::VueNoDeprecatedFunctionalTemplate(VueNoDeprecatedFunctionalTemplate::default()),
@@ -26735,6 +26854,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueRequireVForKey(VueRequireVForKey::default()),
         RuleEnum::VueReturnInComputedProperty(VueReturnInComputedProperty::default()),
         RuleEnum::VueReturnInEmitsValidator(VueReturnInEmitsValidator::default()),
+        RuleEnum::VueThisInTemplate(VueThisInTemplate::default()),
         RuleEnum::VueUseVOnExact(VueUseVOnExact::default()),
         RuleEnum::VueVBindStyle(VueVBindStyle::default()),
         RuleEnum::VueVOnEventHyphenation(VueVOnEventHyphenation::default()),

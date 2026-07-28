@@ -4,8 +4,13 @@
 //! template rule shares the same element/attribute/directive lookups instead
 //! of re-implementing them.
 
-use oxc_span::Span;
+use oxc_allocator::Allocator;
+use oxc_ast::ast::{BindingPattern, ForStatementLeft, Statement};
+use oxc_parser::Parser;
+use oxc_semantic::SemanticBuilder;
+use oxc_span::{SourceType, Span};
 use oxc_vue_parser::ast::{Attribute, Element, Node};
+use rustc_hash::FxHashSet;
 
 use super::{
     VUE_RESERVED_DEPRECATED_HTML_ELEMENTS, VUE_RESERVED_HTML_ELEMENTS,
@@ -277,4 +282,229 @@ pub fn prev_element_sibling<'e, 'a>(
         .iter()
         .rev()
         .find_map(|node| if let Node::Element(element) = node { Some(element) } else { None })
+}
+
+/// Mirrors vue-eslint-parser's `ALIAS_ITERATOR` regex — the first (leftmost)
+/// whole-word `in`/`of` immediately preceded by whitespace or `)`. Copied
+/// from `valid-v-for`'s `find_for_separator` (see there for the full
+/// rationale) — this is the one shared copy, used by rules that only need
+/// the split itself (to build a `v-for`'s scope-variable names, or to skip
+/// its alias list when checking its *iterator* expression), as opposed to
+/// `valid-v-for`/`no-use-v-if-with-v-for`/`no-v-for-template-key-on-child`,
+/// which additionally need this parse's own diagnostics or collected names
+/// for their own purposes and so keep their own copies (this fork's
+/// established convention of duplicating small per-rule helpers).
+fn find_for_separator(text: &str) -> Option<(usize, usize)> {
+    let chars: Vec<(usize, char)> = text.char_indices().collect();
+    for (index, &(byte_pos, _)) in chars.iter().enumerate() {
+        let preceded_ok = index > 0 && {
+            let previous = chars[index - 1].1;
+            previous.is_whitespace() || previous == ')'
+        };
+        if !preceded_ok {
+            continue;
+        }
+        for keyword in ["in", "of"] {
+            if !text[byte_pos..].starts_with(keyword) {
+                continue;
+            }
+            let after = byte_pos + keyword.len();
+            let word_boundary_ok = match text[after..].chars().next() {
+                None => true,
+                Some(next) => !(next.is_alphanumeric() || next == '_' || next == '$'),
+            };
+            if word_boundary_ok {
+                return Some((byte_pos, after));
+            }
+        }
+    }
+    None
+}
+
+/// The `v-for` alias *names* declared by a `v-for="<aliases> in/of <expr>"`
+/// value, via the same parse-as-a-real-`for`-statement mechanism as
+/// `valid-v-for`'s `check_for_value` (see there for the full rationale) —
+/// see [`find_for_separator`]'s doc comment for why this particular copy is
+/// shared rather than duplicated. Silently returns nothing on any parse
+/// failure, matching this fork's established silent-on-parse-failure
+/// discipline for template expression parsing.
+fn v_for_alias_names(raw: &str) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    let Some((sep_start, sep_end)) = find_for_separator(raw) else { return names };
+    let aliases_raw = &raw[..sep_start];
+    if aliases_raw.trim().is_empty() {
+        return names;
+    }
+    let delimiter = &raw[sep_start..sep_end];
+    let iterator_raw = &raw[sep_end..];
+
+    let trimmed = aliases_raw.trim();
+    let inner = if trimmed.len() >= 2 && trimmed.starts_with('(') && trimmed.ends_with(')') {
+        &trimmed[1..trimmed.len() - 1]
+    } else {
+        aliases_raw
+    };
+
+    let snippet = format!("for(let [{inner}]{delimiter}{iterator_raw});");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return names;
+    }
+    let left = match parser_ret.program.body.first() {
+        Some(Statement::ForInStatement(statement)) => &statement.left,
+        Some(Statement::ForOfStatement(statement)) => &statement.left,
+        _ => return names,
+    };
+    let ForStatementLeft::VariableDeclaration(declaration) = left else { return names };
+    let Some(declarator) = declaration.declarations.first() else { return names };
+    let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return names };
+
+    for pattern in array_pattern.elements.iter().flatten() {
+        collect_binding_names(pattern, &mut names);
+    }
+    names
+}
+
+fn collect_binding_names(pattern: &BindingPattern<'_>, out: &mut FxHashSet<String>) {
+    match pattern {
+        BindingPattern::BindingIdentifier(ident) => {
+            out.insert(ident.name.as_str().to_string());
+        }
+        BindingPattern::ObjectPattern(object) => {
+            for property in &object.properties {
+                collect_binding_names(&property.value, out);
+            }
+            if let Some(rest) = &object.rest {
+                collect_binding_names(&rest.argument, out);
+            }
+        }
+        BindingPattern::ArrayPattern(array) => {
+            for pattern in array.elements.iter().flatten() {
+                collect_binding_names(pattern, out);
+            }
+            if let Some(rest) = &array.rest {
+                collect_binding_names(&rest.argument, out);
+            }
+        }
+        BindingPattern::AssignmentPattern(assignment) => {
+            collect_binding_names(&assignment.left, out);
+        }
+    }
+}
+
+/// Depth-first walk over every [`Node`] in `nodes` — not just [`Element`]s,
+/// since callers that also need [`oxc_vue_parser::ast::Interpolation`]s (every
+/// expression-inspecting rule this was built for: `this-in-template`,
+/// `no-deprecated-dollar-listeners-api`, `no-deprecated-dollar-scopedslots-api`)
+/// match on the node kind themselves — together with the set of `v-for` alias
+/// names visible at that node: every alias declared by the node's own
+/// element (if it carries `v-for`) or any ancestor element's `v-for`.
+///
+/// Mirrors a deliberately narrowed subset of vue-eslint-parser's per-`VElement`
+/// scope stack (`node.variables`): only `v-for` aliases are tracked.
+/// `v-slot`/its shorthand `#`/deprecated `slot-scope` destructured parameters
+/// (e.g. `<template v-slot="{ item }">`) are NOT folded into scope — see
+/// `this-in-template`'s doc comment for the full rationale. A property name
+/// that collides with such a slot-scope variable is a rare, documented false
+/// positive in the rules built on this helper, not a silent miss.
+pub fn walk_nodes_with_scope<'e, 'a>(
+    nodes: &'e [Node<'a>],
+    scope: &FxHashSet<String>,
+    visit: &mut impl FnMut(&'e Node<'a>, &FxHashSet<String>),
+) {
+    for node in nodes {
+        let Node::Element(element) = node else {
+            visit(node, scope);
+            continue;
+        };
+        if let Some(value) =
+            get_directive(element, "for", None).and_then(|attribute| attribute.value.as_ref())
+        {
+            let mut child_scope = scope.clone();
+            child_scope.extend(v_for_alias_names(value.text));
+            visit(node, &child_scope);
+            walk_nodes_with_scope(&element.children, &child_scope, visit);
+        } else {
+            visit(node, scope);
+            walk_nodes_with_scope(&element.children, scope, visit);
+        }
+    }
+}
+
+/// The `(text, absolute span)` of the JS expression a directive's value
+/// represents, for the expression-inspecting template rules
+/// (`this-in-template`, `no-deprecated-dollar-listeners-api`,
+/// `no-deprecated-dollar-scopedslots-api`) that need to parse it.
+///
+/// `None` for: a plain (non-directive) attribute (never an expression),
+/// a directive with no value, and `v-slot`/its shorthand `#`/deprecated
+/// `slot-scope` — those values are destructuring *patterns*, not
+/// expressions, and (per [`walk_nodes_with_scope`]'s doc comment) this fork
+/// doesn't extract their bound names into scope either, so treating the
+/// pattern text as a plain expression would be actively wrong (e.g.
+/// `v-slot="{ msg }"` parsed as an expression is an `ObjectExpression` with
+/// a shorthand property whose value is a *reference* to `msg`, not a
+/// declaration of it) rather than just incomplete.
+///
+/// `v-for`'s value is only ever its *iterator* expression (the part after
+/// `in`/`of`) — its alias list is a set of declarations, not a reference,
+/// already folded into scope by [`walk_nodes_with_scope`] instead.
+pub fn directive_expression<'a>(attribute: &Attribute<'a>) -> Option<(&'a str, Span)> {
+    let directive = attribute.directive.as_ref()?;
+    if directive.name == "slot" {
+        return None;
+    }
+    let value = attribute.value.as_ref()?;
+    if directive.name == "for" {
+        let (_, sep_end) = find_for_separator(value.text)?;
+        let sep_end = u32::try_from(sep_end).ok()?;
+        return Some((
+            &value.text[sep_end as usize..],
+            Span::new(value.span.start + sep_end, value.span.end),
+        ));
+    }
+    Some((value.text, value.span))
+}
+
+/// Every span, within `text`, of a *free* (unresolved — not locally bound
+/// within `text` itself, e.g. by a nested function's own parameter or a
+/// `let`/`const`) identifier reference named exactly `name`. Built for
+/// `no-deprecated-dollar-listeners-api`/`no-deprecated-dollar-scopedslots-api`,
+/// whose upstream `VExpressionContainer` handler is exactly "every
+/// `$listeners`/`$scopedSlots` *reference* (`reference.variable == null`,
+/// i.e. not resolved to a locally-declared variable) in this expression" —
+/// full scope resolution via `oxc_semantic` is what makes that distinction
+/// (a plain identifier-name walk can't tell a free reference from one bound
+/// by e.g. `function click($listeners) { fn($listeners) }`'s own parameter).
+/// `v-for` alias / (documented gap: `v-slot`) shadowing from the
+/// *template*'s own scope — as opposed to shadowing from within `text`
+/// itself — is the caller's job, via [`walk_nodes_with_scope`]'s scope set.
+///
+/// Parses `text` wrapped in `(<text>);` to dodge the object-literal/
+/// block-statement ambiguity at statement position (same trick as
+/// `no-use-v-if-with-v-for`'s `expression_reference_names`); returned spans
+/// already have that wrapper's leading `(` subtracted back out, so they're
+/// relative to `text` itself. Silently empty on any parse failure, matching
+/// this fork's established silent-on-parse-failure discipline.
+pub fn free_reference_spans(text: &str, name: &str) -> Vec<Span> {
+    let snippet = format!("({text});");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return Vec::new();
+    }
+    let program = allocator.alloc(parser_ret.program);
+    let semantic = SemanticBuilder::new_linter().build(program).semantic;
+    let Some(reference_ids) = semantic.scoping().root_unresolved_references().get(name) else {
+        return Vec::new();
+    };
+    reference_ids
+        .iter()
+        .map(|&reference_id| {
+            let reference = semantic.scoping().get_reference(reference_id);
+            let span = semantic.reference_span(reference);
+            Span::new(span.start.saturating_sub(1), span.end.saturating_sub(1))
+        })
+        .collect()
 }

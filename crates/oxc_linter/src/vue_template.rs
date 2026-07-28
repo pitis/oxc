@@ -106,6 +106,9 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueNoDeprecatedInlineTemplate(rule) => Some(rule),
         RuleEnum::VueNoDeprecatedRouterLinkTagProp(rule) => Some(rule),
         RuleEnum::VueNoDeprecatedFilter(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedDollarListenersApi(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedDollarScopedslotsApi(rule) => Some(rule),
+        RuleEnum::VueThisInTemplate(rule) => Some(rule),
         _ => None,
     }
 }

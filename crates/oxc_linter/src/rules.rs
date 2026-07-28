@@ -877,6 +877,8 @@ pub(crate) mod vue {
     pub mod no_deprecated_data_object_declaration;
     pub mod no_deprecated_delete_set;
     pub mod no_deprecated_destroyed_lifecycle;
+    pub mod no_deprecated_dollar_listeners_api;
+    pub mod no_deprecated_dollar_scopedslots_api;
     pub mod no_deprecated_events_api;
     pub mod no_deprecated_filter;
     pub mod no_deprecated_functional_template;
@@ -933,6 +935,7 @@ pub(crate) mod vue {
     pub mod require_v_for_key;
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
+    pub mod this_in_template;
     pub mod use_v_on_exact;
     pub mod v_bind_style;
     pub mod v_on_event_hyphenation;
