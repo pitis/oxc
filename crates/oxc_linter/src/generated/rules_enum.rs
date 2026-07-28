@@ -812,11 +812,13 @@ pub use crate::rules::vitest::valid_expect_in_promise::ValidExpectInPromise as V
 pub use crate::rules::vitest::valid_title::ValidTitle as VitestValidTitle;
 pub use crate::rules::vitest::warn_todo::WarnTodo as VitestWarnTodo;
 pub use crate::rules::vue::attribute_hyphenation::AttributeHyphenation as VueAttributeHyphenation;
+pub use crate::rules::vue::block_order::BlockOrder as VueBlockOrder;
 pub use crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing as VueComponentDefinitionNameCasing;
 pub use crate::rules::vue::define_emits_declaration::DefineEmitsDeclaration as VueDefineEmitsDeclaration;
 pub use crate::rules::vue::define_props_declaration::DefinePropsDeclaration as VueDefinePropsDeclaration;
 pub use crate::rules::vue::define_props_destructuring::DefinePropsDestructuring as VueDefinePropsDestructuring;
 pub use crate::rules::vue::max_props::MaxProps as VueMaxProps;
+pub use crate::rules::vue::multi_word_component_names::MultiWordComponentNames as VueMultiWordComponentNames;
 pub use crate::rules::vue::next_tick_style::NextTickStyle as VueNextTickStyle;
 pub use crate::rules::vue::no_arrow_functions_in_watch::NoArrowFunctionsInWatch as VueNoArrowFunctionsInWatch;
 pub use crate::rules::vue::no_async_in_computed_properties::NoAsyncInComputedProperties as VueNoAsyncInComputedProperties;
@@ -1728,11 +1730,13 @@ pub enum RuleEnum {
     NodeNoSync(NodeNoSync),
     NodeNoTopLevelAwait(NodeNoTopLevelAwait),
     VueAttributeHyphenation(VueAttributeHyphenation),
+    VueBlockOrder(VueBlockOrder),
     VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing),
     VueDefineEmitsDeclaration(VueDefineEmitsDeclaration),
     VueDefinePropsDeclaration(VueDefinePropsDeclaration),
     VueDefinePropsDestructuring(VueDefinePropsDestructuring),
     VueMaxProps(VueMaxProps),
+    VueMultiWordComponentNames(VueMultiWordComponentNames),
     VueNextTickStyle(VueNextTickStyle),
     VueNoArrowFunctionsInWatch(VueNoArrowFunctionsInWatch),
     VueNoAsyncInComputedProperties(VueNoAsyncInComputedProperties),
@@ -2729,12 +2733,14 @@ const NODE_NO_PROCESS_ENV_ID: usize = NODE_NO_PATH_CONCAT_ID + 1usize;
 const NODE_NO_SYNC_ID: usize = NODE_NO_PROCESS_ENV_ID + 1usize;
 const NODE_NO_TOP_LEVEL_AWAIT_ID: usize = NODE_NO_SYNC_ID + 1usize;
 const VUE_ATTRIBUTE_HYPHENATION_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
-const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_BLOCK_ORDER_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_BLOCK_ORDER_ID + 1usize;
 const VUE_DEFINE_EMITS_DECLARATION_ID: usize = VUE_COMPONENT_DEFINITION_NAME_CASING_ID + 1usize;
 const VUE_DEFINE_PROPS_DECLARATION_ID: usize = VUE_DEFINE_EMITS_DECLARATION_ID + 1usize;
 const VUE_DEFINE_PROPS_DESTRUCTURING_ID: usize = VUE_DEFINE_PROPS_DECLARATION_ID + 1usize;
 const VUE_MAX_PROPS_ID: usize = VUE_DEFINE_PROPS_DESTRUCTURING_ID + 1usize;
-const VUE_NEXT_TICK_STYLE_ID: usize = VUE_MAX_PROPS_ID + 1usize;
+const VUE_MULTI_WORD_COMPONENT_NAMES_ID: usize = VUE_MAX_PROPS_ID + 1usize;
+const VUE_NEXT_TICK_STYLE_ID: usize = VUE_MULTI_WORD_COMPONENT_NAMES_ID + 1usize;
 const VUE_NO_ARROW_FUNCTIONS_IN_WATCH_ID: usize = VUE_NEXT_TICK_STYLE_ID + 1usize;
 const VUE_NO_ASYNC_IN_COMPUTED_PROPERTIES_ID: usize = VUE_NO_ARROW_FUNCTIONS_IN_WATCH_ID + 1usize;
 const VUE_NO_CHILD_CONTENT_ID: usize = VUE_NO_ASYNC_IN_COMPUTED_PROPERTIES_ID + 1usize;
@@ -3766,11 +3772,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NODE_NO_SYNC_ID,
             Self::NodeNoTopLevelAwait(_) => NODE_NO_TOP_LEVEL_AWAIT_ID,
             Self::VueAttributeHyphenation(_) => VUE_ATTRIBUTE_HYPHENATION_ID,
+            Self::VueBlockOrder(_) => VUE_BLOCK_ORDER_ID,
             Self::VueComponentDefinitionNameCasing(_) => VUE_COMPONENT_DEFINITION_NAME_CASING_ID,
             Self::VueDefineEmitsDeclaration(_) => VUE_DEFINE_EMITS_DECLARATION_ID,
             Self::VueDefinePropsDeclaration(_) => VUE_DEFINE_PROPS_DECLARATION_ID,
             Self::VueDefinePropsDestructuring(_) => VUE_DEFINE_PROPS_DESTRUCTURING_ID,
             Self::VueMaxProps(_) => VUE_MAX_PROPS_ID,
+            Self::VueMultiWordComponentNames(_) => VUE_MULTI_WORD_COMPONENT_NAMES_ID,
             Self::VueNextTickStyle(_) => VUE_NEXT_TICK_STYLE_ID,
             Self::VueNoArrowFunctionsInWatch(_) => VUE_NO_ARROW_FUNCTIONS_IN_WATCH_ID,
             Self::VueNoAsyncInComputedProperties(_) => VUE_NO_ASYNC_IN_COMPUTED_PROPERTIES_ID,
@@ -4784,11 +4792,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::NAME,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::NAME,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::NAME,
+            Self::VueBlockOrder(_) => VueBlockOrder::NAME,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::NAME,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::NAME,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::NAME,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::NAME,
             Self::VueMaxProps(_) => VueMaxProps::NAME,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::NAME,
             Self::VueNextTickStyle(_) => VueNextTickStyle::NAME,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::NAME,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::NAME,
@@ -5856,11 +5866,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::CATEGORY,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::CATEGORY,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::CATEGORY,
+            Self::VueBlockOrder(_) => VueBlockOrder::CATEGORY,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::CATEGORY,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::CATEGORY,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::CATEGORY,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::CATEGORY,
             Self::VueMaxProps(_) => VueMaxProps::CATEGORY,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::CATEGORY,
             Self::VueNextTickStyle(_) => VueNextTickStyle::CATEGORY,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::CATEGORY,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::CATEGORY,
@@ -6881,11 +6893,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::FIX,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::FIX,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::FIX,
+            Self::VueBlockOrder(_) => VueBlockOrder::FIX,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::FIX,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::FIX,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::FIX,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::FIX,
             Self::VueMaxProps(_) => VueMaxProps::FIX,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::FIX,
             Self::VueNextTickStyle(_) => VueNextTickStyle::FIX,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::FIX,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::FIX,
@@ -8150,6 +8164,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::documentation(),
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::documentation(),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::documentation(),
+            Self::VueBlockOrder(_) => VueBlockOrder::documentation(),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::documentation()
             }
@@ -8157,6 +8172,7 @@ impl RuleEnum {
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::documentation(),
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::documentation(),
             Self::VueMaxProps(_) => VueMaxProps::documentation(),
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::documentation(),
             Self::VueNextTickStyle(_) => VueNextTickStyle::documentation(),
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::documentation(),
             Self::VueNoAsyncInComputedProperties(_) => {
@@ -10589,6 +10605,9 @@ impl RuleEnum {
                 .or_else(|| NodeNoTopLevelAwait::schema(generator)),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::config_schema(generator)
                 .or_else(|| VueAttributeHyphenation::schema(generator)),
+            Self::VueBlockOrder(_) => {
+                VueBlockOrder::config_schema(generator).or_else(|| VueBlockOrder::schema(generator))
+            }
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::config_schema(generator)
                     .or_else(|| VueComponentDefinitionNameCasing::schema(generator))
@@ -10607,6 +10626,10 @@ impl RuleEnum {
             }
             Self::VueMaxProps(_) => {
                 VueMaxProps::config_schema(generator).or_else(|| VueMaxProps::schema(generator))
+            }
+            Self::VueMultiWordComponentNames(_) => {
+                VueMultiWordComponentNames::config_schema(generator)
+                    .or_else(|| VueMultiWordComponentNames::schema(generator))
             }
             Self::VueNextTickStyle(_) => VueNextTickStyle::config_schema(generator)
                 .or_else(|| VueNextTickStyle::schema(generator)),
@@ -11674,11 +11697,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => "node",
             Self::NodeNoTopLevelAwait(_) => "node",
             Self::VueAttributeHyphenation(_) => "vue",
+            Self::VueBlockOrder(_) => "vue",
             Self::VueComponentDefinitionNameCasing(_) => "vue",
             Self::VueDefineEmitsDeclaration(_) => "vue",
             Self::VueDefinePropsDeclaration(_) => "vue",
             Self::VueDefinePropsDestructuring(_) => "vue",
             Self::VueMaxProps(_) => "vue",
+            Self::VueMultiWordComponentNames(_) => "vue",
             Self::VueNextTickStyle(_) => "vue",
             Self::VueNoArrowFunctionsInWatch(_) => "vue",
             Self::VueNoAsyncInComputedProperties(_) => "vue",
@@ -14361,6 +14386,9 @@ impl RuleEnum {
             Self::VueAttributeHyphenation(_) => Ok(Self::VueAttributeHyphenation(
                 VueAttributeHyphenation::from_configuration(value)?,
             )),
+            Self::VueBlockOrder(_) => {
+                Ok(Self::VueBlockOrder(VueBlockOrder::from_configuration(value)?))
+            }
             Self::VueComponentDefinitionNameCasing(_) => {
                 Ok(Self::VueComponentDefinitionNameCasing(
                     VueComponentDefinitionNameCasing::from_configuration(value)?,
@@ -14376,6 +14404,9 @@ impl RuleEnum {
                 VueDefinePropsDestructuring::from_configuration(value)?,
             )),
             Self::VueMaxProps(_) => Ok(Self::VueMaxProps(VueMaxProps::from_configuration(value)?)),
+            Self::VueMultiWordComponentNames(_) => Ok(Self::VueMultiWordComponentNames(
+                VueMultiWordComponentNames::from_configuration(value)?,
+            )),
             Self::VueNextTickStyle(_) => {
                 Ok(Self::VueNextTickStyle(VueNextTickStyle::from_configuration(value)?))
             }
@@ -15469,11 +15500,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.to_configuration(),
             Self::NodeNoTopLevelAwait(rule) => rule.to_configuration(),
             Self::VueAttributeHyphenation(rule) => rule.to_configuration(),
+            Self::VueBlockOrder(rule) => rule.to_configuration(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.to_configuration(),
             Self::VueDefineEmitsDeclaration(rule) => rule.to_configuration(),
             Self::VueDefinePropsDeclaration(rule) => rule.to_configuration(),
             Self::VueDefinePropsDestructuring(rule) => rule.to_configuration(),
             Self::VueMaxProps(rule) => rule.to_configuration(),
+            Self::VueMultiWordComponentNames(rule) => rule.to_configuration(),
             Self::VueNextTickStyle(rule) => rule.to_configuration(),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.to_configuration(),
             Self::VueNoAsyncInComputedProperties(rule) => rule.to_configuration(),
@@ -16372,11 +16405,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run(node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run(node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run(node, ctx),
+            Self::VueBlockOrder(rule) => rule.run(node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run(node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run(node, ctx),
             Self::VueMaxProps(rule) => rule.run(node, ctx),
+            Self::VueMultiWordComponentNames(rule) => rule.run(node, ctx),
             Self::VueNextTickStyle(rule) => rule.run(node, ctx),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.run(node, ctx),
             Self::VueNoAsyncInComputedProperties(rule) => rule.run(node, ctx),
@@ -17287,11 +17322,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_once(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_once(ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_once(ctx),
+            Self::VueBlockOrder(rule) => rule.run_once(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_once(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run_once(ctx),
             Self::VueMaxProps(rule) => rule.run_once(ctx),
+            Self::VueMultiWordComponentNames(rule) => rule.run_once(ctx),
             Self::VueNextTickStyle(rule) => rule.run_once(ctx),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.run_once(ctx),
             Self::VueNoAsyncInComputedProperties(rule) => rule.run_once(ctx),
@@ -18315,11 +18352,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueBlockOrder(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueMaxProps(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueMultiWordComponentNames(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNextTickStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoAsyncInComputedProperties(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -19235,11 +19274,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.should_run(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.should_run(ctx),
             Self::VueAttributeHyphenation(rule) => rule.should_run(ctx),
+            Self::VueBlockOrder(rule) => rule.should_run(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.should_run(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.should_run(ctx),
             Self::VueMaxProps(rule) => rule.should_run(ctx),
+            Self::VueMultiWordComponentNames(rule) => rule.should_run(ctx),
             Self::VueNextTickStyle(rule) => rule.should_run(ctx),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.should_run(ctx),
             Self::VueNoAsyncInComputedProperties(rule) => rule.should_run(ctx),
@@ -20499,6 +20540,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::IS_TSGOLINT_RULE,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::IS_TSGOLINT_RULE,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::IS_TSGOLINT_RULE,
+            Self::VueBlockOrder(_) => VueBlockOrder::IS_TSGOLINT_RULE,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::IS_TSGOLINT_RULE
             }
@@ -20506,6 +20548,7 @@ impl RuleEnum {
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::IS_TSGOLINT_RULE,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::IS_TSGOLINT_RULE,
             Self::VueMaxProps(_) => VueMaxProps::IS_TSGOLINT_RULE,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::IS_TSGOLINT_RULE,
             Self::VueNextTickStyle(_) => VueNextTickStyle::IS_TSGOLINT_RULE,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::IS_TSGOLINT_RULE,
             Self::VueNoAsyncInComputedProperties(_) => {
@@ -21607,11 +21650,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::VERSION,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::VERSION,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::VERSION,
+            Self::VueBlockOrder(_) => VueBlockOrder::VERSION,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::VERSION,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::VERSION,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::VERSION,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::VERSION,
             Self::VueMaxProps(_) => VueMaxProps::VERSION,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::VERSION,
             Self::VueNextTickStyle(_) => VueNextTickStyle::VERSION,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::VERSION,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::VERSION,
@@ -22724,6 +22769,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::HAS_CONFIG,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::HAS_CONFIG,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::HAS_CONFIG,
+            Self::VueBlockOrder(_) => VueBlockOrder::HAS_CONFIG,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::HAS_CONFIG
             }
@@ -22731,6 +22777,7 @@ impl RuleEnum {
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::HAS_CONFIG,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::HAS_CONFIG,
             Self::VueMaxProps(_) => VueMaxProps::HAS_CONFIG,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::HAS_CONFIG,
             Self::VueNextTickStyle(_) => VueNextTickStyle::HAS_CONFIG,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::HAS_CONFIG,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::HAS_CONFIG,
@@ -23760,11 +23807,13 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::INFO,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::INFO,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::INFO,
+            Self::VueBlockOrder(_) => VueBlockOrder::INFO,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::INFO,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::INFO,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::INFO,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::INFO,
             Self::VueMaxProps(_) => VueMaxProps::INFO,
+            Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::INFO,
             Self::VueNextTickStyle(_) => VueNextTickStyle::INFO,
             Self::VueNoArrowFunctionsInWatch(_) => VueNoArrowFunctionsInWatch::INFO,
             Self::VueNoAsyncInComputedProperties(_) => VueNoAsyncInComputedProperties::INFO,
@@ -24671,11 +24720,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.types_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.types_info(),
             Self::VueAttributeHyphenation(rule) => rule.types_info(),
+            Self::VueBlockOrder(rule) => rule.types_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.types_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDestructuring(rule) => rule.types_info(),
             Self::VueMaxProps(rule) => rule.types_info(),
+            Self::VueMultiWordComponentNames(rule) => rule.types_info(),
             Self::VueNextTickStyle(rule) => rule.types_info(),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.types_info(),
             Self::VueNoAsyncInComputedProperties(rule) => rule.types_info(),
@@ -25573,11 +25624,13 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.run_info(),
             Self::VueAttributeHyphenation(rule) => rule.run_info(),
+            Self::VueBlockOrder(rule) => rule.run_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDestructuring(rule) => rule.run_info(),
             Self::VueMaxProps(rule) => rule.run_info(),
+            Self::VueMultiWordComponentNames(rule) => rule.run_info(),
             Self::VueNextTickStyle(rule) => rule.run_info(),
             Self::VueNoArrowFunctionsInWatch(rule) => rule.run_info(),
             Self::VueNoAsyncInComputedProperties(rule) => rule.run_info(),
@@ -26607,11 +26660,13 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::NodeNoSync(NodeNoSync::default()),
         RuleEnum::NodeNoTopLevelAwait(NodeNoTopLevelAwait::default()),
         RuleEnum::VueAttributeHyphenation(VueAttributeHyphenation::default()),
+        RuleEnum::VueBlockOrder(VueBlockOrder::default()),
         RuleEnum::VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing::default()),
         RuleEnum::VueDefineEmitsDeclaration(VueDefineEmitsDeclaration::default()),
         RuleEnum::VueDefinePropsDeclaration(VueDefinePropsDeclaration::default()),
         RuleEnum::VueDefinePropsDestructuring(VueDefinePropsDestructuring::default()),
         RuleEnum::VueMaxProps(VueMaxProps::default()),
+        RuleEnum::VueMultiWordComponentNames(VueMultiWordComponentNames::default()),
         RuleEnum::VueNextTickStyle(VueNextTickStyle::default()),
         RuleEnum::VueNoArrowFunctionsInWatch(VueNoArrowFunctionsInWatch::default()),
         RuleEnum::VueNoAsyncInComputedProperties(VueNoAsyncInComputedProperties::default()),

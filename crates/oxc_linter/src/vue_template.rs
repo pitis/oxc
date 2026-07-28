@@ -116,6 +116,8 @@ fn as_vue_sfc_rule(rule: &RuleEnum) -> Option<&dyn VueSfcRule> {
     match rule {
         RuleEnum::VueValidTemplateRoot(rule) => Some(rule),
         RuleEnum::VueNoDeprecatedFunctionalTemplate(rule) => Some(rule),
+        RuleEnum::VueMultiWordComponentNames(rule) => Some(rule),
+        RuleEnum::VueBlockOrder(rule) => Some(rule),
         _ => None,
     }
 }

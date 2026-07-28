@@ -5114,6 +5114,11 @@ impl RuleRunner for crate::rules::vue::attribute_hyphenation::AttributeHyphenati
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
 }
 
+impl RuleRunner for crate::rules::vue::block_order::BlockOrder {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
 impl RuleRunner
     for crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing
 {
@@ -5143,6 +5148,11 @@ impl RuleRunner for crate::rules::vue::define_props_destructuring::DefinePropsDe
 impl RuleRunner for crate::rules::vue::max_props::MaxProps {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::vue::multi_word_component_names::MultiWordComponentNames {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
 }
 
 impl RuleRunner for crate::rules::vue::next_tick_style::NextTickStyle {

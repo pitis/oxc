@@ -862,11 +862,13 @@ pub(crate) mod node {
 /// <https://github.com/vuejs/eslint-plugin-vue>
 pub(crate) mod vue {
     pub mod attribute_hyphenation;
+    pub mod block_order;
     pub mod component_definition_name_casing;
     pub mod define_emits_declaration;
     pub mod define_props_declaration;
     pub mod define_props_destructuring;
     pub mod max_props;
+    pub mod multi_word_component_names;
     pub mod next_tick_style;
     pub mod no_arrow_functions_in_watch;
     pub mod no_async_in_computed_properties;
