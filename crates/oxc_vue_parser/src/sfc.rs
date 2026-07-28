@@ -48,7 +48,8 @@ impl<'a> SfcBlock<'a> {
         self.attribute_value("lang")
     }
 
-    /// Whether the block has a bare attribute, e.g. `setup` / `scoped`.
+    /// Whether the block has an attribute with the given name, regardless of
+    /// whether it carries a value, e.g. `setup` / `scoped` or `lang="ts"`.
     pub fn has_attribute(&self, name: &str) -> bool {
         self.attributes.iter().any(|attribute| attribute.name == name)
     }

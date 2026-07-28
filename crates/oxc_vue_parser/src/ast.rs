@@ -1,8 +1,11 @@
 //! Template AST.
 //!
-//! All nodes carry [`Span`]s into the original source so both the formatter
-//! (which needs byte-faithful reprinting) and the linter (which needs
-//! diagnostics locations) can use the same tree.
+//! All nodes carry [`Span`]s so both the formatter (which needs
+//! byte-faithful reprinting) and the linter (which needs diagnostics
+//! locations) can use the same tree. Spans are relative to whatever
+//! `base_offset` was passed to `parse_template`: file-relative when the
+//! caller passes the block's `content_span.start`, or relative to the given
+//! string when `base_offset` is `0`.
 
 use oxc_span::Span;
 
@@ -65,7 +68,7 @@ pub struct Comment<'a> {
 #[derive(Debug)]
 pub struct Element<'a> {
     /// From `<` to the end of the closing tag (or of the open tag when
-    /// self-closing / void / unclosed).
+    /// self-closing / void).
     pub span: Span,
     pub name: &'a str,
     pub name_span: Span,
@@ -75,8 +78,8 @@ pub struct Element<'a> {
     pub self_closing: bool,
     /// A void element like `<br>` (never has children or a closing tag).
     pub is_void: bool,
-    /// For raw-text elements (`pre`, `textarea`) the body span is kept
-    /// byte-for-byte and `children` is empty.
+    /// For raw-text elements (see [`RAW_TEXT_ELEMENTS`]) the body span is
+    /// kept byte-for-byte and `children` is empty.
     pub raw_text: Option<Span>,
     /// `true` when the closing tag was missing in the source
     /// (recovered; the element ends where its parent closes).

@@ -383,7 +383,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Whether the source at the current `<` position is `</name` (ASCII
-    /// case-insensitive), followed by whitespace, `>` or EOF.
+    /// case-insensitive), followed by whitespace, `>`, `/`, or EOF.
     fn closing_tag_matches(&self, name: &str) -> bool {
         let rest = &self.source[(self.position as usize).min(self.source.len())..];
         let Some(rest) = rest.strip_prefix(b"</") else {

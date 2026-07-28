@@ -107,7 +107,11 @@ pub enum FragmentContext {
 /// (`shouldHugJsExpression` in `language-html/embed/utilities.js`):
 /// object/array literals hug the attribute quotes, other expressions expand
 /// with an indented soft line break. Variant names match the estree node types
-/// the decision is keyed on.
+/// the decision is keyed on. Template/string literals only hug when the
+/// fragment came from Prettier's `__vue_expression` (Vue) or `ng` (Angular)
+/// parsers, unlike object/array literals which hug unconditionally; callers
+/// outside those embeds should treat `TemplateLiteral`/`StringLiteral` as
+/// `Other`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExpressionRootKind {
     ObjectExpression,
@@ -185,9 +189,10 @@ pub fn format_fragment<'a>(
     // quotes to avoid clashing with the surrounding attribute delimiter.
     // Interpolations are not inside an attribute, so they keep the configured style.
     //
-    // NOTE: Since this options is just the preferred quote (not a forced),
-    // this may not be enough for all cases.
-    // But it seems fine for almost all cases, so leave it for now.
+    // This is only the *preferred* quote, not a forced one; `is_quote_forced`
+    // (utils/string.rs) is what actually prevents the surrounding attribute
+    // delimiter from being reintroduced when the string's own content forces
+    // the other quote.
     let in_html_attribute =
         !matches!(context, FragmentContext::Expression { in_html_attribute: false, .. });
     let embed_flags = EmbedFlags {

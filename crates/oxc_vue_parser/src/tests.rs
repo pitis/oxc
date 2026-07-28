@@ -304,7 +304,8 @@ fn base_offset_zero_vs_n_shifts_every_span_by_exactly_n() {
     // in `base_offset`, and check every span (including nested attribute,
     // directive-argument, and child spans) differs by exactly `n`.
     const N: u32 = 1000;
-    let source = "<div v-if=\"a\"><span :key=\"k\">{{ x }}</span><!-- c --></div>tail";
+    let source =
+        "<div v-if=\"a\"><span :key=\"k\">{{ x }}</span><!-- c --><textarea>x</textarea></div>tail";
     let zero = parse_template(source, 0);
     let shifted = parse_template(source, N);
     assert_spans_shifted_by(&zero, &shifted, N);
