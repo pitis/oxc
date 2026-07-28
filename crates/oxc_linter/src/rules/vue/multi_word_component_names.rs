@@ -61,6 +61,14 @@ declare_oxc_lint!(
     /// / `defineComponent` / `Vue.component(name, {...})` (Options API), or
     /// — when no script declares a name — the `.vue` file's own filename.
     ///
+    /// Two rarely-used upstream forms are **not** recognized as declaring a
+    /// component at all (and so never suppress the filename fallback the
+    /// way a recognized-but-nameless form does): a bare `new Vue({...})`
+    /// runtime instance, and an object literal preceded by a `// @vue/component`
+    /// marker comment. Neither is a realistic pattern for a `.vue` SFC's own
+    /// `<script>` block (they're Vue 2 idioms for defining components outside
+    /// of an SFC file).
+    ///
     /// ### Why is this bad?
     ///
     /// All HTML elements are single words, so a single-word component name
@@ -111,7 +119,11 @@ impl VueSfcRule for MultiWordComponentNames {
         let mut has_vue = has_script_setup;
         let mut has_name = false;
         let mut literal_name: Option<(String, Span)> = None;
-        let mut script_nonempty = false;
+        // Upstream's guard is `node.body.length > 0` — the *parsed AST's*
+        // statement count, not the block's raw text. A comment-only script
+        // (`<script>// hi</script>`) is textually non-empty but has zero AST
+        // statements, so it must NOT suppress the fallback.
+        let mut script_body_nonempty = false;
 
         for block in &sfc.blocks {
             if has_name {
@@ -123,10 +135,13 @@ impl VueSfcRule for MultiWordComponentNames {
             if block.has_attribute("setup") {
                 scan_script_setup(block, &mut has_name, &mut literal_name);
             } else {
-                if !block.content.trim().is_empty() {
-                    script_nonempty = true;
-                }
-                scan_script(block, &mut has_vue, &mut has_name, &mut literal_name);
+                scan_script(
+                    block,
+                    &mut has_vue,
+                    &mut has_name,
+                    &mut literal_name,
+                    &mut script_body_nonempty,
+                );
             }
         }
 
@@ -146,7 +161,7 @@ impl VueSfcRule for MultiWordComponentNames {
         // (`hasVue`), UNLESS the script that produced no definition was
         // itself empty (or absent) — see the `Program:exit` guard in
         // `multi-word-component-names.js`.
-        if !has_vue && script_nonempty {
+        if !has_vue && script_body_nonempty {
             return;
         }
 
@@ -224,17 +239,29 @@ fn scan_script_setup(
 /// Scans a plain `<script>` block's whole AST (not just top-level
 /// statements — upstream's `executeOnVue`/`executeOnCallVueComponent`
 /// visit every matching node regardless of nesting depth) for a Vue
-/// component options object or a `.component(...)` registration call.
+/// component options object or a `.component(...)` registration call, and
+/// records whether the block's *parsed* body has any statements at all
+/// (`body_nonempty`, mirroring upstream's `Program:exit` guard, which reads
+/// `node.body.length` — the AST, not the raw source text: a comment-only
+/// script has non-empty text but a zero-length body).
+///
+/// On a parse failure (unrecognized `lang`, so no `SourceType` could even be
+/// derived) `body_nonempty` is left untouched — the block is treated as
+/// though it weren't there at all, same as the rest of this function's
+/// no-op-on-failure behavior and the `.vue` loader silently excluding such a
+/// block from the sub-host script pass.
 fn scan_script(
     block: &SfcBlock<'_>,
     has_vue: &mut bool,
     has_name: &mut bool,
     literal_name: &mut Option<(String, Span)>,
+    body_nonempty: &mut bool,
 ) {
     let Some(source_type) = script_source_type(block.lang()) else { return };
     let allocator = Allocator::default();
     let ret = Parser::new(&allocator, block.content, source_type).parse();
     let offset = block.content_span.start;
+    *body_nonempty |= !ret.program.body.is_empty();
     let semantic = SemanticBuilder::new_linter().build(&ret.program).semantic;
 
     for node in semantic.nodes() {
@@ -266,7 +293,7 @@ fn vue_object_in_export_default<'a, 'b>(
     match decl {
         ExportDefaultDeclarationKind::ObjectExpression(obj) => Some(obj),
         ExportDefaultDeclarationKind::CallExpression(call)
-            if is_vue_component_options_call(call) =>
+            if is_recognized_component_definition_call(call) =>
         {
             match call.arguments.last().and_then(Argument::as_expression)?.get_inner_expression() {
                 Expression::ObjectExpression(obj) => Some(obj),
@@ -305,7 +332,7 @@ fn scan_component_call(
         return;
     }
 
-    if is_vue_component_options_call(call)
+    if is_recognized_component_definition_call(call)
         && let Some(last) = call.arguments.last().and_then(Argument::as_expression)
         && let Expression::ObjectExpression(obj) = last.get_inner_expression()
         && !*has_name
@@ -315,10 +342,35 @@ fn scan_component_call(
     }
 }
 
+/// Like `utils::is_vue_component_options_call`, but additionally enforces
+/// upstream's `getVueComponentDefinitionType` guard for a member-call form
+/// (`<obj>.component(...)` / `<obj>.mixin(...)` / `Vue.extend(...)`):
+/// `if (calleeObject.type === "Identifier") { ... }` wraps that whole
+/// branch upstream — a non-identifier object (`this`, `a.b`, …) never
+/// matches at all. The shared utility is intentionally more lenient for its
+/// other callers (it doesn't enforce this), so it isn't reused as-is here.
+/// Bare-identifier calls (`createApp(...)`, `defineComponent(...)`, …) are
+/// unaffected — they have no "object" to restrict in the first place.
+fn is_recognized_component_definition_call(call: &CallExpression<'_>) -> bool {
+    if call.callee.get_identifier_reference().is_some() {
+        return is_vue_component_options_call(call);
+    }
+    call.callee.get_member_expr().is_some_and(|member| {
+        matches!(member.object().get_inner_expression(), Expression::Identifier(_))
+    }) && is_vue_component_options_call(call)
+}
+
+/// `<ident>.component(...)` — upstream's selector is
+/// `CallExpression > MemberExpression > Identifier[name='component']`
+/// gated on `skipTSAsExpression(callee.object).type === "Identifier"`, i.e.
+/// the member expression's *object* must itself be a bare identifier
+/// (`Vue`, `app`, any name) — `this.component(...)` (a `ThisExpression`
+/// object) and `a.b.component(...)` (a nested `MemberExpression` object) do
+/// **not** match, even though their `.component(...)` shape looks similar.
 fn is_dot_component_call(call: &CallExpression<'_>) -> bool {
-    call.callee
-        .get_member_expr()
-        .is_some_and(|member| member.static_property_name().is_some_and(|name| name == "component"))
+    let Some(member) = call.callee.get_member_expr() else { return false };
+    member.static_property_name().is_some_and(|name| name == "component")
+        && matches!(member.object().get_inner_expression(), Expression::Identifier(_))
 }
 
 fn is_define_options_call(call: &CallExpression<'_>) -> bool {
@@ -445,6 +497,17 @@ mod tests {
                 None,
                 Some(PathBuf::from("todo.vue")),
             ),
+            // `this.component(...)`: the member expression's object is a
+            // `ThisExpression`, not a bare identifier, so upstream's
+            // selector doesn't match this at all — no `hasVue`, and (since
+            // the script is otherwise non-empty and defines nothing
+            // recognizable) no fallback report either.
+            (
+                r"<template><div/></template><script>this.component('foo', {}); console.log(1);</script>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
             // A non-empty plain `<script>` that doesn't define a Vue
             // component at all: `hasVue` stays false, so the (single-word)
             // filename fallback never runs.
@@ -490,6 +553,16 @@ mod tests {
                 None,
                 None,
                 Some(PathBuf::from("gadget.vue")),
+            ),
+            // A comment-only plain `<script>` block: textually non-empty,
+            // but the parsed AST body has zero statements — the guard must
+            // read `body.length`, not raw text, so this still falls back to
+            // the filename (real eslint-plugin-vue reports this).
+            (
+                "<template><div/></template><script>// just a comment</script>",
+                None,
+                None,
+                Some(PathBuf::from("gizmo.vue")),
             ),
             // `export default {}` with no `name` property: `hasVue` is
             // `true` (a component was recognized) but `hasName` stays

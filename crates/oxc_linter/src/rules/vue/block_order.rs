@@ -235,6 +235,23 @@ fn line_number(source: &str, pos: u32) -> usize {
 /// real-world `block-order` config found in practice uses only plain tag
 /// names or a single `tag[attr]` constraint (e.g. `"script[setup]"` to rank
 /// `<script setup>` separately from `<script>`).
+///
+/// Deviation: a selector using an unsupported form (a combinator, a
+/// pseudo-class, a class/id selector) is parsed as best-effort tag +
+/// `[attr]` segments and, in practice, ends up **silently matching
+/// nothing** (its stray `>`/`:`/`.`/`#` characters get folded into the tag
+/// name or an attribute name, which then never equals a real block name or
+/// attribute). Upstream instead raises a hard config error at rule-creation
+/// time (`context.report({ message: "Cannot parse selector: ..." })` /
+/// `"Unsupported pseudo selector: ..."`) — this fork has no established
+/// mechanism for a rule to raise a config-level diagnostic, so an
+/// unsupported selector here just never contributes an ordering constraint
+/// instead. This carries no over-report risk (a selector that matches
+/// nothing simply excludes those blocks from ordering, same as a bare
+/// custom block name not listed at all), only a silent under-enforcement
+/// risk for a config that was almost certainly a typo — worth fixing
+/// properly (a real parse-error diagnostic) if this fork ever grows a
+/// config-validation diagnostic path, but out of scope here.
 #[derive(Debug, Clone)]
 struct Selector {
     tag: Option<String>,
