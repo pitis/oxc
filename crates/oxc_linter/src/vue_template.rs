@@ -857,3 +857,262 @@ mod test {
         .test();
     }
 }
+
+/// Unit tests for the comment-directive state machine itself. The `Tester`
+/// cases in `rules/vue/*` exercise it end to end through real `.vue` sources;
+/// these pin the private pieces directly so a refactor of the state machine
+/// fails here, next to the code, rather than in some rule's snapshot.
+#[cfg(test)]
+mod directive_tests {
+    use oxc_span::Span;
+
+    use super::{
+        DirectiveKind, TemplateCommentDirectives, collect_rule_names, line_of, line_start_offsets,
+        line_suppression_span, parse_directive, rule_name_matches, strip_description,
+    };
+
+    /// [`TemplateCommentDirectives::build`] with a trivial line table — block
+    /// directives never consult it.
+    fn build(
+        comments: &[(Span, &str)],
+        clear_offsets: &[u32],
+        end: u32,
+    ) -> TemplateCommentDirectives {
+        TemplateCommentDirectives::build(comments, &[0], clear_offsets, end)
+    }
+
+    #[test]
+    fn disable_then_enable_closes_a_block_range() {
+        let directives = build(
+            &[(Span::new(0, 14), "eslint-disable"), (Span::new(50, 63), "eslint-enable")],
+            &[],
+            100,
+        );
+        assert_eq!(directives.block_all, [Span::new(0, 50)]);
+        assert!(directives.suppresses("vue", "no-v-html", 25));
+        assert!(!directives.suppresses("vue", "no-v-html", 75));
+    }
+
+    #[test]
+    fn unclosed_disable_runs_to_the_scope_end() {
+        let directives = build(&[(Span::new(10, 24), "eslint-disable")], &[], 100);
+        assert_eq!(directives.block_all, [Span::new(10, 100)]);
+    }
+
+    /// Upstream's `clear` pseudo message (reported at every top-level
+    /// element's end) resets `state.block`, so a file-scoped disable reaches
+    /// only to the end of the next block.
+    #[test]
+    fn a_clear_between_directives_closes_the_open_suppression() {
+        let directives = build(
+            &[(Span::new(0, 14), "eslint-disable"), (Span::new(60, 73), "eslint-enable")],
+            &[30],
+            100,
+        );
+        assert_eq!(directives.block_all, [Span::new(0, 30)]);
+        assert!(!directives.suppresses("vue", "no-v-html", 45));
+    }
+
+    #[test]
+    fn a_trailing_clear_closes_what_the_last_directive_left_open() {
+        let directives = build(&[(Span::new(0, 14), "eslint-disable")], &[40], 100);
+        assert_eq!(directives.block_all, [Span::new(0, 40)]);
+    }
+
+    #[test]
+    fn a_disable_after_a_clear_opens_a_fresh_range() {
+        let directives = build(&[(Span::new(50, 64), "eslint-disable")], &[30], 100);
+        assert_eq!(directives.block_all, [Span::new(50, 100)]);
+    }
+
+    #[test]
+    fn per_rule_disable_only_suppresses_that_rule() {
+        let directives = build(&[(Span::new(0, 30), "eslint-disable vue/no-v-html")], &[], 100);
+        assert!(directives.block_all.is_empty());
+        assert!(directives.suppresses("vue", "no-v-html", 50));
+        assert!(!directives.suppresses("vue", "no-v-text", 50));
+    }
+
+    #[test]
+    fn per_rule_enable_closes_only_the_named_rule() {
+        let directives = build(
+            &[
+                (Span::new(0, 40), "eslint-disable vue/no-v-html, vue/no-v-text"),
+                (Span::new(50, 80), "eslint-enable vue/no-v-html"),
+            ],
+            &[],
+            100,
+        );
+        assert!(!directives.suppresses("vue", "no-v-html", 60));
+        assert!(directives.suppresses("vue", "no-v-text", 60));
+    }
+
+    /// `or_insert` semantics: a second disable while one is already open must
+    /// not restart (and thereby shrink) the suppression.
+    #[test]
+    fn a_repeated_disable_keeps_the_first_start() {
+        let directives = build(
+            &[
+                (Span::new(0, 14), "eslint-disable"),
+                (Span::new(20, 34), "eslint-disable"),
+                (Span::new(50, 63), "eslint-enable"),
+            ],
+            &[],
+            100,
+        );
+        assert_eq!(directives.block_all, [Span::new(0, 50)]);
+    }
+
+    #[test]
+    fn an_enable_without_a_matching_disable_is_a_no_op() {
+        let directives = build(&[(Span::new(0, 13), "eslint-enable")], &[], 100);
+        assert!(directives.is_empty());
+    }
+
+    /// Suppression ranges are half-open: a diagnostic anchored exactly at an
+    /// `eslint-enable` is no longer suppressed.
+    #[test]
+    fn suppression_ranges_are_half_open() {
+        let directives = build(
+            &[(Span::new(10, 24), "eslint-disable"), (Span::new(20, 33), "eslint-enable")],
+            &[],
+            100,
+        );
+        assert!(!directives.suppresses("vue", "no-v-html", 9));
+        assert!(directives.suppresses("vue", "no-v-html", 10));
+        assert!(directives.suppresses("vue", "no-v-html", 19));
+        assert!(!directives.suppresses("vue", "no-v-html", 20));
+    }
+
+    /// `build` strips ` -- description` before parsing, so a documented
+    /// directive still takes effect.
+    #[test]
+    fn a_directive_description_does_not_break_parsing() {
+        let directives =
+            build(&[(Span::new(0, 45), "eslint-disable vue/no-v-html -- migration")], &[], 100);
+        assert!(directives.suppresses("vue", "no-v-html", 50));
+    }
+
+    #[test]
+    fn line_directives_land_in_the_line_buckets() {
+        let line_starts = line_start_offsets("aaaa\nbbbb\ncccc\n");
+        let directives = TemplateCommentDirectives::build(
+            &[(Span::new(0, 4), "eslint-disable-next-line vue/no-v-html")],
+            &line_starts,
+            &[],
+            15,
+        );
+        assert!(directives.block_all.is_empty() && directives.block_rules.is_empty());
+        assert!(directives.suppresses("vue", "no-v-html", 7));
+        assert!(!directives.suppresses("vue", "no-v-html", 12));
+        assert!(!directives.suppresses("vue", "no-v-text", 7));
+    }
+
+    /// Upstream compares full reported `ruleId`s, which always carry the
+    /// plugin prefix: bare or differently-prefixed names never match.
+    #[test]
+    fn rule_ids_match_exactly() {
+        assert!(rule_name_matches("vue/no-v-html", "vue", "no-v-html"));
+        assert!(!rule_name_matches("no-v-html", "vue", "no-v-html"));
+        assert!(!rule_name_matches("typo/no-v-html", "vue", "no-v-html"));
+        assert!(!rule_name_matches("vue/no-v-htm", "vue", "no-v-html"));
+        assert!(!rule_name_matches("vue/no-v-html-x", "vue", "no-v-html"));
+    }
+
+    #[test]
+    fn the_oxlint_prefix_is_a_synonym() {
+        assert!(matches!(
+            parse_directive("oxlint-disable", Span::new(0, 14), &[0]),
+            Some((DirectiveKind::DisableBlock, _))
+        ));
+        assert!(matches!(
+            parse_directive("oxlint-enable", Span::new(0, 13), &[0]),
+            Some((DirectiveKind::EnableBlock, _))
+        ));
+    }
+
+    #[test]
+    fn disable_line_targets_its_own_line_and_next_line_the_following() {
+        let line_starts = line_start_offsets("a\nb\nc\n");
+        let span = Span::new(2, 3); // on line 1
+        assert!(matches!(
+            parse_directive("eslint-disable-line", span, &line_starts),
+            Some((DirectiveKind::DisableLine(1), _))
+        ));
+        assert!(matches!(
+            parse_directive("eslint-disable-next-line", span, &line_starts),
+            Some((DirectiveKind::DisableLine(2), _))
+        ));
+    }
+
+    /// Upstream requires a line directive's comment to start and end on the
+    /// same line.
+    #[test]
+    fn multi_line_line_directives_are_ignored() {
+        let line_starts = line_start_offsets("a\nb\nc\n");
+        assert!(parse_directive("eslint-disable-line", Span::new(0, 3), &line_starts).is_none());
+    }
+
+    /// The keyword must be followed by whitespace or end-of-text (upstream's
+    /// `(?:\s+|$)`), so extended spellings are not directives.
+    #[test]
+    fn unknown_keywords_are_not_directives() {
+        assert!(parse_directive("eslint-disable-everything", Span::new(0, 5), &[0]).is_none());
+        assert!(parse_directive("disable", Span::new(0, 5), &[0]).is_none());
+        assert!(parse_directive("just a comment", Span::new(0, 5), &[0]).is_none());
+    }
+
+    /// `stripDirectiveComment`: two-or-more dashes surrounded by whitespace
+    /// start the description; anything less binds to the rule list.
+    #[test]
+    fn descriptions_after_double_dashes_are_stripped() {
+        assert_eq!(strip_description("eslint-disable a -- why"), "eslint-disable a");
+        assert_eq!(strip_description("eslint-disable a --- why"), "eslint-disable a");
+        assert_eq!(strip_description("eslint-disable a--b"), "eslint-disable a--b");
+        assert_eq!(strip_description("eslint-disable a - b"), "eslint-disable a - b");
+    }
+
+    #[test]
+    fn rule_lists_split_on_commas_and_whitespace() {
+        assert_eq!(collect_rule_names(" vue/a, vue/b\tvue/c "), ["vue/a", "vue/b", "vue/c"]);
+        assert!(collect_rule_names("  ").is_empty());
+    }
+
+    #[test]
+    fn a_line_directive_normally_covers_the_whole_line() {
+        let line_starts = line_start_offsets("aaaa\nbbbb\ncccc\n");
+        assert_eq!(line_suppression_span(1, &line_starts, &[], 15), Span::new(5, 10));
+    }
+
+    /// The `clear` reset applies to line suppressions too: a top-level
+    /// element ending *within* the target line cuts the suppression there.
+    #[test]
+    fn a_clear_inside_the_target_line_cuts_the_suppression_short() {
+        let line_starts = line_start_offsets("aaaa\nbbbb\ncccc\n");
+        assert_eq!(line_suppression_span(1, &line_starts, &[7], 15), Span::new(5, 7));
+    }
+
+    #[test]
+    fn a_clear_after_the_target_line_changes_nothing() {
+        let line_starts = line_start_offsets("aaaa\nbbbb\ncccc\n");
+        assert_eq!(line_suppression_span(1, &line_starts, &[12], 15), Span::new(5, 10));
+    }
+
+    /// `…-disable-next-line` on the scope's last line targets a line that
+    /// does not exist: the range collapses to empty instead of panicking or
+    /// swallowing the tail.
+    #[test]
+    fn a_line_past_the_end_collapses_to_an_empty_span_at_the_scope_end() {
+        let line_starts = line_start_offsets("aaaa\n");
+        assert_eq!(line_suppression_span(7, &line_starts, &[], 5), Span::new(5, 5));
+    }
+
+    #[test]
+    fn line_of_maps_offsets_at_line_starts_to_that_line() {
+        let line_starts = line_start_offsets("aa\nbb\n");
+        assert_eq!(line_of(0, &line_starts), 0);
+        assert_eq!(line_of(2, &line_starts), 0);
+        assert_eq!(line_of(3, &line_starts), 1);
+        assert_eq!(line_of(6, &line_starts), 2);
+    }
+}
