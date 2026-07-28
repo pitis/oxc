@@ -878,6 +878,7 @@ pub(crate) mod vue {
     pub mod no_deprecated_props_default_this;
     pub mod no_deprecated_vue_config_keycodes;
     pub mod no_dupe_keys;
+    pub mod no_duplicate_attributes;
     pub mod no_export_in_script_setup;
     pub mod no_expose_after_await;
     pub mod no_import_compiler_macros;
@@ -901,6 +902,7 @@ pub(crate) mod vue {
     pub mod require_render_return;
     pub mod require_slots_as_functions;
     pub mod require_typed_ref;
+    pub mod require_v_for_key;
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
     pub mod valid_define_emits;

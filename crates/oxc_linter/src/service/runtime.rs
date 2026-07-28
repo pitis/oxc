@@ -666,18 +666,28 @@ impl Runtime {
                             })
                             .collect();
 
-                        if context_sub_hosts.is_empty() {
+                        // The template pass is independent of the script
+                        // sub-hosts: it must run even for `.vue` files with
+                        // no `<script>` block at all.
+                        let template_messages =
+                            me.linter.run_vue_template_rules(path, dep.source_text);
+
+                        if context_sub_hosts.is_empty() && template_messages.is_empty() {
                             return;
                         }
 
-                        let (mut messages, disable_directives) =
+                        let (mut messages, disable_directives) = if context_sub_hosts.is_empty() {
+                            (Vec::new(), None)
+                        } else {
                             me.linter.run_with_disable_directives::<TIMINGS>(
                                 path,
                                 context_sub_hosts,
                                 allocator_guard,
                                 me.js_allocator_pool(),
                                 rule_timing_store,
-                            );
+                            )
+                        };
+                        messages.extend(template_messages);
 
                         // Store the disable directives for this file
                         if let Some(disable_directives) = disable_directives {
@@ -765,7 +775,7 @@ impl Runtime {
                 |me, mut module_to_lint| {
                     module_to_lint.content.with_dependent_mut(
                         |allocator_guard,
-                         ModuleContentDependent { source_text: _, section_contents }| {
+                         ModuleContentDependent { source_text, section_contents }| {
                             assert_eq!(
                                 module_to_lint.section_module_records.len(),
                                 section_contents.len()
@@ -802,29 +812,37 @@ impl Runtime {
                                 })
                                 .collect();
 
-                            if context_sub_hosts.is_empty() {
+                            let path = Path::new(&module_to_lint.path);
+
+                            // See `run_impl`: the template pass also covers
+                            // `.vue` files without any `<script>` block.
+                            let template_messages =
+                                me.linter.run_vue_template_rules(path, source_text);
+
+                            if context_sub_hosts.is_empty() && template_messages.is_empty() {
                                 return;
                             }
 
-                            let path = Path::new(&module_to_lint.path);
+                            if !context_sub_hosts.is_empty() {
+                                let (section_messages, disable_directives) =
+                                    me.linter.run_with_disable_directives::<false>(
+                                        path,
+                                        context_sub_hosts,
+                                        allocator_guard,
+                                        me.js_allocator_pool(),
+                                        None,
+                                    );
 
-                            let (section_messages, disable_directives) =
-                                me.linter.run_with_disable_directives::<false>(
-                                    path,
-                                    context_sub_hosts,
-                                    allocator_guard,
-                                    me.js_allocator_pool(),
-                                    None,
-                                );
+                                if let Some(disable_directives) = disable_directives {
+                                    me.disable_directives_map
+                                        .lock()
+                                        .expect("disable_directives_map mutex poisoned")
+                                        .insert(path.to_path_buf(), disable_directives);
+                                }
 
-                            if let Some(disable_directives) = disable_directives {
-                                me.disable_directives_map
-                                    .lock()
-                                    .expect("disable_directives_map mutex poisoned")
-                                    .insert(path.to_path_buf(), disable_directives);
+                                messages.lock().unwrap().extend(section_messages);
                             }
-
-                            messages.lock().unwrap().extend(section_messages);
+                            messages.lock().unwrap().extend(template_messages);
                         },
                     );
                 },
@@ -909,7 +927,7 @@ impl Runtime {
                 Some(tx_error),
                 |me, mut module| {
                     module.content.with_dependent_mut(|allocator_guard, ModuleContentDependent {
-                        source_text: _,
+                        source_text,
                         section_contents,
                     }| {
                         assert_eq!(module.section_module_records.len(), section_contents.len());
@@ -945,13 +963,18 @@ impl Runtime {
                             })
                             .collect();
 
-                        if context_sub_hosts.is_empty() {
-                            return;
-                        }
+                        // See `run_impl`: the template pass also covers
+                        // `.vue` files without any `<script>` block.
+                        let template_messages = me
+                            .linter
+                            .run_vue_template_rules(Path::new(&module.path), source_text);
 
-                        messages.lock().unwrap().extend(
-                            me.linter.run(Path::new(&module.path), context_sub_hosts, allocator_guard),
-                        );
+                        if !context_sub_hosts.is_empty() {
+                            messages.lock().unwrap().extend(
+                                me.linter.run(Path::new(&module.path), context_sub_hosts, allocator_guard),
+                            );
+                        }
+                        messages.lock().unwrap().extend(template_messages);
                     });
                 },
             );
