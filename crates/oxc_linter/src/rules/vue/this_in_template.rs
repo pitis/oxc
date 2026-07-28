@@ -456,6 +456,16 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // A non-HTML template language is never parsed as HTML: upstream
+            // builds no `templateBody` for it, so no template rule runs at
+            // all. Verified against real eslint-plugin-vue 10.10.0 — this
+            // exact source produces 0 diagnostics there.
+            (
+                r#"<template lang="pug">div {{ this.x }}</template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><div v-if="foo">{{ foo }}</div></template>"#,
                 None,

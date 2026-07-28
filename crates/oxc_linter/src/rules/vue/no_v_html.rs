@@ -132,6 +132,58 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // `<!-- eslint-disable … -->` HTML comment directives inside the
+            // template. Every form below was cross-checked against real
+            // eslint-plugin-vue 10.10.0 (`vue/comment-directive` + its
+            // processor): each produces 0 diagnostics there too.
+            (
+                "<template>\n<!-- eslint-disable -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                "<template>\n<!-- eslint-disable vue/no-v-html -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Comma-separated rule list, plus a `-- description` suffix.
+            (
+                "<template>\n<!-- eslint-disable vue/no-lone-template, vue/no-v-html -- trusted -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                "<template>\n<!-- eslint-disable-next-line vue/no-v-html -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                "<template>\n<div v-html=\"html\" /> <!-- eslint-disable-line vue/no-v-html -->\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Nested inside an element, and covering several elements until
+            // the matching `eslint-enable`.
+            (
+                "<template>\n<div>\n<!-- eslint-disable vue/no-v-html -->\n<p v-html=\"a\" />\n<p v-html=\"b\" />\n<!-- eslint-enable vue/no-v-html -->\n</div>\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Upstream quirk: a rule-less `eslint-enable` clears only the
+            // "disable everything" state, never per-rule disables — so
+            // `vue/no-v-html` stays suppressed past it.
+            (
+                "<template>\n<!-- eslint-disable vue/no-v-html -->\n<!-- eslint-enable -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // `ignorePattern`: an identifier value matching the pattern.
             (
                 r#"<template><div v-html="trustedHtml" /></template>"#,
@@ -155,6 +207,27 @@ mod tests {
         let fail = vec![
             (
                 r#"<template><div v-html="rawHtml" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A disable naming a *different* rule doesn't suppress this one.
+            (
+                "<template>\n<!-- eslint-disable vue/no-lone-template -->\n<div v-html=\"rawHtml\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `eslint-disable-next-line` only covers the next line.
+            (
+                "<template>\n<!-- eslint-disable-next-line vue/no-v-html -->\n<div v-html=\"ok\" />\n<div v-html=\"rawHtml\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A matching `eslint-enable` re-enables the rule.
+            (
+                "<template>\n<!-- eslint-disable vue/no-v-html -->\n<!-- eslint-enable vue/no-v-html -->\n<div v-html=\"rawHtml\" />\n</template>",
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
