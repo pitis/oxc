@@ -6,21 +6,21 @@ assertion_line: 490
   ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
    ╭─[no_parsing_error.tsx:1:24]
  1 │ <template><div foo="a" foo="b" /></template>
-   ·                        ───────
+   ·                        ─
    ╰────
   help: Fix the malformed markup in the template.
 
   ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
    ╭─[no_parsing_error.tsx:1:24]
  1 │ <template><div foo="a" FOO="b" /></template>
-   ·                        ───────
+   ·                        ─
    ╰────
   help: Fix the malformed markup in the template.
 
   ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
    ╭─[no_parsing_error.tsx:1:25]
  1 │ <template><div :foo="a" :foo="b" /></template>
-   ·                         ────────
+   ·                         ─
    ╰────
   help: Fix the malformed markup in the template.
 
@@ -32,8 +32,14 @@ assertion_line: 490
   help: Fix the malformed markup in the template.
 
   ⚠ vue(no-parsing-error): Parsing error: eof-in-tag.
-   ╭─[no_parsing_error.tsx:1:21]
+   ╭─[no_parsing_error.tsx:1:33]
  1 │ <template><div foo="a</template>
-   ·                     ────────────
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: eof-in-tag.
+   ╭─[no_parsing_error.tsx:3:13]
+ 2 │ b
+ 3 │ c</template>
    ╰────
   help: Fix the malformed markup in the template.

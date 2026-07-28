@@ -19,6 +19,15 @@ fn parsing_error_diagnostic(code: &str, span: Span) -> OxcDiagnostic {
         .with_label(span)
 }
 
+/// A single-byte span at `start`: eslint-plugin-vue's `no-parsing-error`
+/// reports a bare point location (no end line/column) for every code this
+/// rule implements. When there is a real character at that position, a
+/// 1-byte span matches upstream's start exactly while still being visible
+/// as a label (a true zero-width span renders without an underline).
+fn point_span(start: u32) -> Span {
+    Span::new(start, start.saturating_add(1))
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct NoParsingError;
 
@@ -40,8 +49,15 @@ declare_oxc_lint!(
     /// comment source for the full list). Only the three codes above are
     /// implemented; they are derived from the parsed attribute list and raw
     /// source text with no ambiguity, matching eslint-plugin-vue's messages
-    /// and reported spans exactly for those cases. This is a deliberate,
-    /// conservative subset — under-reporting is preferred to false positives.
+    /// exactly. Upstream reports a bare point location for every code here
+    /// (its JSON output has no end line/column at all) — `duplicate-attribute`
+    /// and `missing-attribute-value` render as a single-byte span at that
+    /// same start position (there's a real character to underline, and a
+    /// zero-width span would be invisible in a label); `eof-in-tag`'s point
+    /// is the true end of the template block's content, not the start of
+    /// the unterminated value, so it renders as a genuine zero-width span
+    /// there instead. This is a deliberate, conservative subset —
+    /// under-reporting is preferred to false positives.
     ///
     /// ### Why is this bad?
     ///
@@ -105,7 +121,10 @@ fn check_duplicate_attributes<'a>(element: &Element<'a>, ctx: &mut VueTemplateCo
     for attribute in &element.attributes {
         let lower = attribute.name.cow_to_ascii_lowercase();
         if seen.contains(&lower) {
-            ctx.diagnostic(parsing_error_diagnostic("duplicate-attribute", attribute.span));
+            ctx.diagnostic(parsing_error_diagnostic(
+                "duplicate-attribute",
+                point_span(attribute.span.start),
+            ));
         } else {
             seen.insert(lower);
         }
@@ -138,10 +157,7 @@ fn check_missing_attribute_value<'a>(
     }
     if bytes.get(index) == Some(&b'>') {
         let pos = u32::try_from(index).unwrap_or(attribute.span.end);
-        ctx.diagnostic(parsing_error_diagnostic(
-            "missing-attribute-value",
-            Span::new(pos, pos.saturating_add(1)),
-        ));
+        ctx.diagnostic(parsing_error_diagnostic("missing-attribute-value", point_span(pos)));
     }
 }
 
@@ -152,6 +168,13 @@ fn check_missing_attribute_value<'a>(
 /// quoted value spans exactly to the end of `source` without ever finding
 /// its closing quote is an unambiguous signal, independent of any parser
 /// change.
+///
+/// Upstream's reported point is the true EOF, *not* the start of the
+/// unterminated value (confirmed empirically: for `<div foo="a` followed by
+/// EOF two lines down, eslint reports the EOF's own line:col, not the
+/// quote's) — with a newline inside the unterminated value those two
+/// positions can land on different lines entirely, so this must scan to
+/// `source.len()`, not report `value.span`.
 fn check_eof_in_tag<'a>(attribute: &Attribute<'a>, source: &str, ctx: &mut VueTemplateContext<'a>) {
     let Some(value) = &attribute.value else { return };
     if value.quote != b'"' && value.quote != b'\'' {
@@ -160,10 +183,12 @@ fn check_eof_in_tag<'a>(attribute: &Attribute<'a>, source: &str, ctx: &mut VueTe
     let bytes = source.as_bytes();
     let end = value.span.end as usize;
     if end >= bytes.len() {
-        // `value.span` already runs from the opening quote to end-of-input
-        // (there was no closing quote to stop it) — highlight that whole
-        // unterminated run rather than a zero-width point at EOF.
-        ctx.diagnostic(parsing_error_diagnostic("eof-in-tag", value.span));
+        // Genuinely zero-width: `source.len()` is one past the last real
+        // byte, so there is no character left to underline (unlike
+        // `duplicate-attribute`/`missing-attribute-value`, which use
+        // `point_span` for exactly that reason).
+        let pos = u32::try_from(bytes.len()).unwrap_or(attribute.span.end);
+        ctx.diagnostic(parsing_error_diagnostic("eof-in-tag", Span::new(pos, pos)));
     }
 }
 
@@ -236,6 +261,15 @@ mod tests {
             ),
             // Unterminated quoted value: never finds its closing quote.
             ("<template><div foo=\"a</template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Same, but with newlines inside the unterminated value: locks
+            // in that the reported point is the true EOF (a later line),
+            // not the opening quote's line.
+            (
+                "<template><div foo=\"a\nb\nc</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         Tester::new(NoParsingError::NAME, NoParsingError::PLUGIN, pass, fail).test_and_snapshot();
