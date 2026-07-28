@@ -151,9 +151,60 @@ pub fn walk_elements<'a>(nodes: &[Node<'a>], visit: &mut impl FnMut(&Element<'a>
 /// rather than the whole attribute/directive node; `Attribute::name_span`
 /// already stops before `=`, so this is exactly that span, named to match
 /// call sites mirroring eslint's `node.key`.
-// Not yet consumed; part of the shared helper surface later template rules
-// build on.
-#[expect(dead_code)]
 pub fn directive_key_span(attribute: &Attribute<'_>) -> Span {
     attribute.name_span
+}
+
+/// Whether a directive's value is missing or empty, mirroring
+/// eslint-plugin-vue's `!node.value || utils.isEmptyValueDirective(node,
+/// context)` check used by `valid-v-if`/`valid-v-else-if`/`valid-v-show`/
+/// `valid-v-html`/`valid-v-text`. `AttributeValue::text` already excludes the
+/// surrounding quotes (see its doc comment), so an eslint value of `""` is
+/// exactly an empty `text` here — no extra quote-stripping is needed.
+///
+/// eslint-plugin-vue's version additionally special-cases values that
+/// vue-eslint-parser failed to parse as a JS expression (`value.expression ==
+/// null`) by re-checking the raw (quote-stripped, not trimmed) text; since
+/// this parser doesn't parse directive expressions at all, that distinction
+/// isn't reproducible. Matching upstream's *observable* behavior for the
+/// common cases is what this does: `v-if=""` is empty, `v-if="cond"` is not,
+/// and (like upstream, whose emptiness check doesn't trim) `v-if="   "` is
+/// treated as present rather than empty.
+pub fn directive_value_missing(attribute: &Attribute<'_>) -> bool {
+    match &attribute.value {
+        None => true,
+        Some(value) => value.text.is_empty(),
+    }
+}
+
+/// Like [`walk_elements`], but also gives the visitor the element's sibling
+/// list (its parent's children, or the root nodes) and its index within it —
+/// needed by rules that inspect "the previous element sibling", e.g.
+/// `valid-v-else`/`valid-v-else-if` walking back past `Text`/`Comment`/
+/// `Interpolation` nodes to find the nearest preceding `Element`, mirroring
+/// eslint-plugin-vue's `utils.prevSibling`.
+pub fn walk_elements_with_siblings<'e, 'a>(
+    nodes: &'e [Node<'a>],
+    visit: &mut impl FnMut(&'e Element<'a>, &'e [Node<'a>], usize),
+) {
+    for (index, node) in nodes.iter().enumerate() {
+        if let Node::Element(element) = node {
+            visit(element, nodes, index);
+            walk_elements_with_siblings(&element.children, visit);
+        }
+    }
+}
+
+/// The nearest preceding `Element` sibling of `nodes[index]` within `nodes`,
+/// skipping over any `Text`/`Interpolation`/`Comment`/`Raw` nodes in between —
+/// eslint-plugin-vue's `utils.prevSibling`, which only ever tracks `VElement`
+/// siblings and otherwise ignores every other node type outright.
+pub fn prev_element_sibling<'e, 'a>(
+    nodes: &'e [Node<'a>],
+    index: usize,
+) -> Option<&'e Element<'a>> {
+    nodes[..index]
+        .iter()
+        .rev()
+        .find_map(|node| if let Node::Element(element) = node { Some(element) } else { None })
 }

@@ -859,6 +859,15 @@ pub use crate::rules::vue::valid_define_emits::ValidDefineEmits as VueValidDefin
 pub use crate::rules::vue::valid_define_options::ValidDefineOptions as VueValidDefineOptions;
 pub use crate::rules::vue::valid_define_props::ValidDefineProps as VueValidDefineProps;
 pub use crate::rules::vue::valid_next_tick::ValidNextTick as VueValidNextTick;
+pub use crate::rules::vue::valid_v_cloak::ValidVCloak as VueValidVCloak;
+pub use crate::rules::vue::valid_v_else::ValidVElse as VueValidVElse;
+pub use crate::rules::vue::valid_v_else_if::ValidVElseIf as VueValidVElseIf;
+pub use crate::rules::vue::valid_v_html::ValidVHtml as VueValidVHtml;
+pub use crate::rules::vue::valid_v_if::ValidVIf as VueValidVIf;
+pub use crate::rules::vue::valid_v_once::ValidVOnce as VueValidVOnce;
+pub use crate::rules::vue::valid_v_pre::ValidVPre as VueValidVPre;
+pub use crate::rules::vue::valid_v_show::ValidVShow as VueValidVShow;
+pub use crate::rules::vue::valid_v_text::ValidVText as VueValidVText;
 use crate::{
     AstNode,
     context::{ContextHost, LintContext},
@@ -1726,6 +1735,15 @@ pub enum RuleEnum {
     VueValidDefineOptions(VueValidDefineOptions),
     VueValidDefineProps(VueValidDefineProps),
     VueValidNextTick(VueValidNextTick),
+    VueValidVCloak(VueValidVCloak),
+    VueValidVElse(VueValidVElse),
+    VueValidVElseIf(VueValidVElseIf),
+    VueValidVHtml(VueValidVHtml),
+    VueValidVIf(VueValidVIf),
+    VueValidVOnce(VueValidVOnce),
+    VueValidVPre(VueValidVPre),
+    VueValidVShow(VueValidVShow),
+    VueValidVText(VueValidVText),
 }
 const IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID: usize = 0usize;
 const IMPORT_DEFAULT_ID: usize = IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID + 1usize;
@@ -2685,6 +2703,15 @@ const VUE_VALID_DEFINE_EMITS_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usi
 const VUE_VALID_DEFINE_OPTIONS_ID: usize = VUE_VALID_DEFINE_EMITS_ID + 1usize;
 const VUE_VALID_DEFINE_PROPS_ID: usize = VUE_VALID_DEFINE_OPTIONS_ID + 1usize;
 const VUE_VALID_NEXT_TICK_ID: usize = VUE_VALID_DEFINE_PROPS_ID + 1usize;
+const VUE_VALID_V_CLOAK_ID: usize = VUE_VALID_NEXT_TICK_ID + 1usize;
+const VUE_VALID_V_ELSE_ID: usize = VUE_VALID_V_CLOAK_ID + 1usize;
+const VUE_VALID_V_ELSE_IF_ID: usize = VUE_VALID_V_ELSE_ID + 1usize;
+const VUE_VALID_V_HTML_ID: usize = VUE_VALID_V_ELSE_IF_ID + 1usize;
+const VUE_VALID_V_IF_ID: usize = VUE_VALID_V_HTML_ID + 1usize;
+const VUE_VALID_V_ONCE_ID: usize = VUE_VALID_V_IF_ID + 1usize;
+const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
+const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
+const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 impl RuleEnum {
     pub fn id(&self) -> usize {
         match self {
@@ -3667,6 +3694,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VUE_VALID_DEFINE_OPTIONS_ID,
             Self::VueValidDefineProps(_) => VUE_VALID_DEFINE_PROPS_ID,
             Self::VueValidNextTick(_) => VUE_VALID_NEXT_TICK_ID,
+            Self::VueValidVCloak(_) => VUE_VALID_V_CLOAK_ID,
+            Self::VueValidVElse(_) => VUE_VALID_V_ELSE_ID,
+            Self::VueValidVElseIf(_) => VUE_VALID_V_ELSE_IF_ID,
+            Self::VueValidVHtml(_) => VUE_VALID_V_HTML_ID,
+            Self::VueValidVIf(_) => VUE_VALID_V_IF_ID,
+            Self::VueValidVOnce(_) => VUE_VALID_V_ONCE_ID,
+            Self::VueValidVPre(_) => VUE_VALID_V_PRE_ID,
+            Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
+            Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
         }
     }
     pub fn name(&self) -> &'static str {
@@ -4634,6 +4670,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::NAME,
             Self::VueValidDefineProps(_) => VueValidDefineProps::NAME,
             Self::VueValidNextTick(_) => VueValidNextTick::NAME,
+            Self::VueValidVCloak(_) => VueValidVCloak::NAME,
+            Self::VueValidVElse(_) => VueValidVElse::NAME,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::NAME,
+            Self::VueValidVHtml(_) => VueValidVHtml::NAME,
+            Self::VueValidVIf(_) => VueValidVIf::NAME,
+            Self::VueValidVOnce(_) => VueValidVOnce::NAME,
+            Self::VueValidVPre(_) => VueValidVPre::NAME,
+            Self::VueValidVShow(_) => VueValidVShow::NAME,
+            Self::VueValidVText(_) => VueValidVText::NAME,
         }
     }
     pub fn category(&self) -> RuleCategory {
@@ -5659,6 +5704,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::CATEGORY,
             Self::VueValidDefineProps(_) => VueValidDefineProps::CATEGORY,
             Self::VueValidNextTick(_) => VueValidNextTick::CATEGORY,
+            Self::VueValidVCloak(_) => VueValidVCloak::CATEGORY,
+            Self::VueValidVElse(_) => VueValidVElse::CATEGORY,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::CATEGORY,
+            Self::VueValidVHtml(_) => VueValidVHtml::CATEGORY,
+            Self::VueValidVIf(_) => VueValidVIf::CATEGORY,
+            Self::VueValidVOnce(_) => VueValidVOnce::CATEGORY,
+            Self::VueValidVPre(_) => VueValidVPre::CATEGORY,
+            Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
+            Self::VueValidVText(_) => VueValidVText::CATEGORY,
         }
     }
     #[doc = r" This [`Rule`]'s auto-fix capabilities."]
@@ -6627,6 +6681,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::FIX,
             Self::VueValidDefineProps(_) => VueValidDefineProps::FIX,
             Self::VueValidNextTick(_) => VueValidNextTick::FIX,
+            Self::VueValidVCloak(_) => VueValidVCloak::FIX,
+            Self::VueValidVElse(_) => VueValidVElse::FIX,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::FIX,
+            Self::VueValidVHtml(_) => VueValidVHtml::FIX,
+            Self::VueValidVIf(_) => VueValidVIf::FIX,
+            Self::VueValidVOnce(_) => VueValidVOnce::FIX,
+            Self::VueValidVPre(_) => VueValidVPre::FIX,
+            Self::VueValidVShow(_) => VueValidVShow::FIX,
+            Self::VueValidVText(_) => VueValidVText::FIX,
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -7863,6 +7926,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::documentation(),
             Self::VueValidDefineProps(_) => VueValidDefineProps::documentation(),
             Self::VueValidNextTick(_) => VueValidNextTick::documentation(),
+            Self::VueValidVCloak(_) => VueValidVCloak::documentation(),
+            Self::VueValidVElse(_) => VueValidVElse::documentation(),
+            Self::VueValidVElseIf(_) => VueValidVElseIf::documentation(),
+            Self::VueValidVHtml(_) => VueValidVHtml::documentation(),
+            Self::VueValidVIf(_) => VueValidVIf::documentation(),
+            Self::VueValidVOnce(_) => VueValidVOnce::documentation(),
+            Self::VueValidVPre(_) => VueValidVPre::documentation(),
+            Self::VueValidVShow(_) => VueValidVShow::documentation(),
+            Self::VueValidVText(_) => VueValidVText::documentation(),
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -10306,6 +10378,31 @@ impl RuleEnum {
                 .or_else(|| VueValidDefineProps::schema(generator)),
             Self::VueValidNextTick(_) => VueValidNextTick::config_schema(generator)
                 .or_else(|| VueValidNextTick::schema(generator)),
+            Self::VueValidVCloak(_) => VueValidVCloak::config_schema(generator)
+                .or_else(|| VueValidVCloak::schema(generator)),
+            Self::VueValidVElse(_) => {
+                VueValidVElse::config_schema(generator).or_else(|| VueValidVElse::schema(generator))
+            }
+            Self::VueValidVElseIf(_) => VueValidVElseIf::config_schema(generator)
+                .or_else(|| VueValidVElseIf::schema(generator)),
+            Self::VueValidVHtml(_) => {
+                VueValidVHtml::config_schema(generator).or_else(|| VueValidVHtml::schema(generator))
+            }
+            Self::VueValidVIf(_) => {
+                VueValidVIf::config_schema(generator).or_else(|| VueValidVIf::schema(generator))
+            }
+            Self::VueValidVOnce(_) => {
+                VueValidVOnce::config_schema(generator).or_else(|| VueValidVOnce::schema(generator))
+            }
+            Self::VueValidVPre(_) => {
+                VueValidVPre::config_schema(generator).or_else(|| VueValidVPre::schema(generator))
+            }
+            Self::VueValidVShow(_) => {
+                VueValidVShow::config_schema(generator).or_else(|| VueValidVShow::schema(generator))
+            }
+            Self::VueValidVText(_) => {
+                VueValidVText::config_schema(generator).or_else(|| VueValidVText::schema(generator))
+            }
         }
     }
     pub fn plugin_name(&self) -> &'static str {
@@ -11159,6 +11256,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => "vue",
             Self::VueValidDefineProps(_) => "vue",
             Self::VueValidNextTick(_) => "vue",
+            Self::VueValidVCloak(_) => "vue",
+            Self::VueValidVElse(_) => "vue",
+            Self::VueValidVElseIf(_) => "vue",
+            Self::VueValidVHtml(_) => "vue",
+            Self::VueValidVIf(_) => "vue",
+            Self::VueValidVOnce(_) => "vue",
+            Self::VueValidVPre(_) => "vue",
+            Self::VueValidVShow(_) => "vue",
+            Self::VueValidVText(_) => "vue",
         }
     }
     pub fn from_configuration(
@@ -13899,6 +14005,31 @@ impl RuleEnum {
             Self::VueValidNextTick(_) => {
                 Ok(Self::VueValidNextTick(VueValidNextTick::from_configuration(value)?))
             }
+            Self::VueValidVCloak(_) => {
+                Ok(Self::VueValidVCloak(VueValidVCloak::from_configuration(value)?))
+            }
+            Self::VueValidVElse(_) => {
+                Ok(Self::VueValidVElse(VueValidVElse::from_configuration(value)?))
+            }
+            Self::VueValidVElseIf(_) => {
+                Ok(Self::VueValidVElseIf(VueValidVElseIf::from_configuration(value)?))
+            }
+            Self::VueValidVHtml(_) => {
+                Ok(Self::VueValidVHtml(VueValidVHtml::from_configuration(value)?))
+            }
+            Self::VueValidVIf(_) => Ok(Self::VueValidVIf(VueValidVIf::from_configuration(value)?)),
+            Self::VueValidVOnce(_) => {
+                Ok(Self::VueValidVOnce(VueValidVOnce::from_configuration(value)?))
+            }
+            Self::VueValidVPre(_) => {
+                Ok(Self::VueValidVPre(VueValidVPre::from_configuration(value)?))
+            }
+            Self::VueValidVShow(_) => {
+                Ok(Self::VueValidVShow(VueValidVShow::from_configuration(value)?))
+            }
+            Self::VueValidVText(_) => {
+                Ok(Self::VueValidVText(VueValidVText::from_configuration(value)?))
+            }
         }
     }
     pub fn to_configuration(&self) -> Option<Result<serde_json::Value, serde_json::Error>> {
@@ -14756,6 +14887,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.to_configuration(),
             Self::VueValidDefineProps(rule) => rule.to_configuration(),
             Self::VueValidNextTick(rule) => rule.to_configuration(),
+            Self::VueValidVCloak(rule) => rule.to_configuration(),
+            Self::VueValidVElse(rule) => rule.to_configuration(),
+            Self::VueValidVElseIf(rule) => rule.to_configuration(),
+            Self::VueValidVHtml(rule) => rule.to_configuration(),
+            Self::VueValidVIf(rule) => rule.to_configuration(),
+            Self::VueValidVOnce(rule) => rule.to_configuration(),
+            Self::VueValidVPre(rule) => rule.to_configuration(),
+            Self::VueValidVShow(rule) => rule.to_configuration(),
+            Self::VueValidVText(rule) => rule.to_configuration(),
         }
     }
     #[inline(never)]
@@ -15610,6 +15750,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run(node, ctx),
             Self::VueValidDefineProps(rule) => rule.run(node, ctx),
             Self::VueValidNextTick(rule) => rule.run(node, ctx),
+            Self::VueValidVCloak(rule) => rule.run(node, ctx),
+            Self::VueValidVElse(rule) => rule.run(node, ctx),
+            Self::VueValidVElseIf(rule) => rule.run(node, ctx),
+            Self::VueValidVHtml(rule) => rule.run(node, ctx),
+            Self::VueValidVIf(rule) => rule.run(node, ctx),
+            Self::VueValidVOnce(rule) => rule.run(node, ctx),
+            Self::VueValidVPre(rule) => rule.run(node, ctx),
+            Self::VueValidVShow(rule) => rule.run(node, ctx),
+            Self::VueValidVText(rule) => rule.run(node, ctx),
         }
     }
     pub(crate) fn run<'a, const TIMINGS: bool>(
@@ -16476,6 +16625,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_once(ctx),
             Self::VueValidDefineProps(rule) => rule.run_once(ctx),
             Self::VueValidNextTick(rule) => rule.run_once(ctx),
+            Self::VueValidVCloak(rule) => rule.run_once(ctx),
+            Self::VueValidVElse(rule) => rule.run_once(ctx),
+            Self::VueValidVElseIf(rule) => rule.run_once(ctx),
+            Self::VueValidVHtml(rule) => rule.run_once(ctx),
+            Self::VueValidVIf(rule) => rule.run_once(ctx),
+            Self::VueValidVOnce(rule) => rule.run_once(ctx),
+            Self::VueValidVPre(rule) => rule.run_once(ctx),
+            Self::VueValidVShow(rule) => rule.run_once(ctx),
+            Self::VueValidVText(rule) => rule.run_once(ctx),
         }
     }
     pub(crate) fn run_once<const TIMINGS: bool>(
@@ -17459,6 +17617,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidDefineProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidNextTick(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVCloak(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVElse(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVElseIf(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVHtml(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVIf(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVOnce(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVPre(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
         }
     }
     pub(crate) fn run_on_jest_node<'a, 'c, const TIMINGS: bool>(
@@ -18326,6 +18493,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.should_run(ctx),
             Self::VueValidDefineProps(rule) => rule.should_run(ctx),
             Self::VueValidNextTick(rule) => rule.should_run(ctx),
+            Self::VueValidVCloak(rule) => rule.should_run(ctx),
+            Self::VueValidVElse(rule) => rule.should_run(ctx),
+            Self::VueValidVElseIf(rule) => rule.should_run(ctx),
+            Self::VueValidVHtml(rule) => rule.should_run(ctx),
+            Self::VueValidVIf(rule) => rule.should_run(ctx),
+            Self::VueValidVOnce(rule) => rule.should_run(ctx),
+            Self::VueValidVPre(rule) => rule.should_run(ctx),
+            Self::VueValidVShow(rule) => rule.should_run(ctx),
+            Self::VueValidVText(rule) => rule.should_run(ctx),
         }
     }
     pub fn is_tsgolint_rule(&self) -> bool {
@@ -19561,6 +19737,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::IS_TSGOLINT_RULE,
             Self::VueValidDefineProps(_) => VueValidDefineProps::IS_TSGOLINT_RULE,
             Self::VueValidNextTick(_) => VueValidNextTick::IS_TSGOLINT_RULE,
+            Self::VueValidVCloak(_) => VueValidVCloak::IS_TSGOLINT_RULE,
+            Self::VueValidVElse(_) => VueValidVElse::IS_TSGOLINT_RULE,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::IS_TSGOLINT_RULE,
+            Self::VueValidVHtml(_) => VueValidVHtml::IS_TSGOLINT_RULE,
+            Self::VueValidVIf(_) => VueValidVIf::IS_TSGOLINT_RULE,
+            Self::VueValidVOnce(_) => VueValidVOnce::IS_TSGOLINT_RULE,
+            Self::VueValidVPre(_) => VueValidVPre::IS_TSGOLINT_RULE,
+            Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
+            Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
         }
     }
     #[doc = r" The version of oxlint in which this rule was first available."]
@@ -20588,6 +20773,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::VERSION,
             Self::VueValidDefineProps(_) => VueValidDefineProps::VERSION,
             Self::VueValidNextTick(_) => VueValidNextTick::VERSION,
+            Self::VueValidVCloak(_) => VueValidVCloak::VERSION,
+            Self::VueValidVElse(_) => VueValidVElse::VERSION,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::VERSION,
+            Self::VueValidVHtml(_) => VueValidVHtml::VERSION,
+            Self::VueValidVIf(_) => VueValidVIf::VERSION,
+            Self::VueValidVOnce(_) => VueValidVOnce::VERSION,
+            Self::VueValidVPre(_) => VueValidVPre::VERSION,
+            Self::VueValidVShow(_) => VueValidVShow::VERSION,
+            Self::VueValidVText(_) => VueValidVText::VERSION,
         }
     }
     #[doc = r" Whether this rule declares a configuration type."]
@@ -21654,6 +21848,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::HAS_CONFIG,
             Self::VueValidDefineProps(_) => VueValidDefineProps::HAS_CONFIG,
             Self::VueValidNextTick(_) => VueValidNextTick::HAS_CONFIG,
+            Self::VueValidVCloak(_) => VueValidVCloak::HAS_CONFIG,
+            Self::VueValidVElse(_) => VueValidVElse::HAS_CONFIG,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::HAS_CONFIG,
+            Self::VueValidVHtml(_) => VueValidVHtml::HAS_CONFIG,
+            Self::VueValidVIf(_) => VueValidVIf::HAS_CONFIG,
+            Self::VueValidVOnce(_) => VueValidVOnce::HAS_CONFIG,
+            Self::VueValidVPre(_) => VueValidVPre::HAS_CONFIG,
+            Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
+            Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
         }
     }
     #[doc = r" Additional information about this rule."]
@@ -22623,6 +22826,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::INFO,
             Self::VueValidDefineProps(_) => VueValidDefineProps::INFO,
             Self::VueValidNextTick(_) => VueValidNextTick::INFO,
+            Self::VueValidVCloak(_) => VueValidVCloak::INFO,
+            Self::VueValidVElse(_) => VueValidVElse::INFO,
+            Self::VueValidVElseIf(_) => VueValidVElseIf::INFO,
+            Self::VueValidVHtml(_) => VueValidVHtml::INFO,
+            Self::VueValidVIf(_) => VueValidVIf::INFO,
+            Self::VueValidVOnce(_) => VueValidVOnce::INFO,
+            Self::VueValidVPre(_) => VueValidVPre::INFO,
+            Self::VueValidVShow(_) => VueValidVShow::INFO,
+            Self::VueValidVText(_) => VueValidVText::INFO,
         }
     }
     #[doc = r" A short, one-line summary of what this rule does."]
@@ -23481,6 +23693,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.types_info(),
             Self::VueValidDefineProps(rule) => rule.types_info(),
             Self::VueValidNextTick(rule) => rule.types_info(),
+            Self::VueValidVCloak(rule) => rule.types_info(),
+            Self::VueValidVElse(rule) => rule.types_info(),
+            Self::VueValidVElseIf(rule) => rule.types_info(),
+            Self::VueValidVHtml(rule) => rule.types_info(),
+            Self::VueValidVIf(rule) => rule.types_info(),
+            Self::VueValidVOnce(rule) => rule.types_info(),
+            Self::VueValidVPre(rule) => rule.types_info(),
+            Self::VueValidVShow(rule) => rule.types_info(),
+            Self::VueValidVText(rule) => rule.types_info(),
         }
     }
     pub fn run_info(&self) -> RuleRunFunctionsImplemented {
@@ -24334,6 +24555,15 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_info(),
             Self::VueValidDefineProps(rule) => rule.run_info(),
             Self::VueValidNextTick(rule) => rule.run_info(),
+            Self::VueValidVCloak(rule) => rule.run_info(),
+            Self::VueValidVElse(rule) => rule.run_info(),
+            Self::VueValidVElseIf(rule) => rule.run_info(),
+            Self::VueValidVHtml(rule) => rule.run_info(),
+            Self::VueValidVIf(rule) => rule.run_info(),
+            Self::VueValidVOnce(rule) => rule.run_info(),
+            Self::VueValidVPre(rule) => rule.run_info(),
+            Self::VueValidVShow(rule) => rule.run_info(),
+            Self::VueValidVText(rule) => rule.run_info(),
         }
     }
 }
@@ -25323,5 +25553,14 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidDefineOptions(VueValidDefineOptions::default()),
         RuleEnum::VueValidDefineProps(VueValidDefineProps::default()),
         RuleEnum::VueValidNextTick(VueValidNextTick::default()),
+        RuleEnum::VueValidVCloak(VueValidVCloak::default()),
+        RuleEnum::VueValidVElse(VueValidVElse::default()),
+        RuleEnum::VueValidVElseIf(VueValidVElseIf::default()),
+        RuleEnum::VueValidVHtml(VueValidVHtml::default()),
+        RuleEnum::VueValidVIf(VueValidVIf::default()),
+        RuleEnum::VueValidVOnce(VueValidVOnce::default()),
+        RuleEnum::VueValidVPre(VueValidVPre::default()),
+        RuleEnum::VueValidVShow(VueValidVShow::default()),
+        RuleEnum::VueValidVText(VueValidVText::default()),
     ]
 });

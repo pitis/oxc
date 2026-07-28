@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-cloak): 'v-cloak' directives require no argument.
+   ╭─[valid_v_cloak.tsx:1:24]
+ 1 │ <template><div v-cloak:aaa /></template>
+   ·                        ───
+   ╰────
+  help: Remove the argument; `v-cloak` does not accept one.
+
+  ⚠ vue(valid-v-cloak): 'v-cloak' directives require no modifier.
+   ╭─[valid_v_cloak.tsx:1:16]
+ 1 │ <template><div v-cloak.aaa /></template>
+   ·                ───────────
+   ╰────
+  help: Remove the modifier; `v-cloak` does not accept any.
+
+  ⚠ vue(valid-v-cloak): 'v-cloak' directives require no attribute value.
+   ╭─[valid_v_cloak.tsx:1:25]
+ 1 │ <template><div v-cloak="foo" /></template>
+   ·                         ───
+   ╰────
+  help: Remove the value; `v-cloak` is a plain marker with nothing to bind.

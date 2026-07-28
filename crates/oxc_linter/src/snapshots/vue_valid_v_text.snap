@@ -1,0 +1,32 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-text): 'v-text' directives require that attribute value.
+   ╭─[valid_v_text.tsx:1:16]
+ 1 │ <template><div v-text /></template>
+   ·                ──────
+   ╰────
+  help: Give `v-text` an expression that evaluates to the text to render, e.g. `v-text="message"`.
+
+  ⚠ vue(valid-v-text): 'v-text' directives require that attribute value.
+   ╭─[valid_v_text.tsx:1:16]
+ 1 │ <template><div v-text="" /></template>
+   ·                ─────────
+   ╰────
+  help: Give `v-text` an expression that evaluates to the text to render, e.g. `v-text="message"`.
+
+  ⚠ vue(valid-v-text): 'v-text' directives require no argument.
+   ╭─[valid_v_text.tsx:1:23]
+ 1 │ <template><div v-text:aaa="message" /></template>
+   ·                       ───
+   ╰────
+  help: Remove the argument; `v-text` does not accept one.
+
+  ⚠ vue(valid-v-text): 'v-text' directives require no modifier.
+   ╭─[valid_v_text.tsx:1:16]
+ 1 │ <template><div v-text.aaa="message" /></template>
+   ·                ──────────
+   ╰────
+  help: Remove the modifier; `v-text` does not accept any.
