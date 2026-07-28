@@ -45,6 +45,10 @@ pub struct Interpolation<'a> {
     /// The expression text between the delimiters, untrimmed.
     pub expression_span: Span,
     pub expression: &'a str,
+    /// `true` when the source ended before a closing `}}` was found (the
+    /// parser scanned to EOF and `expression` absorbed the rest of the
+    /// input). A consumer reprinting this node must not fabricate `}}`.
+    pub unterminated: bool,
 }
 
 #[derive(Debug)]
@@ -52,6 +56,10 @@ pub struct Comment<'a> {
     pub span: Span,
     pub content_span: Span,
     pub content: &'a str,
+    /// `true` when the source ended before a closing `-->` was found (the
+    /// parser scanned to EOF and `content` absorbed the rest of the input).
+    /// A consumer reprinting this node must not fabricate `-->`.
+    pub unterminated: bool,
 }
 
 #[derive(Debug)]
@@ -113,6 +121,12 @@ pub struct AttributeValue<'a> {
     pub text: &'a str,
     /// `"`, `'`, or `0` when the value was unquoted.
     pub quote: u8,
+    /// `true` when `quote` is `"` or `'` and the source ended before the
+    /// matching closing quote was found (the parser scanned to EOF and
+    /// `text` absorbed the rest of the input). Always `false` for unquoted
+    /// values, which have no closing delimiter to miss. A consumer
+    /// reprinting this node must not fabricate the missing quote.
+    pub unterminated: bool,
 }
 
 /// A decomposed directive: `v-on:click.stop` / `@click.stop` →
@@ -157,10 +171,17 @@ pub const VOID_ELEMENTS: &[&str] = &[
     "track", "wbr",
 ];
 
-/// Elements whose content is not markup and must survive untouched.
-/// (`script`/`style` never appear inside `<template>` in practice, but the
-/// browser treats them as raw text, so the parser must too.)
-pub const RAW_TEXT_ELEMENTS: &[&str] = &["script", "style", "pre", "textarea"];
+/// Elements whose content must be kept byte-for-byte instead of being parsed as markup.
+///
+/// `script`/`style` bodies are foreign languages (JS/CSS), and `textarea`
+/// content is user-facing literal text — none of it is HTML or Vue template
+/// syntax, so re-parsing it would corrupt the payload rather than recover
+/// it. `pre` is deliberately *not* here: its content is normal markup (only
+/// whitespace *rendering* differs) and Vue compiles directives inside it, so
+/// it must parse like any other element. `title` (RCDATA in HTML) is
+/// likewise not special-cased — content inside it parses as markup too;
+/// this is a deliberate scope decision, not an oversight.
+pub const RAW_TEXT_ELEMENTS: &[&str] = &["script", "style", "textarea"];
 
 pub fn is_void_element(name: &str) -> bool {
     VOID_ELEMENTS.iter().any(|void| void.eq_ignore_ascii_case(name))

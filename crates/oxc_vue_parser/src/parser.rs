@@ -176,12 +176,14 @@ impl<'a> Parser<'a> {
             self.position += 1;
         }
         let content_end = self.position;
+        let unterminated = self.eof();
         self.position = (self.position + 3).min(self.len());
         let content_span = Span::new(content_start, content_end);
         Node::Comment(Comment {
             span: Span::new(start, self.position),
             content_span,
             content: self.slice(content_span),
+            unterminated,
         })
     }
 
@@ -193,12 +195,14 @@ impl<'a> Parser<'a> {
             self.position += 1;
         }
         let expression_end = self.position;
+        let unterminated = self.eof();
         self.position = (self.position + 2).min(self.len());
         let expression_span = Span::new(expression_start, expression_end);
         Node::Interpolation(Interpolation {
             span: Span::new(start, self.position),
             expression_span,
             expression: self.slice(expression_span),
+            unterminated,
         })
     }
 
@@ -383,7 +387,9 @@ impl<'a> Parser<'a> {
                         self.position += 1;
                     }
                     let span = Span::new(value_start, self.position);
-                    value = Some(AttributeValue { span, text: self.slice(span), quote });
+                    let unterminated = self.eof();
+                    value =
+                        Some(AttributeValue { span, text: self.slice(span), quote, unterminated });
                     self.position = (self.position + 1).min(self.len());
                 } else {
                     let value_start = self.position;
@@ -391,7 +397,12 @@ impl<'a> Parser<'a> {
                         self.position += 1;
                     }
                     let span = Span::new(value_start, self.position);
-                    value = Some(AttributeValue { span, text: self.slice(span), quote: 0 });
+                    value = Some(AttributeValue {
+                        span,
+                        text: self.slice(span),
+                        quote: 0,
+                        unterminated: false,
+                    });
                 }
             }
 

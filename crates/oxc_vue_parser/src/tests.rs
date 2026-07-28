@@ -84,12 +84,131 @@ fn void_and_self_closing_elements_have_no_children() {
 
 #[test]
 fn raw_text_elements_keep_bodies_verbatim() {
-    let source = "<pre>  <div> not parsed {{ x }}  </pre>";
+    // `pre` was removed from the raw-text set (see `pre_parses_children_normally`
+    // below) — `textarea` is used here instead to exercise the same
+    // byte-preservation behavior for genuine raw-text elements.
+    let source = "<textarea>  <div> not parsed {{ x }}  </textarea>";
+    let nodes = parse_template(source);
+    let textarea = only_element(&nodes);
+    let raw = textarea.raw_text.expect("raw text");
+    assert_eq!(&source[raw.start as usize..raw.end as usize], "  <div> not parsed {{ x }}  ");
+    assert!(textarea.children.is_empty());
+}
+
+#[test]
+fn pre_parses_children_normally() {
+    // `<pre>` used to be treated as raw text, hiding every directive and
+    // interpolation inside it from the AST. HTML parses full markup inside
+    // `<pre>` (only whitespace *rendering* differs) and Vue compiles
+    // directives inside it, so it must parse like any other element.
+    let source = "<pre><code v-if=\"x\">{{ y }}</code></pre>";
     let nodes = parse_template(source);
     let pre = only_element(&nodes);
-    let raw = pre.raw_text.expect("raw text");
-    assert_eq!(&source[raw.start as usize..raw.end as usize], "  <div> not parsed {{ x }}  ");
-    assert!(pre.children.is_empty());
+    assert!(pre.raw_text.is_none());
+    assert_eq!(pre.children.len(), 1);
+    let Node::Element(code) = &pre.children[0] else {
+        panic!("expected <code> element child");
+    };
+    assert_eq!(code.name, "code");
+    let directive = code.attributes[0].directive.as_ref().expect("v-if directive");
+    assert_eq!(directive.name, "if");
+    assert_eq!(code.children.len(), 1);
+    let Node::Interpolation(interpolation) = &code.children[0] else {
+        panic!("expected interpolation child");
+    };
+    assert_eq!(interpolation.expression, " y ");
+    assert!(!interpolation.unterminated);
+
+    assert_contiguous(&nodes, 0, u32::try_from(source.len()).unwrap());
+}
+
+#[test]
+fn nested_pre_does_not_produce_a_stray_top_level_raw() {
+    // Regression test: when `pre` was raw-text, its body scan matched the
+    // *first* `</pre>` it found regardless of nesting, so the inner closing
+    // tag closed the outer element and the real outer `</pre>` was left
+    // over as a stray top-level `Raw` node. With `pre` parsed like any
+    // other element, the ancestor-aware closing-tag matching handles
+    // nesting correctly and no such artifact appears.
+    let source = "<pre><pre>x</pre></pre>";
+    let nodes = parse_template(source);
+    assert_eq!(nodes.len(), 1, "no stray top-level Raw node");
+    let outer = only_element(&nodes);
+    assert_eq!(outer.name, "pre");
+    assert!(!outer.unclosed);
+    let inner = only_element(&outer.children);
+    assert_eq!(inner.name, "pre");
+    assert!(!inner.unclosed);
+    assert_eq!(inner.children.len(), 1);
+    assert!(matches!(&inner.children[0], Node::Text(text) if text.value == "x"));
+
+    assert_contiguous(&nodes, 0, u32::try_from(source.len()).unwrap());
+}
+
+#[test]
+fn unterminated_comment_is_flagged() {
+    let source = "<!-- never closed";
+    let nodes = parse_template(source);
+    assert_eq!(nodes.len(), 1);
+    let Node::Comment(comment) = &nodes[0] else {
+        panic!("expected comment");
+    };
+    assert!(comment.unterminated);
+    assert_eq!(comment.content, " never closed");
+}
+
+#[test]
+fn terminated_comment_is_not_flagged() {
+    let source = "<!-- closed -->";
+    let nodes = parse_template(source);
+    let Node::Comment(comment) = &nodes[0] else {
+        panic!("expected comment");
+    };
+    assert!(!comment.unterminated);
+    assert_eq!(comment.content, " closed ");
+}
+
+#[test]
+fn unterminated_interpolation_is_flagged() {
+    let source = "{{ never closed";
+    let nodes = parse_template(source);
+    assert_eq!(nodes.len(), 1);
+    let Node::Interpolation(interpolation) = &nodes[0] else {
+        panic!("expected interpolation");
+    };
+    assert!(interpolation.unterminated);
+    assert_eq!(interpolation.expression, " never closed");
+}
+
+#[test]
+fn terminated_interpolation_is_not_flagged() {
+    let source = "{{ closed }}";
+    let nodes = parse_template(source);
+    let Node::Interpolation(interpolation) = &nodes[0] else {
+        panic!("expected interpolation");
+    };
+    assert!(!interpolation.unterminated);
+    assert_eq!(interpolation.expression, " closed ");
+}
+
+#[test]
+fn unterminated_attribute_value_is_flagged() {
+    let source = "<div class=\"never closed";
+    let nodes = parse_template(source);
+    let div = only_element(&nodes);
+    let value = div.attributes[0].value.as_ref().expect("attribute value");
+    assert!(value.unterminated);
+    assert_eq!(value.text, "never closed");
+}
+
+#[test]
+fn terminated_attribute_value_is_not_flagged() {
+    let source = "<div class=\"closed\">";
+    let nodes = parse_template(source);
+    let div = only_element(&nodes);
+    let value = div.attributes[0].value.as_ref().expect("attribute value");
+    assert!(!value.unterminated);
+    assert_eq!(value.text, "closed");
 }
 
 #[test]
