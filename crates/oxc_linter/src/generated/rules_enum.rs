@@ -868,10 +868,12 @@ pub use crate::rules::vue::valid_v_html::ValidVHtml as VueValidVHtml;
 pub use crate::rules::vue::valid_v_if::ValidVIf as VueValidVIf;
 pub use crate::rules::vue::valid_v_is::ValidVIs as VueValidVIs;
 pub use crate::rules::vue::valid_v_memo::ValidVMemo as VueValidVMemo;
+pub use crate::rules::vue::valid_v_model::ValidVModel as VueValidVModel;
 pub use crate::rules::vue::valid_v_on::ValidVOn as VueValidVOn;
 pub use crate::rules::vue::valid_v_once::ValidVOnce as VueValidVOnce;
 pub use crate::rules::vue::valid_v_pre::ValidVPre as VueValidVPre;
 pub use crate::rules::vue::valid_v_show::ValidVShow as VueValidVShow;
+pub use crate::rules::vue::valid_v_slot::ValidVSlot as VueValidVSlot;
 pub use crate::rules::vue::valid_v_text::ValidVText as VueValidVText;
 use crate::{
     AstNode,
@@ -1749,10 +1751,12 @@ pub enum RuleEnum {
     VueValidVIf(VueValidVIf),
     VueValidVIs(VueValidVIs),
     VueValidVMemo(VueValidVMemo),
+    VueValidVModel(VueValidVModel),
     VueValidVOn(VueValidVOn),
     VueValidVOnce(VueValidVOnce),
     VueValidVPre(VueValidVPre),
     VueValidVShow(VueValidVShow),
+    VueValidVSlot(VueValidVSlot),
     VueValidVText(VueValidVText),
 }
 const IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID: usize = 0usize;
@@ -2722,11 +2726,13 @@ const VUE_VALID_V_HTML_ID: usize = VUE_VALID_V_FOR_ID + 1usize;
 const VUE_VALID_V_IF_ID: usize = VUE_VALID_V_HTML_ID + 1usize;
 const VUE_VALID_V_IS_ID: usize = VUE_VALID_V_IF_ID + 1usize;
 const VUE_VALID_V_MEMO_ID: usize = VUE_VALID_V_IS_ID + 1usize;
-const VUE_VALID_V_ON_ID: usize = VUE_VALID_V_MEMO_ID + 1usize;
+const VUE_VALID_V_MODEL_ID: usize = VUE_VALID_V_MEMO_ID + 1usize;
+const VUE_VALID_V_ON_ID: usize = VUE_VALID_V_MODEL_ID + 1usize;
 const VUE_VALID_V_ONCE_ID: usize = VUE_VALID_V_ON_ID + 1usize;
 const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
 const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
-const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
+const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
+const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
 impl RuleEnum {
     pub fn id(&self) -> usize {
         match self {
@@ -3718,10 +3724,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VUE_VALID_V_IF_ID,
             Self::VueValidVIs(_) => VUE_VALID_V_IS_ID,
             Self::VueValidVMemo(_) => VUE_VALID_V_MEMO_ID,
+            Self::VueValidVModel(_) => VUE_VALID_V_MODEL_ID,
             Self::VueValidVOn(_) => VUE_VALID_V_ON_ID,
             Self::VueValidVOnce(_) => VUE_VALID_V_ONCE_ID,
             Self::VueValidVPre(_) => VUE_VALID_V_PRE_ID,
             Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
+            Self::VueValidVSlot(_) => VUE_VALID_V_SLOT_ID,
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
         }
     }
@@ -4699,10 +4707,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::NAME,
             Self::VueValidVIs(_) => VueValidVIs::NAME,
             Self::VueValidVMemo(_) => VueValidVMemo::NAME,
+            Self::VueValidVModel(_) => VueValidVModel::NAME,
             Self::VueValidVOn(_) => VueValidVOn::NAME,
             Self::VueValidVOnce(_) => VueValidVOnce::NAME,
             Self::VueValidVPre(_) => VueValidVPre::NAME,
             Self::VueValidVShow(_) => VueValidVShow::NAME,
+            Self::VueValidVSlot(_) => VueValidVSlot::NAME,
             Self::VueValidVText(_) => VueValidVText::NAME,
         }
     }
@@ -5738,10 +5748,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::CATEGORY,
             Self::VueValidVIs(_) => VueValidVIs::CATEGORY,
             Self::VueValidVMemo(_) => VueValidVMemo::CATEGORY,
+            Self::VueValidVModel(_) => VueValidVModel::CATEGORY,
             Self::VueValidVOn(_) => VueValidVOn::CATEGORY,
             Self::VueValidVOnce(_) => VueValidVOnce::CATEGORY,
             Self::VueValidVPre(_) => VueValidVPre::CATEGORY,
             Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
+            Self::VueValidVSlot(_) => VueValidVSlot::CATEGORY,
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
         }
     }
@@ -6720,10 +6732,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::FIX,
             Self::VueValidVIs(_) => VueValidVIs::FIX,
             Self::VueValidVMemo(_) => VueValidVMemo::FIX,
+            Self::VueValidVModel(_) => VueValidVModel::FIX,
             Self::VueValidVOn(_) => VueValidVOn::FIX,
             Self::VueValidVOnce(_) => VueValidVOnce::FIX,
             Self::VueValidVPre(_) => VueValidVPre::FIX,
             Self::VueValidVShow(_) => VueValidVShow::FIX,
+            Self::VueValidVSlot(_) => VueValidVSlot::FIX,
             Self::VueValidVText(_) => VueValidVText::FIX,
         }
     }
@@ -7970,10 +7984,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::documentation(),
             Self::VueValidVIs(_) => VueValidVIs::documentation(),
             Self::VueValidVMemo(_) => VueValidVMemo::documentation(),
+            Self::VueValidVModel(_) => VueValidVModel::documentation(),
             Self::VueValidVOn(_) => VueValidVOn::documentation(),
             Self::VueValidVOnce(_) => VueValidVOnce::documentation(),
             Self::VueValidVPre(_) => VueValidVPre::documentation(),
             Self::VueValidVShow(_) => VueValidVShow::documentation(),
+            Self::VueValidVSlot(_) => VueValidVSlot::documentation(),
             Self::VueValidVText(_) => VueValidVText::documentation(),
         }
     }
@@ -10443,6 +10459,8 @@ impl RuleEnum {
             Self::VueValidVMemo(_) => {
                 VueValidVMemo::config_schema(generator).or_else(|| VueValidVMemo::schema(generator))
             }
+            Self::VueValidVModel(_) => VueValidVModel::config_schema(generator)
+                .or_else(|| VueValidVModel::schema(generator)),
             Self::VueValidVOn(_) => {
                 VueValidVOn::config_schema(generator).or_else(|| VueValidVOn::schema(generator))
             }
@@ -10454,6 +10472,9 @@ impl RuleEnum {
             }
             Self::VueValidVShow(_) => {
                 VueValidVShow::config_schema(generator).or_else(|| VueValidVShow::schema(generator))
+            }
+            Self::VueValidVSlot(_) => {
+                VueValidVSlot::config_schema(generator).or_else(|| VueValidVSlot::schema(generator))
             }
             Self::VueValidVText(_) => {
                 VueValidVText::config_schema(generator).or_else(|| VueValidVText::schema(generator))
@@ -11320,10 +11341,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => "vue",
             Self::VueValidVIs(_) => "vue",
             Self::VueValidVMemo(_) => "vue",
+            Self::VueValidVModel(_) => "vue",
             Self::VueValidVOn(_) => "vue",
             Self::VueValidVOnce(_) => "vue",
             Self::VueValidVPre(_) => "vue",
             Self::VueValidVShow(_) => "vue",
+            Self::VueValidVSlot(_) => "vue",
             Self::VueValidVText(_) => "vue",
         }
     }
@@ -14088,6 +14111,9 @@ impl RuleEnum {
             Self::VueValidVMemo(_) => {
                 Ok(Self::VueValidVMemo(VueValidVMemo::from_configuration(value)?))
             }
+            Self::VueValidVModel(_) => {
+                Ok(Self::VueValidVModel(VueValidVModel::from_configuration(value)?))
+            }
             Self::VueValidVOn(_) => Ok(Self::VueValidVOn(VueValidVOn::from_configuration(value)?)),
             Self::VueValidVOnce(_) => {
                 Ok(Self::VueValidVOnce(VueValidVOnce::from_configuration(value)?))
@@ -14097,6 +14123,9 @@ impl RuleEnum {
             }
             Self::VueValidVShow(_) => {
                 Ok(Self::VueValidVShow(VueValidVShow::from_configuration(value)?))
+            }
+            Self::VueValidVSlot(_) => {
+                Ok(Self::VueValidVSlot(VueValidVSlot::from_configuration(value)?))
             }
             Self::VueValidVText(_) => {
                 Ok(Self::VueValidVText(VueValidVText::from_configuration(value)?))
@@ -14967,10 +14996,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.to_configuration(),
             Self::VueValidVIs(rule) => rule.to_configuration(),
             Self::VueValidVMemo(rule) => rule.to_configuration(),
+            Self::VueValidVModel(rule) => rule.to_configuration(),
             Self::VueValidVOn(rule) => rule.to_configuration(),
             Self::VueValidVOnce(rule) => rule.to_configuration(),
             Self::VueValidVPre(rule) => rule.to_configuration(),
             Self::VueValidVShow(rule) => rule.to_configuration(),
+            Self::VueValidVSlot(rule) => rule.to_configuration(),
             Self::VueValidVText(rule) => rule.to_configuration(),
         }
     }
@@ -15835,10 +15866,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.run(node, ctx),
             Self::VueValidVIs(rule) => rule.run(node, ctx),
             Self::VueValidVMemo(rule) => rule.run(node, ctx),
+            Self::VueValidVModel(rule) => rule.run(node, ctx),
             Self::VueValidVOn(rule) => rule.run(node, ctx),
             Self::VueValidVOnce(rule) => rule.run(node, ctx),
             Self::VueValidVPre(rule) => rule.run(node, ctx),
             Self::VueValidVShow(rule) => rule.run(node, ctx),
+            Self::VueValidVSlot(rule) => rule.run(node, ctx),
             Self::VueValidVText(rule) => rule.run(node, ctx),
         }
     }
@@ -16715,10 +16748,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.run_once(ctx),
             Self::VueValidVIs(rule) => rule.run_once(ctx),
             Self::VueValidVMemo(rule) => rule.run_once(ctx),
+            Self::VueValidVModel(rule) => rule.run_once(ctx),
             Self::VueValidVOn(rule) => rule.run_once(ctx),
             Self::VueValidVOnce(rule) => rule.run_once(ctx),
             Self::VueValidVPre(rule) => rule.run_once(ctx),
             Self::VueValidVShow(rule) => rule.run_once(ctx),
+            Self::VueValidVSlot(rule) => rule.run_once(ctx),
             Self::VueValidVText(rule) => rule.run_once(ctx),
         }
     }
@@ -17712,10 +17747,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVIs(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVMemo(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVModel(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVOn(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVOnce(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVPre(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVSlot(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
         }
     }
@@ -18593,10 +18630,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.should_run(ctx),
             Self::VueValidVIs(rule) => rule.should_run(ctx),
             Self::VueValidVMemo(rule) => rule.should_run(ctx),
+            Self::VueValidVModel(rule) => rule.should_run(ctx),
             Self::VueValidVOn(rule) => rule.should_run(ctx),
             Self::VueValidVOnce(rule) => rule.should_run(ctx),
             Self::VueValidVPre(rule) => rule.should_run(ctx),
             Self::VueValidVShow(rule) => rule.should_run(ctx),
+            Self::VueValidVSlot(rule) => rule.should_run(ctx),
             Self::VueValidVText(rule) => rule.should_run(ctx),
         }
     }
@@ -19842,10 +19881,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::IS_TSGOLINT_RULE,
             Self::VueValidVIs(_) => VueValidVIs::IS_TSGOLINT_RULE,
             Self::VueValidVMemo(_) => VueValidVMemo::IS_TSGOLINT_RULE,
+            Self::VueValidVModel(_) => VueValidVModel::IS_TSGOLINT_RULE,
             Self::VueValidVOn(_) => VueValidVOn::IS_TSGOLINT_RULE,
             Self::VueValidVOnce(_) => VueValidVOnce::IS_TSGOLINT_RULE,
             Self::VueValidVPre(_) => VueValidVPre::IS_TSGOLINT_RULE,
             Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
+            Self::VueValidVSlot(_) => VueValidVSlot::IS_TSGOLINT_RULE,
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
         }
     }
@@ -20883,10 +20924,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::VERSION,
             Self::VueValidVIs(_) => VueValidVIs::VERSION,
             Self::VueValidVMemo(_) => VueValidVMemo::VERSION,
+            Self::VueValidVModel(_) => VueValidVModel::VERSION,
             Self::VueValidVOn(_) => VueValidVOn::VERSION,
             Self::VueValidVOnce(_) => VueValidVOnce::VERSION,
             Self::VueValidVPre(_) => VueValidVPre::VERSION,
             Self::VueValidVShow(_) => VueValidVShow::VERSION,
+            Self::VueValidVSlot(_) => VueValidVSlot::VERSION,
             Self::VueValidVText(_) => VueValidVText::VERSION,
         }
     }
@@ -21963,10 +22006,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::HAS_CONFIG,
             Self::VueValidVIs(_) => VueValidVIs::HAS_CONFIG,
             Self::VueValidVMemo(_) => VueValidVMemo::HAS_CONFIG,
+            Self::VueValidVModel(_) => VueValidVModel::HAS_CONFIG,
             Self::VueValidVOn(_) => VueValidVOn::HAS_CONFIG,
             Self::VueValidVOnce(_) => VueValidVOnce::HAS_CONFIG,
             Self::VueValidVPre(_) => VueValidVPre::HAS_CONFIG,
             Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
+            Self::VueValidVSlot(_) => VueValidVSlot::HAS_CONFIG,
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
         }
     }
@@ -22946,10 +22991,12 @@ impl RuleEnum {
             Self::VueValidVIf(_) => VueValidVIf::INFO,
             Self::VueValidVIs(_) => VueValidVIs::INFO,
             Self::VueValidVMemo(_) => VueValidVMemo::INFO,
+            Self::VueValidVModel(_) => VueValidVModel::INFO,
             Self::VueValidVOn(_) => VueValidVOn::INFO,
             Self::VueValidVOnce(_) => VueValidVOnce::INFO,
             Self::VueValidVPre(_) => VueValidVPre::INFO,
             Self::VueValidVShow(_) => VueValidVShow::INFO,
+            Self::VueValidVSlot(_) => VueValidVSlot::INFO,
             Self::VueValidVText(_) => VueValidVText::INFO,
         }
     }
@@ -23818,10 +23865,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.types_info(),
             Self::VueValidVIs(rule) => rule.types_info(),
             Self::VueValidVMemo(rule) => rule.types_info(),
+            Self::VueValidVModel(rule) => rule.types_info(),
             Self::VueValidVOn(rule) => rule.types_info(),
             Self::VueValidVOnce(rule) => rule.types_info(),
             Self::VueValidVPre(rule) => rule.types_info(),
             Self::VueValidVShow(rule) => rule.types_info(),
+            Self::VueValidVSlot(rule) => rule.types_info(),
             Self::VueValidVText(rule) => rule.types_info(),
         }
     }
@@ -24685,10 +24734,12 @@ impl RuleEnum {
             Self::VueValidVIf(rule) => rule.run_info(),
             Self::VueValidVIs(rule) => rule.run_info(),
             Self::VueValidVMemo(rule) => rule.run_info(),
+            Self::VueValidVModel(rule) => rule.run_info(),
             Self::VueValidVOn(rule) => rule.run_info(),
             Self::VueValidVOnce(rule) => rule.run_info(),
             Self::VueValidVPre(rule) => rule.run_info(),
             Self::VueValidVShow(rule) => rule.run_info(),
+            Self::VueValidVSlot(rule) => rule.run_info(),
             Self::VueValidVText(rule) => rule.run_info(),
         }
     }
@@ -25688,10 +25739,12 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVIf(VueValidVIf::default()),
         RuleEnum::VueValidVIs(VueValidVIs::default()),
         RuleEnum::VueValidVMemo(VueValidVMemo::default()),
+        RuleEnum::VueValidVModel(VueValidVModel::default()),
         RuleEnum::VueValidVOn(VueValidVOn::default()),
         RuleEnum::VueValidVOnce(VueValidVOnce::default()),
         RuleEnum::VueValidVPre(VueValidVPre::default()),
         RuleEnum::VueValidVShow(VueValidVShow::default()),
+        RuleEnum::VueValidVSlot(VueValidVSlot::default()),
         RuleEnum::VueValidVText(VueValidVText::default()),
     ]
 });

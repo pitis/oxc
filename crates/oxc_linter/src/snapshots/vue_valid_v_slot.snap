@@ -1,0 +1,228 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive must be owned by a custom element, but 'div' is not.
+   ╭─[valid_v_slot.tsx:1:16]
+ 1 │ <template><div v-slot="{data}">{{data}}</div></template>
+   ·                ───────────────
+   ╰────
+  help: Move `v-slot` onto (or into) a component, not a native element.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive must be owned by a custom element, but 'template' is not.
+   ╭─[valid_v_slot.tsx:1:21]
+ 1 │ <template><template v-slot:named></template></template>
+   ·                     ────────────
+   ╰────
+  help: Move `v-slot` onto (or into) a component, not a native element.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive must be owned by a custom element, but 'div' is not.
+   ╭─[valid_v_slot.tsx:1:16]
+ 1 │ <template><div v-slot:named="{data}">{{data}}</div></template>
+   ·                ─────────────────────
+   ╰────
+  help: Move `v-slot` onto (or into) a component, not a native element.
+
+  ⚠ vue(valid-v-slot): Named slots must use '<template>' on a custom element.
+   ╭─[valid_v_slot.tsx:1:16]
+ 1 │ <template><div v-slot:named="{data}">{{data}}</div></template>
+   ·                ─────────────────────
+   ╰────
+  help: Wrap the content in `<template #name>...</template>`.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive must be owned by a custom element, but 'div' is not.
+   ╭─[valid_v_slot.tsx:1:26]
+ 1 │ <template><div><template v-slot></template></div></template>
+   ·                          ──────
+   ╰────
+  help: Move `v-slot` onto (or into) a component, not a native element.
+
+  ⚠ vue(valid-v-slot): Named slots must use '<template>' on a custom element.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot:named="{data}">{{data}}</MyComponent></template>
+   ·                        ─────────────────────
+   ╰────
+  help: Wrap the content in `<template #name>...</template>`.
+
+  ⚠ vue(valid-v-slot): Default slot must use '<template>' on a custom element when there are other named slots.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot="{data}">{{data}}<template #named></template></MyComponent></template>
+   ·                        ───────────────
+   ╰────
+  help: Wrap the default content in `<template #default>...</template>` too.
+
+  ⚠ vue(valid-v-slot): Named slots must use '<template>' on a custom element.
+   ╭─[valid_v_slot.tsx:1:40]
+ 1 │ <template><MyComponent v-slot="{data}" v-slot:one>{{data}}</MyComponent></template>
+   ·                                        ──────────
+   ╰────
+  help: Wrap the content in `<template #name>...</template>`.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple 'v-slot' directives.
+   ╭─[valid_v_slot.tsx:1:40]
+ 1 │ <template><MyComponent v-slot="{data}" v-slot:one>{{data}}</MyComponent></template>
+   ·                                        ──────────
+   ╰────
+  help: Keep only one `v-slot` per element.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple 'v-slot' directives.
+   ╭─[valid_v_slot.tsx:1:45]
+ 1 │ <template><MyComponent><template v-slot:one v-slot:two></template></MyComponent></template>
+   ·                                             ──────────
+   ╰────
+  help: Keep only one `v-slot` per element.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:69]
+ 1 │ <template><MyComponent><template v-slot:one>1st</template><template v-slot:one>2nd</template></MyComponent></template>
+   ·                                                                     ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:71]
+ 1 │ <template><MyComponent><template v-slot:[one]>1st</template><template v-slot:[one]>2nd</template></MyComponent></template>
+   ·                                                                       ────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:65]
+ 1 │ <template><MyComponent><template v-slot>1st</template><template v-slot>2nd</template></MyComponent></template>
+   ·                                                                 ──────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:65]
+ 1 │ <template><MyComponent><template v-slot>1st</template><template v-slot:default>2nd</template></MyComponent></template>
+   ·                                                                 ──────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:79]
+ 1 │ <template><MyComponent><template v-if="c1" v-slot:one>1st</template><template v-slot:one>2nd</template></MyComponent></template>
+   ·                                                                               ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:121]
+ 1 │ <template><MyComponent><template v-if="c1" v-slot:one>1st</template><template v-else v-slot:one>2nd</template><template v-slot:one>3rd</template></MyComponent></template>
+   ·                                                                                                                         ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:69]
+ 1 │ <template><MyComponent><template v-for="(key, value) in definition" v-slot:one>{{value}}</template></MyComponent></template>
+   ·                                                                     ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:69]
+ 1 │ <template><MyComponent><template v-for="(key, value) in definition" v-slot:[one]>{{value}}</template></MyComponent></template>
+   ·                                                                     ────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:63]
+ 1 │ <template><MyComponent><template v-for="(key, value) in xxxx" v-slot:key>{{value}}</template><template v-for="(key, value) in yyyy" v-slot:key>{{value}}</template></MyComponent></template>
+   ·                                                               ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:133]
+ 1 │ <template><MyComponent><template v-for="(key, value) in xxxx" v-slot:key>{{value}}</template><template v-for="(key, value) in yyyy" v-slot:key>{{value}}</template></MyComponent></template>
+   ·                                                                                                                                     ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:133]
+ 1 │ <template><MyComponent><template v-for="(key, value) in xxxx" v-slot:key>{{value}}</template><template v-for="(key, value) in yyyy" v-slot:key>{{value}}</template></MyComponent></template>
+   ·                                                                                                                                     ──────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:135]
+ 1 │ <template><MyComponent><template v-for="(key, value) in xxxx" v-slot:[key]>{{value}}</template><template v-for="(key, value) in xxxx" v-slot:[key]>{{value}}</template></MyComponent></template>
+   ·                                                                                                                                       ────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:128]
+ 1 │ <template><MyComponent><template v-for="(key) in xxxx" v-slot:[key]>{{value}}</template><template v-for="(key, value) in xxxx" v-slot:[key]>{{value}}</template></MyComponent></template>
+   ·                                                                                                                                ────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): An element cannot have multiple '<template>' elements which are distributed to the same slot.
+   ╭─[valid_v_slot.tsx:1:70]
+ 1 │ <template><MyComponent><template v-slot:foo.bar></template><template v-slot:foo.bar></template></MyComponent></template>
+   ·                                                                      ──────────────
+   ╰────
+  help: Give each `<template>` a distinct slot name, or merge their content.
+
+  ⚠ vue(valid-v-slot): Dynamic argument of 'v-slot' directive cannot use that slot parameter.
+   ╭─[valid_v_slot.tsx:1:34]
+ 1 │ <template><MyComponent><template v-slot:[data]="{data}"></template></MyComponent></template>
+   ·                                  ──────────────────────
+   ╰────
+  help: The dynamic argument is evaluated in the outer scope, before the slot's own scope exists.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive doesn't support any modifier.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot.foo="{data}">{{data}}</MyComponent></template>
+   ·                        ──────────
+   ╰────
+  help: Remove the modifier, or enable the `allowModifiers` option.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive doesn't support any modifier.
+   ╭─[valid_v_slot.tsx:1:34]
+ 1 │ <template><MyComponent><template v-slot.foo></template></MyComponent></template>
+   ·                                  ──────────
+   ╰────
+  help: Remove the modifier, or enable the `allowModifiers` option.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive doesn't support any modifier.
+   ╭─[valid_v_slot.tsx:1:34]
+ 1 │ <template><MyComponent><template v-slot:foo.bar></template></MyComponent></template>
+   ·                                  ──────────────
+   ╰────
+  help: Remove the modifier, or enable the `allowModifiers` option.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive doesn't support any modifier.
+   ╭─[valid_v_slot.tsx:1:34]
+ 1 │ <template><MyComponent><template v-slot.foo></template></MyComponent></template>
+   ·                                  ──────────
+   ╰────
+  help: Remove the modifier, or enable the `allowModifiers` option.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive on a custom element requires that attribute value.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot>content</MyComponent></template>
+   ·                        ──────
+   ╰────
+  help: Give the default slot shorthand a value, e.g. `v-slot="props"`, or move it onto a `<template>`.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive on a custom element requires that attribute value.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot="/**/"><div /></MyComponent></template>
+   ·                        ─────────────
+   ╰────
+  help: Give the default slot shorthand a value, e.g. `v-slot="props"`, or move it onto a `<template>`.
+
+  ⚠ vue(valid-v-slot): 'v-slot' directive on a custom element requires that attribute value.
+   ╭─[valid_v_slot.tsx:1:24]
+ 1 │ <template><MyComponent v-slot="" ><div /></MyComponent></template>
+   ·                        ─────────
+   ╰────
+  help: Give the default slot shorthand a value, e.g. `v-slot="props"`, or move it onto a `<template>`.

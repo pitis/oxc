@@ -918,10 +918,12 @@ pub(crate) mod vue {
     pub mod valid_v_if;
     pub mod valid_v_is;
     pub mod valid_v_memo;
+    pub mod valid_v_model;
     pub mod valid_v_on;
     pub mod valid_v_once;
     pub mod valid_v_pre;
     pub mod valid_v_show;
+    pub mod valid_v_slot;
     pub mod valid_v_text;
 }
 

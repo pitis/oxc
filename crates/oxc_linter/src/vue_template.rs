@@ -73,6 +73,8 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueValidVFor(rule) => Some(rule),
         RuleEnum::VueValidVMemo(rule) => Some(rule),
         RuleEnum::VueValidVIs(rule) => Some(rule),
+        RuleEnum::VueValidVModel(rule) => Some(rule),
+        RuleEnum::VueValidVSlot(rule) => Some(rule),
         _ => None,
     }
 }

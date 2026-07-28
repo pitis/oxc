@@ -44,9 +44,6 @@ pub fn get_directive<'e, 'a>(
 /// A plain (non-directive) attribute by name, matched ASCII-case-insensitively
 /// like eslint-plugin-vue's `getAttribute` (vue-eslint-parser lowercases
 /// attribute names before comparison).
-// Not yet consumed by `require_v_for_key`/`no_duplicate_attributes`; part of
-// the shared helper surface later template rules build on.
-#[expect(dead_code)]
 pub fn get_attribute<'e, 'a>(element: &'e Element<'a>, name: &str) -> Option<&'e Attribute<'a>> {
     element.attributes.iter().find(|attribute| {
         attribute.directive.is_none() && attribute.name.eq_ignore_ascii_case(name)
