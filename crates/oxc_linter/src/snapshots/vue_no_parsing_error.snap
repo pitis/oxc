@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:24]
+ 1 │ <template><div foo="a" foo="b" /></template>
+   ·                        ───────
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:24]
+ 1 │ <template><div foo="a" FOO="b" /></template>
+   ·                        ───────
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:25]
+ 1 │ <template><div :foo="a" :foo="b" /></template>
+   ·                         ────────
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: missing-attribute-value.
+   ╭─[no_parsing_error.tsx:1:20]
+ 1 │ <template><div foo=>bar</div></template>
+   ·                    ─
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: eof-in-tag.
+   ╭─[no_parsing_error.tsx:1:21]
+ 1 │ <template><div foo="a</template>
+   ·                     ────────────
+   ╰────
+  help: Fix the malformed markup in the template.

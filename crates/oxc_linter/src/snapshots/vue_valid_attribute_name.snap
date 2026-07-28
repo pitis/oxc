@@ -1,0 +1,32 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-attribute-name): Attribute name a$b is not valid.
+   ╭─[valid_attribute_name.tsx:1:16]
+ 1 │ <template><div a$b="1" /></template>
+   ·                ───────
+   ╰────
+  help: Use a name that is a valid XML `Name` (letters, digits, `-`, `.`, `_`, `:`, not starting with a digit or `-`/`.`).
+
+  ⚠ vue(valid-attribute-name): Attribute name a$b is not valid.
+   ╭─[valid_attribute_name.tsx:1:16]
+ 1 │ <template><div :a$b="1" /></template>
+   ·                ────────
+   ╰────
+  help: Use a name that is a valid XML `Name` (letters, digits, `-`, `.`, `_`, `:`, not starting with a digit or `-`/`.`).
+
+  ⚠ vue(valid-attribute-name): Attribute name a$b is not valid.
+   ╭─[valid_attribute_name.tsx:1:16]
+ 1 │ <template><div .a$b="1" /></template>
+   ·                ────────
+   ╰────
+  help: Use a name that is a valid XML `Name` (letters, digits, `-`, `.`, `_`, `:`, not starting with a digit or `-`/`.`).
+
+  ⚠ vue(valid-attribute-name): Attribute name a$b is not valid.
+   ╭─[valid_attribute_name.tsx:1:16]
+ 1 │ <template><div v-bind:a$b="1" /></template>
+   ·                ──────────────
+   ╰────
+  help: Use a name that is a valid XML `Name` (letters, digits, `-`, `.`, `_`, `:`, not starting with a digit or `-`/`.`).

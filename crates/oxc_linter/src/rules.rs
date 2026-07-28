@@ -884,6 +884,7 @@ pub(crate) mod vue {
     pub mod no_import_compiler_macros;
     pub mod no_lifecycle_after_await;
     pub mod no_multiple_slot_args;
+    pub mod no_parsing_error;
     pub mod no_required_prop_with_default;
     pub mod no_reserved_component_names;
     pub mod no_reserved_keys;
@@ -905,10 +906,12 @@ pub(crate) mod vue {
     pub mod require_v_for_key;
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
+    pub mod valid_attribute_name;
     pub mod valid_define_emits;
     pub mod valid_define_options;
     pub mod valid_define_props;
     pub mod valid_next_tick;
+    pub mod valid_template_root;
     pub mod valid_v_bind;
     pub mod valid_v_cloak;
     pub mod valid_v_else;

@@ -75,19 +75,17 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueValidVIs(rule) => Some(rule),
         RuleEnum::VueValidVModel(rule) => Some(rule),
         RuleEnum::VueValidVSlot(rule) => Some(rule),
+        RuleEnum::VueValidAttributeName(rule) => Some(rule),
+        RuleEnum::VueNoParsingError(rule) => Some(rule),
         _ => None,
     }
 }
 
 /// The subset of the resolved rule set that participates in the SFC pass.
 ///
-/// No rule implements [`VueSfcRule`] yet — the first implementor lands in a
-/// later task — so this always returns `None`. Kept as a real dispatch match
-/// (mirroring `as_vue_template_rule`) so adding an implementor is a one-line
-/// diff, same as that function.
-#[expect(clippy::match_single_binding)]
 fn as_vue_sfc_rule(rule: &RuleEnum) -> Option<&dyn VueSfcRule> {
     match rule {
+        RuleEnum::VueValidTemplateRoot(rule) => Some(rule),
         _ => None,
     }
 }
