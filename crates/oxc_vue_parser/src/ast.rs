@@ -73,6 +73,12 @@ pub struct Element<'a> {
     /// `true` when the closing tag was missing in the source
     /// (recovered; the element ends where its parent closes).
     pub unclosed: bool,
+    /// Byte offset immediately after the opening tag's `>` (or after the
+    /// `/>` of a self-closing/void element). Kept because it can't be
+    /// recovered from `children` when the element has none — e.g. an empty
+    /// `<template></template>`, where the content starts at this offset,
+    /// not at `span.end`.
+    pub open_tag_end: u32,
 }
 
 impl Element<'_> {

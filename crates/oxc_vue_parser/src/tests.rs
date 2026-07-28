@@ -263,6 +263,57 @@ fn closing_tag_matching_outer_ancestor_still_cascades_unclosed() {
 }
 
 #[test]
+fn empty_block_content_span_points_right_after_the_open_tag() {
+    // Before the fix, an empty block's `content_span` fell back to
+    // `element.span.end` (past the closing tag entirely), so a consumer
+    // splicing formatted content at that offset would write after
+    // `</template>` instead of between the tags.
+    let source = "<template></template>";
+    let sfc = parse_sfc(source);
+    let template = &sfc.blocks[0];
+    assert_eq!(template.content_span.start, 10, "right after <template>'s `>`");
+    assert_eq!(template.content_span.end, 10);
+    assert_eq!(template.content, "");
+}
+
+#[test]
+fn unterminated_script_block_is_flagged_unclosed() {
+    let source = "<script>const a = 1;";
+    let sfc = parse_sfc(source);
+    assert_eq!(sfc.blocks.len(), 1);
+    assert!(sfc.blocks[0].unclosed, "unterminated <script> must be flagged unclosed");
+}
+
+#[test]
+fn closed_block_is_not_flagged_unclosed() {
+    let source = "<script>const a = 1;</script>";
+    let sfc = parse_sfc(source);
+    assert!(!sfc.blocks[0].unclosed);
+}
+
+#[test]
+fn stray_top_level_text_between_blocks_becomes_an_orphan_span() {
+    let source = "<template></template>stray text<script></script>";
+    let sfc = parse_sfc(source);
+    assert_eq!(sfc.blocks.len(), 2);
+    assert_eq!(sfc.orphan_spans.len(), 1, "exactly one orphan span for the stray text");
+    let span = sfc.orphan_spans[0];
+    assert_eq!(&source[span.start as usize..span.end as usize], "stray text");
+}
+
+#[test]
+fn whitespace_only_text_between_blocks_is_not_an_orphan() {
+    let source = "<template></template>\n\n  \n<script></script>";
+    let sfc = parse_sfc(source);
+    assert_eq!(sfc.blocks.len(), 2);
+    assert!(
+        sfc.orphan_spans.is_empty(),
+        "whitespace-only top-level text must not be reported as orphan content: {:?}",
+        sfc.orphan_spans
+    );
+}
+
+#[test]
 fn orphan_closing_tag_at_sfc_top_level_does_not_fabricate_a_block() {
     // A closing tag with no open ancestor at all (the top level) must be
     // dropped in place, exactly like the nested case — it must not be

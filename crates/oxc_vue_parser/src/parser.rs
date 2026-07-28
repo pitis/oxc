@@ -242,6 +242,7 @@ impl<'a> Parser<'a> {
                 is_void,
                 raw_text: None,
                 unclosed: false,
+                open_tag_end: self.position,
             }));
         }
 
@@ -266,9 +267,11 @@ impl<'a> Parser<'a> {
                 is_void: false,
                 raw_text: Some(raw_text),
                 unclosed,
+                open_tag_end: body_start,
             }));
         }
 
+        let open_tag_end = self.position;
         self.depth += 1;
         let element_ancestors = Ancestors::Open { name, parent: ancestors };
         let children = self.children(&element_ancestors);
@@ -291,6 +294,7 @@ impl<'a> Parser<'a> {
             is_void: false,
             raw_text: None,
             unclosed,
+            open_tag_end,
         }))
     }
 
