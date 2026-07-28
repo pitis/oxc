@@ -8,7 +8,7 @@ use oxc_vue_parser::ast::{Attribute, Node};
 
 use crate::{
     rule::Rule,
-    utils::walk_elements,
+    utils::{element_name_eq_lower, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -69,7 +69,7 @@ impl Rule for NoUselessTemplateAttributes {}
 impl VueTemplateRule for NoUselessTemplateAttributes {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
         walk_elements(nodes, &mut |element| {
-            if element.name != "template" {
+            if !element_name_eq_lower(element, "template") {
                 return;
             }
             // Only applies once the template already has a reason to exist;
@@ -187,6 +187,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><div><Template v-if="ok" class="c">x</Template></div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><template v-if="c" id="a"></template></template>"#,
                 None,

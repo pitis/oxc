@@ -25,8 +25,8 @@ assertion_line: 490
   help: Remove the argument; `v-html` does not accept one.
 
   ⚠ vue(valid-v-html): 'v-html' directives require no modifier.
-   ╭─[valid_v_html.tsx:1:16]
+   ╭─[valid_v_html.tsx:1:23]
  1 │ <template><div v-html.aaa="rawHtml" /></template>
-   ·                ──────────
+   ·                       ───
    ╰────
   help: Remove the modifier; `v-html` does not accept any.

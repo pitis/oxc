@@ -12,8 +12,8 @@ use serde::Deserialize;
 use crate::{
     rule::{DefaultRuleConfig, Rule},
     utils::{
-        directive_key_span, directive_value_missing, get_directive, has_directive,
-        is_custom_component,
+        directive_modifiers_span, directive_value_missing, element_name_eq_lower, get_directive,
+        has_directive, is_custom_component,
     },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
@@ -221,7 +221,8 @@ fn check_element<'a>(
         // fires for it; checks that would need to inspect the (synthetic)
         // owner's *other* children (duplicate-slot detection) aren't
         // reproduced for this one root-level case.
-        let owner_candidate = if element.name == "template" { parent } else { Some(element) };
+        let owner_candidate =
+            if element_name_eq_lower(element, "template") { parent } else { Some(element) };
         let Some(owner) = owner_candidate else {
             ctx.diagnostic(owner_must_be_custom_element_diagnostic("template", attribute.span));
             continue;
@@ -231,7 +232,7 @@ fn check_element<'a>(
         if !is_custom_component(owner) {
             ctx.diagnostic(owner_must_be_custom_element_diagnostic(owner.name, attribute.span));
         }
-        if !is_default_slot && element.name != "template" {
+        if !is_default_slot && !element_name_eq_lower(element, "template") {
             ctx.diagnostic(named_slot_must_be_on_template_diagnostic(attribute.span));
         }
 
@@ -248,7 +249,7 @@ fn check_element<'a>(
         // `ownerElement === parentElement` is exactly the `element.name ==
         // "template"` case: `owner` is defined as `parent` there, and as
         // `element` itself (never equal to `parent`) otherwise.
-        if element.name == "template" {
+        if element_name_eq_lower(element, "template") {
             let v_for = get_directive(element, "for", None);
             let current_vars = v_for_vars(attribute, v_for);
             let same_slot_groups = filter_same_slot(
@@ -273,7 +274,10 @@ fn check_element<'a>(
         }
 
         if has_invalid_modifiers(directive, rule.allow_modifiers) {
-            ctx.diagnostic(disallow_any_modifier_diagnostic(directive_key_span(attribute)));
+            ctx.diagnostic(disallow_any_modifier_diagnostic(directive_modifiers_span(
+                attribute,
+                ctx.source_text(),
+            )));
         }
 
         if owner_is_element && is_default_slot && v_slot_value_missing(attribute) {
@@ -305,7 +309,7 @@ fn slot_directive_groups<'e, 'a>(
     for chain in child_element_chains(&owner.children) {
         let slot_directives: Vec<(&Element<'a>, &Attribute<'a>)> = chain
             .into_iter()
-            .filter(|element| element.name == "template")
+            .filter(|element| element_name_eq_lower(element, "template"))
             .filter_map(|element| {
                 get_directive(element, "slot", None).map(|attribute| (element, attribute))
             })
@@ -721,6 +725,17 @@ mod tests {
     #[test]
     fn test() {
         let pass = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r"<template><MyComponent><Template #foo>x</Template></MyComponent></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><MyComponent v-slot="{data}">{{data}}</MyComponent></template>"#,
                 None,

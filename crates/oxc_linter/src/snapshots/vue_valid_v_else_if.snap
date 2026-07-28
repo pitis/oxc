@@ -46,9 +46,9 @@ assertion_line: 490
   help: Remove the argument; `v-else-if` does not accept one.
 
   ⚠ vue(valid-v-else-if): 'v-else-if' directives require no modifier.
-   ╭─[valid_v_else_if.tsx:1:34]
+   ╭─[valid_v_else_if.tsx:1:44]
  1 │ <template><div v-if="foo" /><div v-else-if.aaa="bar" /></template>
-   ·                                  ─────────────
+   ·                                            ───
    ╰────
   help: Remove the modifier; `v-else-if` does not accept any.
 

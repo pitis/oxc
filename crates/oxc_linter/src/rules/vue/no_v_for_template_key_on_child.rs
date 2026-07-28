@@ -10,7 +10,7 @@ use rustc_hash::FxHashSet;
 
 use crate::{
     rule::Rule,
-    utils::{get_directive, has_directive},
+    utils::{element_name_eq_lower, get_directive, has_directive},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -75,7 +75,7 @@ impl VueTemplateRule for NoVForTemplateKeyOnChild {
 fn walk<'a>(nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
     for node in nodes {
         let Node::Element(element) = node else { continue };
-        if element.name != "template" {
+        if !element_name_eq_lower(element, "template") {
             walk(&element.children, ctx);
             continue;
         }
@@ -338,6 +338,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><Template v-for="x in y"><div :key="x" /></Template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // No key on template; child's key references the loop var.
             (
                 r#"<template><template v-for="item in items"><div :key="item.id" /></template></template>"#,

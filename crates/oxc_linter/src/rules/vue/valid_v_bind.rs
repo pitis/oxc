@@ -1,11 +1,11 @@
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::ast::Node;
+use oxc_vue_parser::ast::{Attribute, Node};
 
 use crate::{
     rule::Rule,
-    utils::{directive_key_span, directive_value_missing, walk_elements},
+    utils::{directive_modifier_span, directive_value_missing, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -39,7 +39,8 @@ declare_oxc_lint!(
     ///
     /// Enforces valid `v-bind` directives in Vue `<template>` blocks: only
     /// the `prop`, `camel`, `sync`, and `attr` modifiers are recognized, and
-    /// a binding must have a value.
+    /// a binding must have a value — except for Vue 3.4's same-name shorthand
+    /// (`:foo`, i.e. a value-less binding with a static argument).
     ///
     /// ### Why is this bad?
     ///
@@ -52,7 +53,8 @@ declare_oxc_lint!(
     /// ```vue
     /// <template>
     ///   <div :foo.bar="baz" />
-    ///   <div :foo />
+    ///   <div v-bind />
+    ///   <div :[dynamic] />
     /// </template>
     /// ```
     ///
@@ -62,6 +64,7 @@ declare_oxc_lint!(
     ///   <div :foo="baz" />
     ///   <div :foo.camel="baz" />
     ///   <div v-bind="allProps" />
+    ///   <div :foo />
     /// </template>
     /// ```
     ValidVBind,
@@ -82,21 +85,44 @@ impl VueTemplateRule for ValidVBind {
                     continue;
                 }
 
-                for modifier in &directive.modifiers {
+                for (index, modifier) in directive.modifiers.iter().enumerate() {
                     if !VALID_MODIFIERS.contains(modifier) {
-                        ctx.diagnostic(unsupported_modifier_diagnostic(
-                            modifier,
-                            directive_key_span(attribute),
-                        ));
+                        let span = directive_modifier_span(attribute, ctx.source_text(), index);
+                        ctx.diagnostic(unsupported_modifier_diagnostic(modifier, span));
                     }
                 }
 
-                if directive_value_missing(attribute) {
+                if !is_same_name_shorthand(attribute) && directive_value_missing(attribute) {
                     ctx.diagnostic(expected_value_diagnostic(attribute.span));
                 }
             }
         });
     }
+}
+
+/// Vue 3.4's *same-name shorthand* for `v-bind`: a value-less binding with a
+/// **static** argument, e.g. `:showToolbar` — sugar for
+/// `:showToolbar="showToolbar"`.
+///
+/// Upstream's `valid-v-bind` has no explicit carve-out for this; it falls out
+/// of vue-eslint-parser, which synthesizes the omitted value node for exactly
+/// this shape, so `!node.value` is false and `expectedValue` never fires.
+/// This parser keeps the attribute value as literally absent, so the carve-out
+/// has to be explicit here.
+///
+/// The shape is narrow, and verified against real eslint-plugin-vue 10.10.0:
+/// `:foo`, `v-bind:foo`, `.foo`, `:foo-bar`, `:foo.camel` all pass, while a
+/// value-less `v-bind` (no argument) and a value-less **dynamic** argument
+/// (`:[dyn]`, `v-bind:[dyn]`) both still report — a dynamic argument has no
+/// statically known name to shorthand from. `:foo=""` (present but empty) is
+/// likewise still a report; only a wholly absent value qualifies.
+fn is_same_name_shorthand(attribute: &Attribute<'_>) -> bool {
+    attribute.value.is_none()
+        && attribute
+            .directive
+            .as_ref()
+            .and_then(|directive| directive.argument.as_ref())
+            .is_some_and(|argument| !argument.dynamic)
 }
 
 #[cfg(test)]
@@ -167,6 +193,35 @@ mod tests {
                 Some(PathBuf::from("test.vue")),
             ),
             (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Vue 3.4 same-name shorthand: value-less binding with a static
+            // argument. Verified against real eslint-plugin-vue 10.10.0 —
+            // none of these report `expectedValue`.
+            (
+                r"<template><div :showToolbar /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r"<template><slot :headingValue /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r"<template><div v-bind:foo /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (r"<template><div .foo /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (r"<template><div :foo-bar /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (
+                r"<template><div :foo.camel /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -182,8 +237,18 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
-            // No value.
-            (r"<template><div :foo /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Bare `v-bind` with no argument and no value: still a report
+            // (there is no name to shorthand from).
+            (r"<template><div v-bind /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Value-less *dynamic* argument: also still a report — the
+            // same-name shorthand needs a statically known name.
+            (r"<template><div :[dyn] /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (
+                r"<template><div v-bind:[dyn] /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Empty value.
             (
                 r#"<template><div :foo="" /></template>"#,

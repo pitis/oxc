@@ -25,8 +25,8 @@ assertion_line: 490
   help: Remove the argument; `v-text` does not accept one.
 
   ⚠ vue(valid-v-text): 'v-text' directives require no modifier.
-   ╭─[valid_v_text.tsx:1:16]
+   ╭─[valid_v_text.tsx:1:23]
  1 │ <template><div v-text.aaa="message" /></template>
-   ·                ──────────
+   ·                       ───
    ╰────
   help: Remove the modifier; `v-text` does not accept any.

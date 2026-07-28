@@ -18,9 +18,9 @@ assertion_line: 490
   help: Remove the argument, e.g. use `v-memo="[a, b]"`.
 
   ⚠ vue(valid-v-memo): 'v-memo' directives require no modifier.
-   ╭─[valid_v_memo.tsx:1:16]
+   ╭─[valid_v_memo.tsx:1:23]
  1 │ <template><div v-memo.foo="[a]" /></template>
-   ·                ──────────
+   ·                       ───
    ╰────
   help: Remove the modifier; `v-memo` does not accept any.
 

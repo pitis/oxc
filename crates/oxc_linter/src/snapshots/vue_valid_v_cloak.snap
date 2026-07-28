@@ -11,9 +11,9 @@ assertion_line: 490
   help: Remove the argument; `v-cloak` does not accept one.
 
   ⚠ vue(valid-v-cloak): 'v-cloak' directives require no modifier.
-   ╭─[valid_v_cloak.tsx:1:16]
+   ╭─[valid_v_cloak.tsx:1:24]
  1 │ <template><div v-cloak.aaa /></template>
-   ·                ───────────
+   ·                        ───
    ╰────
   help: Remove the modifier; `v-cloak` does not accept any.
 

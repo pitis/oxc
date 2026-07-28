@@ -18,9 +18,9 @@ assertion_line: 490
   help: Remove the argument; native elements don't support `v-model:foo`.
 
   ⚠ vue(valid-v-model): 'v-model' directives don't support the modifier 'aaa'.
-   ╭─[valid_v_model.tsx:1:18]
+   ╭─[valid_v_model.tsx:1:26]
  1 │ <template><input v-model.aaa="foo"></template>
-   ·                  ───────────
+   ·                          ───
    ╰────
   help: Native elements only support `.lazy`, `.number`, and `.trim`.
 

@@ -11,8 +11,8 @@ use serde::Deserialize;
 use crate::{
     rule::{DefaultRuleConfig, Rule},
     utils::{
-        directive_key_span, directive_value_missing, get_directive, is_custom_component,
-        start_tag_span, walk_elements,
+        directive_modifiers_span, directive_value_missing, element_name_eq_lower, get_directive,
+        is_custom_component, start_tag_span, walk_elements,
     },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
@@ -146,7 +146,10 @@ impl VueTemplateRule for ValidVFor {
                 ctx.diagnostic(unexpected_argument_diagnostic(argument.span));
             }
             if !directive.modifiers.is_empty() {
-                ctx.diagnostic(unexpected_modifier_diagnostic(directive_key_span(attribute)));
+                ctx.diagnostic(unexpected_modifier_diagnostic(directive_modifiers_span(
+                    attribute,
+                    ctx.source_text(),
+                )));
             }
             if directive_value_missing(attribute) {
                 ctx.diagnostic(expected_value_diagnostic(attribute.span));
@@ -170,7 +173,7 @@ fn check_key<'a>(element: &Element<'a>, ctx: &mut VueTemplateContext<'a>) {
     if get_directive(element, "bind", Some("key")).is_some() {
         return;
     }
-    if element.name == "template" {
+    if element_name_eq_lower(element, "template") {
         for child in &element.children {
             if let Node::Element(child_element) = child {
                 check_key(child_element, ctx);
@@ -460,6 +463,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><Template v-for="a in b"><MyComp /></Template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Argument.
             (
                 r#"<template><div v-for:foo="item in items" /></template>"#,

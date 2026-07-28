@@ -5,7 +5,7 @@ use oxc_vue_parser::ast::Node;
 
 use crate::{
     rule::Rule,
-    utils::{directive_key_span, get_directive, walk_elements},
+    utils::{directive_modifiers_span, get_directive, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -78,7 +78,10 @@ impl VueTemplateRule for ValidVOnce {
                 ctx.diagnostic(unexpected_argument_diagnostic(argument.span));
             }
             if !directive.modifiers.is_empty() {
-                ctx.diagnostic(unexpected_modifier_diagnostic(directive_key_span(attribute)));
+                ctx.diagnostic(unexpected_modifier_diagnostic(directive_modifiers_span(
+                    attribute,
+                    ctx.source_text(),
+                )));
             }
             if let Some(value) = &attribute.value {
                 ctx.diagnostic(unexpected_value_diagnostic(value.span));

@@ -119,10 +119,14 @@ impl VueTemplateRule for VOnEventHyphenation {
                 if name.is_empty() || is_ignored_attribute(name, &options.ignore, use_hyphenated) {
                     continue;
                 }
+                // Upstream reports `node: node.key` but with an explicit
+                // `loc: node.loc` — the *whole* `VAttribute`'s location —
+                // and eslint's `loc` wins over `node`. So the label covers
+                // the attribute including its `="value"`, not just the key.
                 let diagnostic = if use_hyphenated {
-                    must_be_hyphenated_diagnostic(attribute.name, attribute.name_span)
+                    must_be_hyphenated_diagnostic(attribute.name, attribute.span)
                 } else {
-                    cannot_be_hyphenated_diagnostic(attribute.name, attribute.name_span)
+                    cannot_be_hyphenated_diagnostic(attribute.name, attribute.span)
                 };
                 ctx.diagnostic(diagnostic);
             }

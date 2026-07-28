@@ -11,9 +11,9 @@ assertion_line: 490
   help: Remove the argument; `v-once` does not accept one.
 
   ⚠ vue(valid-v-once): 'v-once' directives require no modifier.
-   ╭─[valid_v_once.tsx:1:16]
+   ╭─[valid_v_once.tsx:1:23]
  1 │ <template><div v-once.aaa /></template>
-   ·                ──────────
+   ·                       ───
    ╰────
   help: Remove the modifier; `v-once` does not accept any.
 

@@ -10,6 +10,18 @@ assertion_line: 490
    ╰────
   help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
 
+  × Unexpected token
+   ╭─[multi_word_component_names.tsx:1:66]
+ 1 │ <template><div/></template><script>export default { name: 'foo' ,,, }</script>
+   ·                                                                  ─
+   ╰────
+
+  × Unexpected token
+   ╭─[multi_word_component_names.tsx:1:71]
+ 1 │ <template><div/></template><script setup>defineOptions({ name: 'qux' ,,, })</script>
+   ·                                                                       ─
+   ╰────
+
   ⚠ vue(multi-word-component-names): Component name "widget" should always be multi-word.
    ╭─[multi_word_component_names.tsx:1:1]
  1 │ <template><div/></template><script setup></script>

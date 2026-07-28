@@ -4,6 +4,13 @@ assertion_line: 490
 ---
 
   ⚠ vue(require-v-for-key): Elements in iteration expect to have 'v-bind:key' directives.
+   ╭─[require_v_for_key.tsx:1:36]
+ 1 │ <template><Template v-for="a in b"><div /></Template></template>
+   ·                                    ───────
+   ╰────
+  help: Add a `:key` binding so Vue can track each node's identity, e.g. `v-for="item in items" :key="item.id"`.
+
+  ⚠ vue(require-v-for-key): Elements in iteration expect to have 'v-bind:key' directives.
    ╭─[require_v_for_key.tsx:1:11]
  1 │ <template><div v-for="item in items">{{ item }}</div></template>
    ·           ───────────────────────────

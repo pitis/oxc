@@ -5,7 +5,10 @@ use oxc_vue_parser::ast::Node;
 
 use crate::{
     rule::Rule,
-    utils::{directive_key_span, directive_value_missing, get_directive, walk_elements},
+    utils::{
+        directive_modifiers_span, directive_value_missing, element_name_eq_lower, get_directive,
+        walk_elements,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -85,12 +88,15 @@ impl VueTemplateRule for ValidVShow {
                 ctx.diagnostic(unexpected_argument_diagnostic(argument.span));
             }
             if !directive.modifiers.is_empty() {
-                ctx.diagnostic(unexpected_modifier_diagnostic(directive_key_span(attribute)));
+                ctx.diagnostic(unexpected_modifier_diagnostic(directive_modifiers_span(
+                    attribute,
+                    ctx.source_text(),
+                )));
             }
             if directive_value_missing(attribute) {
                 ctx.diagnostic(expected_value_diagnostic(attribute.span));
             }
-            if element.name == "template" {
+            if element_name_eq_lower(element, "template") {
                 ctx.diagnostic(unexpected_template_diagnostic(attribute.span));
             }
         });
@@ -117,6 +123,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><Template v-show="ok"><div /></Template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // No value.
             (r"<template><div v-show /></template>", None, None, Some(PathBuf::from("test.vue"))),
             // Empty value.

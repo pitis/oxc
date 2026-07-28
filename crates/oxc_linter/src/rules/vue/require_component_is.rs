@@ -5,7 +5,7 @@ use oxc_vue_parser::ast::Node;
 
 use crate::{
     rule::Rule,
-    utils::{has_directive, walk_elements},
+    utils::{element_name_eq_lower, has_directive, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -59,7 +59,7 @@ impl Rule for RequireComponentIs {}
 impl VueTemplateRule for RequireComponentIs {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
         walk_elements(nodes, &mut |element| {
-            if element.name != "component" {
+            if !element_name_eq_lower(element, "component") {
                 return;
             }
             if !has_directive(element, "bind", Some("is")) {
@@ -94,6 +94,12 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (r"<template><Component /></template>", None, None, Some(PathBuf::from("test.vue"))),
             (
                 r"<template><component></component></template>",
                 None,

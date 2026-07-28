@@ -4,6 +4,13 @@ assertion_line: 490
 ---
 
   ⚠ vue(no-v-for-template-key-on-child): `<template v-for>` key should be placed on the `<template>` tag.
+   ╭─[no_v_for_template_key_on_child.tsx:1:41]
+ 1 │ <template><Template v-for="x in y"><div :key="x" /></Template></template>
+   ·                                         ────────
+   ╰────
+  help: Move `:key` from the child element onto the `<template v-for>` tag itself.
+
+  ⚠ vue(no-v-for-template-key-on-child): `<template v-for>` key should be placed on the `<template>` tag.
    ╭─[no_v_for_template_key_on_child.tsx:1:48]
  1 │ <template><template v-for="item in items"><div :key="item.id" /></template></template>
    ·                                                ──────────────

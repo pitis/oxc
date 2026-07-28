@@ -5,7 +5,9 @@ use oxc_vue_parser::ast::{Element, Node};
 
 use crate::{
     rule::Rule,
-    utils::{has_directive, is_custom_component, start_tag_span, walk_elements},
+    utils::{
+        element_name_eq_lower, has_directive, is_custom_component, start_tag_span, walk_elements,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -74,7 +76,7 @@ fn check_key<'a>(element: &Element<'a>, ctx: &mut VueTemplateContext<'a>) {
     if has_directive(element, "bind", Some("key")) {
         return;
     }
-    if element.name == "template" || element.name == "slot" {
+    if element_name_eq_lower(element, "template") || element_name_eq_lower(element, "slot") {
         for child in &element.children {
             if let Node::Element(child_element) = child {
                 check_key(child_element, ctx);
@@ -139,6 +141,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><Template v-for="a in b"><div /></Template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><div v-for="item in items">{{ item }}</div></template>"#,
                 None,

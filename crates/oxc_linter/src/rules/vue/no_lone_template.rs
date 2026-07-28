@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},
-    utils::{start_tag_span, walk_elements},
+    utils::{element_name_eq_lower, start_tag_span, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -84,7 +84,7 @@ impl Rule for NoLoneTemplate {
 impl VueTemplateRule for NoLoneTemplate {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
         walk_elements(nodes, &mut |element| {
-            if element.name != "template" {
+            if !element_name_eq_lower(element, "template") {
                 return;
             }
             if element.attributes.iter().any(is_structural_template_attribute) {
@@ -218,6 +218,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r"<template><div><Template>content</Template></div></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r"<template><div><template></template></div></template>",
                 None,

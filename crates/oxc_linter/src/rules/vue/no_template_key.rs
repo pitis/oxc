@@ -5,7 +5,7 @@ use oxc_vue_parser::ast::Node;
 
 use crate::{
     rule::Rule,
-    utils::{get_attribute, get_directive, has_directive, walk_elements},
+    utils::{element_name_eq_lower, get_attribute, get_directive, has_directive, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -63,7 +63,7 @@ impl Rule for NoTemplateKey {}
 impl VueTemplateRule for NoTemplateKey {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
         walk_elements(nodes, &mut |element| {
-            if element.name != "template" {
+            if !element_name_eq_lower(element, "template") {
                 return;
             }
             // eslint-plugin-vue's `getAttribute(node, 'key') ||
@@ -125,6 +125,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><Template key="foo"><div /></Template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><template key="foo"></template></template>"#,
                 None,

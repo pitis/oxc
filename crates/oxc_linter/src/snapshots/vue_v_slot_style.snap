@@ -3,6 +3,12 @@ source: crates/oxc_linter/src/tester.rs
 assertion_line: 490
 ---
 
+  ⚠ vue(v-slot-style): Expected '#bar' instead of 'v-slot:bar'.
+   ╭─[v_slot_style.tsx:1:29]
+ 1 │ <template><MyComp><Template v-slot:bar="p">{{p}}</Template></MyComp></template>
+   ·                             ──────────
+   ╰────
+
   ⚠ vue(v-slot-style): Expected 'v-slot' instead of 'v-slot:default'.
    ╭─[v_slot_style.tsx:1:24]
  1 │ <template><MyComponent v-slot:default="{ item }">{{ item }}</MyComponent></template>

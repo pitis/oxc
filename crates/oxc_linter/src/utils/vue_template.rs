@@ -55,10 +55,57 @@ pub fn get_attribute<'e, 'a>(element: &'e Element<'a>, name: &str) -> Option<&'e
     })
 }
 
+/// Whether `element`'s tag name equals `lowercase_name` the way
+/// eslint-plugin-vue's `VElement[name='…']` selectors compare it.
+///
+/// vue-eslint-parser exposes two names per element: `rawName` (as written)
+/// and `name` (ASCII-lowercased, per the HTML tag-name matching rules). Every
+/// upstream rule that keys off a *native* tag — `<template>`, `<component>`,
+/// `<slot>`, … — matches against the lowercased `name`, so `<Template>` and
+/// `<TEMPLATE>` are the same element to them. This fork's
+/// [`Element::name`](oxc_vue_parser::ast::Element::name) is the *raw* name, so
+/// rules mirroring those selectors must fold case here rather than compare
+/// with `==`.
+///
+/// `lowercase_name` is expected to already be lowercase (it always is at the
+/// call sites: a literal native tag name).
+///
+/// The exceptions — rules that must stay case-*sensitive* because upstream
+/// reads `rawName` rather than `name` — are `no-textarea-mustache`
+/// (`VElement[rawName='textarea']`) and `no-deprecated-scope-attribute`
+/// (whose bare-`scope`-to-directive conversion runs through
+/// vue-eslint-parser's SFC `getTagName`, which returns `rawName`); neither
+/// uses this helper.
+pub fn element_name_eq_lower(element: &Element<'_>, lowercase_name: &str) -> bool {
+    element.name.eq_ignore_ascii_case(lowercase_name)
+}
+
 /// eslint-plugin-vue's `isCustomComponent`: an `is` attribute / `v-bind:is` /
 /// `v-is` makes any element a component; otherwise an element is custom when
 /// its name is not a well-known HTML/SVG/MathML element. SFC template names
 /// are case-sensitive (`<DIV>` resolves as a component in an SFC).
+///
+/// ### Known deviation from eslint-plugin-vue
+///
+/// Upstream's `isCustomComponent` falls back to `!isHtmlElementName(name) &&
+/// !isSvgElementName(name) && !isMathElementName(name)`, where those three
+/// predicates consult only its vendored `html-elements.js` / `svg-elements.js`
+/// / `math-elements.js` "well-known" lists — the exact same trio
+/// [`is_html_svg_or_math_element_name`] reproduces. This function instead
+/// delegates to [`is_reserved_element_name`], which is *wider*: it also
+/// accepts `VUE_RESERVED_DEPRECATED_HTML_ELEMENTS` (`<marquee>`, `<param>`,
+/// `<blink>`, …) and `VUE_RESERVED_KEBAB_CASE_ELEMENTS`. Those extra names are
+/// therefore classified here as native elements while upstream classifies them
+/// as *custom components*.
+///
+/// Consequence: for a handful of tags (`<marquee>`, `<param>`, and the other
+/// deprecated/kebab-case reserved names) the ~6 rules that consume this helper
+/// — `valid-v-slot`, `no-child-content`, `no-v-text-v-html-on-component`,
+/// `require-slots-as-functions`, `no-deprecated-v-is`, `valid-v-is` — can
+/// disagree with upstream. This is an accepted deviation rather than a bug to
+/// be fixed silently: switching to the narrow trio would change behavior for
+/// every consumer at once and is left for a follow-up that can verify each
+/// rule against real eslint individually.
 pub fn is_custom_component(element: &Element<'_>) -> bool {
     let has_is = element.attributes.iter().any(|attribute| {
         if let Some(directive) = &attribute.directive {
@@ -268,6 +315,31 @@ pub fn directive_modifier_span(attribute: &Attribute<'_>, source_text: &str, ind
     let start = u32::try_from(start).unwrap_or(name_span.end - name_span.start);
     let end = u32::try_from(end).unwrap_or(start);
     Span::new(name_span.start + start, name_span.start + end)
+}
+
+/// The span covering *all* of an attribute's modifiers at once — from the
+/// first modifier's start through the last one's end, dots in between
+/// included.
+///
+/// This is the `loc` the `valid-v-*` family's single `unexpectedModifier`
+/// report uses upstream:
+/// `loc: { start: node.key.modifiers[0].loc.start, end: node.key.modifiers.at(-1).loc.end }`
+/// (`valid-v-if`/`-else`/`-else-if`/`-show`/`-cloak`/`-once`/`-pre`/`-html`/
+/// `-text`/`-for`/`-memo`/`-is`/`-slot`) — as opposed to `valid-v-bind`/
+/// `-on`/`-model`, which report once *per* offending modifier and so use
+/// [`directive_modifier_span`] directly.
+///
+/// Returns [`Attribute::name_span`] when there are no modifiers at all; every
+/// caller guards on a non-empty modifier list first, matching upstream's
+/// `if (lastModifier)` guard.
+pub fn directive_modifiers_span(attribute: &Attribute<'_>, source_text: &str) -> Span {
+    let count = attribute.directive.as_ref().map_or(0, |directive| directive.modifiers.len());
+    if count == 0 {
+        return attribute.name_span;
+    }
+    let first = directive_modifier_span(attribute, source_text, 0);
+    let last = directive_modifier_span(attribute, source_text, count - 1);
+    Span::new(first.start, last.end)
 }
 
 /// The nearest preceding `Element` sibling of `nodes[index]` within `nodes`,

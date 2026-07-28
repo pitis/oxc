@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},
-    utils::walk_elements,
+    utils::{element_name_eq_lower, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -203,7 +203,11 @@ fn expected_style<'a>(
         Some(argument) => !argument.dynamic && argument.text == "default",
     };
     if is_default {
-        if element.name == "template" { options.default } else { options.at_component }
+        if element_name_eq_lower(element, "template") {
+            options.default
+        } else {
+            options.at_component
+        }
     } else {
         options.named
     }
@@ -297,6 +301,17 @@ mod tests {
         ];
 
         let fail = vec![
+            // Element names are matched case-insensitively: upstream's
+            // `VElement[name='…']` selectors see vue-eslint-parser's
+            // *lowercased* `name`, so `<Template>`/`<Component>` are the same
+            // element to them (verified against real eslint-plugin-vue
+            // 10.10.0).
+            (
+                r#"<template><MyComp><Template v-slot:bar="p">{{p}}</Template></MyComp></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Default slot on a component: explicit `v-slot:default` should
             // be bare `v-slot`.
             (

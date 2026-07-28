@@ -4,9 +4,9 @@ assertion_line: 490
 ---
 
   ⚠ vue(valid-v-on): 'v-on' directives don't support the modifier 'bogus'.
-   ╭─[valid_v_on.tsx:1:19]
+   ╭─[valid_v_on.tsx:1:26]
  1 │ <template><button @click.bogus="onClick" /></template>
-   ·                   ────────────
+   ·                          ─────
    ╰────
   help: Remove the modifier, or add it to the rule's `modifiers` option if it is a custom modifier your event handler recognizes.
 

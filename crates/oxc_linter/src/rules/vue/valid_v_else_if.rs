@@ -6,7 +6,7 @@ use oxc_vue_parser::ast::Node;
 use crate::{
     rule::Rule,
     utils::{
-        directive_key_span, directive_value_missing, get_directive, has_directive,
+        directive_modifiers_span, directive_value_missing, get_directive, has_directive,
         prev_element_sibling, walk_elements_with_siblings,
     },
     vue_template::{VueTemplateContext, VueTemplateRule},
@@ -118,7 +118,10 @@ impl VueTemplateRule for ValidVElseIf {
                 ctx.diagnostic(unexpected_argument_diagnostic(argument.span));
             }
             if !directive.modifiers.is_empty() {
-                ctx.diagnostic(unexpected_modifier_diagnostic(directive_key_span(attribute)));
+                ctx.diagnostic(unexpected_modifier_diagnostic(directive_modifiers_span(
+                    attribute,
+                    ctx.source_text(),
+                )));
             }
             if directive_value_missing(attribute) {
                 ctx.diagnostic(expected_value_diagnostic(attribute.span));

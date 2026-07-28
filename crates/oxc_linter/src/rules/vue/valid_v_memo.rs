@@ -8,7 +8,10 @@ use oxc_vue_parser::ast::{Element, Node};
 
 use crate::{
     rule::Rule,
-    utils::{directive_key_span, directive_value_missing, get_directive, has_directive},
+    utils::{
+        directive_key_span, directive_modifiers_span, directive_value_missing, get_directive,
+        has_directive,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -124,7 +127,10 @@ fn walk<'a, 'e>(
                 ctx.diagnostic(unexpected_argument_diagnostic(argument.span));
             }
             if !directive.modifiers.is_empty() {
-                ctx.diagnostic(unexpected_modifier_diagnostic(directive_key_span(attribute)));
+                ctx.diagnostic(unexpected_modifier_diagnostic(directive_modifiers_span(
+                    attribute,
+                    ctx.source_text(),
+                )));
             }
             if directive_value_missing(attribute) {
                 ctx.diagnostic(expected_value_diagnostic(attribute.span));

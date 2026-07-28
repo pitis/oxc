@@ -124,6 +124,19 @@ impl VueSfcRule for MultiWordComponentNames {
         // (`<script>// hi</script>`) is textually non-empty but has zero AST
         // statements, so it must NOT suppress the fallback.
         let mut script_body_nonempty = false;
+        // A `<script>`/`<script setup>` block that doesn't parse cleanly is,
+        // upstream, a *whole-file* parse error: eslint reports the syntax
+        // error and runs no rule over the file at all, so this rule
+        // contributes nothing. Verified against real eslint-plugin-vue
+        // 10.10.0 — `foo.vue` with `export default { name: 'foo' ,,, }` and
+        // `qux.vue` with `defineOptions({ name: 'qux' ,,, })` each produce
+        // only `Parsing error: …` and zero `multi-word-component-names`
+        // diagnostics, whereas the same files with valid scripts do report.
+        // Without this flag the recovered-but-partial AST would be trusted:
+        // `has_name`/`has_vue`/`script_body_nonempty` would all be read off
+        // a tree that may be missing exactly the nodes that decide the
+        // outcome, and the filename fallback could fire spuriously.
+        let mut script_parse_failed = false;
 
         for block in &sfc.blocks {
             if has_name {
@@ -133,7 +146,12 @@ impl VueSfcRule for MultiWordComponentNames {
                 continue;
             }
             if block.has_attribute("setup") {
-                scan_script_setup(block, &mut has_name, &mut literal_name);
+                scan_script_setup(
+                    block,
+                    &mut has_name,
+                    &mut literal_name,
+                    &mut script_parse_failed,
+                );
             } else {
                 scan_script(
                     block,
@@ -141,8 +159,13 @@ impl VueSfcRule for MultiWordComponentNames {
                     &mut has_name,
                     &mut literal_name,
                     &mut script_body_nonempty,
+                    &mut script_parse_failed,
                 );
             }
+        }
+
+        if script_parse_failed {
+            return;
         }
 
         let ignores = build_ignores(&self.0.ignores);
@@ -213,10 +236,16 @@ fn scan_script_setup(
     block: &SfcBlock<'_>,
     has_name: &mut bool,
     literal_name: &mut Option<(String, Span)>,
+    parse_failed: &mut bool,
 ) {
     let Some(source_type) = script_source_type(block.lang()) else { return };
     let allocator = Allocator::default();
     let ret = Parser::new(&allocator, block.content, source_type).parse();
+    // Never trust a recovered AST — see `run_on_sfc`'s `script_parse_failed`.
+    if ret.panicked || !ret.diagnostics.is_empty() {
+        *parse_failed = true;
+        return;
+    }
     let offset = block.content_span.start;
 
     for stmt in &ret.program.body {
@@ -256,10 +285,20 @@ fn scan_script(
     has_name: &mut bool,
     literal_name: &mut Option<(String, Span)>,
     body_nonempty: &mut bool,
+    parse_failed: &mut bool,
 ) {
     let Some(source_type) = script_source_type(block.lang()) else { return };
     let allocator = Allocator::default();
     let ret = Parser::new(&allocator, block.content, source_type).parse();
+    // Check for parse errors *before* reading `program.body`: on a recoverable
+    // syntax error oxc still hands back a (partial) AST, whose statement count
+    // is not the statement count upstream's `node.body.length` guard would see
+    // — and upstream wouldn't reach that guard at all. See `run_on_sfc`'s
+    // `script_parse_failed`.
+    if ret.panicked || !ret.diagnostics.is_empty() {
+        *parse_failed = true;
+        return;
+    }
     let offset = block.content_span.start;
     *body_nonempty |= !ret.program.body.is_empty();
     let semantic = SemanticBuilder::new_linter().build(&ret.program).semantic;
@@ -537,6 +576,27 @@ mod tests {
         let fail = vec![
             // No script at all: falls back to the (single-word) filename.
             ("<template><div/></template>", None, None, Some(PathBuf::from("todo.vue"))),
+            // Malformed script: upstream this is a whole-file parse error, so
+            // eslint runs no rule at all and this rule reports nothing even
+            // though the filename is single-word — verified against real
+            // eslint-plugin-vue 10.10.0 (only `Parsing error: Property
+            // assignment expected`). These live in `fail` purely because the
+            // *parser* diagnostic is unavoidable in the tester's output; the
+            // point of the case is the snapshot showing ONLY that parse error
+            // and NO `multi-word-component-names` diagnostic. Both script
+            // kinds, since each has its own parse site.
+            (
+                "<template><div/></template><script>export default { name: 'foo' ,,, }</script>",
+                None,
+                None,
+                Some(PathBuf::from("foo.vue")),
+            ),
+            (
+                "<template><div/></template><script setup>defineOptions({ name: 'qux' ,,, })</script>",
+                None,
+                None,
+                Some(PathBuf::from("qux.vue")),
+            ),
             // `<script setup>` with no `defineOptions` name: still falls
             // back to the filename (`hasVue` is `true` for any
             // `<script setup>`, regardless of its content).

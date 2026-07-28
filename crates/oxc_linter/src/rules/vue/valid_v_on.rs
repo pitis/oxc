@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},
-    utils::{directive_key_span, directive_value_missing, walk_elements},
+    utils::{directive_modifier_span, directive_value_missing, walk_elements},
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
@@ -474,12 +474,10 @@ impl VueTemplateRule for ValidVOn {
                     continue;
                 }
 
-                for modifier in &directive.modifiers {
+                for (index, modifier) in directive.modifiers.iter().enumerate() {
                     if !self.is_valid_modifier(modifier) {
-                        ctx.diagnostic(unsupported_modifier_diagnostic(
-                            modifier,
-                            directive_key_span(attribute),
-                        ));
+                        let span = directive_modifier_span(attribute, ctx.source_text(), index);
+                        ctx.diagnostic(unsupported_modifier_diagnostic(modifier, span));
                     }
                 }
 

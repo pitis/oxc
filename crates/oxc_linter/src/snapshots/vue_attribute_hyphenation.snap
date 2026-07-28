@@ -6,53 +6,53 @@ assertion_line: 490
   ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent myProp="a" /></template>
-   ·                        ──────
+   ·                        ──────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute ':myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent :myProp="a" /></template>
-   ·                        ───────
+   ·                        ───────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'v-bind:myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent v-bind:myProp="a" /></template>
-   ·                        ─────────────
+   ·                        ─────────────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'v-model:myValue' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent v-model:myValue="a" /></template>
-   ·                        ───────────────
+   ·                        ───────────────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:17]
  1 │ <template><slot myProp="a" /></template>
-   ·                 ──────
+   ·                 ──────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'my-prop' can't be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent my-prop="a" /></template>
-   ·                        ───────
+   ·                        ───────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute ':my-prop' can't be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:24]
  1 │ <template><MyComponent :my-prop="a" /></template>
-   ·                        ────────
+   ·                        ────────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:28]
  1 │ <template><IgnoredTagExtra myProp="a" /></template>
-   ·                            ──────
+   ·                            ──────────
    ╰────
 
   ⚠ vue(attribute-hyphenation): Attribute 'myProp' must be hyphenated.
    ╭─[attribute_hyphenation.tsx:1:25]
  1 │ <template><MyIgnoredTag myProp="a" /></template>
-   ·                         ──────
+   ·                         ──────────
    ╰────

@@ -25,9 +25,9 @@ assertion_line: 490
   help: Remove the argument, e.g. use `v-if="condition"` instead of `v-if:arg="condition"`.
 
   ⚠ vue(valid-v-if): 'v-if' directives require no modifier.
-   ╭─[valid_v_if.tsx:1:16]
+   ╭─[valid_v_if.tsx:1:21]
  1 │ <template><div v-if.aaa="foo" /></template>
-   ·                ────────
+   ·                     ───
    ╰────
   help: Remove the modifier; `v-if` does not accept any.
 

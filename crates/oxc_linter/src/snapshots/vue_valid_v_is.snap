@@ -25,9 +25,9 @@ assertion_line: 490
   help: Remove the argument, e.g. use `v-is="componentName"`.
 
   ⚠ vue(valid-v-is): 'v-is' directives require no modifier.
-   ╭─[valid_v_is.tsx:1:15]
+   ╭─[valid_v_is.tsx:1:20]
  1 │ <template><tr v-is.foo="componentName" /></template>
-   ·               ────────
+   ·                    ───
    ╰────
   help: Remove the modifier; `v-is` does not accept any.
 

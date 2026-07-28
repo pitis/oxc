@@ -6,29 +6,29 @@ assertion_line: 490
   ⚠ vue(v-on-event-hyphenation): v-on event '@myEvent' must be hyphenated.
    ╭─[v_on_event_hyphenation.tsx:1:24]
  1 │ <template><MyComponent @myEvent="a" /></template>
-   ·                        ────────
+   ·                        ────────────
    ╰────
 
   ⚠ vue(v-on-event-hyphenation): v-on event 'v-on:myEvent' must be hyphenated.
    ╭─[v_on_event_hyphenation.tsx:1:24]
  1 │ <template><MyComponent v-on:myEvent="a" /></template>
-   ·                        ────────────
+   ·                        ────────────────
    ╰────
 
   ⚠ vue(v-on-event-hyphenation): v-on event '@my-event' can't be hyphenated.
    ╭─[v_on_event_hyphenation.tsx:1:24]
  1 │ <template><MyComponent @my-event="a" /></template>
-   ·                        ─────────
+   ·                        ─────────────
    ╰────
 
   ⚠ vue(v-on-event-hyphenation): v-on event '@myEvent' must be hyphenated.
    ╭─[v_on_event_hyphenation.tsx:1:28]
  1 │ <template><IgnoredTagExtra @myEvent="a" /></template>
-   ·                            ────────
+   ·                            ────────────
    ╰────
 
   ⚠ vue(v-on-event-hyphenation): v-on event '@myEvent' must be hyphenated.
    ╭─[v_on_event_hyphenation.tsx:1:25]
  1 │ <template><MyIgnoredTag @myEvent="a" /></template>
-   ·                         ────────
+   ·                         ────────────
    ╰────

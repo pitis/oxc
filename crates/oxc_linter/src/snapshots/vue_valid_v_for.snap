@@ -3,6 +3,13 @@ source: crates/oxc_linter/src/tester.rs
 assertion_line: 490
 ---
 
+  ⚠ vue(valid-v-for): Custom elements in iteration require 'v-bind:key' directives.
+   ╭─[valid_v_for.tsx:1:36]
+ 1 │ <template><Template v-for="a in b"><MyComp /></Template></template>
+   ·                                    ──────────
+   ╰────
+  help: Add a `:key` binding so Vue can track each node's identity.
+
   ⚠ vue(valid-v-for): 'v-for' directives require no argument.
    ╭─[valid_v_for.tsx:1:22]
  1 │ <template><div v-for:foo="item in items" /></template>
@@ -11,9 +18,9 @@ assertion_line: 490
   help: Remove the argument, e.g. use `v-for="item in items"`.
 
   ⚠ vue(valid-v-for): 'v-for' directives require no modifier.
-   ╭─[valid_v_for.tsx:1:16]
+   ╭─[valid_v_for.tsx:1:22]
  1 │ <template><div v-for.foo="item in items" /></template>
-   ·                ─────────
+   ·                      ───
    ╰────
   help: Remove the modifier; `v-for` does not accept any.
 
