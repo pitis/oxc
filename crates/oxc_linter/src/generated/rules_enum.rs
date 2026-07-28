@@ -811,6 +811,7 @@ pub use crate::rules::vitest::valid_expect::ValidExpect as VitestValidExpect;
 pub use crate::rules::vitest::valid_expect_in_promise::ValidExpectInPromise as VitestValidExpectInPromise;
 pub use crate::rules::vitest::valid_title::ValidTitle as VitestValidTitle;
 pub use crate::rules::vitest::warn_todo::WarnTodo as VitestWarnTodo;
+pub use crate::rules::vue::attribute_hyphenation::AttributeHyphenation as VueAttributeHyphenation;
 pub use crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing as VueComponentDefinitionNameCasing;
 pub use crate::rules::vue::define_emits_declaration::DefineEmitsDeclaration as VueDefineEmitsDeclaration;
 pub use crate::rules::vue::define_props_declaration::DefinePropsDeclaration as VueDefinePropsDeclaration;
@@ -869,6 +870,10 @@ pub use crate::rules::vue::require_v_for_key::RequireVForKey as VueRequireVForKe
 pub use crate::rules::vue::return_in_computed_property::ReturnInComputedProperty as VueReturnInComputedProperty;
 pub use crate::rules::vue::return_in_emits_validator::ReturnInEmitsValidator as VueReturnInEmitsValidator;
 pub use crate::rules::vue::use_v_on_exact::UseVOnExact as VueUseVOnExact;
+pub use crate::rules::vue::v_bind_style::VBindStyle as VueVBindStyle;
+pub use crate::rules::vue::v_on_event_hyphenation::VOnEventHyphenation as VueVOnEventHyphenation;
+pub use crate::rules::vue::v_on_style::VOnStyle as VueVOnStyle;
+pub use crate::rules::vue::v_slot_style::VSlotStyle as VueVSlotStyle;
 pub use crate::rules::vue::valid_attribute_name::ValidAttributeName as VueValidAttributeName;
 pub use crate::rules::vue::valid_define_emits::ValidDefineEmits as VueValidDefineEmits;
 pub use crate::rules::vue::valid_define_options::ValidDefineOptions as VueValidDefineOptions;
@@ -1710,6 +1715,7 @@ pub enum RuleEnum {
     NodeNoProcessEnv(NodeNoProcessEnv),
     NodeNoSync(NodeNoSync),
     NodeNoTopLevelAwait(NodeNoTopLevelAwait),
+    VueAttributeHyphenation(VueAttributeHyphenation),
     VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing),
     VueDefineEmitsDeclaration(VueDefineEmitsDeclaration),
     VueDefinePropsDeclaration(VueDefinePropsDeclaration),
@@ -1768,6 +1774,10 @@ pub enum RuleEnum {
     VueReturnInComputedProperty(VueReturnInComputedProperty),
     VueReturnInEmitsValidator(VueReturnInEmitsValidator),
     VueUseVOnExact(VueUseVOnExact),
+    VueVBindStyle(VueVBindStyle),
+    VueVOnEventHyphenation(VueVOnEventHyphenation),
+    VueVOnStyle(VueVOnStyle),
+    VueVSlotStyle(VueVSlotStyle),
     VueValidAttributeName(VueValidAttributeName),
     VueValidDefineEmits(VueValidDefineEmits),
     VueValidDefineOptions(VueValidDefineOptions),
@@ -2694,7 +2704,8 @@ const NODE_NO_PATH_CONCAT_ID: usize = NODE_NO_NEW_REQUIRE_ID + 1usize;
 const NODE_NO_PROCESS_ENV_ID: usize = NODE_NO_PATH_CONCAT_ID + 1usize;
 const NODE_NO_SYNC_ID: usize = NODE_NO_PROCESS_ENV_ID + 1usize;
 const NODE_NO_TOP_LEVEL_AWAIT_ID: usize = NODE_NO_SYNC_ID + 1usize;
-const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
+const VUE_ATTRIBUTE_HYPHENATION_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
+const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
 const VUE_DEFINE_EMITS_DECLARATION_ID: usize = VUE_COMPONENT_DEFINITION_NAME_CASING_ID + 1usize;
 const VUE_DEFINE_PROPS_DECLARATION_ID: usize = VUE_DEFINE_EMITS_DECLARATION_ID + 1usize;
 const VUE_DEFINE_PROPS_DESTRUCTURING_ID: usize = VUE_DEFINE_PROPS_DECLARATION_ID + 1usize;
@@ -2757,7 +2768,11 @@ const VUE_REQUIRE_V_FOR_KEY_ID: usize = VUE_REQUIRE_TYPED_REF_ID + 1usize;
 const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_V_FOR_KEY_ID + 1usize;
 const VUE_RETURN_IN_EMITS_VALIDATOR_ID: usize = VUE_RETURN_IN_COMPUTED_PROPERTY_ID + 1usize;
 const VUE_USE_V_ON_EXACT_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usize;
-const VUE_VALID_ATTRIBUTE_NAME_ID: usize = VUE_USE_V_ON_EXACT_ID + 1usize;
+const VUE_V_BIND_STYLE_ID: usize = VUE_USE_V_ON_EXACT_ID + 1usize;
+const VUE_V_ON_EVENT_HYPHENATION_ID: usize = VUE_V_BIND_STYLE_ID + 1usize;
+const VUE_V_ON_STYLE_ID: usize = VUE_V_ON_EVENT_HYPHENATION_ID + 1usize;
+const VUE_V_SLOT_STYLE_ID: usize = VUE_V_ON_STYLE_ID + 1usize;
+const VUE_VALID_ATTRIBUTE_NAME_ID: usize = VUE_V_SLOT_STYLE_ID + 1usize;
 const VUE_VALID_DEFINE_EMITS_ID: usize = VUE_VALID_ATTRIBUTE_NAME_ID + 1usize;
 const VUE_VALID_DEFINE_OPTIONS_ID: usize = VUE_VALID_DEFINE_EMITS_ID + 1usize;
 const VUE_VALID_DEFINE_PROPS_ID: usize = VUE_VALID_DEFINE_OPTIONS_ID + 1usize;
@@ -3709,6 +3724,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NODE_NO_PROCESS_ENV_ID,
             Self::NodeNoSync(_) => NODE_NO_SYNC_ID,
             Self::NodeNoTopLevelAwait(_) => NODE_NO_TOP_LEVEL_AWAIT_ID,
+            Self::VueAttributeHyphenation(_) => VUE_ATTRIBUTE_HYPHENATION_ID,
             Self::VueComponentDefinitionNameCasing(_) => VUE_COMPONENT_DEFINITION_NAME_CASING_ID,
             Self::VueDefineEmitsDeclaration(_) => VUE_DEFINE_EMITS_DECLARATION_ID,
             Self::VueDefinePropsDeclaration(_) => VUE_DEFINE_PROPS_DECLARATION_ID,
@@ -3771,6 +3787,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VUE_RETURN_IN_COMPUTED_PROPERTY_ID,
             Self::VueReturnInEmitsValidator(_) => VUE_RETURN_IN_EMITS_VALIDATOR_ID,
             Self::VueUseVOnExact(_) => VUE_USE_V_ON_EXACT_ID,
+            Self::VueVBindStyle(_) => VUE_V_BIND_STYLE_ID,
+            Self::VueVOnEventHyphenation(_) => VUE_V_ON_EVENT_HYPHENATION_ID,
+            Self::VueVOnStyle(_) => VUE_V_ON_STYLE_ID,
+            Self::VueVSlotStyle(_) => VUE_V_SLOT_STYLE_ID,
             Self::VueValidAttributeName(_) => VUE_VALID_ATTRIBUTE_NAME_ID,
             Self::VueValidDefineEmits(_) => VUE_VALID_DEFINE_EMITS_ID,
             Self::VueValidDefineOptions(_) => VUE_VALID_DEFINE_OPTIONS_ID,
@@ -4708,6 +4728,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::NAME,
             Self::NodeNoSync(_) => NodeNoSync::NAME,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::NAME,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::NAME,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::NAME,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::NAME,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::NAME,
@@ -4770,6 +4791,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::NAME,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::NAME,
             Self::VueUseVOnExact(_) => VueUseVOnExact::NAME,
+            Self::VueVBindStyle(_) => VueVBindStyle::NAME,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::NAME,
+            Self::VueVOnStyle(_) => VueVOnStyle::NAME,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::NAME,
             Self::VueValidAttributeName(_) => VueValidAttributeName::NAME,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::NAME,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::NAME,
@@ -5763,6 +5788,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::CATEGORY,
             Self::NodeNoSync(_) => NodeNoSync::CATEGORY,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::CATEGORY,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::CATEGORY,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::CATEGORY,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::CATEGORY,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::CATEGORY,
@@ -5827,6 +5853,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::CATEGORY,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::CATEGORY,
             Self::VueUseVOnExact(_) => VueUseVOnExact::CATEGORY,
+            Self::VueVBindStyle(_) => VueVBindStyle::CATEGORY,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::CATEGORY,
+            Self::VueVOnStyle(_) => VueVOnStyle::CATEGORY,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::CATEGORY,
             Self::VueValidAttributeName(_) => VueValidAttributeName::CATEGORY,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::CATEGORY,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::CATEGORY,
@@ -6765,6 +6795,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::FIX,
             Self::NodeNoSync(_) => NodeNoSync::FIX,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::FIX,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::FIX,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::FIX,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::FIX,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::FIX,
@@ -6827,6 +6858,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::FIX,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::FIX,
             Self::VueUseVOnExact(_) => VueUseVOnExact::FIX,
+            Self::VueVBindStyle(_) => VueVBindStyle::FIX,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::FIX,
+            Self::VueVOnStyle(_) => VueVOnStyle::FIX,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::FIX,
             Self::VueValidAttributeName(_) => VueValidAttributeName::FIX,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::FIX,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::FIX,
@@ -8017,6 +8052,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::documentation(),
             Self::NodeNoSync(_) => NodeNoSync::documentation(),
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::documentation(),
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::documentation(),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::documentation()
             }
@@ -8099,6 +8135,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::documentation(),
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::documentation(),
             Self::VueUseVOnExact(_) => VueUseVOnExact::documentation(),
+            Self::VueVBindStyle(_) => VueVBindStyle::documentation(),
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::documentation(),
+            Self::VueVOnStyle(_) => VueVOnStyle::documentation(),
+            Self::VueVSlotStyle(_) => VueVSlotStyle::documentation(),
             Self::VueValidAttributeName(_) => VueValidAttributeName::documentation(),
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::documentation(),
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::documentation(),
@@ -10424,6 +10464,8 @@ impl RuleEnum {
             }
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::config_schema(generator)
                 .or_else(|| NodeNoTopLevelAwait::schema(generator)),
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::config_schema(generator)
+                .or_else(|| VueAttributeHyphenation::schema(generator)),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::config_schema(generator)
                     .or_else(|| VueComponentDefinitionNameCasing::schema(generator))
@@ -10593,6 +10635,17 @@ impl RuleEnum {
             }
             Self::VueUseVOnExact(_) => VueUseVOnExact::config_schema(generator)
                 .or_else(|| VueUseVOnExact::schema(generator)),
+            Self::VueVBindStyle(_) => {
+                VueVBindStyle::config_schema(generator).or_else(|| VueVBindStyle::schema(generator))
+            }
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::config_schema(generator)
+                .or_else(|| VueVOnEventHyphenation::schema(generator)),
+            Self::VueVOnStyle(_) => {
+                VueVOnStyle::config_schema(generator).or_else(|| VueVOnStyle::schema(generator))
+            }
+            Self::VueVSlotStyle(_) => {
+                VueVSlotStyle::config_schema(generator).or_else(|| VueVSlotStyle::schema(generator))
+            }
             Self::VueValidAttributeName(_) => VueValidAttributeName::config_schema(generator)
                 .or_else(|| VueValidAttributeName::schema(generator)),
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::config_schema(generator)
@@ -11455,6 +11508,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => "node",
             Self::NodeNoSync(_) => "node",
             Self::NodeNoTopLevelAwait(_) => "node",
+            Self::VueAttributeHyphenation(_) => "vue",
             Self::VueComponentDefinitionNameCasing(_) => "vue",
             Self::VueDefineEmitsDeclaration(_) => "vue",
             Self::VueDefinePropsDeclaration(_) => "vue",
@@ -11513,6 +11567,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => "vue",
             Self::VueReturnInEmitsValidator(_) => "vue",
             Self::VueUseVOnExact(_) => "vue",
+            Self::VueVBindStyle(_) => "vue",
+            Self::VueVOnEventHyphenation(_) => "vue",
+            Self::VueVOnStyle(_) => "vue",
+            Self::VueVSlotStyle(_) => "vue",
             Self::VueValidAttributeName(_) => "vue",
             Self::VueValidDefineEmits(_) => "vue",
             Self::VueValidDefineOptions(_) => "vue",
@@ -14123,6 +14181,9 @@ impl RuleEnum {
             Self::NodeNoTopLevelAwait(_) => {
                 Ok(Self::NodeNoTopLevelAwait(NodeNoTopLevelAwait::from_configuration(value)?))
             }
+            Self::VueAttributeHyphenation(_) => Ok(Self::VueAttributeHyphenation(
+                VueAttributeHyphenation::from_configuration(value)?,
+            )),
             Self::VueComponentDefinitionNameCasing(_) => {
                 Ok(Self::VueComponentDefinitionNameCasing(
                     VueComponentDefinitionNameCasing::from_configuration(value)?,
@@ -14304,6 +14365,16 @@ impl RuleEnum {
             )),
             Self::VueUseVOnExact(_) => {
                 Ok(Self::VueUseVOnExact(VueUseVOnExact::from_configuration(value)?))
+            }
+            Self::VueVBindStyle(_) => {
+                Ok(Self::VueVBindStyle(VueVBindStyle::from_configuration(value)?))
+            }
+            Self::VueVOnEventHyphenation(_) => {
+                Ok(Self::VueVOnEventHyphenation(VueVOnEventHyphenation::from_configuration(value)?))
+            }
+            Self::VueVOnStyle(_) => Ok(Self::VueVOnStyle(VueVOnStyle::from_configuration(value)?)),
+            Self::VueVSlotStyle(_) => {
+                Ok(Self::VueVSlotStyle(VueVSlotStyle::from_configuration(value)?))
             }
             Self::VueValidAttributeName(_) => {
                 Ok(Self::VueValidAttributeName(VueValidAttributeName::from_configuration(value)?))
@@ -15174,6 +15245,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.to_configuration(),
             Self::NodeNoSync(rule) => rule.to_configuration(),
             Self::NodeNoTopLevelAwait(rule) => rule.to_configuration(),
+            Self::VueAttributeHyphenation(rule) => rule.to_configuration(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.to_configuration(),
             Self::VueDefineEmitsDeclaration(rule) => rule.to_configuration(),
             Self::VueDefinePropsDeclaration(rule) => rule.to_configuration(),
@@ -15232,6 +15304,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.to_configuration(),
             Self::VueReturnInEmitsValidator(rule) => rule.to_configuration(),
             Self::VueUseVOnExact(rule) => rule.to_configuration(),
+            Self::VueVBindStyle(rule) => rule.to_configuration(),
+            Self::VueVOnEventHyphenation(rule) => rule.to_configuration(),
+            Self::VueVOnStyle(rule) => rule.to_configuration(),
+            Self::VueVSlotStyle(rule) => rule.to_configuration(),
             Self::VueValidAttributeName(rule) => rule.to_configuration(),
             Self::VueValidDefineEmits(rule) => rule.to_configuration(),
             Self::VueValidDefineOptions(rule) => rule.to_configuration(),
@@ -16060,6 +16136,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.run(node, ctx),
             Self::NodeNoSync(rule) => rule.run(node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run(node, ctx),
+            Self::VueAttributeHyphenation(rule) => rule.run(node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run(node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run(node, ctx),
@@ -16118,6 +16195,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.run(node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run(node, ctx),
             Self::VueUseVOnExact(rule) => rule.run(node, ctx),
+            Self::VueVBindStyle(rule) => rule.run(node, ctx),
+            Self::VueVOnEventHyphenation(rule) => rule.run(node, ctx),
+            Self::VueVOnStyle(rule) => rule.run(node, ctx),
+            Self::VueVSlotStyle(rule) => rule.run(node, ctx),
             Self::VueValidAttributeName(rule) => rule.run(node, ctx),
             Self::VueValidDefineEmits(rule) => rule.run(node, ctx),
             Self::VueValidDefineOptions(rule) => rule.run(node, ctx),
@@ -16958,6 +17039,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.run_once(ctx),
             Self::NodeNoSync(rule) => rule.run_once(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_once(ctx),
+            Self::VueAttributeHyphenation(rule) => rule.run_once(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_once(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_once(ctx),
@@ -17016,6 +17098,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.run_once(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_once(ctx),
             Self::VueUseVOnExact(rule) => rule.run_once(ctx),
+            Self::VueVBindStyle(rule) => rule.run_once(ctx),
+            Self::VueVOnEventHyphenation(rule) => rule.run_once(ctx),
+            Self::VueVOnStyle(rule) => rule.run_once(ctx),
+            Self::VueVSlotStyle(rule) => rule.run_once(ctx),
             Self::VueValidAttributeName(rule) => rule.run_once(ctx),
             Self::VueValidDefineEmits(rule) => rule.run_once(ctx),
             Self::VueValidDefineOptions(rule) => rule.run_once(ctx),
@@ -17969,6 +18055,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoSync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueAttributeHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18031,6 +18118,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueUseVOnExact(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueVBindStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueVOnEventHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueVOnStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueVSlotStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidAttributeName(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidDefineEmits(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidDefineOptions(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18872,6 +18963,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.should_run(ctx),
             Self::NodeNoSync(rule) => rule.should_run(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.should_run(ctx),
+            Self::VueAttributeHyphenation(rule) => rule.should_run(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.should_run(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.should_run(ctx),
@@ -18930,6 +19022,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.should_run(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.should_run(ctx),
             Self::VueUseVOnExact(rule) => rule.should_run(ctx),
+            Self::VueVBindStyle(rule) => rule.should_run(ctx),
+            Self::VueVOnEventHyphenation(rule) => rule.should_run(ctx),
+            Self::VueVOnStyle(rule) => rule.should_run(ctx),
+            Self::VueVSlotStyle(rule) => rule.should_run(ctx),
             Self::VueValidAttributeName(rule) => rule.should_run(ctx),
             Self::VueValidDefineEmits(rule) => rule.should_run(ctx),
             Self::VueValidDefineOptions(rule) => rule.should_run(ctx),
@@ -20119,6 +20215,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::IS_TSGOLINT_RULE,
             Self::NodeNoSync(_) => NodeNoSync::IS_TSGOLINT_RULE,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::IS_TSGOLINT_RULE,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::IS_TSGOLINT_RULE,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::IS_TSGOLINT_RULE
             }
@@ -20201,6 +20298,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::IS_TSGOLINT_RULE,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::IS_TSGOLINT_RULE,
             Self::VueUseVOnExact(_) => VueUseVOnExact::IS_TSGOLINT_RULE,
+            Self::VueVBindStyle(_) => VueVBindStyle::IS_TSGOLINT_RULE,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::IS_TSGOLINT_RULE,
+            Self::VueVOnStyle(_) => VueVOnStyle::IS_TSGOLINT_RULE,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::IS_TSGOLINT_RULE,
             Self::VueValidAttributeName(_) => VueValidAttributeName::IS_TSGOLINT_RULE,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::IS_TSGOLINT_RULE,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::IS_TSGOLINT_RULE,
@@ -21196,6 +21297,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::VERSION,
             Self::NodeNoSync(_) => NodeNoSync::VERSION,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::VERSION,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::VERSION,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::VERSION,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::VERSION,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::VERSION,
@@ -21260,6 +21362,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::VERSION,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::VERSION,
             Self::VueUseVOnExact(_) => VueUseVOnExact::VERSION,
+            Self::VueVBindStyle(_) => VueVBindStyle::VERSION,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::VERSION,
+            Self::VueVOnStyle(_) => VueVOnStyle::VERSION,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::VERSION,
             Self::VueValidAttributeName(_) => VueValidAttributeName::VERSION,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::VERSION,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::VERSION,
@@ -22290,6 +22396,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::HAS_CONFIG,
             Self::NodeNoSync(_) => NodeNoSync::HAS_CONFIG,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::HAS_CONFIG,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::HAS_CONFIG,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::HAS_CONFIG
             }
@@ -22360,6 +22467,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::HAS_CONFIG,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::HAS_CONFIG,
             Self::VueUseVOnExact(_) => VueUseVOnExact::HAS_CONFIG,
+            Self::VueVBindStyle(_) => VueVBindStyle::HAS_CONFIG,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::HAS_CONFIG,
+            Self::VueVOnStyle(_) => VueVOnStyle::HAS_CONFIG,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::HAS_CONFIG,
             Self::VueValidAttributeName(_) => VueValidAttributeName::HAS_CONFIG,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::HAS_CONFIG,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::HAS_CONFIG,
@@ -23299,6 +23410,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(_) => NodeNoProcessEnv::INFO,
             Self::NodeNoSync(_) => NodeNoSync::INFO,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::INFO,
+            Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::INFO,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::INFO,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::INFO,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::INFO,
@@ -23361,6 +23473,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::INFO,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::INFO,
             Self::VueUseVOnExact(_) => VueUseVOnExact::INFO,
+            Self::VueVBindStyle(_) => VueVBindStyle::INFO,
+            Self::VueVOnEventHyphenation(_) => VueVOnEventHyphenation::INFO,
+            Self::VueVOnStyle(_) => VueVOnStyle::INFO,
+            Self::VueVSlotStyle(_) => VueVSlotStyle::INFO,
             Self::VueValidAttributeName(_) => VueValidAttributeName::INFO,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::INFO,
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::INFO,
@@ -24193,6 +24309,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.types_info(),
             Self::NodeNoSync(rule) => rule.types_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.types_info(),
+            Self::VueAttributeHyphenation(rule) => rule.types_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.types_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.types_info(),
@@ -24251,6 +24368,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.types_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.types_info(),
             Self::VueUseVOnExact(rule) => rule.types_info(),
+            Self::VueVBindStyle(rule) => rule.types_info(),
+            Self::VueVOnEventHyphenation(rule) => rule.types_info(),
+            Self::VueVOnStyle(rule) => rule.types_info(),
+            Self::VueVSlotStyle(rule) => rule.types_info(),
             Self::VueValidAttributeName(rule) => rule.types_info(),
             Self::VueValidDefineEmits(rule) => rule.types_info(),
             Self::VueValidDefineOptions(rule) => rule.types_info(),
@@ -25078,6 +25199,7 @@ impl RuleEnum {
             Self::NodeNoProcessEnv(rule) => rule.run_info(),
             Self::NodeNoSync(rule) => rule.run_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.run_info(),
+            Self::VueAttributeHyphenation(rule) => rule.run_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.run_info(),
@@ -25136,6 +25258,10 @@ impl RuleEnum {
             Self::VueReturnInComputedProperty(rule) => rule.run_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.run_info(),
             Self::VueUseVOnExact(rule) => rule.run_info(),
+            Self::VueVBindStyle(rule) => rule.run_info(),
+            Self::VueVOnEventHyphenation(rule) => rule.run_info(),
+            Self::VueVOnStyle(rule) => rule.run_info(),
+            Self::VueVSlotStyle(rule) => rule.run_info(),
             Self::VueValidAttributeName(rule) => rule.run_info(),
             Self::VueValidDefineEmits(rule) => rule.run_info(),
             Self::VueValidDefineOptions(rule) => rule.run_info(),
@@ -26095,6 +26221,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::NodeNoProcessEnv(NodeNoProcessEnv::default()),
         RuleEnum::NodeNoSync(NodeNoSync::default()),
         RuleEnum::NodeNoTopLevelAwait(NodeNoTopLevelAwait::default()),
+        RuleEnum::VueAttributeHyphenation(VueAttributeHyphenation::default()),
         RuleEnum::VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing::default()),
         RuleEnum::VueDefineEmitsDeclaration(VueDefineEmitsDeclaration::default()),
         RuleEnum::VueDefinePropsDeclaration(VueDefinePropsDeclaration::default()),
@@ -26157,6 +26284,10 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueReturnInComputedProperty(VueReturnInComputedProperty::default()),
         RuleEnum::VueReturnInEmitsValidator(VueReturnInEmitsValidator::default()),
         RuleEnum::VueUseVOnExact(VueUseVOnExact::default()),
+        RuleEnum::VueVBindStyle(VueVBindStyle::default()),
+        RuleEnum::VueVOnEventHyphenation(VueVOnEventHyphenation::default()),
+        RuleEnum::VueVOnStyle(VueVOnStyle::default()),
+        RuleEnum::VueVSlotStyle(VueVSlotStyle::default()),
         RuleEnum::VueValidAttributeName(VueValidAttributeName::default()),
         RuleEnum::VueValidDefineEmits(VueValidDefineEmits::default()),
         RuleEnum::VueValidDefineOptions(VueValidDefineOptions::default()),

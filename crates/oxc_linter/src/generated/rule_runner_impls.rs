@@ -5109,6 +5109,11 @@ impl RuleRunner for crate::rules::node::no_top_level_await::NoTopLevelAwait {
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
+impl RuleRunner for crate::rules::vue::attribute_hyphenation::AttributeHyphenation {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
 impl RuleRunner
     for crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing
 {
@@ -5472,6 +5477,26 @@ impl RuleRunner for crate::rules::vue::return_in_emits_validator::ReturnInEmitsV
 }
 
 impl RuleRunner for crate::rules::vue::use_v_on_exact::UseVOnExact {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::v_bind_style::VBindStyle {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::v_on_event_hyphenation::VOnEventHyphenation {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::v_on_style::VOnStyle {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
+}
+
+impl RuleRunner for crate::rules::vue::v_slot_style::VSlotStyle {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
 }

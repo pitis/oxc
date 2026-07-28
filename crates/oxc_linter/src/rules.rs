@@ -861,6 +861,7 @@ pub(crate) mod node {
 
 /// <https://github.com/vuejs/eslint-plugin-vue>
 pub(crate) mod vue {
+    pub mod attribute_hyphenation;
     pub mod component_definition_name_casing;
     pub mod define_emits_declaration;
     pub mod define_props_declaration;
@@ -919,6 +920,10 @@ pub(crate) mod vue {
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
     pub mod use_v_on_exact;
+    pub mod v_bind_style;
+    pub mod v_on_event_hyphenation;
+    pub mod v_on_style;
+    pub mod v_slot_style;
     pub mod valid_attribute_name;
     pub mod valid_define_emits;
     pub mod valid_define_options;

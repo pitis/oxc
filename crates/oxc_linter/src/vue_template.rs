@@ -90,6 +90,11 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueNoDupeVElseIf(rule) => Some(rule),
         RuleEnum::VueRequireToggleInsideTransition(rule) => Some(rule),
         RuleEnum::VueNoUseVIfWithVFor(rule) => Some(rule),
+        RuleEnum::VueAttributeHyphenation(rule) => Some(rule),
+        RuleEnum::VueVOnEventHyphenation(rule) => Some(rule),
+        RuleEnum::VueVBindStyle(rule) => Some(rule),
+        RuleEnum::VueVOnStyle(rule) => Some(rule),
+        RuleEnum::VueVSlotStyle(rule) => Some(rule),
         _ => None,
     }
 }
