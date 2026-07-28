@@ -84,7 +84,7 @@ impl VueTemplateRule for NoTextareaMustache {
 /// Scans `raw_text`'s slice of `source` for `{{ ... }}` mustaches.
 ///
 /// This fork's parser treats `<textarea>` as a raw-text element (like
-/// `<script>`/`<style>`/`<pre>`) for byte-faithful reprinting, so its body
+/// `<script>`/`<style>`) for byte-faithful reprinting, so its body
 /// never becomes `Interpolation` nodes the way ordinary text content does —
 /// this rule has to re-scan the raw bytes itself, mirroring
 /// `oxc_vue_parser`'s own `{{` → matching `}}` interpolation scanner

@@ -95,13 +95,13 @@ fn check_template_block<'a>(
     ctx: &mut VueTemplateContext<'a>,
 ) {
     let has_src = block.has_attribute("src");
-    let offset = block.content_span.start;
-    let nodes = parse_template(block.content);
+    // `base_offset` makes the node spans file offsets, like `block.span`.
+    let nodes = parse_template(block.content, block.content_span.start);
     let root_nodes: Vec<&Node<'a>> = nodes.iter().filter(|node| is_meaningful_root(node)).collect();
 
     if has_src && !root_nodes.is_empty() {
         for node in root_nodes {
-            ctx.diagnostic(empty_src_diagnostic(shift(node.span(), offset)));
+            ctx.diagnostic(empty_src_diagnostic(node.span()));
         }
     } else if !has_src && root_nodes.is_empty() {
         ctx.diagnostic(no_child_diagnostic(block.span));
@@ -119,10 +119,6 @@ fn is_meaningful_root(node: &Node<'_>) -> bool {
         Node::Text(text) => !text.value.trim().is_empty(),
         Node::Raw(_) | Node::Element(_) | Node::Interpolation(_) => true,
     }
-}
-
-fn shift(span: Span, offset: u32) -> Span {
-    Span::new(span.start + offset, span.end + offset)
 }
 
 #[cfg(test)]

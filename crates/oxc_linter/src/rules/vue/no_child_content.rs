@@ -119,7 +119,7 @@ impl NoChildContent {
         }
 
         let span = content_span(element).or_else(|| {
-            // `<textarea>`/`<pre>`/`<script>`/`<style>` bodies never become
+            // `<textarea>`/`<script>`/`<style>` bodies never become
             // `children` in this fork's parser (they're kept as raw,
             // unparsed text for byte-faithful reprinting — see
             // `no-textarea-mustache`'s doc comment for the same
