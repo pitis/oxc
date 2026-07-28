@@ -12,24 +12,30 @@
 //! - it also covers `.vue` files that have no `<script>` block at all,
 //!   which the sub-host loop skips entirely.
 //!
-//! `<!-- eslint-disable -->`-style HTML comment directives inside a
-//! `<template>` block ARE honored, via [`TemplateCommentDirectives`] (see
-//! there for the reproduced semantics).
+//! Suppression works on three fronts, mirroring eslint-plugin-vue:
+//! - `<!-- eslint-disable -->`-style HTML comment directives *inside* a
+//!   `<template>` block, via [`TemplateCommentDirectives`] (see there for the
+//!   reproduced semantics);
+//! - the same directives written at the *top level* of the file (outside every
+//!   block), which upstream's `vue/comment-directive` rule also collects (its
+//!   `extractTopLevelDocumentFragmentComments`) and which are the only way to
+//!   silence a `VueSfcRule` that reports at the very start of the file;
+//! - `/* eslint-disable … */` comments inside a `<script>` block, applied by
+//!   [`filter_by_script_directives`] to the messages this pass anchors inside
+//!   that script.
 //!
-//! Not yet supported: fixes, and routing template/SFC diagnostics through the
-//! *script*-comment (`/* oxlint-disable */`) directive machinery — see the
-//! comment next to `messages.extend(template_messages)` in
-//! `service/runtime.rs`.
+//! Not yet supported: fixes.
 
 use std::path::Path;
 
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_span::Span;
-use oxc_vue_parser::{Sfc, ast::Node, parse_sfc, parse_template};
+use oxc_vue_parser::{Sfc, ast::Comment, ast::Node, parse_sfc, parse_template};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     AllowWarnDeny, Linter,
+    context::ContextSubHost,
     fixer::{Message, MessageRule, PossibleFixes},
     rules::RuleEnum,
 };
@@ -189,14 +195,44 @@ impl Linter {
         let mut messages = Vec::new();
         let sfc = parse_sfc(source_text);
 
+        // Only the directive machinery needs the line table; skip building it
+        // when nothing can consult it.
+        let line_starts = if sfc.top_level_comments.is_empty() && template_rules.is_empty() {
+            Vec::new()
+        } else {
+            line_start_offsets(source_text)
+        };
+        // File-scoped directives: the `<!-- eslint-disable … -->` comments that
+        // sit outside every block. Upstream ends each of these at the end of
+        // the next top-level element (its `clear` pseudo-messages), so pass the
+        // block ends as the clear points.
+        let document_directives = if sfc.top_level_comments.is_empty() {
+            TemplateCommentDirectives::default()
+        } else {
+            let clear_offsets: Vec<u32> = sfc.blocks.iter().map(|block| block.span.end).collect();
+            TemplateCommentDirectives::collect_top_level(
+                &sfc.top_level_comments,
+                &line_starts,
+                &clear_offsets,
+                u32::try_from(source_text.len()).unwrap_or(u32::MAX),
+            )
+        };
+
         // SFC rules run once per file, over the whole parsed `Sfc` — not once
         // per `<template>` block. `sfc`'s block spans are already
         // file-absolute (see `VueSfcRule`'s docs), so `ctx.source_text` is
         // the full file source and diagnostics are pushed with no offset.
+        //
+        // Only the file-scoped directives can apply here: an SFC rule anchors
+        // its report at the start of the file or at a block's opening tag,
+        // both of which come *before* any comment inside a `<template>`, and a
+        // directive never reaches backwards.
         for (rule, sfc_rule, severity) in &sfc_rules {
             let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
-            push_messages(&mut messages, ctx.diagnostics, rule, *severity);
+            let mut diagnostics = ctx.diagnostics;
+            retain_unsuppressed(&mut diagnostics, &[&document_directives], &line_starts, rule);
+            push_messages(&mut messages, diagnostics, rule, *severity);
         }
 
         for block in &sfc.blocks {
@@ -222,26 +258,18 @@ impl Linter {
             let nodes = parse_template(block.content, block.content_span.start);
             // Directive comment spans, diagnostic spans, and therefore the
             // line table they are all resolved against, are file offsets.
-            let line_starts = line_start_offsets(source_text);
             let directives =
                 TemplateCommentDirectives::collect(&nodes, &line_starts, block.content_span.end);
             for (rule, template_rule, severity) in &template_rules {
                 let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
                 template_rule.run_on_template(&nodes, &mut ctx);
                 let mut diagnostics = ctx.diagnostics;
-                if !directives.is_empty() {
-                    let plugin_name = rule.plugin_name();
-                    let rule_name = rule.name();
-                    diagnostics.retain(|diagnostic| {
-                        let Some(offset) = diagnostic_start(diagnostic) else { return true };
-                        !directives.suppresses(
-                            plugin_name,
-                            rule_name,
-                            offset,
-                            line_of(offset, &line_starts),
-                        )
-                    });
-                }
+                retain_unsuppressed(
+                    &mut diagnostics,
+                    &[&document_directives, &directives],
+                    &line_starts,
+                    rule,
+                );
                 push_messages(&mut messages, diagnostics, rule, *severity);
             }
         }
@@ -331,12 +359,54 @@ impl TemplateCommentDirectives {
         // well-formed tree; sort anyway so recovery from malformed markup
         // can't silently reorder directives.
         comments.sort_unstable_by_key(|(span, _)| span.start);
+        // The whole block is one scope: upstream's only `clear` for a
+        // `templateBody` is at its end, which `content_end` already models.
+        Self::build(&comments, line_starts, &[], content_end)
+    }
 
+    /// The file-scoped counterpart: the `<!-- eslint-disable … -->` comments
+    /// that sit outside every block (upstream's
+    /// `extractTopLevelDocumentFragmentComments`).
+    ///
+    /// `clear_offsets` are the file offsets at which all open block
+    /// suppressions are closed — upstream reports a `clear` pseudo message at
+    /// every top-level element's end, so a file-scoped disable reaches only to
+    /// the end of the next block, not to the end of the file. They must be
+    /// ascending, which they are as `Sfc::blocks` is in source order.
+    fn collect_top_level(
+        comments: &[Comment<'_>],
+        line_starts: &[u32],
+        clear_offsets: &[u32],
+        file_end: u32,
+    ) -> Self {
+        if comments.is_empty() {
+            return Self::default();
+        }
+        let comments: Vec<(Span, &str)> =
+            comments.iter().map(|comment| (comment.span, comment.content)).collect();
+        Self::build(&comments, line_starts, clear_offsets, file_end)
+    }
+
+    /// Walk `comments` (ascending by start offset) and `clear_offsets`
+    /// (ascending) as one merged event stream — upstream's `postprocess` state
+    /// machine over the location-sorted message list — and resolve the open
+    /// suppressions into ranges. Anything still open at `end` runs to there.
+    fn build(
+        comments: &[(Span, &str)],
+        line_starts: &[u32],
+        clear_offsets: &[u32],
+        end: u32,
+    ) -> Self {
         let mut directives = Self::default();
         let mut open_all: Option<u32> = None;
         let mut open_rules: FxHashMap<String, u32> = FxHashMap::default();
+        let mut clears = clear_offsets.iter().copied().peekable();
 
-        for (span, text) in comments {
+        for &(span, text) in comments {
+            // Every `clear` at or before this comment closes what is open.
+            while let Some(clear) = clears.next_if(|&clear| clear <= span.start) {
+                directives.close_open(&mut open_all, &mut open_rules, clear);
+            }
             let stripped = strip_description(text);
             let Some((kind, rules)) = parse_directive(stripped, span, line_starts) else {
                 continue;
@@ -380,15 +450,30 @@ impl TemplateCommentDirectives {
             }
         }
 
-        // Anything still open runs to the end of the block — upstream's
-        // `clear` at `templateBody.loc.end`.
-        if let Some(start) = open_all {
-            directives.block_all.push(Span::new(start, content_end));
+        // Trailing `clear`s (blocks that come after the last directive
+        // comment), then the scope's end — upstream's `clear` at
+        // `templateBody.loc.end` for the per-block case.
+        for clear in clears {
+            directives.close_open(&mut open_all, &mut open_rules, clear);
         }
-        for (rule, start) in open_rules {
-            directives.block_rules.entry(rule).or_default().push(Span::new(start, content_end));
-        }
+        directives.close_open(&mut open_all, &mut open_rules, end);
         directives
+    }
+
+    /// Upstream's `clear` pseudo message: close every open block suppression
+    /// at `at`.
+    fn close_open(
+        &mut self,
+        open_all: &mut Option<u32>,
+        open_rules: &mut FxHashMap<String, u32>,
+        at: u32,
+    ) {
+        if let Some(start) = open_all.take() {
+            self.block_all.push(Span::new(start, at));
+        }
+        for (rule, start) in open_rules.drain() {
+            self.block_rules.entry(rule).or_default().push(Span::new(start, at));
+        }
     }
 
     fn is_empty(&self) -> bool {
@@ -529,6 +614,69 @@ fn diagnostic_start(diagnostic: &OxcDiagnostic) -> Option<u32> {
         .find(|label| label.primary())
         .or_else(|| diagnostic.labels.first())
         .map(oxc_diagnostics::LabeledSpan::offset)
+}
+
+/// Drop from `diagnostics` everything any of `directive_sets` suppresses.
+fn retain_unsuppressed(
+    diagnostics: &mut Vec<OxcDiagnostic>,
+    directive_sets: &[&TemplateCommentDirectives],
+    line_starts: &[u32],
+    rule: &RuleEnum,
+) {
+    if directive_sets.iter().all(|directives| directives.is_empty()) {
+        return;
+    }
+    let plugin_name = rule.plugin_name();
+    let rule_name = rule.name();
+    diagnostics.retain(|diagnostic| {
+        let Some(offset) = diagnostic_start(diagnostic) else { return true };
+        let line = line_of(offset, line_starts);
+        !directive_sets
+            .iter()
+            .any(|directives| directives.suppresses(plugin_name, rule_name, offset, line))
+    });
+}
+
+/// Apply the `<script>` blocks' `/* eslint-disable … */` comment directives to
+/// this pass's messages.
+///
+/// eslint-plugin-vue runs on a single ESLint `Program` covering the whole
+/// `.vue` file, so a script directive comment is an ordinary ESLint core
+/// directive and suppresses any message positioned after it — including
+/// messages from the rules this module dispatches. oxlint instead builds
+/// [`crate::disable_directives::DisableDirectives`] per `<script>` sub-host,
+/// over that sub-host's *extracted* source, so its intervals are sub-host
+/// relative and stop at the end of the script block.
+///
+/// This maps a message back into a sub-host's coordinates only when the
+/// message lies entirely inside that sub-host's slice of the file, which is
+/// exactly where the two models agree. The deliberate consequence is that the
+/// "…and everything after it" tail of a script-block `eslint-disable` is not
+/// honored for messages anchored *outside* the script block; representing that
+/// would mean clamping file offsets into sub-host space, which would also make
+/// an `eslint-disable-next-line` on the script's last line swallow the rest of
+/// the file. The tail is unreachable for three of the four `VueSfcRule`s
+/// anyway (they report on a block's opening tag or inside `<template>`), and
+/// upstream cannot suppress `vue/multi-word-component-names`' filename report
+/// from a script comment either — that one is reported at line 1, column 0,
+/// ahead of any comment inside a block.
+pub fn filter_by_script_directives(messages: &mut Vec<Message>, sub_hosts: &[ContextSubHost<'_>]) {
+    if messages.is_empty() || sub_hosts.is_empty() {
+        return;
+    }
+    messages.retain(|message| {
+        let Some(rule) = &message.rule else { return true };
+        !sub_hosts.iter().any(|sub_host| {
+            let offset = sub_host.source_text_offset();
+            let Some(start) = message.span.start.checked_sub(offset) else { return false };
+            let Some(end) = message.span.end.checked_sub(offset) else { return false };
+            let len = u32::try_from(sub_host.semantic().source_text().len()).unwrap_or(u32::MAX);
+            if end > len {
+                return false;
+            }
+            sub_host.disable_directives().contains(&rule.rule_name, Span::new(start, end))
+        })
+    });
 }
 
 /// The 0-based line `offset` falls on, given [`line_start_offsets`].

@@ -3,6 +3,20 @@ source: crates/oxc_linter/src/tester.rs
 assertion_line: 490
 ---
 
+  ⚠ vue(block-order): '<template>' should be above '<script>' on line 1.
+   ╭─[block_order.tsx:1:43]
+ 1 │ <script>1</script><!-- not a directive --><template><div/></template>
+   ·                                           ──────────
+   ╰────
+  help: Reorder the SFC's top-level blocks to match the configured `order`.
+
+  ⚠ vue(block-order): '<script>' should be above '<style>' on line 1.
+   ╭─[block_order.tsx:1:59]
+ 1 │ <!-- eslint-disable vue/block-order --><style>.a{}</style><script>1</script>
+   ·                                                           ────────
+   ╰────
+  help: Reorder the SFC's top-level blocks to match the configured `order`.
+
   ⚠ vue(block-order): '<script>' should be above '<style>' on line 1.
    ╭─[block_order.tsx:1:20]
  1 │ <style>.a{}</style><script>1</script><template><div/></template>

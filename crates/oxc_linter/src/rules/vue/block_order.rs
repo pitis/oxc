@@ -359,9 +359,45 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Suppression by a top-level `<!-- eslint-disable … -->` comment,
+            // the form eslint-plugin-vue's `vue/comment-directive` collects
+            // outside the blocks. The report is anchored at the offending
+            // block's opening tag, so the comment has to precede that block.
+            // Control: the same source without the comment is in `fail`.
+            (
+                "<script>1</script><!-- eslint-disable vue/block-order --><template><div/></template>",
+                Some(json!([{ "order": ["template", "script"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `eslint-disable-next-line` covers the line the block starts on.
+            (
+                "<script>1</script>\n<!-- eslint-disable-next-line vue/block-order -->\n<template><div/></template>",
+                Some(json!([{ "order": ["template", "script"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
+            // Control for the `pass` suppression cases: a top-level comment
+            // that isn't a directive suppresses nothing.
+            (
+                "<script>1</script><!-- not a directive --><template><div/></template>",
+                Some(json!([{ "order": ["template", "script"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Upstream's `clear` quirk, faithfully reproduced: a top-level
+            // block directive is closed at the end of the next block, so a
+            // disable at the top of the file does NOT reach a report anchored
+            // on the *second* block.
+            (
+                "<!-- eslint-disable vue/block-order --><style>.a{}</style><script>1</script>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Default order: style before script/template.
             (
                 "<style>.a{}</style><script>1</script><template><div/></template>",

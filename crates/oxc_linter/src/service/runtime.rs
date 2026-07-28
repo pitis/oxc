@@ -669,8 +669,12 @@ impl Runtime {
                         // The template pass is independent of the script
                         // sub-hosts: it must run even for `.vue` files with
                         // no `<script>` block at all.
-                        let template_messages =
+                        let mut template_messages =
                             me.linter.run_vue_template_rules(path, dep.source_text);
+                        crate::vue_template::filter_by_script_directives(
+                            &mut template_messages,
+                            &context_sub_hosts,
+                        );
 
                         if context_sub_hosts.is_empty() && template_messages.is_empty() {
                             return;
@@ -687,30 +691,12 @@ impl Runtime {
                                 rule_timing_store,
                             )
                         };
-                        // NOTE (wave 3): template/SFC messages are appended
-                        // *after* `run_with_disable_directives`, so they are
-                        // NOT filtered by the script-comment directive
-                        // machinery — a `/* oxlint-disable vue/no-v-html */`
-                        // in a `<script>` block does not suppress a
-                        // `<template>` diagnostic.
-                        //
-                        // `<!-- eslint-disable … -->` HTML comments *inside*
-                        // the template ARE honored (see
-                        // `TemplateCommentDirectives` in `vue_template.rs`),
-                        // which is the form eslint-plugin-vue itself supports
-                        // and the only one real-world Vue code uses for
-                        // template rules.
-                        //
-                        // Wiring the script directives in is not a matter of
-                        // moving this line: `DisableDirectives` is built per
-                        // *sub-host*, over that sub-host's extracted script
-                        // text, so its spans are sub-host-relative while
-                        // template spans are file-absolute; a `.vue` file can
-                        // have several script sub-hosts (`<script>` +
-                        // `<script setup>`), each with its own directive set;
-                        // and a "rest of the file" disable would have to be
-                        // re-interpreted as covering source outside the script
-                        // block it lives in. Deferred rather than approximated.
+                        // Template/SFC messages are appended *after*
+                        // `run_with_disable_directives` because they are
+                        // filtered by their own pass: HTML comment directives
+                        // in `vue_template.rs`, script comment directives by
+                        // `filter_by_script_directives` above (which has to
+                        // run before `context_sub_hosts` is consumed).
                         messages.extend(template_messages);
 
                         // Store the disable directives for this file
@@ -840,8 +826,12 @@ impl Runtime {
 
                             // See `run_impl`: the template pass also covers
                             // `.vue` files without any `<script>` block.
-                            let template_messages =
+                            let mut template_messages =
                                 me.linter.run_vue_template_rules(path, source_text);
+                            crate::vue_template::filter_by_script_directives(
+                                &mut template_messages,
+                                &context_sub_hosts,
+                            );
 
                             if context_sub_hosts.is_empty() && template_messages.is_empty() {
                                 return;
@@ -989,9 +979,13 @@ impl Runtime {
 
                         // See `run_impl`: the template pass also covers
                         // `.vue` files without any `<script>` block.
-                        let template_messages = me
+                        let mut template_messages = me
                             .linter
                             .run_vue_template_rules(Path::new(&module.path), source_text);
+                        crate::vue_template::filter_by_script_directives(
+                            &mut template_messages,
+                            &context_sub_hosts,
+                        );
 
                         if !context_sub_hosts.is_empty() {
                             messages.lock().unwrap().extend(

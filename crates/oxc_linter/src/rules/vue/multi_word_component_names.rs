@@ -571,11 +571,93 @@ mod tests {
                 None,
                 Some(PathBuf::from("todo.vue")),
             ),
+            // Suppression. The filename fallback reports at line 1, column 0
+            // (upstream's literal `loc: { line: 1, column: 0 }`), so the only
+            // directive that can precede it is a top-level `<!-- … -->`
+            // comment at the very start of the file — which is exactly what
+            // eslint-plugin-vue's `vue/comment-directive` +  processor honor.
+            // Control: the same source without the comment is in `fail`.
+            (
+                "<!-- eslint-disable vue/multi-word-component-names -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // Rule-less form suppresses everything.
+            (
+                "<!-- eslint-disable -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // Bare rule name (no plugin prefix), and a trailing description.
+            (
+                "<!-- eslint-disable multi-word-component-names -- legacy file -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // `oxlint-` spelling, accepted as a synonym.
+            (
+                "<!-- oxlint-disable vue/multi-word-component-names -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // A line directive on the report's own line (line 1) works too.
+            (
+                "<!-- eslint-disable-line vue/multi-word-component-names --><template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // An explicit `name` is reported at the name literal, i.e. inside
+            // the `<script>` block, so an ordinary script comment directive
+            // suppresses it — as it does upstream, where the whole `.vue` file
+            // is one ESLint `Program`. Control: same source without the
+            // comment is in `fail`.
+            (
+                "<template><div/></template><script setup>/* eslint-disable vue/multi-word-component-names */\ndefineOptions({ name: 'Todo' });</script>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                "<template><div/></template><script>// eslint-disable-next-line vue/multi-word-component-names\nexport default { name: 'Todo' };</script>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
             // No script at all: falls back to the (single-word) filename.
             ("<template><div/></template>", None, None, Some(PathBuf::from("todo.vue"))),
+            // Control for the suppression cases in `pass`: a top-level comment
+            // that is not a directive changes nothing…
+            (
+                "<!-- just a comment -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // …and a top-level directive naming a *different* rule changes
+            // nothing either.
+            (
+                "<!-- eslint-disable vue/no-v-html -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // A script directive cannot reach the filename fallback: that
+            // report is anchored at offset 0, ahead of the comment. Upstream
+            // behaves the same way.
+            (
+                "<template><div/></template><script setup>/* eslint-disable vue/multi-word-component-names */</script>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
             // Malformed script: upstream this is a whole-file parse error, so
             // eslint runs no rule at all and this rule reports nothing even
             // though the filename is single-word — verified against real
