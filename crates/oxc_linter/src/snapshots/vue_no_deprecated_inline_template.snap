@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-inline-template): `inline-template` are deprecated.
+   ╭─[no_deprecated_inline_template.tsx:1:25]
+ 1 │ <template><my-component inline-template></my-component></template>
+   ·                         ───────────────
+   ╰────
+  help: Vue 3 removed the `inline-template` attribute; use a scoped slot or a real single-file component instead.
+
+  ⚠ vue(no-deprecated-inline-template): `inline-template` are deprecated.
+   ╭─[no_deprecated_inline_template.tsx:1:25]
+ 1 │ <template><my-component inline-template="foo"></my-component></template>
+   ·                         ───────────────
+   ╰────
+  help: Vue 3 removed the `inline-template` attribute; use a scoped slot or a real single-file component instead.
+
+  ⚠ vue(no-deprecated-inline-template): `inline-template` are deprecated.
+   ╭─[no_deprecated_inline_template.tsx:1:16]
+ 1 │ <template><div inline-template></div></template>
+   ·                ───────────────
+   ╰────
+  help: Vue 3 removed the `inline-template` attribute; use a scoped slot or a real single-file component instead.

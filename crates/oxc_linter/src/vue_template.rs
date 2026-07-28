@@ -102,6 +102,10 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueNoDeprecatedVIs(rule) => Some(rule),
         RuleEnum::VueNoDeprecatedVOnNativeModifier(rule) => Some(rule),
         RuleEnum::VueNoDeprecatedVOnNumberModifiers(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedHtmlElementIs(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedInlineTemplate(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedRouterLinkTagProp(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedFilter(rule) => Some(rule),
         _ => None,
     }
 }
@@ -111,6 +115,7 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
 fn as_vue_sfc_rule(rule: &RuleEnum) -> Option<&dyn VueSfcRule> {
     match rule {
         RuleEnum::VueValidTemplateRoot(rule) => Some(rule),
+        RuleEnum::VueNoDeprecatedFunctionalTemplate(rule) => Some(rule),
         _ => None,
     }
 }

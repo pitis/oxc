@@ -826,8 +826,13 @@ pub use crate::rules::vue::no_deprecated_data_object_declaration::NoDeprecatedDa
 pub use crate::rules::vue::no_deprecated_delete_set::NoDeprecatedDeleteSet as VueNoDeprecatedDeleteSet;
 pub use crate::rules::vue::no_deprecated_destroyed_lifecycle::NoDeprecatedDestroyedLifecycle as VueNoDeprecatedDestroyedLifecycle;
 pub use crate::rules::vue::no_deprecated_events_api::NoDeprecatedEventsApi as VueNoDeprecatedEventsApi;
+pub use crate::rules::vue::no_deprecated_filter::NoDeprecatedFilter as VueNoDeprecatedFilter;
+pub use crate::rules::vue::no_deprecated_functional_template::NoDeprecatedFunctionalTemplate as VueNoDeprecatedFunctionalTemplate;
+pub use crate::rules::vue::no_deprecated_html_element_is::NoDeprecatedHtmlElementIs as VueNoDeprecatedHtmlElementIs;
+pub use crate::rules::vue::no_deprecated_inline_template::NoDeprecatedInlineTemplate as VueNoDeprecatedInlineTemplate;
 pub use crate::rules::vue::no_deprecated_model_definition::NoDeprecatedModelDefinition as VueNoDeprecatedModelDefinition;
 pub use crate::rules::vue::no_deprecated_props_default_this::NoDeprecatedPropsDefaultThis as VueNoDeprecatedPropsDefaultThis;
+pub use crate::rules::vue::no_deprecated_router_link_tag_prop::NoDeprecatedRouterLinkTagProp as VueNoDeprecatedRouterLinkTagProp;
 pub use crate::rules::vue::no_deprecated_scope_attribute::NoDeprecatedScopeAttribute as VueNoDeprecatedScopeAttribute;
 pub use crate::rules::vue::no_deprecated_slot_attribute::NoDeprecatedSlotAttribute as VueNoDeprecatedSlotAttribute;
 pub use crate::rules::vue::no_deprecated_slot_scope_attribute::NoDeprecatedSlotScopeAttribute as VueNoDeprecatedSlotScopeAttribute;
@@ -1737,8 +1742,13 @@ pub enum RuleEnum {
     VueNoDeprecatedDeleteSet(VueNoDeprecatedDeleteSet),
     VueNoDeprecatedDestroyedLifecycle(VueNoDeprecatedDestroyedLifecycle),
     VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi),
+    VueNoDeprecatedFilter(VueNoDeprecatedFilter),
+    VueNoDeprecatedFunctionalTemplate(VueNoDeprecatedFunctionalTemplate),
+    VueNoDeprecatedHtmlElementIs(VueNoDeprecatedHtmlElementIs),
+    VueNoDeprecatedInlineTemplate(VueNoDeprecatedInlineTemplate),
     VueNoDeprecatedModelDefinition(VueNoDeprecatedModelDefinition),
     VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis),
+    VueNoDeprecatedRouterLinkTagProp(VueNoDeprecatedRouterLinkTagProp),
     VueNoDeprecatedScopeAttribute(VueNoDeprecatedScopeAttribute),
     VueNoDeprecatedSlotAttribute(VueNoDeprecatedSlotAttribute),
     VueNoDeprecatedSlotScopeAttribute(VueNoDeprecatedSlotScopeAttribute),
@@ -2735,11 +2745,18 @@ const VUE_NO_DEPRECATED_DELETE_SET_ID: usize =
     VUE_NO_DEPRECATED_DATA_OBJECT_DECLARATION_ID + 1usize;
 const VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID: usize = VUE_NO_DEPRECATED_DELETE_SET_ID + 1usize;
 const VUE_NO_DEPRECATED_EVENTS_API_ID: usize = VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID + 1usize;
-const VUE_NO_DEPRECATED_MODEL_DEFINITION_ID: usize = VUE_NO_DEPRECATED_EVENTS_API_ID + 1usize;
+const VUE_NO_DEPRECATED_FILTER_ID: usize = VUE_NO_DEPRECATED_EVENTS_API_ID + 1usize;
+const VUE_NO_DEPRECATED_FUNCTIONAL_TEMPLATE_ID: usize = VUE_NO_DEPRECATED_FILTER_ID + 1usize;
+const VUE_NO_DEPRECATED_HTML_ELEMENT_IS_ID: usize =
+    VUE_NO_DEPRECATED_FUNCTIONAL_TEMPLATE_ID + 1usize;
+const VUE_NO_DEPRECATED_INLINE_TEMPLATE_ID: usize = VUE_NO_DEPRECATED_HTML_ELEMENT_IS_ID + 1usize;
+const VUE_NO_DEPRECATED_MODEL_DEFINITION_ID: usize = VUE_NO_DEPRECATED_INLINE_TEMPLATE_ID + 1usize;
 const VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID: usize =
     VUE_NO_DEPRECATED_MODEL_DEFINITION_ID + 1usize;
-const VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID: usize =
+const VUE_NO_DEPRECATED_ROUTER_LINK_TAG_PROP_ID: usize =
     VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID + 1usize;
+const VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID: usize =
+    VUE_NO_DEPRECATED_ROUTER_LINK_TAG_PROP_ID + 1usize;
 const VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID: usize = VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID + 1usize;
 const VUE_NO_DEPRECATED_SLOT_SCOPE_ATTRIBUTE_ID: usize =
     VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID + 1usize;
@@ -3765,8 +3782,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(_) => VUE_NO_DEPRECATED_DELETE_SET_ID,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VUE_NO_DEPRECATED_DESTROYED_LIFECYCLE_ID,
             Self::VueNoDeprecatedEventsApi(_) => VUE_NO_DEPRECATED_EVENTS_API_ID,
+            Self::VueNoDeprecatedFilter(_) => VUE_NO_DEPRECATED_FILTER_ID,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => VUE_NO_DEPRECATED_FUNCTIONAL_TEMPLATE_ID,
+            Self::VueNoDeprecatedHtmlElementIs(_) => VUE_NO_DEPRECATED_HTML_ELEMENT_IS_ID,
+            Self::VueNoDeprecatedInlineTemplate(_) => VUE_NO_DEPRECATED_INLINE_TEMPLATE_ID,
             Self::VueNoDeprecatedModelDefinition(_) => VUE_NO_DEPRECATED_MODEL_DEFINITION_ID,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VUE_NO_DEPRECATED_ROUTER_LINK_TAG_PROP_ID,
             Self::VueNoDeprecatedScopeAttribute(_) => VUE_NO_DEPRECATED_SCOPE_ATTRIBUTE_ID,
             Self::VueNoDeprecatedSlotAttribute(_) => VUE_NO_DEPRECATED_SLOT_ATTRIBUTE_ID,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => VUE_NO_DEPRECATED_SLOT_SCOPE_ATTRIBUTE_ID,
@@ -4778,8 +4800,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::NAME,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::NAME,
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::NAME,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::NAME,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::NAME,
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::NAME,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::NAME,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::NAME,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::NAME,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VueNoDeprecatedRouterLinkTagProp::NAME,
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::NAME,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::NAME,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::NAME,
@@ -5847,8 +5874,15 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::CATEGORY
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::CATEGORY,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::CATEGORY,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::CATEGORY
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::CATEGORY,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::CATEGORY,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::CATEGORY,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::CATEGORY,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VueNoDeprecatedRouterLinkTagProp::CATEGORY,
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::CATEGORY,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::CATEGORY,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => {
@@ -6863,8 +6897,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::FIX,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::FIX,
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::FIX,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::FIX,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::FIX,
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::FIX,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::FIX,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::FIX,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::FIX,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VueNoDeprecatedRouterLinkTagProp::FIX,
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::FIX,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::FIX,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::FIX,
@@ -8135,11 +8174,22 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::documentation()
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::documentation(),
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::documentation(),
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::documentation()
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::documentation(),
+            Self::VueNoDeprecatedInlineTemplate(_) => {
+                VueNoDeprecatedInlineTemplate::documentation()
+            }
             Self::VueNoDeprecatedModelDefinition(_) => {
                 VueNoDeprecatedModelDefinition::documentation()
             }
             Self::VueNoDeprecatedPropsDefaultThis(_) => {
                 VueNoDeprecatedPropsDefaultThis::documentation()
+            }
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => {
+                VueNoDeprecatedRouterLinkTagProp::documentation()
             }
             Self::VueNoDeprecatedScopeAttribute(_) => {
                 VueNoDeprecatedScopeAttribute::documentation()
@@ -10586,6 +10636,20 @@ impl RuleEnum {
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::config_schema(generator)
                 .or_else(|| VueNoDeprecatedEventsApi::schema(generator)),
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::config_schema(generator)
+                .or_else(|| VueNoDeprecatedFilter::schema(generator)),
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedFunctionalTemplate::schema(generator))
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => {
+                VueNoDeprecatedHtmlElementIs::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedHtmlElementIs::schema(generator))
+            }
+            Self::VueNoDeprecatedInlineTemplate(_) => {
+                VueNoDeprecatedInlineTemplate::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedInlineTemplate::schema(generator))
+            }
             Self::VueNoDeprecatedModelDefinition(_) => {
                 VueNoDeprecatedModelDefinition::config_schema(generator)
                     .or_else(|| VueNoDeprecatedModelDefinition::schema(generator))
@@ -10593,6 +10657,10 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => {
                 VueNoDeprecatedPropsDefaultThis::config_schema(generator)
                     .or_else(|| VueNoDeprecatedPropsDefaultThis::schema(generator))
+            }
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => {
+                VueNoDeprecatedRouterLinkTagProp::config_schema(generator)
+                    .or_else(|| VueNoDeprecatedRouterLinkTagProp::schema(generator))
             }
             Self::VueNoDeprecatedScopeAttribute(_) => {
                 VueNoDeprecatedScopeAttribute::config_schema(generator)
@@ -11620,8 +11688,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(_) => "vue",
             Self::VueNoDeprecatedDestroyedLifecycle(_) => "vue",
             Self::VueNoDeprecatedEventsApi(_) => "vue",
+            Self::VueNoDeprecatedFilter(_) => "vue",
+            Self::VueNoDeprecatedFunctionalTemplate(_) => "vue",
+            Self::VueNoDeprecatedHtmlElementIs(_) => "vue",
+            Self::VueNoDeprecatedInlineTemplate(_) => "vue",
             Self::VueNoDeprecatedModelDefinition(_) => "vue",
             Self::VueNoDeprecatedPropsDefaultThis(_) => "vue",
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => "vue",
             Self::VueNoDeprecatedScopeAttribute(_) => "vue",
             Self::VueNoDeprecatedSlotAttribute(_) => "vue",
             Self::VueNoDeprecatedSlotScopeAttribute(_) => "vue",
@@ -14334,12 +14407,31 @@ impl RuleEnum {
             Self::VueNoDeprecatedEventsApi(_) => Ok(Self::VueNoDeprecatedEventsApi(
                 VueNoDeprecatedEventsApi::from_configuration(value)?,
             )),
+            Self::VueNoDeprecatedFilter(_) => {
+                Ok(Self::VueNoDeprecatedFilter(VueNoDeprecatedFilter::from_configuration(value)?))
+            }
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                Ok(Self::VueNoDeprecatedFunctionalTemplate(
+                    VueNoDeprecatedFunctionalTemplate::from_configuration(value)?,
+                ))
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => Ok(Self::VueNoDeprecatedHtmlElementIs(
+                VueNoDeprecatedHtmlElementIs::from_configuration(value)?,
+            )),
+            Self::VueNoDeprecatedInlineTemplate(_) => Ok(Self::VueNoDeprecatedInlineTemplate(
+                VueNoDeprecatedInlineTemplate::from_configuration(value)?,
+            )),
             Self::VueNoDeprecatedModelDefinition(_) => Ok(Self::VueNoDeprecatedModelDefinition(
                 VueNoDeprecatedModelDefinition::from_configuration(value)?,
             )),
             Self::VueNoDeprecatedPropsDefaultThis(_) => Ok(Self::VueNoDeprecatedPropsDefaultThis(
                 VueNoDeprecatedPropsDefaultThis::from_configuration(value)?,
             )),
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => {
+                Ok(Self::VueNoDeprecatedRouterLinkTagProp(
+                    VueNoDeprecatedRouterLinkTagProp::from_configuration(value)?,
+                ))
+            }
             Self::VueNoDeprecatedScopeAttribute(_) => Ok(Self::VueNoDeprecatedScopeAttribute(
                 VueNoDeprecatedScopeAttribute::from_configuration(value)?,
             )),
@@ -15391,8 +15483,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedFilter(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.to_configuration(),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.to_configuration(),
@@ -16289,8 +16386,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedFilter(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run(node, ctx),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run(node, ctx),
@@ -17199,8 +17301,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedFilter(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_once(ctx),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_once(ctx),
@@ -18224,8 +18331,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedFilter(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -19137,8 +19249,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedEventsApi(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedFilter(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.should_run(ctx),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.should_run(ctx),
@@ -20406,11 +20523,22 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::IS_TSGOLINT_RULE
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::IS_TSGOLINT_RULE,
+            Self::VueNoDeprecatedInlineTemplate(_) => {
+                VueNoDeprecatedInlineTemplate::IS_TSGOLINT_RULE
+            }
             Self::VueNoDeprecatedModelDefinition(_) => {
                 VueNoDeprecatedModelDefinition::IS_TSGOLINT_RULE
             }
             Self::VueNoDeprecatedPropsDefaultThis(_) => {
                 VueNoDeprecatedPropsDefaultThis::IS_TSGOLINT_RULE
+            }
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => {
+                VueNoDeprecatedRouterLinkTagProp::IS_TSGOLINT_RULE
             }
             Self::VueNoDeprecatedScopeAttribute(_) => {
                 VueNoDeprecatedScopeAttribute::IS_TSGOLINT_RULE
@@ -21497,8 +21625,15 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::VERSION
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::VERSION,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::VERSION,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::VERSION
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::VERSION,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::VERSION,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::VERSION,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::VERSION,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VueNoDeprecatedRouterLinkTagProp::VERSION,
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::VERSION,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::VERSION,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => {
@@ -22609,8 +22744,17 @@ impl RuleEnum {
                 VueNoDeprecatedDestroyedLifecycle::HAS_CONFIG
             }
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::HAS_CONFIG,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::HAS_CONFIG,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => {
+                VueNoDeprecatedFunctionalTemplate::HAS_CONFIG
+            }
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::HAS_CONFIG,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::HAS_CONFIG,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::HAS_CONFIG,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::HAS_CONFIG,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => {
+                VueNoDeprecatedRouterLinkTagProp::HAS_CONFIG
+            }
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::HAS_CONFIG,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::HAS_CONFIG,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => {
@@ -23632,8 +23776,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(_) => VueNoDeprecatedDeleteSet::INFO,
             Self::VueNoDeprecatedDestroyedLifecycle(_) => VueNoDeprecatedDestroyedLifecycle::INFO,
             Self::VueNoDeprecatedEventsApi(_) => VueNoDeprecatedEventsApi::INFO,
+            Self::VueNoDeprecatedFilter(_) => VueNoDeprecatedFilter::INFO,
+            Self::VueNoDeprecatedFunctionalTemplate(_) => VueNoDeprecatedFunctionalTemplate::INFO,
+            Self::VueNoDeprecatedHtmlElementIs(_) => VueNoDeprecatedHtmlElementIs::INFO,
+            Self::VueNoDeprecatedInlineTemplate(_) => VueNoDeprecatedInlineTemplate::INFO,
             Self::VueNoDeprecatedModelDefinition(_) => VueNoDeprecatedModelDefinition::INFO,
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::INFO,
+            Self::VueNoDeprecatedRouterLinkTagProp(_) => VueNoDeprecatedRouterLinkTagProp::INFO,
             Self::VueNoDeprecatedScopeAttribute(_) => VueNoDeprecatedScopeAttribute::INFO,
             Self::VueNoDeprecatedSlotAttribute(_) => VueNoDeprecatedSlotAttribute::INFO,
             Self::VueNoDeprecatedSlotScopeAttribute(_) => VueNoDeprecatedSlotScopeAttribute::INFO,
@@ -24536,8 +24685,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.types_info(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.types_info(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.types_info(),
+            Self::VueNoDeprecatedFilter(rule) => rule.types_info(),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.types_info(),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.types_info(),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.types_info(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.types_info(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.types_info(),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.types_info(),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.types_info(),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.types_info(),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.types_info(),
@@ -25433,8 +25587,13 @@ impl RuleEnum {
             Self::VueNoDeprecatedDeleteSet(rule) => rule.run_info(),
             Self::VueNoDeprecatedDestroyedLifecycle(rule) => rule.run_info(),
             Self::VueNoDeprecatedEventsApi(rule) => rule.run_info(),
+            Self::VueNoDeprecatedFilter(rule) => rule.run_info(),
+            Self::VueNoDeprecatedFunctionalTemplate(rule) => rule.run_info(),
+            Self::VueNoDeprecatedHtmlElementIs(rule) => rule.run_info(),
+            Self::VueNoDeprecatedInlineTemplate(rule) => rule.run_info(),
             Self::VueNoDeprecatedModelDefinition(rule) => rule.run_info(),
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_info(),
+            Self::VueNoDeprecatedRouterLinkTagProp(rule) => rule.run_info(),
             Self::VueNoDeprecatedScopeAttribute(rule) => rule.run_info(),
             Self::VueNoDeprecatedSlotAttribute(rule) => rule.run_info(),
             Self::VueNoDeprecatedSlotScopeAttribute(rule) => rule.run_info(),
@@ -26464,8 +26623,13 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoDeprecatedDeleteSet(VueNoDeprecatedDeleteSet::default()),
         RuleEnum::VueNoDeprecatedDestroyedLifecycle(VueNoDeprecatedDestroyedLifecycle::default()),
         RuleEnum::VueNoDeprecatedEventsApi(VueNoDeprecatedEventsApi::default()),
+        RuleEnum::VueNoDeprecatedFilter(VueNoDeprecatedFilter::default()),
+        RuleEnum::VueNoDeprecatedFunctionalTemplate(VueNoDeprecatedFunctionalTemplate::default()),
+        RuleEnum::VueNoDeprecatedHtmlElementIs(VueNoDeprecatedHtmlElementIs::default()),
+        RuleEnum::VueNoDeprecatedInlineTemplate(VueNoDeprecatedInlineTemplate::default()),
         RuleEnum::VueNoDeprecatedModelDefinition(VueNoDeprecatedModelDefinition::default()),
         RuleEnum::VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis::default()),
+        RuleEnum::VueNoDeprecatedRouterLinkTagProp(VueNoDeprecatedRouterLinkTagProp::default()),
         RuleEnum::VueNoDeprecatedScopeAttribute(VueNoDeprecatedScopeAttribute::default()),
         RuleEnum::VueNoDeprecatedSlotAttribute(VueNoDeprecatedSlotAttribute::default()),
         RuleEnum::VueNoDeprecatedSlotScopeAttribute(VueNoDeprecatedSlotScopeAttribute::default()),

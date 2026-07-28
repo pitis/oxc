@@ -90,6 +90,33 @@ pub fn is_reserved_element_name(name: &str) -> bool {
         || MATHML_ELEMENTS.contains(&name)
 }
 
+/// eslint-plugin-vue's `isHtmlWellKnownElementName(name) ||
+/// isSvgWellKnownElementName(name) || isMathWellKnownElementName(name)` —
+/// the *narrower* native-element check used by `no-deprecated-html-element-is`.
+///
+/// Unlike [`is_reserved_element_name`], this deliberately excludes deprecated
+/// HTML elements (`VUE_RESERVED_DEPRECATED_HTML_ELEMENTS`) and the
+/// foreign/kebab-case names in `VUE_RESERVED_KEBAB_CASE_ELEMENTS`: verified by
+/// diffing eslint-plugin-vue's own vendored `html-elements.js`/
+/// `svg-elements.js`/`math-elements.js` lists (what
+/// `isHtmlWellKnownElementName`/`isSvgWellKnownElementName`/
+/// `isMathWellKnownElementName` actually check) against this crate's
+/// `VUE_RESERVED_*` sets — neither the deprecated-HTML nor the kebab-case set
+/// has a matching source list upstream, so `no-deprecated-html-element-is`
+/// (which calls exactly these three predicates, nothing broader) never
+/// considers `<marquee is="...">` or `<font-face is="...">` deprecated the
+/// way [`is_reserved_element_name`]-based rules would.
+///
+/// Exact match, case-sensitive: native element names in a template are
+/// conventionally lowercase, and an uppercase/PascalCase tag is a component
+/// reference, never a match here — mirroring upstream's raw `Set.has` lookup,
+/// which never case-folds.
+pub fn is_html_svg_or_math_element_name(name: &str) -> bool {
+    VUE_RESERVED_HTML_ELEMENTS.contains(name)
+        || VUE_RESERVED_SVG_ELEMENTS.contains(name)
+        || MATHML_ELEMENTS.contains(&name)
+}
+
 /// MathML element names (eslint-plugin-vue checks these alongside HTML/SVG).
 const MATHML_ELEMENTS: &[&str] = &[
     "annotation",
