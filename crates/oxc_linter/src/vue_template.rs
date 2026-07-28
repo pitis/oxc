@@ -6,8 +6,9 @@
 //! rules of the `vue` plugin over the resulting AST.
 //!
 //! It is deliberately independent of the sub-host loop:
-//! - spans are absolute file offsets (template AST spans are relative to the
-//!   block content and shifted by `content_span.start` on report), and
+//! - spans are absolute file offsets (`parse_template` is handed the block's
+//!   `content_span.start` as its `base_offset`, so the AST it returns is
+//!   already file-relative), and
 //! - it also covers `.vue` files that have no `<script>` block at all,
 //!   which the sub-host loop skips entirely.
 //!
@@ -32,9 +33,9 @@ use crate::{
 /// the `vue` plugin; its `Rule` impl is empty and this trait carries the
 /// template logic.
 pub trait VueTemplateRule {
-    /// `nodes` are the root nodes of one `<template>` block; spans are
-    /// relative to the block content. Report through `ctx` — the pass
-    /// shifts spans to absolute file offsets.
+    /// `nodes` are the root nodes of one `<template>` block; their spans are
+    /// absolute file offsets, and index into `ctx.source_text()` (the whole
+    /// `.vue` file). Report through `ctx` with those same spans.
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>);
 }
 
@@ -49,19 +50,19 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
 
 /// Reporting context handed to [`VueTemplateRule::run_on_template`].
 pub struct VueTemplateContext<'a> {
-    /// The `<template>` block content the AST spans index into.
+    /// The whole `.vue` file source — what the AST spans index into.
     source_text: &'a str,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
 impl<'a> VueTemplateContext<'a> {
-    /// The template block's content (what the AST spans are relative to).
+    /// The whole `.vue` file source (what the AST spans are relative to).
     pub fn source_text(&self) -> &'a str {
         self.source_text
     }
 
-    /// Report a violation. Label spans are relative to the template block
-    /// content; the pass converts them to file offsets.
+    /// Report a violation. Label spans are absolute file offsets, exactly as
+    /// they come off the AST.
     pub fn diagnostic(&mut self, diagnostic: OxcDiagnostic) {
         self.diagnostics.push(diagnostic);
     }
@@ -98,10 +99,11 @@ impl Linter {
             if block.name != "template" || block.attribute_value("src").is_some() {
                 continue;
             }
-            let nodes = parse_template(block.content);
+            // `base_offset` makes every span in `nodes` a file offset, so no
+            // post-hoc shifting of the reported diagnostics is needed.
+            let nodes = parse_template(block.content, block.content_span.start);
             for (rule, template_rule, severity) in &template_rules {
-                let mut ctx =
-                    VueTemplateContext { source_text: block.content, diagnostics: Vec::new() };
+                let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
                 template_rule.run_on_template(&nodes, &mut ctx);
                 for diagnostic in ctx.diagnostics {
                     // Mirror `LintContext::add_diagnostic`: error code, docs
@@ -117,14 +119,11 @@ impl Linter {
                             rule_name
                         ))
                         .with_severity((*severity).into());
-                    let mut message =
+                    let message =
                         Message::new(error, PossibleFixes::None).with_rule(MessageRule {
                             plugin_name: std::borrow::Cow::Borrowed(plugin_name),
                             rule_name: std::borrow::Cow::Borrowed(rule_name),
                         });
-                    if block.content_span.start != 0 {
-                        message.move_offset(block.content_span.start);
-                    }
                     messages.push(message);
                 }
             }
