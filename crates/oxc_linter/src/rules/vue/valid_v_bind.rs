@@ -270,6 +270,29 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // The `.prop` shorthand's leading `.` introduces the *argument*,
+            // not a modifier: the report must underline `bogus`, not `foo`
+            // (eslint-plugin-vue 10.10.0 underlines `bogus`).
+            (
+                r#"<template><div .foo.bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Dots inside a dynamic argument aren't modifier separators
+            // either, under both the `.prop` and `:` shorthands.
+            (
+                r#"<template><div .[a.b].bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :[a.b].bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         Tester::new(ValidVBind::NAME, ValidVBind::PLUGIN, pass, fail).test_and_snapshot();

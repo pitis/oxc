@@ -73,6 +73,13 @@ assertion_line: 490
    ╰────
   help: Bind to a property of the iterated item instead, e.g. `item.value`.
 
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'item' itself.
+   ╭─[valid_v_model.tsx:1:49]
+ 1 │ <template><input v-for="item in items" v-model="item"></template>
+   ·                                                 ────
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
   ⚠ vue(valid-v-model): 'v-model' directives require that attribute value.
    ╭─[valid_v_model.tsx:1:24]
  1 │ <template><MyComponent v-model="" /></template>

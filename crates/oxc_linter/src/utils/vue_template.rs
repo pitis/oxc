@@ -290,25 +290,41 @@ pub fn walk_elements_with_siblings<'e, 'a>(
 /// rules that need to report on the modifier's own node (eslint-plugin-vue's
 /// `VIdentifier`) rather than the whole directive key — e.g.
 /// `no-deprecated-v-on-native-modifier`, `no-deprecated-v-on-number-modifiers`
-/// — recompute it here. This scans `attribute.name_span`'s source text for
-/// `.`-delimited segments, tracking `[`/`]` depth so a literal `.` inside a
-/// dynamic argument (e.g. `:[a.b].sync`) isn't mistaken for a modifier
-/// boundary. `index` is assumed in range (callers get it from iterating
+/// — recompute it here.
+///
+/// The scan for `.`-delimited segments starts *after* the directive argument,
+/// because neither the shorthand prefix nor the argument is modifier
+/// territory: `.foo.bogus` (the `.prop` shorthand, argument `foo`) has exactly
+/// one modifier, `bogus`, and `:[a.b].sync` (dynamic argument `[a.b]`, dots
+/// included) has exactly one, `sync` — matching how
+/// [`oxc_vue_parser::ast::Directive::modifiers`] itself was split. Starting at
+/// the raw name's beginning instead would count the shorthand's own leading
+/// `.` and every dot inside a dynamic argument as a modifier separator.
+/// Directives without an argument (`v-for.foo`, `v-model.aaa`, `v-bind.prop`)
+/// scan from the beginning, where the first dot is the real separator.
+///
+/// `index` is assumed in range (callers get it from iterating
 /// `Directive::modifiers` itself).
 pub fn directive_modifier_span(attribute: &Attribute<'_>, source_text: &str, index: usize) -> Span {
     let name_span = attribute.name_span;
     let text = &source_text[name_span.start as usize..name_span.end as usize];
 
-    let mut depth = 0i32;
-    let mut dot_positions = Vec::new();
-    for (byte_index, ch) in text.char_indices() {
-        match ch {
-            '[' => depth += 1,
-            ']' => depth -= 1,
-            '.' if depth == 0 => dot_positions.push(byte_index),
-            _ => {}
-        }
-    }
+    // Everything up to and including the argument is skipped; what remains is
+    // exactly `.mod1.mod2…`.
+    let scan_start = attribute
+        .directive
+        .as_ref()
+        .and_then(|directive| directive.argument.as_ref())
+        .map_or(0, |argument| {
+            usize::try_from(argument.span.end.saturating_sub(name_span.start))
+                .unwrap_or(0)
+                .min(text.len())
+        });
+
+    let dot_positions: Vec<usize> = text[scan_start..]
+        .char_indices()
+        .filter_map(|(byte_index, ch)| (ch == '.').then_some(scan_start + byte_index))
+        .collect();
 
     let start = dot_positions.get(index).map_or(text.len(), |&position| position + 1);
     let end = dot_positions.get(index + 1).copied().unwrap_or(text.len());
@@ -772,4 +788,67 @@ pub fn free_reference_spans(text: &str, name: &str) -> Vec<Span> {
             Span::new(span.start.saturating_sub(1), span.end.saturating_sub(1))
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use oxc_vue_parser::{ast::Node, parse_template};
+
+    use super::{directive_modifier_span, directive_modifiers_span};
+
+    /// The source text each of `<div …>`'s attributes' modifier spans covers,
+    /// one `Vec` entry per attribute, one inner entry per modifier.
+    fn modifier_texts(source: &str) -> Vec<Vec<&str>> {
+        let nodes = parse_template(source, 0);
+        let Some(Node::Element(element)) = nodes.first() else { panic!("expected an element") };
+        element
+            .attributes
+            .iter()
+            .map(|attribute| {
+                let count =
+                    attribute.directive.as_ref().map_or(0, |directive| directive.modifiers.len());
+                (0..count)
+                    .map(|index| {
+                        let span = directive_modifier_span(attribute, source, index);
+                        &source[span.start as usize..span.end as usize]
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
+    fn modifiers_text(source: &str) -> &str {
+        let nodes = parse_template(source, 0);
+        let Some(Node::Element(element)) = nodes.first() else { panic!("expected an element") };
+        let attribute = element.attributes.first().expect("expected an attribute");
+        let span = directive_modifiers_span(attribute, source);
+        &source[span.start as usize..span.end as usize]
+    }
+
+    #[test]
+    fn modifier_span_skips_the_shorthand_prefix_and_argument() {
+        // `.prop` shorthand: the leading `.` introduces the *argument*, not a
+        // modifier — verified against eslint-plugin-vue 10.10.0, whose
+        // `vue/valid-v-bind` underlines `bogus` here.
+        assert_eq!(modifier_texts(r#"<div .foo.bogus="x"/>"#), vec![vec!["bogus"]]);
+        assert_eq!(modifier_texts(r#"<div .foo.bogus.baz="x"/>"#), vec![vec!["bogus", "baz"]]);
+        // `:` shorthand (regression).
+        assert_eq!(modifier_texts(r#"<div :foo.bar="x"/>"#), vec![vec!["bar"]]);
+        // Dots *inside* a dynamic argument are part of the argument.
+        assert_eq!(modifier_texts(r#"<div .[a.b].sync="x"/>"#), vec![vec!["sync"]]);
+        assert_eq!(modifier_texts(r#"<div :[a.b].sync="x"/>"#), vec![vec!["sync"]]);
+        // No argument at all: the first dot is the real separator.
+        assert_eq!(modifier_texts(r#"<div v-model.aaa="x"/>"#), vec![vec!["aaa"]]);
+        assert_eq!(modifier_texts(r#"<div v-for.foo.bar="a in b"/>"#), vec![vec!["foo", "bar"]]);
+        // Long forms with an argument.
+        assert_eq!(modifier_texts(r#"<div v-on:keyup.native="x"/>"#), vec![vec!["native"]]);
+        assert_eq!(modifier_texts(r#"<div @keyup.13.stop="x"/>"#), vec![vec!["13", "stop"]]);
+    }
+
+    #[test]
+    fn modifiers_span_covers_first_through_last() {
+        assert_eq!(modifiers_text(r#"<div v-for.foo.bar="a in b"/>"#), "foo.bar");
+        assert_eq!(modifiers_text(r#"<div .foo.bogus.baz="x"/>"#), "bogus.baz");
+        assert_eq!(modifiers_text(r#"<div .[a.b].sync="x"/>"#), "sync");
+    }
 }

@@ -170,6 +170,14 @@ impl VueTemplateRule for ValidVModel {
 /// `children` — needed by the iteration-variable check, which must know
 /// about `v-for` aliases declared anywhere above the `v-model`'d element,
 /// not just on it.
+///
+/// The element's *own* `v-for` aliases are pushed **before** it is checked,
+/// because upstream's `getVariable(id.name, element)` starts its ancestor
+/// walk at `element` itself and vue-eslint-parser hangs a `v-for`'s variables
+/// off the element the directive is written on. So a `v-for` governs the
+/// `v-model` on the same element: `<input v-for="item in items"
+/// v-model="item">` is `unexpectedUpdateIterationVariable` upstream (verified
+/// against a live eslint-plugin-vue run).
 fn walk_with_for_aliases<'a>(
     nodes: &[Node<'a>],
     aliases: &mut Vec<String>,
@@ -177,7 +185,6 @@ fn walk_with_for_aliases<'a>(
 ) {
     for node in nodes {
         let Node::Element(element) = node else { continue };
-        check_element(element, aliases, ctx);
 
         let pushed = get_directive(element, "for", None)
             .and_then(|attribute| attribute.value.as_ref())
@@ -188,6 +195,7 @@ fn walk_with_for_aliases<'a>(
                 count
             });
 
+        check_element(element, aliases, ctx);
         walk_with_for_aliases(&element.children, aliases, ctx);
         aliases.truncate(aliases.len() - pushed);
     }
@@ -502,6 +510,14 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Same-element `v-for`, but the `v-model` targets a property of
+            // the alias rather than the alias itself.
+            (
+                r#"<template><input v-for="item in items" v-model="item.value"></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (
                 r#"<template><input :type="a" v-model="b"></template>"#,
                 None,
@@ -628,6 +644,14 @@ mod tests {
             ),
             (
                 r#"<template><div><div v-for="e in list"><input v-model="e"></div></div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The element's OWN `v-for` governs its own `v-model` — upstream's
+            // `getVariable` starts at the element itself.
+            (
+                r#"<template><input v-for="item in items" v-model="item"></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

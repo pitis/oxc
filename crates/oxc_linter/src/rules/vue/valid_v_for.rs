@@ -169,13 +169,31 @@ impl VueTemplateRule for ValidVFor {
 /// `valid-v-for` does not special-case `<slot>`) pushes the requirement down
 /// to its children; a keyless custom element is reported. Native elements
 /// are require-v-for-key's concern, not this rule's.
+///
+/// A `<template>` child that carries its own `v-for` is skipped here, because
+/// the walk in [`ValidVFor::run_on_template`] reaches it on its own and would
+/// otherwise report the very same diagnostic at the very same span twice.
+/// Upstream's `checkChildKey` skips such a child exactly when its `v-for`
+/// *uses* one of the parent's iteration variables ("iterator usage will be
+/// checked later by child v-for") — the common
+/// `<template v-for="row in rows"><MyComp v-for="c in row.cells"/></template>`
+/// shape, for which upstream reports once and so does this. When the child's
+/// `v-for` does not reference the parent's alias, upstream falls through and
+/// emits a byte-identical duplicate of the report its own child visitor then
+/// emits again; deciding which of the two branches applies needs the same
+/// reference resolution `isUsingIterationVar` does and this rule doesn't
+/// have, so the child is skipped unconditionally. That is never a *lost*
+/// diagnostic — the child's own `v-for` visit still reports it — only a
+/// dropped duplicate.
 fn check_key<'a>(element: &Element<'a>, ctx: &mut VueTemplateContext<'a>) {
     if get_directive(element, "bind", Some("key")).is_some() {
         return;
     }
     if element_name_eq_lower(element, "template") {
         for child in &element.children {
-            if let Node::Element(child_element) = child {
+            if let Node::Element(child_element) = child
+                && get_directive(child_element, "for", None).is_none()
+            {
                 check_key(child_element, ctx);
             }
         }
@@ -278,8 +296,14 @@ fn check_for_value<'a>(
     let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return };
     let elements = &array_pattern.elements;
 
-    let value_present = elements.first().is_some_and(Option::is_some);
-    if !value_present && !allow_empty_alias {
+    // Upstream is `if (value === null && !shouldAllowEmptyAlias)` on
+    // `expr.left[0]` — *strictly* `null`, i.e. a real array-pattern hole
+    // (`(, key) in items`, `(,) in items`). An absent first element
+    // (`undefined`, i.e. an entirely empty alias list, `() in items`) is a
+    // different value and does not report: verified by running
+    // eslint-plugin-vue against `v-for="() in items"` (no reports at all)
+    // versus `v-for="(,) in items"` (one empty-alias report).
+    if matches!(elements.first(), Some(None)) && !allow_empty_alias {
         ctx.diagnostic(invalid_empty_alias_diagnostic(value.span));
     }
 
@@ -459,6 +483,17 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // A wholly empty *parenthesized* alias list parses to a
+            // zero-element `ArrayPattern`, so upstream's `left[0]` is
+            // `undefined`, not `null`, and its `value === null` check does
+            // not fire — verified against a live eslint-plugin-vue run, which
+            // reports nothing at all here.
+            (
+                r#"<template><div v-for="() in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
         ];
 
@@ -526,6 +561,15 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // A lone hole is a real one-element `ArrayPattern` whose only
+            // element is `null` — unlike `() in items` above, this *does*
+            // report (exactly once).
+            (
+                r#"<template><div v-for="(,) in items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Custom component missing a key.
             (
                 r#"<template><MyRow v-for="item in items" /></template>"#,
@@ -536,6 +580,16 @@ mod tests {
             // Custom component missing a key, pushed down through <template>.
             (
                 r#"<template><template v-for="item in items"><MyRow /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A `<template v-for>` whose child has its own `v-for` must be
+            // reported exactly ONCE (by the child's own `v-for` visit), not
+            // once per visit — matching upstream, whose `checkChildKey` skips
+            // a child that iterates over the parent's alias.
+            (
+                r#"<template><template v-for="row in rows"><MyComp v-for="c in row.cells" /></template></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

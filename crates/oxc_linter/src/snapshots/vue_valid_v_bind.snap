@@ -65,3 +65,24 @@ assertion_line: 490
    ·                         ───
    ╰────
   help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bogus'.
+   ╭─[valid_v_bind.tsx:1:21]
+ 1 │ <template><div .foo.bogus="x" /></template>
+   ·                     ─────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bogus'.
+   ╭─[valid_v_bind.tsx:1:23]
+ 1 │ <template><div .[a.b].bogus="x" /></template>
+   ·                       ─────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bogus'.
+   ╭─[valid_v_bind.tsx:1:23]
+ 1 │ <template><div :[a.b].bogus="x" /></template>
+   ·                       ─────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.

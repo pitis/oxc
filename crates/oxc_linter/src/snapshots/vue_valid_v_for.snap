@@ -66,6 +66,13 @@ assertion_line: 490
    ╰────
   help: Give the alias a name, or enable the `allowEmptyAlias` option.
 
+  ⚠ vue(valid-v-for): Invalid empty alias.
+   ╭─[valid_v_for.tsx:1:23]
+ 1 │ <template><div v-for="(,) in items" /></template>
+   ·                       ────────────
+   ╰────
+  help: Give the alias a name, or enable the `allowEmptyAlias` option.
+
   ⚠ vue(valid-v-for): Custom elements in iteration require 'v-bind:key' directives.
    ╭─[valid_v_for.tsx:1:11]
  1 │ <template><MyRow v-for="item in items" /></template>
@@ -77,5 +84,12 @@ assertion_line: 490
    ╭─[valid_v_for.tsx:1:43]
  1 │ <template><template v-for="item in items"><MyRow /></template></template>
    ·                                           ─────────
+   ╰────
+  help: Add a `:key` binding so Vue can track each node's identity.
+
+  ⚠ vue(valid-v-for): Custom elements in iteration require 'v-bind:key' directives.
+   ╭─[valid_v_for.tsx:1:41]
+ 1 │ <template><template v-for="row in rows"><MyComp v-for="c in row.cells" /></template></template>
+   ·                                         ─────────────────────────────────
    ╰────
   help: Add a `:key` binding so Vue can track each node's identity.
