@@ -63,10 +63,15 @@ impl VueTemplateRule for NoDeprecatedSlotScopeAttribute {
             // missing prefix. This fork's parser does not special-case it,
             // so it surfaces as a plain attribute instead — same approach as
             // `no_lone_template.rs`/`no_useless_template_attributes.rs`.
+            // Unlike bare `scope` (see `no_deprecated_scope_attribute.rs`),
+            // this conversion applies on *any* element, not just
+            // `<template>`. The attribute-name comparison is
+            // case-SENSITIVE, though (vue-eslint-parser's SFC `getTagName`
+            // returns the raw, as-written attribute name when deciding
+            // whether to convert it to a directive) — verified empirically
+            // against real eslint-plugin-vue: `SLOT-SCOPE="x"` never fires.
             for attribute in &element.attributes {
-                if attribute.directive.is_none()
-                    && attribute.name.eq_ignore_ascii_case("slot-scope")
-                {
+                if attribute.directive.is_none() && attribute.name == "slot-scope" {
                     ctx.diagnostic(slot_scope_attribute_diagnostic(attribute.name_span));
                 }
             }
@@ -114,6 +119,16 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Case-sensitive attribute-name match (unlike HTML attributes
+            // generally): verified against real eslint-plugin-vue that
+            // `SLOT-SCOPE="x"` never converts to the deprecated directive
+            // form, so this rule doesn't fire on it.
+            (
+                r#"<template><LinkList><a SLOT-SCOPE="{a}" /></LinkList></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -148,14 +163,6 @@ mod tests {
             ),
             (
                 r#"<template><LinkList><template slot-scope="{a}" :slot="arg"><a /></template></LinkList></template>"#,
-                None,
-                None,
-                Some(PathBuf::from("test.vue")),
-            ),
-            // Case-insensitive attribute-name match, like HTML attributes
-            // generally.
-            (
-                r#"<template><LinkList><a SLOT-SCOPE="{a}" /></LinkList></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

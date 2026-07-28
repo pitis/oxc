@@ -46,6 +46,20 @@ assertion_line: 490
   help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
 
   ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:26]
+ 1 │ <template><LinkList><one :slot="one" /></LinkList></template>
+   ·                          ─────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
+   ╭─[no_deprecated_slot_attribute.tsx:1:26]
+ 1 │ <template><LinkList><one v-bind:slot="one" /></LinkList></template>
+   ·                          ───────────
+   ╰────
+  help: Vue 3 removed the `slot`/`:slot` attributes; use `v-slot` instead.
+
+  ⚠ vue(no-deprecated-slot-attribute): `slot` attributes are deprecated.
    ╭─[no_deprecated_slot_attribute.tsx:1:27]
  1 │ <template><OtherList><one slot="one" /></OtherList></template>
    ·                           ────

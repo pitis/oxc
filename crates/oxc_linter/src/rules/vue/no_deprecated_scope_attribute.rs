@@ -31,17 +31,23 @@ declare_oxc_lint!(
     ///
     /// ### Examples
     ///
+    /// Only fires on a `<template>` element specifically (matching
+    /// vue-eslint-parser's bare-attribute-to-directive conversion, which is
+    /// itself restricted to `<template>`); `scope` on any other element —
+    /// including standard HTML table markup like `<th scope="col">` — is
+    /// left alone.
+    ///
     /// Examples of **incorrect** code for this rule:
     /// ```vue
     /// <template>
-    ///   <foo scope="props"></foo>
+    ///   <template scope="props"></template>
     /// </template>
     /// ```
     ///
     /// Examples of **correct** code for this rule:
     /// ```vue
     /// <template>
-    ///   <foo v-slot="props"></foo>
+    ///   <template v-slot="props"></template>
     /// </template>
     /// ```
     NoDeprecatedScopeAttribute,
@@ -63,8 +69,25 @@ impl VueTemplateRule for NoDeprecatedScopeAttribute {
             // missing prefix. This fork's parser does not special-case it,
             // so it surfaces as a plain attribute instead — same approach as
             // `no_lone_template.rs`/`no_useless_template_attributes.rs`.
+            //
+            // Unlike `slot-scope`, vue-eslint-parser's `needConvertToDirective`
+            // only performs this bare-`scope`-to-directive conversion when
+            // the *tag name* is exactly `template` (`tagName === "template"
+            // && attrName === "scope"`, verified in vue-eslint-parser
+            // 10.4.1's `dist/index.cjs`, and empirically against real
+            // eslint-plugin-vue: `<a scope>`/`<div scope>`/`<MyComponent
+            // scope>` — and critically standard `<th scope="col">`/`<td
+            // scope="row">` table markup — never fire). Both the tag name and
+            // the attribute name are compared via vue-eslint-parser's SFC
+            // `getTagName`, which returns the *raw, as-written* text for SFC
+            // files — so both comparisons are case-sensitive: `<Template
+            // scope>` and `<template SCOPE>` do not fire either (verified
+            // empirically).
+            if element.name != "template" {
+                return;
+            }
             for attribute in &element.attributes {
-                if attribute.directive.is_none() && attribute.name.eq_ignore_ascii_case("scope") {
+                if attribute.directive.is_none() && attribute.name == "scope" {
                     ctx.diagnostic(scope_attribute_diagnostic(attribute.name_span));
                 }
             }
@@ -127,6 +150,64 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Restricted to `<template>`: bare `scope` on any other element
+            // is left alone — this is what standard HTML table markup
+            // (`<th scope="col">`/`<td scope="row">`) relies on. Verified
+            // against real eslint-plugin-vue 10.9.1 (+ vue-eslint-parser
+            // 10.4.1): none of these fire.
+            (
+                r#"<template><LinkList><a scope="{a}" /></LinkList></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div scope="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><MyComponent scope="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><th scope="col" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><td scope="row" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Both the tag name and the attribute name are compared
+            // case-sensitively (vue-eslint-parser's SFC `getTagName` returns
+            // the raw, as-written text for both) — verified empirically:
+            // neither a differently-cased tag nor a differently-cased
+            // attribute name converts to the deprecated directive form.
+            (
+                r#"<template><LinkList><Template scope="{a}"><a /></Template></LinkList></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><LinkList><a SCOPE="{a}" /></LinkList></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><LinkList><template SCOPE="{a}"><a /></template></LinkList></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -140,22 +221,6 @@ mod tests {
             // rule's concern.
             (
                 r#"<template><LinkList><template slot="name" scope="{a}"><a /></template></LinkList></template>"#,
-                None,
-                None,
-                Some(PathBuf::from("test.vue")),
-            ),
-            // Not restricted to `<template>` — the deprecated selector
-            // matches any element.
-            (
-                r#"<template><LinkList><a scope="{a}" /></LinkList></template>"#,
-                None,
-                None,
-                Some(PathBuf::from("test.vue")),
-            ),
-            // Case-insensitive attribute-name match, like HTML attributes
-            // generally.
-            (
-                r#"<template><LinkList><a SCOPE="{a}" /></LinkList></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

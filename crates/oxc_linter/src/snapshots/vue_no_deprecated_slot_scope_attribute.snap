@@ -37,10 +37,3 @@ assertion_line: 490
    ·                               ──────────
    ╰────
   help: Vue 3 removed `slot-scope`; use `v-slot` instead.
-
-  ⚠ vue(no-deprecated-slot-scope-attribute): `slot-scope` are deprecated.
-   ╭─[no_deprecated_slot_scope_attribute.tsx:1:24]
- 1 │ <template><LinkList><a SLOT-SCOPE="{a}" /></LinkList></template>
-   ·                        ──────────
-   ╰────
-  help: Vue 3 removed `slot-scope`; use `v-slot` instead.

@@ -90,16 +90,23 @@ impl Rule for NoDeprecatedSlotAttribute {
 
 impl VueTemplateRule for NoDeprecatedSlotAttribute {
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
-        self.walk(nodes, None, ctx);
+        // Seeded with `"template"`, not `None`: `nodes` are the *children*
+        // of the SFC's own `<template>` block, and vue-eslint-parser models
+        // that outer `<template>` tag itself as a real `VElement` (raw name
+        // `"template"`) that is the `.parent` of every root-level node — so
+        // a `slot`/`:slot` attribute at the very top of a template block
+        // does have an (`ignoreParents`-matchable) parent. Verified
+        // empirically against real eslint-plugin-vue: `{ ignoreParents:
+        // ["template"] }` suppresses a root-level `<a slot="name" />`.
+        self.walk(nodes, Some("template"), ctx);
     }
 }
 
 impl NoDeprecatedSlotAttribute {
     /// Unlike [`crate::utils::walk_elements`], this tracks the immediate
-    /// parent *element*'s raw name (`None` at the top of the `<template>`
-    /// block) — needed for the `ignoreParents` option, which
-    /// eslint-plugin-vue matches against `component.parent.rawName` (only
-    /// when that parent `utils.isVElement`).
+    /// parent *element*'s raw name — needed for the `ignoreParents` option,
+    /// which eslint-plugin-vue matches against `component.parent.rawName`
+    /// (only when that parent `utils.isVElement`).
     fn walk<'a>(
         &self,
         nodes: &[Node<'a>],
@@ -121,10 +128,15 @@ impl NoDeprecatedSlotAttribute {
         ctx: &mut VueTemplateContext<'a>,
     ) {
         for attribute in &element.attributes {
-            if !is_slot_attribute(attribute) {
-                continue;
-            }
-            if self.is_ignored(element.name, parent_name) {
+            let Some(form) = slot_attribute_form(attribute) else { continue };
+            // eslint-plugin-vue's `slot-attribute.ts` has two independent
+            // report functions: `reportSlot` (the plain `slot="x"` path)
+            // consults `isAnyIgnored`/`isParentIgnored`; `reportVBindSlot`
+            // (the `:slot`/`v-bind:slot` path) does not check either option
+            // at all. Verified against real eslint-plugin-vue: with
+            // `{ ignore: ["one"] }`, `<one slot="one">` is suppressed but
+            // `<one :slot="one">` still fires.
+            if form == SlotAttributeForm::Plain && self.is_ignored(element.name, parent_name) {
                 continue;
             }
             ctx.diagnostic(slot_attribute_diagnostic(directive_key_span(attribute)));
@@ -151,21 +163,32 @@ impl NoDeprecatedSlotAttribute {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SlotAttributeForm {
+    /// Plain, Vue 2 style: `slot="x"`.
+    Plain,
+    /// `v-bind:slot`/`:slot`, with a static argument.
+    Bind,
+}
+
 /// eslint-plugin-vue's two `slot-attribute.ts` selectors:
 /// `VAttribute[directive=false][key.name='slot']` (plain, Vue 2 style) and
 /// `VAttribute[directive=true][key.name.name='bind'][key.argument.name='slot']`
 /// (`v-bind:slot`/`:slot`, with a *static* argument — a dynamic `:[slot]`
 /// never matches a fixed argument name).
-fn is_slot_attribute(attribute: &Attribute<'_>) -> bool {
+fn slot_attribute_form(attribute: &Attribute<'_>) -> Option<SlotAttributeForm> {
     match &attribute.directive {
-        None => attribute.name.eq_ignore_ascii_case("slot"),
-        Some(directive) => {
-            directive.name == "bind"
+        None if attribute.name.eq_ignore_ascii_case("slot") => Some(SlotAttributeForm::Plain),
+        Some(directive)
+            if directive.name == "bind"
                 && directive
                     .argument
                     .as_ref()
-                    .is_some_and(|argument| !argument.dynamic && argument.text == "slot")
+                    .is_some_and(|argument| !argument.dynamic && argument.text == "slot") =>
+        {
+            Some(SlotAttributeForm::Bind)
         }
+        _ => None,
     }
 }
 
@@ -234,6 +257,15 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // `ignoreParents`: the outer SFC `<template>` block is itself
+            // modeled as a `template`-named parent, so it matches a
+            // root-level slot attribute too.
+            (
+                r#"<template><a slot="name" /></template>"#,
+                Some(json!([{ "ignoreParents": ["template"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -274,6 +306,23 @@ mod tests {
             (
                 r#"<template><LinkList><two slot="two" /></LinkList></template>"#,
                 Some(json!([{ "ignore": ["one"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `ignore`/`ignoreParents` only apply to the plain `slot="x"`
+            // form: eslint-plugin-vue's `reportVBindSlot` (the `:slot`/
+            // `v-bind:slot` path) never consults either option, so `:slot`
+            // still fires even when the element/parent would otherwise be
+            // ignored. Verified against real eslint-plugin-vue.
+            (
+                r#"<template><LinkList><one :slot="one" /></LinkList></template>"#,
+                Some(json!([{ "ignore": ["one"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><LinkList><one v-bind:slot="one" /></LinkList></template>"#,
+                Some(json!([{ "ignoreParents": ["LinkList"] }])),
                 None,
                 Some(PathBuf::from("test.vue")),
             ),

@@ -16,17 +16,3 @@ assertion_line: 490
    ·                                           ─────
    ╰────
   help: Vue 2.5 replaced `scope` with `slot-scope`, and Vue 3 replaced both with `v-slot`; use `v-slot` instead.
-
-  ⚠ vue(no-deprecated-scope-attribute): `scope` attributes are deprecated.
-   ╭─[no_deprecated_scope_attribute.tsx:1:24]
- 1 │ <template><LinkList><a scope="{a}" /></LinkList></template>
-   ·                        ─────
-   ╰────
-  help: Vue 2.5 replaced `scope` with `slot-scope`, and Vue 3 replaced both with `v-slot`; use `v-slot` instead.
-
-  ⚠ vue(no-deprecated-scope-attribute): `scope` attributes are deprecated.
-   ╭─[no_deprecated_scope_attribute.tsx:1:24]
- 1 │ <template><LinkList><a SCOPE="{a}" /></LinkList></template>
-   ·                        ─────
-   ╰────
-  help: Vue 2.5 replaced `scope` with `slot-scope`, and Vue 3 replaced both with `v-slot`; use `v-slot` instead.
