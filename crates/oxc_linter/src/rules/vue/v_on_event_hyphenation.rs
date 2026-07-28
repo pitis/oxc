@@ -49,8 +49,9 @@ pub struct VOnEventHyphenationOptions {
 pub struct VOnEventHyphenationConfig(AlwaysNever, VOnEventHyphenationOptions);
 
 // Boxed (like `vue/no-v-html`'s `NoVHtml`): the `Vec<String>`/`Vec<Regex>`
-// options make this the largest `RuleEnum` variant unboxed; `Box` keeps this
-// rule's own footprint at one pointer (8 bytes).
+// options would blow `RuleEnum`'s 16-byte budget unboxed (see `block_order.rs`
+// for the same pattern); `Box` keeps this rule's own footprint at one pointer
+// (8 bytes).
 #[derive(Debug, Default, Clone, Deserialize, JsonSchema)]
 pub struct VOnEventHyphenation(Box<VOnEventHyphenationConfig>);
 

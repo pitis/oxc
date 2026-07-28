@@ -99,9 +99,8 @@ pub fn element_name_eq_lower(element: &Element<'_>, lowercase_name: &str) -> boo
 /// as *custom components*.
 ///
 /// Consequence: for a handful of tags (`<marquee>`, `<param>`, and the other
-/// deprecated/kebab-case reserved names) the ~6 rules that consume this helper
-/// — `valid-v-slot`, `no-child-content`, `no-v-text-v-html-on-component`,
-/// `require-slots-as-functions`, `no-deprecated-v-is`, `valid-v-is` — can
+/// deprecated/kebab-case reserved names) rules that need to distinguish
+/// components from plain elements — see this function's call sites — can
 /// disagree with upstream. This is an accepted deviation rather than a bug to
 /// be fixed silently: switching to the narrow trio would change behavior for
 /// every consumer at once and is left for a follow-up that can verify each
@@ -296,12 +295,19 @@ pub fn walk_elements_with_siblings<'e, 'a>(
 /// because neither the shorthand prefix nor the argument is modifier
 /// territory: `.foo.bogus` (the `.prop` shorthand, argument `foo`) has exactly
 /// one modifier, `bogus`, and `:[a.b].sync` (dynamic argument `[a.b]`, dots
-/// included) has exactly one, `sync` — matching how
-/// [`oxc_vue_parser::ast::Directive::modifiers`] itself was split. Starting at
-/// the raw name's beginning instead would count the shorthand's own leading
-/// `.` and every dot inside a dynamic argument as a modifier separator.
-/// Directives without an argument (`v-for.foo`, `v-model.aaa`, `v-bind.prop`)
-/// scan from the beginning, where the first dot is the real separator.
+/// included) has exactly one, `sync`. Starting at the raw name's beginning
+/// instead would count the shorthand's own leading `.` and every dot inside a
+/// dynamic argument as a modifier separator. Directives without an argument
+/// (`v-for.foo`, `v-model.aaa`, `v-bind.prop`) scan from the beginning, where
+/// the first dot is the real separator.
+///
+/// This indexes raw `.` positions in the post-argument text directly, unlike
+/// [`oxc_vue_parser::ast::Directive::modifiers`] itself, which drops empty
+/// segments (so `..` in the source doesn't produce an empty modifier). The
+/// two agree on well-formed input, but for a name with consecutive dots
+/// (e.g. `:foo..bar`) `index`-to-modifier alignment between this function and
+/// `Directive::modifiers` can diverge; callers rely on real-world attribute
+/// names not doing that.
 ///
 /// `index` is assumed in range (callers get it from iterating
 /// `Directive::modifiers` itself).

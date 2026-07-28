@@ -128,7 +128,6 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
 }
 
 /// The subset of the resolved rule set that participates in the SFC pass.
-///
 fn as_vue_sfc_rule(rule: &RuleEnum) -> Option<&dyn VueSfcRule> {
     match rule {
         RuleEnum::VueValidTemplateRoot(rule) => Some(rule),
@@ -702,10 +701,15 @@ fn retain_unsuppressed(
 /// upstream cannot suppress `vue/multi-word-component-names`' filename report
 /// from a script comment either — that one is reported at line 1, column 0,
 /// ahead of any comment inside a block.
-// NOTE: deliberately `pub`, not `pub(crate)`: `mod vue_template` is itself
-// private, so this is already crate-only, and `clippy::redundant_pub_crate`
-// rejects the narrower spelling here.
-pub fn filter_by_script_directives(messages: &mut Vec<Message>, sub_hosts: &[ContextSubHost<'_>]) {
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "mod vue_template is itself private, so pub(crate) is redundant, but it documents \
+              the intended crate-wide (not module-local) visibility explicitly"
+)]
+pub(crate) fn filter_by_script_directives(
+    messages: &mut Vec<Message>,
+    sub_hosts: &[ContextSubHost<'_>],
+) {
     if messages.is_empty() || sub_hosts.is_empty() {
         return;
     }

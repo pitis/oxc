@@ -101,10 +101,6 @@ declare_oxc_lint!(
     ///
     /// ### Deviations from eslint-plugin-vue
     ///
-    /// `disallowAnyModifier` reports on the whole directive key (this AST
-    /// has no per-modifier span), matching this fork's other `valid-v-*`
-    /// rules rather than upstream's modifier-only span.
-    ///
     /// The `v-for`-aware duplicate-slot check
     /// (`disallowDuplicateSlotsOnChildren`, when the competing `<template>`s
     /// use a *dynamic* argument that reads their own `v-for`'s iteration

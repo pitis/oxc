@@ -63,20 +63,9 @@ declare_oxc_lint!(
     ///
     /// ### Deviations from eslint-plugin-vue
     ///
-    /// Both `"never"` and `"always"` are implemented. The task brief this
-    /// rule was built from anticipated `"always"` might need component
-    /// script analysis (the component's own data/computed/methods property
-    /// list) and, if so, directed implementing only `"never"`. Reading
-    /// upstream's source (`this-in-template.js`) shows `"always"` needs no
-    /// such analysis: its handler reports *every* identifier reference in a
-    /// `VExpressionContainer` that isn't resolved by the expression's own
-    /// local scope stack, with **no** whitelist of actual component
-    /// properties, global builtins (`Math`, `Date`, …), or anything else —
-    /// so e.g. `{{ Math.max(a, b) }}` is reported as needing
-    /// `this.Math.max(this.a, this.b)` by real eslint-plugin-vue too. This
-    /// rule reproduces that exact (arguably surprising, but verified from
-    /// source) behavior rather than narrowing it with an ad-hoc whitelist,
-    /// since that would be a fidelity regression, not an improvement.
+    /// Both `"never"` and `"always"` are implemented, with `"always"`
+    /// reproducing upstream's unwhitelisted behavior exactly — see
+    /// [`check_always`]'s doc comment for details.
     ///
     /// The scope stack tracks both `v-for` alias variables (`item`/`index` in
     /// `v-for="(item, index) in items"`) and `v-slot`/its shorthand `#`/the
@@ -219,6 +208,16 @@ fn check_never(
 /// [`free_identifier_references`]) that isn't a `v-for` alias currently in
 /// scope is reported on its own span — see this rule's doc comment for why
 /// that includes references that aren't actually component properties.
+/// Reading upstream's source (`this-in-template.js`) shows `"always"` needs no
+/// component script analysis: its handler reports *every* identifier
+/// reference in a `VExpressionContainer` that isn't resolved by the
+/// expression's own local scope stack, with **no** whitelist of actual
+/// component properties, global builtins (`Math`, `Date`, …), or anything
+/// else — so e.g. `{{ Math.max(a, b) }}` is reported as needing
+/// `this.Math.max(this.a, this.b)` by real eslint-plugin-vue too. This
+/// function reproduces that exact (arguably surprising, but verified from
+/// source) behavior rather than narrowing it with an ad-hoc whitelist, since
+/// that would be a fidelity regression, not an improvement.
 fn check_always(
     text: &str,
     container_span: Span,

@@ -82,11 +82,14 @@ declare_oxc_lint!(
     ///
     /// ### Why is this bad?
     ///
-    /// These are genuine HTML parse errors: a duplicate attribute means only
-    /// the first occurrence is honored (Vue does not merge or reorder), an
-    /// attribute left without a value after `=` is almost always a typo, and
-    /// an unterminated quoted value swallows the rest of the template as
-    /// part of that attribute.
+    /// These are genuine HTML parse errors: at this WHATWG-tokenizer level, a
+    /// repeated *raw* attribute name means only the first occurrence is
+    /// honored and later duplicates are dropped outright (this is a
+    /// lower-level check than `vue/no-duplicate-attributes`, which instead
+    /// reasons about Vue's bound-vs-plain attribute identity and reports that
+    /// the *last* write wins); an attribute left without a value after `=` is
+    /// almost always a typo; and an unterminated quoted value swallows the
+    /// rest of the template as part of that attribute.
     ///
     /// ### Examples
     ///
