@@ -80,7 +80,12 @@ pub enum FragmentContext {
     /// `in_html_attribute` selects the preferred quote style:
     /// inside a double-quoted attribute single quotes are preferred,
     /// while outside one (an interpolation) the configured quote style is kept.
-    Expression { in_html_attribute: bool },
+    ///
+    /// `vue_expression` marks fragments from Prettier's `__vue_expression` /
+    /// `__vue_ts_expression` parsers (`v-bind` values and `{{ ... }}`
+    /// interpolations, but NOT `v-for` right-hand sides or event handlers).
+    /// It enables the Vue 2 filter-sequence layout for top-level `|` chains.
+    Expression { in_html_attribute: bool, vue_expression: bool },
     /// Statement(s) from an inline event handler (e.g. Vue `@click` values that
     /// do not parse as a single expression).
     ///
@@ -110,6 +115,17 @@ pub enum ExpressionRootKind {
     TemplateLiteral,
     StringLiteral,
     Other,
+}
+
+/// Embedded-fragment flags threaded into [`JsFormatContext`] by [`format_node`].
+#[derive(Clone, Copy, Debug, Default)]
+struct EmbedFlags {
+    /// See [`JsFormatContext::embedded_in_html_attribute`].
+    in_html_attribute: bool,
+    /// See [`JsFormatContext::embedded_vue_expression`].
+    vue_expression: bool,
+    /// See [`JsFormatContext::embedded_in_html_interpolation`].
+    in_html_interpolation: bool,
 }
 
 /// Result of [`format_fragment`]: the formatted IR plus fragment metadata.
@@ -173,7 +189,15 @@ pub fn format_fragment<'a>(
     // this may not be enough for all cases.
     // But it seems fine for almost all cases, so leave it for now.
     let in_html_attribute =
-        !matches!(context, FragmentContext::Expression { in_html_attribute: false });
+        !matches!(context, FragmentContext::Expression { in_html_attribute: false, .. });
+    let embed_flags = EmbedFlags {
+        in_html_attribute,
+        vue_expression: matches!(context, FragmentContext::Expression { vue_expression: true, .. }),
+        in_html_interpolation: matches!(
+            context,
+            FragmentContext::Expression { in_html_attribute: false, .. }
+        ),
+    };
     let options = if in_html_attribute {
         JsFormatOptions { quote_style: QuoteStyle::Single, ..options }
     } else {
@@ -202,7 +226,7 @@ pub fn format_fragment<'a>(
                 source_type,
                 &program.comments,
                 None,
-                in_html_attribute,
+                embed_flags,
             )
         }
         FragmentContext::TypeParameters => {
@@ -224,7 +248,7 @@ pub fn format_fragment<'a>(
                 source_type,
                 &program.comments,
                 None,
-                in_html_attribute,
+                embed_flags,
             )
         }
         FragmentContext::Expression { .. } => {
@@ -249,7 +273,7 @@ pub fn format_fragment<'a>(
                 source_type,
                 &program.comments,
                 None,
-                in_html_attribute,
+                embed_flags,
             )
         }
         FragmentContext::EventHandlerStatements => {
@@ -272,7 +296,7 @@ pub fn format_fragment<'a>(
                     source_type,
                     &program.comments,
                     None,
-                    in_html_attribute,
+                    embed_flags,
                 )
             }
             // A lone expression statement gets the Vue inline-handler semicolon
@@ -301,7 +325,7 @@ pub fn format_fragment<'a>(
                     source_type,
                     &program.comments,
                     None,
-                    in_html_attribute,
+                    embed_flags,
                 )
             } else {
                 let node = AstNode::new(program, AstNodes::Dummy(), allocator);
@@ -313,7 +337,7 @@ pub fn format_fragment<'a>(
                     source_type,
                     &program.comments,
                     None,
-                    in_html_attribute,
+                    embed_flags,
                 )
             }
         }
@@ -389,7 +413,7 @@ pub fn format_program<'a>(
         program.source_type,
         &program.comments,
         external_callbacks,
-        false,
+        EmbedFlags::default(),
     )
 }
 
@@ -453,11 +477,13 @@ fn format_node<'a, F: Format<'a, JsFormatContext<'a>>>(
     source_type: SourceType,
     comments: &'a [Comment],
     external_callbacks: Option<ExternalCallbacks>,
-    embedded_in_html_attribute: bool,
+    embed_flags: EmbedFlags,
 ) -> Formatted<'a, JsFormatContext<'a>> {
     let context =
         JsFormatContext::new(source_text, source_type, comments, options, external_callbacks)
-            .with_embedded_in_html_attribute(embedded_in_html_attribute);
+            .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
+            .with_embedded_vue_expression(embed_flags.vue_expression)
+            .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
     formatter::format(
         context,
         allocator,

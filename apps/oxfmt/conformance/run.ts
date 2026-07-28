@@ -36,8 +36,6 @@ const NOTE_MQ_OP_SPACING =
   "Allowed: media-query operator spacing; Prettier can't space arithmetic ops (prettier/prettier#1811)";
 const NOTE_INLINE_COMMENT_WIDTH =
   "Allowed: trailing `//` comment doesn't count toward print width, so the value stays flat where Prettier breaks it.";
-const NOTE_VUE2_FILTERS =
-  "Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3)";
 const NOTE_EMBEDDED_EXPRESSION_INDENT =
   "We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently";
 
@@ -53,14 +51,6 @@ const categories: Category[] = [
       { printWidth: 80 },
       { printWidth: 100, vueIndentScriptAndStyle: true, singleQuote: true },
     ],
-    notes: {
-      "externals/prettier/vue/multiparser/lang-tsx.vue": "`lang=tsx` is not supported",
-      "externals/prettier/vue/interpolation/bitwise-or-operator.vue": NOTE_VUE2_FILTERS,
-      "externals/prettier/vue/ts-expression/filter.vue": NOTE_VUE2_FILTERS,
-      "externals/prettier/vue/vue/filter.vue": NOTE_VUE2_FILTERS,
-      "externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue":
-        "`<T = any,>() => {}` comma in generic param is removed even in .ts(x) file",
-    },
   },
   {
     name: "gql-in-js",

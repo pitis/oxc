@@ -296,12 +296,57 @@ impl NeedsParentheses<'_> for AstNode<'_, ObjectExpression<'_>> {
             return true;
         }
 
+        // Inside an HTML `{{ ... }}` interpolation with `bracketSpacing: false`,
+        // an object whose closing `}` would touch a following `}` is
+        // parenthesized so the template scanner doesn't stop at a premature
+        // `}}` — e.g. `{{ {a: ({b: 1})} }}`, not `{{ {a: {b: 1}} }}`.
+        // Mirrors Prettier's `__isInHtmlInterpolation` check in
+        // language-js/parentheses/needs-parentheses.js.
+        if f.context().embedded_in_html_interpolation()
+            && !f.options().bracket_spacing.value()
+            && is_followed_by_right_bracket(self.span, parent)
+        {
+            return true;
+        }
+
         is_class_extends(self.span, parent)
             || is_first_in_statement(
                 self.span,
                 parent,
                 FirstInStatementMode::ExpressionStatementOrArrow,
             )
+    }
+}
+
+/// Whether the next printed token after the expression at `span` is the `}` of
+/// an enclosing object (Prettier's `isFollowedByRightBracket`): the expression
+/// is the value of the last property of an object, possibly through tail
+/// positions of binary/logical rights, conditional alternates, and unary
+/// arguments.
+fn is_followed_by_right_bracket(span: Span, parent: &AstNodes<'_>) -> bool {
+    match parent {
+        AstNodes::ObjectProperty(property) => {
+            property.value().span() == span
+                && matches!(
+                    property.parent(),
+                    AstNodes::ObjectExpression(object)
+                        if object.properties().last().is_some_and(|last| last.span() == property.span())
+                )
+        }
+        AstNodes::BinaryExpression(binary) if binary.right().span() == span => {
+            is_followed_by_right_bracket(binary.span(), binary.parent())
+        }
+        AstNodes::LogicalExpression(logical) if logical.right().span() == span => {
+            is_followed_by_right_bracket(logical.span(), logical.parent())
+        }
+        AstNodes::ConditionalExpression(conditional) if conditional.alternate().span() == span => {
+            is_followed_by_right_bracket(conditional.span(), conditional.parent())
+        }
+        // Unary operators are always prefix in JS.
+        AstNodes::UnaryExpression(unary) => {
+            is_followed_by_right_bracket(unary.span(), unary.parent())
+        }
+        _ => false,
     }
 }
 

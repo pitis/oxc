@@ -112,6 +112,19 @@ pub struct JsFormatContext<'ast> {
     /// a swap to double quotes would be entity-escaped to `&quot;` by the host.
     embedded_in_html_attribute: bool,
 
+    /// Whether the formatted code is a Vue expression fragment (`v-bind` values
+    /// and `{{ ... }}` interpolations, Prettier's `__vue_expression` /
+    /// `__vue_ts_expression` parsers). Enables the Vue 2 filter-sequence layout
+    /// for top-level `|` chains (`{{ msg | uppercase }}`), which Prettier prints
+    /// with the line break before the operator.
+    embedded_vue_expression: bool,
+
+    /// Whether the formatted code sits inside an HTML `{{ ... }}` interpolation,
+    /// mirroring Prettier's `__isInHtmlInterpolation`. With `bracketSpacing:
+    /// false`, an object expression whose closing `}` would touch a following
+    /// `}` is parenthesized to avoid a premature `}}` in the template.
+    embedded_in_html_interpolation: bool,
+
     external_callbacks: ExternalCallbacks,
 }
 
@@ -172,6 +185,8 @@ impl<'ast> JsFormatContext<'ast> {
             tailwind_classes: Vec::new(),
             tailwind_context_stack: Vec::new(),
             embedded_in_html_attribute: false,
+            embedded_vue_expression: false,
+            embedded_in_html_interpolation: false,
             external_callbacks: external_callbacks.unwrap_or_default(),
         }
     }
@@ -186,6 +201,30 @@ impl<'ast> JsFormatContext<'ast> {
     /// See the `embedded_in_html_attribute` field.
     pub fn embedded_in_html_attribute(&self) -> bool {
         self.embedded_in_html_attribute
+    }
+
+    /// See the `embedded_vue_expression` field.
+    #[must_use]
+    pub fn with_embedded_vue_expression(mut self, yes: bool) -> Self {
+        self.embedded_vue_expression = yes;
+        self
+    }
+
+    /// See the `embedded_vue_expression` field.
+    pub fn embedded_vue_expression(&self) -> bool {
+        self.embedded_vue_expression
+    }
+
+    /// See the `embedded_in_html_interpolation` field.
+    #[must_use]
+    pub fn with_embedded_in_html_interpolation(mut self, yes: bool) -> Self {
+        self.embedded_in_html_interpolation = yes;
+        self
+    }
+
+    /// See the `embedded_in_html_interpolation` field.
+    pub fn embedded_in_html_interpolation(&self) -> bool {
+        self.embedded_in_html_interpolation
     }
 
     /// Returns a reference to the program's comments.

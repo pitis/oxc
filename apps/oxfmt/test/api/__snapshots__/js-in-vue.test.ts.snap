@@ -105,3 +105,23 @@ const q = graphql\`
 </script>
 "
 `;
+
+exports[`Format js-in-vue with prettier-plugin-oxfmt > should print Vue 2 filter sequences with the leading-| layout 1`] = `
+"<template>
+  <div>
+    {{
+      value
+        | thisIsARealSuperLongFilterPipe("arg1", arg2)
+        | anotherPipeLongJustForFun
+        | pipeTheThird
+    }}
+  </div>
+  <div
+    :cls="value | shortPipe"
+    v-if="value | thisIsARealSuperLongBitwiseOr('arg1', arg2) | anotherBitwiseOrLongJustForFun"
+  >
+    x
+  </div>
+</template>
+"
+`;

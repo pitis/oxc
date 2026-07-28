@@ -211,6 +211,74 @@ const a = \`
     expect(result.errors).toStrictEqual([]);
   });
 
+  it("should print Vue 2 filter sequences with the leading-| layout", async () => {
+    // Filters are only valid in v-bind and interpolations (`__vue_expression`);
+    // a `|` in `v-if` (`__js_expression`) stays a plain bitwise-or chain.
+    const input = `
+<template>
+  <div>{{ value | thisIsARealSuperLongFilterPipe("arg1", arg2) | anotherPipeLongJustForFun | pipeTheThird }}</div>
+  <div :cls="value | shortPipe" v-if="value | thisIsARealSuperLongBitwiseOr('arg1', arg2) | anotherBitwiseOrLongJustForFun">x</div>
+</template>
+`;
+    const result = await format("a.vue", input);
+
+    // Broken filter chain: break BEFORE the `|`, indented under the head.
+    expect(result.code).toContain(`| anotherPipeLongJustForFun`);
+    expect(result.code).not.toContain(`thisIsARealSuperLongFilterPipe("arg1", arg2) |`);
+    // Flat filter chain stays flat; v-if keeps the trailing-operator layout.
+    expect(result.code).toContain(`:cls="value | shortPipe"`);
+    expect(result.code).toContain(`thisIsARealSuperLongBitwiseOr('arg1', arg2) |`);
+    expect(result.code).toMatchSnapshot();
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it("should format <script lang=\"tsx\"> blocks", async () => {
+    const input = `
+<script lang="tsx">
+export default {
+  render(h): VNode {  return <div>{ this.foo }</div> },
+}
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain(`return <div>{this.foo}</div>;`);
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it("should keep the trailing comma of a single generic param in .vue scripts", async () => {
+    // Prettier's tsx disambiguation rule keys on the formatted file's path:
+    // a .vue file is not a .ts file, so `<T = any,>` keeps its comma
+    // (removing it would be invalid if the script were treated as tsx).
+    const input = `
+<script setup lang="ts">
+const getOptions = <T = any,>(list: T[]) => list;
+const constrained = <T extends object>(list: T[]) => list;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain(`<T = any,>(list: T[]) => list`);
+    expect(result.code).toContain(`<T extends object>(list: T[]) => list`);
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it("should parenthesize objects touching `}}` when bracketSpacing is off", async () => {
+    const input = `
+<template>
+  <div>{{ { a: { b: 1 } } }}</div>
+  <div :x="{ a: { b: 1 } }">y</div>
+</template>
+`;
+    const result = await format("a.vue", input, { bracketSpacing: false });
+
+    // Interpolation: the inner object would create a premature \`}}\`.
+    expect(result.code).toContain(`{{ {a: ({b: 1})} }}`);
+    // Attribute values have no \`}}\` scanner problem: no parens.
+    expect(result.code).toContain(`:x="{a: {b: 1}}"`);
+    expect(result.errors).toStrictEqual([]);
+  });
+
   // gql-in-js-in-vue: the `oxc_formatter_graphql` IR's blank runs
   // (`exact_line_breaks`, part of the block string's VALUE) must survive the IR→Doc conversion
   // back to the Prettier host (encoded as that many hardlines, which Prettier never collapses).

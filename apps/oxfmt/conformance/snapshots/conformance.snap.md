@@ -1,32 +1,16 @@
 ## js-in-vue
 
-### Option 1: 422/427 (98.83%)
+### Option 1: 427/427 (100.00%)
 
 ```json
 {"printWidth":80}
 ```
 
-| File | Note |
-| :--- | :--- |
-| [externals/prettier/vue/interpolation/bitwise-or-operator.vue](diffs/js-in-vue/externals__prettier__vue__interpolation__bitwise-or-operator.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/prettier/vue/multiparser/lang-tsx.vue](diffs/js-in-vue/externals__prettier__vue__multiparser__lang-tsx.vue.md) | `lang=tsx` is not supported |
-| [externals/prettier/vue/ts-expression/filter.vue](diffs/js-in-vue/externals__prettier__vue__ts-expression__filter.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/prettier/vue/vue/filter.vue](diffs/js-in-vue/externals__prettier__vue__vue__filter.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma in generic param is removed even in .ts(x) file |
-
-### Option 2: 422/427 (98.83%)
+### Option 2: 427/427 (100.00%)
 
 ```json
 {"printWidth":100,"vueIndentScriptAndStyle":true,"singleQuote":true}
 ```
-
-| File | Note |
-| :--- | :--- |
-| [externals/prettier/vue/interpolation/bitwise-or-operator.vue](diffs/js-in-vue/externals__prettier__vue__interpolation__bitwise-or-operator.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/prettier/vue/multiparser/lang-tsx.vue](diffs/js-in-vue/externals__prettier__vue__multiparser__lang-tsx.vue.md) | `lang=tsx` is not supported |
-| [externals/prettier/vue/ts-expression/filter.vue](diffs/js-in-vue/externals__prettier__vue__ts-expression__filter.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/prettier/vue/vue/filter.vue](diffs/js-in-vue/externals__prettier__vue__vue__filter.vue.md) | Vue 2 filter pipes (`{{ x | f }}`) not yet formatted with leading-`|` layout (removed in Vue 3) |
-| [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma in generic param is removed even in .ts(x) file |
 
 ## gql-in-js
 

@@ -1,6 +1,23 @@
 import { jsTextToDoc } from "../../index";
 import type { Parser, Doc } from "prettier";
 
+/// Prettier's "known file type" check — when the filepath has one of these
+/// extensions, jsx-ness comes from the extension and no sniffing happens
+/// (`isKnownFileType` in language-js/parse/typescript.js).
+const KNOWN_JS_TS_FILE_RE = /\.(?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$/i;
+
+/// Prettier's naive JSX sniff, verbatim (language-js/parse/utilities/
+/// jsx-regexp.evaluate.js): "</" when probably not in a string, or "/>" on a
+/// line not starting with "//". Decides only the ATTEMPT ORDER, not the result.
+const JSX_LIKELY_RE = new RegExp(
+  [
+    "^[^\"'`]*</", // Contains "</" when probably not in a string
+    "|",
+    "^[^/]{2}.*/>", // Contains "/>" on line not starting with "//"
+  ].join(""),
+  "m",
+);
+
 export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textToDocOptions) => {
   // `_oxfmtPluginOptionsJson` is a JSON string bundled by Rust (`oxfmtrc::inject_oxfmt_plugin_payload`),
   // carrying the typed `FormatConfig` + parent filepath for the Rust-side `oxc_formatter`.
@@ -11,29 +28,35 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   // - JS: always enable JSX for js-in-xxx, it's safe
   // - TS: `typescript` (ts-in-vue|markdown|mdx) or `babel-ts` (ts-in-vue(script generic="..."))
   //   - In case of ts-in-md, `filepath` is overridden as `dummy.tx(x)` to distinguish TSX or TS
-  //   - NOTE: tsx-in-vue is not supported since there is no signal from Prettier to detect it
-  //     - Prettier is using `maybeJSXRe.test(sourceText)` to detect, but it's slow!
+  //   - For tsx-in-vue (`<script lang="tsx">`) there is no parser-name signal.
+  //     Prettier's `typescript`/`babel-ts` parsers try BOTH jsx and non-jsx
+  //     parses when the filepath is not a known JS/TS extension, ordered by a
+  //     naive JSX sniff (`getParseOptionsCombinations` + `jsxRegexp` in
+  //     language-js/parse/typescript.js). Mirror that with a tsx/ts fallback.
   const isTS =
     parser === "typescript" ||
     parser === "babel-ts" ||
     parser === "__ts_expression" ||
     parser === "__vue_ts_expression" ||
     parser === "__vue_ts_event_binding";
-  const embeddedSourceExt = isTS ? (filepath?.endsWith(".tsx") ? "tsx" : "ts") : "jsx";
+  let extAttempts: string[];
+  if (!isTS) {
+    extAttempts = ["jsx"];
+  } else if (filepath && KNOWN_JS_TS_FILE_RE.test(filepath)) {
+    extAttempts = [/\.tsx$/i.test(filepath) ? "tsx" : "ts"];
+  } else {
+    extAttempts = JSX_LIKELY_RE.test(embeddedSourceText) ? ["tsx", "ts"] : ["ts", "tsx"];
+  }
 
   // Detect context from the (pseudo-)parser name and Prettier's internal flags
   const parentContext = detectParentContext(parser as string, parentParser!, textToDocOptions);
 
-  const docJSON = await jsTextToDoc(
-    embeddedSourceExt,
-    embeddedSourceText,
-    _oxfmtPluginOptionsJson as string,
-    parentContext,
-  );
-
-  if (docJSON === null) {
-    throw new Error("`oxfmt::textToDoc()` failed. Use `OXC_LOG` env var to see Rust-side logs.");
-  }
+  type DocPayload = {
+    doc?: unknown;
+    refs?: unknown[];
+    parseError?: boolean;
+    expressionRoot?: string;
+  };
 
   // SAFETY: Rust side returns Prettier's `Doc` JSON wrapped with `{ doc, refs }` for sharing.
   // Expression fragments may carry 2 extra fields:
@@ -42,7 +65,29 @@ export const textToDoc: Parser<Doc>["parse"] = async (embeddedSourceText, textTo
   //   (statements) form only on a Babel-shaped syntax error
   // - `expressionRoot`: root node type for Prettier's `__onHtmlBindingRoot` hook,
   //   which drives the hug-vs-expand layout of attribute values
-  const { doc, refs, parseError, expressionRoot } = JSON.parse(docJSON) as {
+  let payload: DocPayload | null = null;
+  for (const ext of extAttempts) {
+    const docJSON = await jsTextToDoc(
+      ext,
+      embeddedSourceText,
+      _oxfmtPluginOptionsJson as string,
+      parentContext,
+    );
+    const attempt = docJSON === null ? null : (JSON.parse(docJSON) as DocPayload);
+    // Keep the first response so a genuine syntax error still reports as
+    // `parseError` data after all attempts fail.
+    payload ??= attempt;
+    if (attempt !== null && !attempt.parseError) {
+      payload = attempt;
+      break;
+    }
+  }
+
+  if (payload === null) {
+    throw new Error("`oxfmt::textToDoc()` failed. Use `OXC_LOG` env var to see Rust-side logs.");
+  }
+
+  const { doc, refs, parseError, expressionRoot } = payload as {
     doc: unknown;
     refs: unknown[];
     parseError?: boolean;
@@ -132,11 +177,18 @@ function detectParentContext(
   switch (parser) {
     case "__js_expression":
     case "__ts_expression":
-    case "__vue_expression":
-    case "__vue_ts_expression":
       return "__isInHtmlAttribute" in options
         ? "expression-attribute"
         : "expression-interpolation";
+    // The Vue expression parsers get their own kinds: they enable the
+    // Vue 2 filter-sequence layout (`{{ msg | uppercase }}`), which must NOT
+    // apply to `__js_expression` positions like the `v-for` right-hand side
+    // (see Prettier's `isVueFilterSequenceExpression` in binaryish.js).
+    case "__vue_expression":
+    case "__vue_ts_expression":
+      return "__isInHtmlAttribute" in options
+        ? "vue-expression-attribute"
+        : "vue-expression-interpolation";
     case "__vue_event_binding":
     case "__vue_ts_event_binding":
       return "event-handler";

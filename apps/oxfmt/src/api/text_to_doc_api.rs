@@ -32,12 +32,23 @@ enum FragmentKind {
     VueBindings,
     /// `<script generic="T extends Foo">` → formats type parameters without angle brackets.
     VueScriptGeneric,
-    /// A bare expression inside a double-quoted attribute:
-    /// `v-if`/`v-show` and other simple directives, `v-bind`/`:prop`,
-    /// the `v-for` right-hand side, and the expression form of `v-on`/`@event`.
+    /// A bare expression inside a double-quoted attribute, from the plain
+    /// `__(js|ts)_expression` parsers: `v-if`/`v-show` and other simple
+    /// directives, the `v-for` right-hand side, and the expression form of
+    /// `v-on`/`@event`.
     ExpressionAttribute,
-    /// A bare expression inside an interpolation: `{{ ... }}`.
+    /// A bare expression inside an interpolation from a non-Vue parser.
+    /// (Currently unreachable — Vue interpolations arrive as
+    /// [`FragmentKind::VueExpressionInterpolation`] — kept for symmetry.)
     ExpressionInterpolation,
+    /// A bare expression inside a double-quoted attribute, from the
+    /// `__vue(_ts)_expression` parsers: `v-bind`/`:prop` values.
+    /// Enables the Vue 2 filter layout (filters are only valid in `v-bind`
+    /// and interpolations).
+    VueExpressionAttribute,
+    /// A bare expression inside an interpolation: `{{ ... }}`, from the
+    /// `__vue(_ts)_expression` parsers. Enables the Vue 2 filter layout.
+    VueExpressionInterpolation,
     /// Statement(s) of an inline event handler: `v-on`/`@event` values that
     /// did not parse as a single expression.
     EventHandler,
@@ -71,16 +82,26 @@ pub fn run(
         "vue-script-generic" => Some(FragmentKind::VueScriptGeneric),
         "expression-attribute" => Some(FragmentKind::ExpressionAttribute),
         "expression-interpolation" => Some(FragmentKind::ExpressionInterpolation),
+        "vue-expression-attribute" => Some(FragmentKind::VueExpressionAttribute),
+        "vue-expression-interpolation" => Some(FragmentKind::VueExpressionInterpolation),
         "event-handler" => Some(FragmentKind::EventHandler),
         // "vue-script", "svelte-script"
         _ => None,
     };
+
+    // Only the markdown/mdx embeds format under a synthetic JS/TS `filepath`
+    // (Prettier overrides it to `dummy.ts(x)`); every other host (vue, svelte,
+    // html) passes its own non-JS/TS filepath through, which drives the tsx
+    // generic trailing-comma rule (see `embedded_source_type`). Fragments only
+    // occur in vue/html hosts, so they never format under a JS/TS filepath.
+    let host_is_js_ts_file = matches!(parent_context, "markdown" | "mdx");
 
     let doc_json = if let Some(kind) = fragment_kind {
         run_fragment(source_ext, source_text, oxfmt_plugin_options_json, kind)?
     } else {
         run_full(
             source_ext,
+            host_is_js_ts_file,
             source_text,
             oxfmt_plugin_options_json,
             format_file_cb,
@@ -94,6 +115,31 @@ pub fn run(
 }
 
 // ---
+
+/// [`SourceType`] for an embedded JS/TS block or fragment.
+///
+/// When the *host* file is not itself a JS/TS file (`.vue`, `.svelte`,
+/// `.html`), the source type keeps the language/variant of the requested
+/// extension but drops the extension itself: Prettier's tsx generic
+/// trailing-comma rule keys on the formatted file's path
+/// (`/\.ts$/.test(options.filepath)` in `shouldForceTrailingComma`,
+/// language-js/print/type-parameters.js), and the host's path is not `.ts` —
+/// so `<T = any,>() => ...` keeps its comma inside a `.vue` file.
+/// Markdown/mdx embeds are the exception: Prettier overrides their `filepath`
+/// to a synthetic `dummy.ts(x)`, so they behave like real `.ts(x)` files.
+fn embedded_source_type(source_ext: &str, host_is_js_ts_file: bool) -> SourceType {
+    let source_type = SourceType::from_extension(source_ext)
+        .expect("source_ext should be a valid JS/TS extension");
+    if host_is_js_ts_file {
+        return source_type;
+    }
+    // Same language / variant / module kind as `from_extension`, extension-less.
+    match source_ext {
+        "ts" => SourceType::ts(),
+        "tsx" => SourceType::tsx(),
+        _ => SourceType::unambiguous().with_jsx(true),
+    }
+}
 
 /// Full mode:
 /// - Format entire source as IR
@@ -109,6 +155,7 @@ pub fn run(
 #[instrument(level = "debug", name = "oxfmt::text_to_doc::full", skip_all, fields(%source_ext))]
 fn run_full(
     source_ext: &str,
+    host_is_js_ts_file: bool,
     source_text: &str,
     oxfmt_plugin_options_json: &str,
     format_file_cb: JsFormatFileCb,
@@ -127,8 +174,7 @@ fn run_full(
         sort_tailwind_classes_cb,
     );
 
-    let source_type = SourceType::from_extension(source_ext)
-        .expect("source_ext should be a valid JS/TS extension");
+    let source_type = embedded_source_type(source_ext, host_is_js_ts_file);
 
     let resolved = resolve_for_embedded_js(config, parent_filepath)
         .expect("`_oxfmtPluginOptionsJson` should contain valid config");
@@ -202,8 +248,8 @@ fn run_fragment(
     oxfmt_plugin_options_json: &str,
     kind: FragmentKind,
 ) -> Option<Value> {
-    let source_type = SourceType::from_extension(source_ext)
-        .expect("source_ext should be a valid JS/TS extension");
+    // Fragments only occur in vue/html hosts, never under a JS/TS filepath.
+    let source_type = embedded_source_type(source_ext, false);
 
     let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json);
     // Reuses the same config resolver as `run_full()`, but only `format_options` is needed here,
@@ -219,10 +265,16 @@ fn run_fragment(
         FragmentKind::VueBindings => FragmentContext::FunctionParamsAsBinding,
         FragmentKind::VueScriptGeneric => FragmentContext::TypeParameters,
         FragmentKind::ExpressionAttribute => {
-            FragmentContext::Expression { in_html_attribute: true }
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: false }
         }
         FragmentKind::ExpressionInterpolation => {
-            FragmentContext::Expression { in_html_attribute: false }
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: false }
+        }
+        FragmentKind::VueExpressionAttribute => {
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: true }
+        }
+        FragmentKind::VueExpressionInterpolation => {
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: true }
         }
         FragmentKind::EventHandler => FragmentContext::EventHandlerStatements,
     };
@@ -246,6 +298,8 @@ fn run_fragment(
                 kind,
                 FragmentKind::ExpressionAttribute
                     | FragmentKind::ExpressionInterpolation
+                    | FragmentKind::VueExpressionAttribute
+                    | FragmentKind::VueExpressionInterpolation
                     | FragmentKind::EventHandler
             ) {
                 return Some(serde_json::json!({ "parseError": true }));

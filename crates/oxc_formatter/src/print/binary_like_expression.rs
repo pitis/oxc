@@ -127,6 +127,37 @@ impl<'a, 'b> BinaryLikeExpression<'a, 'b> {
         Self::can_inline_logical_expr(logical)
     }
 
+    /// Whether this is (part of) a top-level `|` chain in a Vue expression
+    /// fragment — Prettier's `isVueFilterSequenceExpression` in `binaryish.js`.
+    /// Vue 2 filters (`{{ msg | uppercase | reverse }}`) then break with the
+    /// line break *before* the operator instead of after it.
+    fn is_vue_filter_sequence(&self, f: &JsFormatter<'_, 'a>) -> bool {
+        if !f.context().embedded_vue_expression() {
+            return false;
+        }
+        let Self::BinaryExpression(binary) = self else {
+            return false;
+        };
+        if binary.operator() != BinaryOperator::BitwiseOR {
+            return false;
+        }
+        // Top-level chain only: every ancestor up to the fragment root must be
+        // another `|` binary expression. The fragment root expression is
+        // parented directly under `Program` (Prettier's `JsExpressionRoot`).
+        let mut parent = binary.parent();
+        loop {
+            match parent {
+                AstNodes::Program(_) => return true,
+                AstNodes::BinaryExpression(outer)
+                    if outer.operator() == BinaryOperator::BitwiseOR =>
+                {
+                    parent = outer.parent();
+                }
+                _ => return false,
+            }
+        }
+    }
+
     pub fn can_inline_logical_expr(logical: &LogicalExpression) -> bool {
         match &logical.right {
             Expression::ObjectExpression(object) => !object.properties.is_empty(),
@@ -146,11 +177,16 @@ impl<'a, 'b> BinaryLikeExpression<'a, 'b> {
             AstNodes::ReturnStatement(_)
             | AstNodes::ThrowStatement(_)
             | AstNodes::ForStatement(_)
-            | AstNodes::TemplateLiteral(_)
+            | AstNodes::TemplateLiteral(_) => true,
             // An expression directly under `Program` only occurs for
             // `FragmentContext::Expression` roots (js-in-xxx), where the host
             // wraps the fragment and indents; matches Prettier's `JsExpressionRoot`.
-            | AstNodes::Program(_) => true,
+            // Top-level `|` chains are excluded and keep the indented-chain
+            // layout (binaryish.js: `node.operator !== "|" && parent.type ===
+            // "JsExpressionRoot"` — the Vue 2 filter-sequence shape).
+            AstNodes::Program(_) => {
+                self.operator() != BinaryLikeOperator::BinaryOperator(BinaryOperator::BitwiseOR)
+            }
             AstNodes::JSXExpressionContainer(container) => {
                 matches!(container.parent(), AstNodes::JSXAttribute(_))
             }
@@ -448,7 +484,25 @@ impl<'a> Format<'a, JsFormatContext<'a>> for BinaryLeftOrRightSide<'a, '_> {
 
                 let right = binary_like_expression.right();
 
+                // Vue 2 filter sequences break before the operator
+                // (Prettier's `lineBeforeOperator`), unless the right side
+                // carries a leading own-line comment.
+                let line_before_operator = binary_like_expression.is_vue_filter_sequence(f)
+                    && !f.comments().has_leading_own_line_comment(right.span().start);
+
                 let operator_and_right_expression = format_with(|f| {
+                    if line_before_operator {
+                        write!(
+                            f,
+                            [
+                                soft_line_break_or_space(),
+                                binary_like_expression.operator(),
+                                space()
+                            ]
+                        );
+                        return write!(f, right);
+                    }
+
                     write!(f, [space(), binary_like_expression.operator()]);
 
                     let should_inline = binary_like_expression.should_inline_logical_expression();
