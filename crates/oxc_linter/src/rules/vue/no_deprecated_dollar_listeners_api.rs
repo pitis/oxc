@@ -42,8 +42,9 @@ declare_oxc_lint!(
     /// for this template-only rule; only the `VExpressionContainer` half —
     /// any `$listeners` reference inside a template interpolation or
     /// directive value that isn't shadowed by a local declaration (a
-    /// `v-for` alias, or a function parameter within the same expression)
-    /// — is implemented here.
+    /// `v-for` alias, a `v-slot`/`slot-scope`/`scope` destructured
+    /// parameter, or a function parameter within the same expression) — is
+    /// implemented here.
     ///
     /// ### Examples
     ///
@@ -150,6 +151,45 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // `$listeners` shadowed by a `v-slot` destructured parameter.
+            // Reviewer-reported false positive, verified against real
+            // eslint-plugin-vue 10.9.1: reports nothing.
+            (
+                r#"<template><template v-slot:default="{ $listeners }"><div v-on="$listeners" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Shorthand `#` form; usage several elements deep (scope
+            // persists across intermediate elements with no scope of their
+            // own).
+            (
+                r#"<template><template #default="{ $listeners }"><div><span>{{ $listeners }}</span></div></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Deprecated `slot-scope` attribute (any element), and `scope`
+            // attribute (only recognized on `<template>`).
+            (
+                r#"<template><div slot-scope="{ $listeners }"><span v-on="$listeners" /></div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template scope="{ $listeners }"><span v-on="$listeners" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A rest element binds its own name into scope.
+            (
+                r#"<template><template v-slot="{ ...$listeners }"><div v-on="$listeners" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
         ];
 
@@ -182,6 +222,25 @@ mod tests {
             // diagnostic.
             (
                 r#"<template><div v-on="fn($listeners, $listeners)"/></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Aliased destructuring (`{ $listeners: renamed }`) binds only
+            // the local name `renamed` into scope, not the source key
+            // `$listeners` — so a genuine `$listeners` reference nearby
+            // still reports.
+            (
+                r#"<template><template v-slot="{ $listeners: renamed }">{{ $listeners }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The deprecated `scope` attribute only establishes slot scope
+            // on `<template>` — on any other element it's inert markup, so
+            // `$listeners` here is still a genuine, reportable reference.
+            (
+                r#"<template><div scope="{ $listeners }">{{ $listeners }}</div></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

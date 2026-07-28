@@ -78,16 +78,13 @@ declare_oxc_lint!(
     /// source) behavior rather than narrowing it with an ad-hoc whitelist,
     /// since that would be a fidelity regression, not an improvement.
     ///
-    /// What genuinely isn't reproduced, for both options: the scope stack
-    /// only tracks `v-for` alias variables (`item`/`index` in
-    /// `v-for="(item, index) in items"`), not `v-slot`/its shorthand `#`/the
-    /// deprecated `slot-scope` attribute's destructured parameters (e.g.
-    /// `<template v-slot="{ item }">`). A property name that happens to
-    /// collide with such a slot-scope variable is a rare false positive
-    /// here — see `crate::utils::walk_nodes_with_scope`'s doc comment for
-    /// why extracting names from an arbitrary destructuring *pattern* wasn't
-    /// taken on for this task. A directive's own dynamic argument (`:[expr]`)
-    /// is also never checked, for both options (upstream itself excludes it
+    /// The scope stack tracks both `v-for` alias variables (`item`/`index` in
+    /// `v-for="(item, index) in items"`) and `v-slot`/its shorthand `#`/the
+    /// deprecated `slot-scope`/`scope` attributes' destructured parameters
+    /// (e.g. `<template v-slot="{ item }">`) — see
+    /// `crate::utils::walk_nodes_with_scope`'s doc comment for the mechanism.
+    /// A directive's own dynamic argument (`:[expr]`) is never checked,
+    /// for both options (upstream itself excludes it
     /// only for `"always"`, via a `VDirectiveKey` parent check; this rule
     /// doesn't inspect dynamic-argument expressions at all, which is a
     /// strict subset of what upstream reports and therefore never a false
@@ -263,12 +260,22 @@ impl<'a> Visit<'a> for ThisMemberVisitor<'_> {
 }
 
 impl ThisMemberVisitor<'_> {
-    /// eslint-plugin-vue's guard on its `unexpected` report: skip when the
-    /// property name isn't in scope as a `v-for` alias, isn't a JS reserved
-    /// word, and does look like a name that could stand alone as a bare
-    /// identifier reference — mirrors `RESERVED_NAMES.has(propertyName) ||
-    /// /^\d.*$|[^\w$]/.test(propertyName)`.
+    /// eslint-plugin-vue's guard on its `unexpected` report: `if
+    /// (!propertyName || scopeStack.nodes.some(el => el.name === propertyName)
+    /// || RESERVED_NAMES.has(propertyName) || /^\d.*$|[^\w$]/.test(propertyName))
+    /// return;` — skip when the property name is empty (`getStaticPropertyName`
+    /// can return `""`, e.g. for `this['']`, which is JS-falsy), is in scope
+    /// as a `v-for` alias, is a JS reserved word, or doesn't look like a name
+    /// that could stand alone as a bare identifier reference.
     fn check(&mut self, this_span: Span, property_name: &str) {
+        // Verified against real eslint-plugin-vue 10.9.1: `{{ this[''] }}`
+        // reports nothing — `looks_like_bare_identifier("")` is vacuously
+        // `true` (an empty string starts with no digit and every character
+        // of an empty iterator trivially satisfies `.all(..)`), so this
+        // explicit empty check is load-bearing, not redundant with it.
+        if property_name.is_empty() {
+            return;
+        }
         if self.scope.contains(property_name) {
             return;
         }
@@ -500,6 +507,16 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Empty static property name (`getStaticPropertyName` returns
+            // `""`, which is JS-falsy): never reported, regardless of the
+            // reserved-word/bare-identifier-shape checks. Verified against
+            // real eslint-plugin-vue 10.9.1.
+            (
+                r"<template><div>{{ this[''] }}</div></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Empty interpolation: nothing to parse.
             (r"<template><div>{{ }}</div></template>", None, None, Some(PathBuf::from("test.vue"))),
             // `v-for` alias in scope: `this.x`'s property name coincides
@@ -539,6 +556,47 @@ mod tests {
             // Nested `v-for` scopes stack correctly.
             (
                 r#"<template><div v-for="ssa in sss"><div v-for="ssf in ssa">{{ ssf }}</div></div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `v-slot` destructured parameter in scope: `this.foo`'s property
+            // name coincides with the slot-scope variable, so — same
+            // purely-name-based quirk as the `v-for` alias case above — it's
+            // skipped. Reviewer-reported false positive, verified against
+            // real eslint-plugin-vue 10.9.1: reports nothing.
+            (
+                r#"<template><template v-slot:default="{ foo }">{{ this.foo }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Shorthand `#` form; slot-scope variable used several elements
+            // deep (scope persists across intermediate elements with no
+            // scope of their own).
+            (
+                r#"<template><template #default="{ foo }"><div><span>{{ this.foo }}</span></div></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Deprecated `slot-scope` attribute (any element), and `scope`
+            // attribute (only recognized on `<template>`).
+            (
+                r#"<template><div slot-scope="{ foo }">{{ this.foo }}</div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template scope="{ foo }">{{ this.foo }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Rest element binds its own name into scope.
+            (
+                r#"<template><template v-slot="{ ...rest }">{{ this.rest }}</template></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),
@@ -632,6 +690,25 @@ mod tests {
             (
                 r#"<template><div v-if="foo"></div></template>"#,
                 Some(json!(["always"])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Aliased destructuring (`{ foo: renamed }`) binds only the
+            // local name `renamed` into scope, not the source key `foo` — so
+            // `this.foo` still needs reporting even inside that slot scope.
+            (
+                r#"<template><template v-slot="{ foo: renamed }">{{ this.foo }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The deprecated `scope` attribute only establishes slot scope
+            // on `<template>` — on any other element it's just inert markup
+            // (matches `no_deprecated_scope_attribute`'s own restriction),
+            // so `this.foo` here is still a genuine, reportable reference.
+            (
+                r#"<template><div scope="{ foo }">{{ this.foo }}</div></template>"#,
+                None,
                 None,
                 Some(PathBuf::from("test.vue")),
             ),

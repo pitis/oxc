@@ -5,7 +5,7 @@
 //! of re-implementing them.
 
 use oxc_allocator::Allocator;
-use oxc_ast::ast::{BindingPattern, ForStatementLeft, Statement};
+use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Statement};
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
 use oxc_span::{SourceType, Span};
@@ -397,17 +397,18 @@ fn collect_binding_names(pattern: &BindingPattern<'_>, out: &mut FxHashSet<Strin
 /// since callers that also need [`oxc_vue_parser::ast::Interpolation`]s (every
 /// expression-inspecting rule this was built for: `this-in-template`,
 /// `no-deprecated-dollar-listeners-api`, `no-deprecated-dollar-scopedslots-api`)
-/// match on the node kind themselves — together with the set of `v-for` alias
-/// names visible at that node: every alias declared by the node's own
-/// element (if it carries `v-for`) or any ancestor element's `v-for`.
+/// match on the node kind themselves — together with the set of scope-variable
+/// names visible at that node: every name declared by the node's own element
+/// (its `v-for` alias(es), and/or its `v-slot`/shorthand `#`/deprecated
+/// `slot-scope`/`scope` destructured parameter(s)) or any ancestor element's
+/// same.
 ///
-/// Mirrors a deliberately narrowed subset of vue-eslint-parser's per-`VElement`
-/// scope stack (`node.variables`): only `v-for` aliases are tracked.
-/// `v-slot`/its shorthand `#`/deprecated `slot-scope` destructured parameters
-/// (e.g. `<template v-slot="{ item }">`) are NOT folded into scope — see
-/// `this-in-template`'s doc comment for the full rationale. A property name
-/// that collides with such a slot-scope variable is a rare, documented false
-/// positive in the rules built on this helper, not a silent miss.
+/// Mirrors vue-eslint-parser's per-`VElement` scope stack (`node.variables`):
+/// both `v-for` aliases and slot-scope destructured parameters are tracked,
+/// the latter via [`slot_scope_names`] — parsing the directive/attribute
+/// value as a real function-parameter pattern (`({ <value> }) => 0`), the
+/// same "reuse real JS grammar" mechanism `v_for_alias_names` uses for
+/// `v-for`, rather than reimplementing destructuring-pattern parsing by hand.
 pub fn walk_nodes_with_scope<'e, 'a>(
     nodes: &'e [Node<'a>],
     scope: &FxHashSet<String>,
@@ -418,18 +419,102 @@ pub fn walk_nodes_with_scope<'e, 'a>(
             visit(node, scope);
             continue;
         };
-        if let Some(value) =
-            get_directive(element, "for", None).and_then(|attribute| attribute.value.as_ref())
-        {
-            let mut child_scope = scope.clone();
-            child_scope.extend(v_for_alias_names(value.text));
-            visit(node, &child_scope);
-            walk_nodes_with_scope(&element.children, &child_scope, visit);
-        } else {
+        let own_names = element_own_scope_names(element);
+        if own_names.is_empty() {
             visit(node, scope);
             walk_nodes_with_scope(&element.children, scope, visit);
+        } else {
+            let mut child_scope = scope.clone();
+            child_scope.extend(own_names);
+            visit(node, &child_scope);
+            walk_nodes_with_scope(&element.children, &child_scope, visit);
         }
     }
+}
+
+/// Every scope-variable name declared by `element` itself (not inherited
+/// from an ancestor): its `v-for` alias(es), plus its slot-scope destructured
+/// parameter(s) — see [`walk_nodes_with_scope`]'s doc comment.
+fn element_own_scope_names(element: &Element<'_>) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    if let Some(value) =
+        get_directive(element, "for", None).and_then(|attribute| attribute.value.as_ref())
+    {
+        names.extend(v_for_alias_names(value.text));
+    }
+    if let Some(pattern_text) = slot_scope_pattern_text(element) {
+        names.extend(slot_scope_names(pattern_text));
+    }
+    names
+}
+
+/// The raw pattern text of whichever slot-scope-establishing directive or
+/// (deprecated bare) attribute `element` carries, if any: `v-slot`/its
+/// shorthand `#` (any argument, static or dynamic — the *pattern* lives in
+/// the value, not the argument), the deprecated `slot-scope` attribute (any
+/// element — vue-eslint-parser's bare-attribute-to-directive conversion for
+/// `slot-scope` isn't restricted to `<template>`, unlike `scope`; see
+/// `no_deprecated_slot_scope_attribute.rs`), or the deprecated `scope`
+/// attribute (`<template>` only; see `no_deprecated_scope_attribute.rs`).
+/// Both deprecated attribute names are matched case-SENSITIVELY, exactly
+/// like those two rules — vue-eslint-parser's SFC `getTagName` never
+/// case-folds either the tag name or the attribute name for this
+/// conversion.
+fn slot_scope_pattern_text<'a>(element: &Element<'a>) -> Option<&'a str> {
+    if let Some(attribute) = get_directive(element, "slot", None) {
+        return attribute.value.as_ref().map(|value| value.text);
+    }
+    let is_bare = |attribute: &&Attribute<'a>, name: &str| {
+        attribute.directive.is_none() && attribute.name == name
+    };
+    if let Some(attribute) =
+        element.attributes.iter().find(|attribute| is_bare(attribute, "slot-scope"))
+    {
+        return attribute.value.as_ref().map(|value| value.text);
+    }
+    if element.name == "template"
+        && let Some(attribute) =
+            element.attributes.iter().find(|attribute| is_bare(attribute, "scope"))
+    {
+        return attribute.value.as_ref().map(|value| value.text);
+    }
+    None
+}
+
+/// The names bound by a slot-scope pattern — `v-slot`/`#`/`slot-scope`/
+/// `scope`'s value, e.g. `slotProps` or `{ a, b: c = 1, ...rest }` — via the
+/// same "parse as real JS grammar" mechanism as [`v_for_alias_names`]:
+/// wrapped as a single arrow-function parameter (`(<pattern>) => 0`) and
+/// parsed with `oxc_parser`, so identifier binding (a bare identifier, an
+/// object/array pattern with defaults, aliases (`b: c`), and rest elements)
+/// is handled by real `BindingPattern` grammar rather than reimplemented.
+/// Only [`collect_binding_names`]'s *bound* names are collected — a default
+/// value's own expression (e.g. `someGlobal` in `{ b: c = someGlobal }`) is
+/// never treated as a declaration, since `collect_binding_names` only
+/// recurses into an `AssignmentPattern`'s left (binding) side. Silently
+/// empty on any parse failure or a blank pattern, matching this fork's
+/// established silent-on-parse-failure discipline — this also covers a
+/// value-less `v-slot`/`slot-scope` (nothing to parse, no names declared).
+fn slot_scope_names(pattern_text: &str) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    let trimmed = pattern_text.trim();
+    if trimmed.is_empty() {
+        return names;
+    }
+    let snippet = format!("({trimmed}) => 0;");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return names;
+    }
+    let Some(Statement::ExpressionStatement(statement)) = parser_ret.program.body.first() else {
+        return names;
+    };
+    let Expression::ArrowFunctionExpression(arrow) = &statement.expression else { return names };
+    for parameter in &arrow.params.items {
+        collect_binding_names(&parameter.pattern, &mut names);
+    }
+    names
 }
 
 /// The `(text, absolute span)` of the JS expression a directive's value
@@ -437,15 +522,16 @@ pub fn walk_nodes_with_scope<'e, 'a>(
 /// (`this-in-template`, `no-deprecated-dollar-listeners-api`,
 /// `no-deprecated-dollar-scopedslots-api`) that need to parse it.
 ///
-/// `None` for: a plain (non-directive) attribute (never an expression),
-/// a directive with no value, and `v-slot`/its shorthand `#`/deprecated
-/// `slot-scope` — those values are destructuring *patterns*, not
-/// expressions, and (per [`walk_nodes_with_scope`]'s doc comment) this fork
-/// doesn't extract their bound names into scope either, so treating the
-/// pattern text as a plain expression would be actively wrong (e.g.
-/// `v-slot="{ msg }"` parsed as an expression is an `ObjectExpression` with
-/// a shorthand property whose value is a *reference* to `msg`, not a
-/// declaration of it) rather than just incomplete.
+/// `None` for: a plain (non-directive) attribute (never an expression —
+/// this already excludes the deprecated bare `slot-scope`/`scope`
+/// attributes, which never carry `Attribute::directive`), a directive with
+/// no value, and `v-slot`/its shorthand `#` — those values are destructuring
+/// *patterns*, not expressions (e.g. `v-slot="{ msg }"` parsed as an
+/// expression would be an `ObjectExpression` with a shorthand property whose
+/// value is a *reference* to `msg`, not a declaration of it). Their bound
+/// names ARE extracted into scope, just via [`slot_scope_names`] (real
+/// parameter-pattern parsing) rather than as a plain expression here — see
+/// [`walk_nodes_with_scope`]'s doc comment.
 ///
 /// `v-for`'s value is only ever its *iterator* expression (the part after
 /// `in`/`of`) — its alias list is a set of declarations, not a reference,

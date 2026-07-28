@@ -42,8 +42,9 @@ declare_oxc_lint!(
     /// definition and is out of scope for this template-only rule; only the
     /// `VExpressionContainer` half — any `$scopedSlots` reference inside a
     /// template interpolation or directive value that isn't shadowed by a
-    /// local declaration (a `v-for` alias, or a function parameter within
-    /// the same expression) — is implemented here. Upstream's autofix
+    /// local declaration (a `v-for` alias, a `v-slot`/`slot-scope`/`scope`
+    /// destructured parameter, or a function parameter within the same
+    /// expression) — is implemented here. Upstream's autofix
     /// (`$scopedSlots` → `$slots`) also isn't reproduced: this fork's Vue
     /// template pass doesn't support fixes yet (see `crate::vue_template`'s
     /// module doc).
@@ -153,6 +154,40 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // `$scopedSlots` shadowed by a `v-slot` destructured parameter
+            // (longhand argument, shorthand `#`, deprecated `slot-scope`,
+            // and `<template>`-only deprecated `scope`), including a rest
+            // element and usage several elements deep.
+            (
+                r#"<template><template v-slot:default="{ $scopedSlots }"><div v-on="$scopedSlots" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template #default="{ $scopedSlots }"><div><span>{{ $scopedSlots }}</span></div></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div slot-scope="{ $scopedSlots }"><span v-on="$scopedSlots" /></div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template scope="{ $scopedSlots }"><span v-on="$scopedSlots" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template v-slot="{ ...$scopedSlots }"><div v-on="$scopedSlots" /></template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
         ];
 
@@ -185,6 +220,23 @@ mod tests {
             // diagnostic.
             (
                 r#"<template><div v-on="fn($scopedSlots, $scopedSlots)"/></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Aliased destructuring binds only the local name, not the
+            // source key — a genuine `$scopedSlots` reference nearby still
+            // reports.
+            (
+                r#"<template><template v-slot="{ $scopedSlots: renamed }">{{ $scopedSlots }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The deprecated `scope` attribute only establishes slot scope
+            // on `<template>` — on any other element it's inert markup.
+            (
+                r#"<template><div scope="{ $scopedSlots }">{{ $scopedSlots }}</div></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

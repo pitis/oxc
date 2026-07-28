@@ -44,3 +44,17 @@ assertion_line: 490
    ·                                       ────────────
    ╰────
   help: Vue 3 merges scoped slots into `$slots`; use `$slots` instead of `$scopedSlots`.
+
+  ⚠ vue(no-deprecated-dollar-scopedslots-api): The `$scopedSlots` is deprecated.
+   ╭─[no_deprecated_dollar_scopedslots_api.tsx:1:59]
+ 1 │ <template><template v-slot="{ $scopedSlots: renamed }">{{ $scopedSlots }}</template></template>
+   ·                                                           ────────────
+   ╰────
+  help: Vue 3 merges scoped slots into `$slots`; use `$slots` instead of `$scopedSlots`.
+
+  ⚠ vue(no-deprecated-dollar-scopedslots-api): The `$scopedSlots` is deprecated.
+   ╭─[no_deprecated_dollar_scopedslots_api.tsx:1:44]
+ 1 │ <template><div scope="{ $scopedSlots }">{{ $scopedSlots }}</div></template>
+   ·                                            ────────────
+   ╰────
+  help: Vue 3 merges scoped slots into `$slots`; use `$slots` instead of `$scopedSlots`.

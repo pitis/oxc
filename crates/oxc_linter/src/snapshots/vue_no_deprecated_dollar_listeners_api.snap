@@ -44,3 +44,17 @@ assertion_line: 490
    ·                                     ──────────
    ╰────
   help: Vue 3 merges listeners into `$attrs`; use `v-bind="$attrs"` instead of `$listeners`.
+
+  ⚠ vue(no-deprecated-dollar-listeners-api): The `$listeners` is deprecated.
+   ╭─[no_deprecated_dollar_listeners_api.tsx:1:57]
+ 1 │ <template><template v-slot="{ $listeners: renamed }">{{ $listeners }}</template></template>
+   ·                                                         ──────────
+   ╰────
+  help: Vue 3 merges listeners into `$attrs`; use `v-bind="$attrs"` instead of `$listeners`.
+
+  ⚠ vue(no-deprecated-dollar-listeners-api): The `$listeners` is deprecated.
+   ╭─[no_deprecated_dollar_listeners_api.tsx:1:42]
+ 1 │ <template><div scope="{ $listeners }">{{ $listeners }}</div></template>
+   ·                                          ──────────
+   ╰────
+  help: Vue 3 merges listeners into `$attrs`; use `v-bind="$attrs"` instead of `$listeners`.

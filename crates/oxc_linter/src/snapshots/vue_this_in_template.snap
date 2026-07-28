@@ -72,3 +72,17 @@ assertion_line: 490
    ·                      ───
    ╰────
   help: Prefix the property reference with `this.`, e.g. `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:50]
+ 1 │ <template><template v-slot="{ foo: renamed }">{{ this.foo }}</template></template>
+   ·                                                  ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:35]
+ 1 │ <template><div scope="{ foo }">{{ this.foo }}</div></template>
+   ·                                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
