@@ -23,10 +23,3 @@ assertion_line: 490
    ·                                 ───────
    ╰────
   help: `<textarea>` content is not reactive to mustache changes; bind it with `v-model` instead.
-
-  ⚠ vue(no-textarea-mustache): Unexpected mustache. Use 'v-model' instead.
-   ╭─[no_textarea_mustache.tsx:1:21]
- 1 │ <template><TEXTAREA>{{ text }}</TEXTAREA></template>
-   ·                     ──────────
-   ╰────
-  help: `<textarea>` content is not reactive to mustache changes; bind it with `v-model` instead.

@@ -60,7 +60,16 @@ impl VueTemplateRule for NoTextareaMustache {
         let source_text = ctx.source_text();
         let mut spans = Vec::new();
         walk_elements(nodes, &mut |element| {
-            if !element.name.eq_ignore_ascii_case("textarea") {
+            // eslint-plugin-vue's selector matches `rawName='textarea'`
+            // exactly (case-sensitively) — not `name` (which some other
+            // rules' selectors use). In an SFC, an uppercase/mixed-case tag
+            // like `<TEXTAREA>` resolves as a *component* reference, not the
+            // native HTML element, so it must NOT match here even though
+            // this fork's own parser still treats it as raw text for
+            // reprinting purposes (case-insensitively, matching real HTML
+            // tokenizing rules) — verified against a real eslint-plugin-vue
+            // run: `<TEXTAREA>{{ x }}</TEXTAREA>` is not flagged.
+            if element.name != "textarea" {
                 return;
             }
             let Some(raw_text) = element.raw_text else { return };
@@ -159,6 +168,18 @@ mod tests {
                 Some(PathBuf::from("test.vue")),
             ),
             (r"<template><textarea /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Element-name matching is case-SENSITIVE (mirrors upstream's
+            // `rawName='textarea'` selector, not `name`): an uppercase or
+            // mixed-case tag resolves as a component reference in an SFC,
+            // not the native `<textarea>` element, so mustaches inside it
+            // are not this rule's concern. Verified against a real
+            // eslint-plugin-vue run — see the tag-name check's doc comment.
+            (
+                r"<template><TEXTAREA>{{ text }}</TEXTAREA></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -171,13 +192,6 @@ mod tests {
             // Multiple mustaches, each reported.
             (
                 r"<template><textarea>{{ a }} and {{ b }}</textarea></template>",
-                None,
-                None,
-                Some(PathBuf::from("test.vue")),
-            ),
-            // Case-insensitive tag name.
-            (
-                r"<template><TEXTAREA>{{ text }}</TEXTAREA></template>",
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

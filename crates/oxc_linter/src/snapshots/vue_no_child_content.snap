@@ -37,3 +37,17 @@ assertion_line: 490
    ·                                       ─────
    ╰────
   help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-html directive.
+   ╭─[no_child_content.tsx:1:38]
+ 1 │ <template><div v-html="a" v-text="b">hello</div></template>
+   ·                                      ─────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.
+
+  ⚠ vue(no-child-content): Child content is disallowed because it will be overwritten by the v-text directive.
+   ╭─[no_child_content.tsx:1:38]
+ 1 │ <template><div v-html="a" v-text="b">hello</div></template>
+   ·                                      ─────
+   ╰────
+  help: Remove the child content, or drop the directive if the static content should stay.

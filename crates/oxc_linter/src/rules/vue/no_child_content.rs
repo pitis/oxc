@@ -94,32 +94,46 @@ impl NoChildContent {
             return;
         }
 
-        let Some(directive_name) = element.attributes.iter().find_map(|attribute| {
-            let directive = attribute.directive.as_ref()?;
-            (directive.name == "html"
-                || directive.name == "text"
-                || self.0.additional_directives.iter().any(|name| name.as_str() == directive.name))
-            .then_some(directive.name)
-        }) else {
-            return;
-        };
-
-        if let Some(span) = content_span(element) {
-            ctx.diagnostic(disallowed_child_content_diagnostic(directive_name, span));
+        // Every content-overwriting directive on the element, in source
+        // order — upstream's visitor runs once per `VAttribute[directive=true]`
+        // independently, so an element with *both* `v-html` and `v-text` (or
+        // an `additionalDirectives` name alongside either) gets one report
+        // per directive, not just the first.
+        let directive_names: Vec<&str> = element
+            .attributes
+            .iter()
+            .filter_map(|attribute| {
+                let directive = attribute.directive.as_ref()?;
+                (directive.name == "html"
+                    || directive.name == "text"
+                    || self
+                        .0
+                        .additional_directives
+                        .iter()
+                        .any(|name| name.as_str() == directive.name))
+                .then_some(directive.name)
+            })
+            .collect();
+        if directive_names.is_empty() {
             return;
         }
 
-        // `<textarea>`/`<pre>`/`<script>`/`<style>` bodies never become
-        // `children` in this fork's parser (they're kept as raw, unparsed
-        // text for byte-faithful reprinting — see `no-textarea-mustache`'s
-        // doc comment for the same distinction). Approximate upstream's
-        // check for this case too: any non-whitespace raw text counts as
-        // child content.
-        if let Some(raw_text) = element.raw_text {
-            let text = &ctx.source_text()[raw_text.start as usize..raw_text.end as usize];
-            if !text.trim().is_empty() {
-                ctx.diagnostic(disallowed_child_content_diagnostic(directive_name, raw_text));
-            }
+        let span = content_span(element).or_else(|| {
+            // `<textarea>`/`<pre>`/`<script>`/`<style>` bodies never become
+            // `children` in this fork's parser (they're kept as raw,
+            // unparsed text for byte-faithful reprinting — see
+            // `no-textarea-mustache`'s doc comment for the same
+            // distinction). Approximate upstream's check for this case too:
+            // any non-whitespace raw text counts as child content.
+            element.raw_text.filter(|raw_text| {
+                let text = &ctx.source_text()[raw_text.start as usize..raw_text.end as usize];
+                !text.trim().is_empty()
+            })
+        });
+        let Some(span) = span else { return };
+
+        for directive_name in directive_names {
+            ctx.diagnostic(disallowed_child_content_diagnostic(directive_name, span));
         }
     }
 }
@@ -218,6 +232,15 @@ mod tests {
             (
                 r#"<template><div v-custom-directive="x">hello</div></template>"#,
                 Some(json!([{ "additionalDirectives": ["custom-directive"] }])),
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Both v-html and v-text on the same element: upstream visits
+            // each `VAttribute[directive=true]` independently, so this is
+            // TWO reports (one per directive), not one.
+            (
+                r#"<template><div v-html="a" v-text="b">hello</div></template>"#,
+                None,
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
