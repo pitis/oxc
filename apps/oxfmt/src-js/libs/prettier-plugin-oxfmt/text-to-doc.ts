@@ -243,6 +243,18 @@ function detectParentContext(
     default:
   }
 
+  // MUST come before the host-parser branches below. A `__`-prefixed name is one
+  // of Prettier's pseudo-parsers, which always requests a *fragment*, and every
+  // pseudo-parser this plugin registers is mapped by the switch above. Reaching
+  // here means a newly registered pseudo-parser was never mapped.
+  //
+  // Vue is the only host that uses pseudo-parsers, so checking after the
+  // `parentParser === "vue"` branch would never fire: Prettier sets
+  // `parentParser` to the host's parser, so an unknown `__foo` in a `.vue` file
+  // would fall through to "vue-script" and be formatted as a full program.
+  // Forward the name verbatim instead and let the Rust side reject it loudly.
+  if (parser.startsWith("__")) return parser;
+
   if (parentParser === "vue") {
     if ("__isVueForBindingLeft" in options) return "vue-for-binding-left";
     if ("__isVueBindings" in options) return "vue-bindings";
@@ -254,10 +266,6 @@ function detectParentContext(
   }
 
   // Everything else is a full-program embed named after its host parser
-  // ("markdown", "mdx", "html", ...). A `__`-prefixed name is one of Prettier's
-  // pseudo-parsers, which always requests a *fragment*: reaching here means this
-  // plugin registered a pseudo-parser the switch above never mapped. Forwarding
-  // it would silently format the fragment as a full program, so let the Rust
-  // side reject it as an internal error instead.
-  return parser.startsWith("__") ? parser : parentParser;
+  // ("markdown", "mdx", "html", ...).
+  return parentParser;
 }

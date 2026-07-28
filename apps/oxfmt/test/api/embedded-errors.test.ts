@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { jsTextToDoc } from "../../dist/index.js";
 
-type NapiImpl = () => Promise<string | null>;
+type NapiArgs = [sourceExt: string, sourceText: string, optionsJson: string, parentContext: string];
+type NapiImpl = (...args: NapiArgs) => Promise<string | null>;
 
 // The plugin's `textToDoc` is not part of the public bundle surface, so the
 // TS-level precedence logic is exercised against the source module with the
@@ -10,13 +11,21 @@ type NapiImpl = () => Promise<string | null>;
 // A plain mutable holder rather than `vi.fn()`: the mock's own result tracking
 // turns a rejected call into an unhandled rejection even though `textToDoc`
 // catches it, and the rejection path is exactly what needs testing here.
-const napi = { impl: (async () => null) as NapiImpl, calls: 0 };
+const napi = {
+  impl: (async () => null) as NapiImpl,
+  calls: 0,
+  contexts: [] as string[],
+};
 vi.mock("../../src-js/index", () => ({
-  jsTextToDoc: () => {
+  jsTextToDoc: (...args: NapiArgs) => {
     napi.calls += 1;
-    return napi.impl();
+    napi.contexts.push(args[3]);
+    return napi.impl(...args);
   },
 }));
+
+/** Delegates to the real Rust binding, so `detectParentContext`'s output is judged by Rust. */
+const realNapi: NapiImpl = (...args) => jsTextToDoc(...args);
 
 const { textToDoc } = await import("../../src-js/libs/prettier-plugin-oxfmt/text-to-doc");
 const { withEmbeddedWarnings } = await import("../../src-js/libs/embedded-warnings");
@@ -75,10 +84,88 @@ describe("Rust-side embedded failure classification", () => {
   });
 });
 
+// `parentParser` is Prettier's *host* parser, so every pseudo-parser embed in a
+// `.vue` file arrives with `parentParser: "vue"`. The unmapped-pseudo-parser
+// guard must therefore be checked BEFORE the vue-host branch, or it is dead code
+// exactly where the pseudo-parsers actually live.
+describe("detectParentContext under a vue host", () => {
+  beforeEach(() => {
+    napi.impl = realNapi;
+    napi.calls = 0;
+    napi.contexts = [];
+  });
+
+  const vueOptions = (parser: string, extra: Record<string, unknown> = {}) => ({
+    parser,
+    parentParser: "vue",
+    filepath: "a.vue",
+    _oxfmtPluginOptionsJson: JSON.stringify({ config: {}, filepath: "a.vue" }),
+    ...extra,
+  });
+
+  it("fails loudly for an unknown pseudo-parser instead of formatting a full program", async () => {
+    const { warnings } = await withEmbeddedWarnings(async () => {
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        textToDoc("a + b", vueOptions("__nonexistent", { __isInHtmlAttribute: true }) as any),
+      ).rejects.toThrow(/\(internal\)/u);
+    });
+
+    // Forwarded verbatim rather than collapsing into the vue-host "vue-script".
+    expect(napi.contexts).toStrictEqual(["__nonexistent"]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/^internal error: unmapped pseudo-parser context/u);
+  });
+
+  it("keeps the known pseudo-parser mappings", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await textToDoc("a && b", vueOptions("__js_expression", { __isInHtmlAttribute: true }) as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await textToDoc("a && b", vueOptions("__vue_expression") as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await textToDoc("a++; b++", vueOptions("__vue_event_binding") as any);
+
+    expect(napi.contexts).toStrictEqual([
+      "expression-attribute",
+      "vue-expression-interpolation",
+      "event-handler",
+    ]);
+  });
+
+  it("keeps the vue-host mappings for the regular parsers", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await textToDoc("const a = 1;", vueOptions("babel") as any);
+    // Prettier pre-wraps these fragments before calling `textToDoc()`.
+    await textToDoc(
+      "function _({ item }) {}",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vueOptions("babel", { __isVueBindings: true }) as any,
+    );
+    await textToDoc(
+      "function _(item, index) {}",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vueOptions("babel", { __isVueForBindingLeft: true }) as any,
+    );
+    await textToDoc(
+      "type T<A> = any",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vueOptions("typescript", { __isEmbeddedTypescriptGenericParameters: true }) as any,
+    );
+
+    expect(napi.contexts).toStrictEqual([
+      "vue-script",
+      "vue-bindings",
+      "vue-for-binding-left",
+      "vue-script-generic",
+    ]);
+  });
+});
+
 describe("textToDoc failure precedence", () => {
   beforeEach(() => {
     napi.impl = async () => null;
     napi.calls = 0;
+    napi.contexts = [];
   });
 
   it("reports a syntax failure and keeps the Babel-shaped cause for `v-on`", async () => {
