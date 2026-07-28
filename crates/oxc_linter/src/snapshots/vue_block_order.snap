@@ -17,6 +17,14 @@ assertion_line: 490
    ╰────
   help: Reorder the SFC's top-level blocks to match the configured `order`.
 
+  ⚠ vue(block-order): '<script>' should be above '<style>' on line 2.
+   ╭─[block_order.tsx:2:20]
+ 1 │ <!-- eslint-disable-next-line vue/block-order -->
+ 2 │ <style>.a{}</style><script>1</script>
+   ·                    ────────
+   ╰────
+  help: Reorder the SFC's top-level blocks to match the configured `order`.
+
   ⚠ vue(block-order): '<script>' should be above '<style>' on line 1.
    ╭─[block_order.tsx:1:20]
  1 │ <style>.a{}</style><script>1</script><template><div/></template>

@@ -398,6 +398,20 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Same `clear` quirk for the *line* form: upstream's processor
+            // resets `state.line` on `clear` exactly as it resets
+            // `state.block`, and a `clear` is emitted at every top-level
+            // element's end. The `clear` at the end of `<style>` therefore
+            // fires before the report anchored on `<script>`, even though
+            // both sit on the line the directive targets — so this is NOT
+            // suppressed. (The control is in `pass`: the same directive with
+            // no intervening block end does suppress.)
+            (
+                "<!-- eslint-disable-next-line vue/block-order -->\n<style>.a{}</style><script>1</script>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // Default order: style before script/template.
             (
                 "<style>.a{}</style><script>1</script><template><div/></template>",

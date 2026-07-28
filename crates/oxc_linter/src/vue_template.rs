@@ -31,7 +31,7 @@ use std::path::Path;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_span::Span;
 use oxc_vue_parser::{Sfc, ast::Comment, ast::Node, parse_sfc, parse_template};
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use crate::{
     AllowWarnDeny, Linter,
@@ -231,8 +231,15 @@ impl Linter {
             let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
             let mut diagnostics = ctx.diagnostics;
-            retain_unsuppressed(&mut diagnostics, &[&document_directives], &line_starts, rule);
+            retain_unsuppressed(&mut diagnostics, &[&document_directives], rule);
             push_messages(&mut messages, diagnostics, rule, *severity);
+        }
+
+        // Nothing below can report without a template rule, and the directive
+        // collection below reads `line_starts`, which is only built when a
+        // template rule (or a top-level comment) needs it.
+        if template_rules.is_empty() {
+            return messages;
         }
 
         for block in &sfc.blocks {
@@ -264,12 +271,7 @@ impl Linter {
                 let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
                 template_rule.run_on_template(&nodes, &mut ctx);
                 let mut diagnostics = ctx.diagnostics;
-                retain_unsuppressed(
-                    &mut diagnostics,
-                    &[&document_directives, &directives],
-                    &line_starts,
-                    rule,
-                );
+                retain_unsuppressed(&mut diagnostics, &[&document_directives, &directives], rule);
                 push_messages(&mut messages, diagnostics, rule, *severity);
             }
         }
@@ -341,11 +343,13 @@ struct TemplateCommentDirectives {
     /// Per rule name (as written in the directive), the ranges in which it is
     /// suppressed.
     block_rules: FxHashMap<String, Vec<Span>>,
-    /// 0-based line numbers (within the file) on which every rule is
-    /// suppressed.
-    line_all: FxHashSet<u32>,
-    /// Per rule name, the lines on which it is suppressed.
-    line_rules: FxHashMap<String, FxHashSet<u32>>,
+    /// Half-open file-offset ranges — one per `…-disable-line` /
+    /// `…-disable-next-line` directive, normally the whole target line — in
+    /// which every rule is suppressed. See [`line_suppression_span`] for why
+    /// these are ranges rather than bare line numbers.
+    line_all: Vec<Span>,
+    /// Per rule name, the same ranges.
+    line_rules: FxHashMap<String, Vec<Span>>,
 }
 
 /// One directive comment's parsed shape.
@@ -448,11 +452,12 @@ impl TemplateCommentDirectives {
                     }
                 }
                 DirectiveKind::DisableLine(line) => {
+                    let range = line_suppression_span(line, line_starts, clear_offsets, end);
                     if rules.is_empty() {
-                        directives.line_all.insert(line);
+                        directives.line_all.push(range);
                     } else {
                         for rule in rules {
-                            directives.line_rules.entry(rule.to_string()).or_default().insert(line);
+                            directives.line_rules.entry(rule.to_string()).or_default().push(range);
                         }
                     }
                 }
@@ -494,21 +499,49 @@ impl TemplateCommentDirectives {
 
     /// Whether a diagnostic of `plugin_name`/`rule_name` starting at file
     /// `offset` is suppressed.
-    fn suppresses(&self, plugin_name: &str, rule_name: &str, offset: u32, line: u32) -> bool {
-        if self.block_all.iter().any(|span| span.start <= offset && offset < span.end) {
-            return true;
-        }
-        if self.line_all.contains(&line) {
+    fn suppresses(&self, plugin_name: &str, rule_name: &str, offset: u32) -> bool {
+        let covers =
+            |spans: &[Span]| spans.iter().any(|span| span.start <= offset && offset < span.end);
+        if covers(&self.block_all) || covers(&self.line_all) {
             return true;
         }
         let matches = |directive: &String| rule_name_matches(directive, plugin_name, rule_name);
-        self.block_rules.iter().any(|(directive, spans)| {
-            matches(directive) && spans.iter().any(|span| span.start <= offset && offset < span.end)
-        }) || self
-            .line_rules
+        self.block_rules
             .iter()
-            .any(|(directive, lines)| matches(directive) && lines.contains(&line))
+            .chain(self.line_rules.iter())
+            .any(|(directive, spans)| matches(directive) && covers(spans))
     }
+}
+
+/// The file-offset range a `…-disable-line` / `…-disable-next-line` directive
+/// targeting 0-based `line` actually suppresses.
+///
+/// Upstream models a line directive as a `disableLine` pseudo message at
+/// `{line, column: -1}` plus an `enableLine` at `{line + 1, column: -1}` — so
+/// "that whole line" — but its processor's `case 'clear'` resets `state.line`
+/// (`disableAllKeys` *and* `disableRuleKeys`) just like it resets
+/// `state.block`. A `clear` is reported at the end of every top-level element,
+/// and messages are filtered in location order, so a `clear` landing *within*
+/// the target line cuts the suppression short there: in
+/// `<!-- eslint-disable-next-line vue/block-order -->` followed by
+/// `<style>…</style><script>…</script>` on one line, the `clear` at the end of
+/// `<style>` fires before the report anchored at `<script>`, which is
+/// therefore NOT suppressed. Representing the directive as a range instead of
+/// a line number is what reproduces that; with no `clear` inside the line
+/// (the overwhelmingly common case, and always so for a directive inside a
+/// `<template>` block, whose only `clear` is at the block's end) the range is
+/// exactly the whole line, as before.
+///
+/// `clear_offsets` must be ascending, as [`TemplateCommentDirectives::build`]
+/// already requires; `end` is the scope's own final `clear`.
+fn line_suppression_span(line: u32, line_starts: &[u32], clear_offsets: &[u32], end: u32) -> Span {
+    let index = line as usize;
+    let start = line_starts.get(index).copied().unwrap_or(end).min(end);
+    let mut stop = line_starts.get(index + 1).copied().unwrap_or(end).min(end);
+    if let Some(&clear) = clear_offsets.iter().find(|&&clear| clear >= start) {
+        stop = stop.min(clear);
+    }
+    Span::new(start, stop.max(start))
 }
 
 /// Upstream's rule-ID matching: exact equality against the full
@@ -631,7 +664,6 @@ fn diagnostic_start(diagnostic: &OxcDiagnostic) -> Option<u32> {
 fn retain_unsuppressed(
     diagnostics: &mut Vec<OxcDiagnostic>,
     directive_sets: &[&TemplateCommentDirectives],
-    line_starts: &[u32],
     rule: &RuleEnum,
 ) {
     if directive_sets.iter().all(|directives| directives.is_empty()) {
@@ -641,10 +673,9 @@ fn retain_unsuppressed(
     let rule_name = rule.name();
     diagnostics.retain(|diagnostic| {
         let Some(offset) = diagnostic_start(diagnostic) else { return true };
-        let line = line_of(offset, line_starts);
         !directive_sets
             .iter()
-            .any(|directives| directives.suppresses(plugin_name, rule_name, offset, line))
+            .any(|directives| directives.suppresses(plugin_name, rule_name, offset))
     });
 }
 
@@ -671,6 +702,9 @@ fn retain_unsuppressed(
 /// upstream cannot suppress `vue/multi-word-component-names`' filename report
 /// from a script comment either — that one is reported at line 1, column 0,
 /// ahead of any comment inside a block.
+// NOTE: deliberately `pub`, not `pub(crate)`: `mod vue_template` is itself
+// private, so this is already crate-only, and `clippy::redundant_pub_crate`
+// rejects the narrower spelling here.
 pub fn filter_by_script_directives(messages: &mut Vec<Message>, sub_hosts: &[ContextSubHost<'_>]) {
     if messages.is_empty() || sub_hosts.is_empty() {
         return;
