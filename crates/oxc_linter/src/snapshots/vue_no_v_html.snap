@@ -20,6 +20,24 @@ assertion_line: 490
   help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
 
   ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:3:6]
+ 2 │ <!-- eslint-disable typo/no-v-html -->
+ 3 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 4 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:3:6]
+ 2 │ <!-- eslint-disable no-v-html -->
+ 3 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 4 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
    ╭─[no_v_html.tsx:4:6]
  3 │ <div v-html="ok" />
  4 │ <div v-html="rawHtml" />

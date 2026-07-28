@@ -28,6 +28,14 @@ assertion_line: 490
 
   ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
    ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <!-- eslint-disable multi-word-component-names -- legacy file -->
+   · ▲
+ 2 │ <template><div/></template>
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
  1 │ <template><div/></template><script setup>/* eslint-disable vue/multi-word-component-names */</script>
    · ▲
    ╰────

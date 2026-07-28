@@ -184,6 +184,25 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Mixed rule list: one entry is a bare/typo'd name that never
+            // matches anything, but `vue/no-v-html` in the same list still
+            // suppresses.
+            (
+                "<template>\n<!-- eslint-disable typo/no-v-html, vue/no-v-html -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Directive matching is file-offset-based like the rest of this
+            // pass: locks in that a `<template>` preceded by a `<script>`
+            // block (so its content starts at a nonzero file offset) still
+            // has its directive comments matched correctly.
+            (
+                "<script setup>\nconst html = trust();\n</script>\n\n<template>\n<!-- eslint-disable vue/no-v-html -->\n<div v-html=\"html\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
             // `ignorePattern`: an identifier value matching the pattern.
             (
                 r#"<template><div v-html="trustedHtml" /></template>"#,
@@ -214,6 +233,26 @@ mod tests {
             // A disable naming a *different* rule doesn't suppress this one.
             (
                 "<template>\n<!-- eslint-disable vue/no-lone-template -->\n<div v-html=\"rawHtml\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A different plugin's rule of the same name must NOT suppress
+            // `vue/no-v-html` — matching upstream's exact `ruleId` string
+            // equality (see `rule_name_matches`), rather than oxlint's
+            // cross-plugin bare-name matching used for `<script>` comments.
+            (
+                "<template>\n<!-- eslint-disable typo/no-v-html -->\n<div v-html=\"rawHtml\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A bare (unprefixed) rule name must NOT suppress either:
+            // upstream's reported `ruleId` for a plugin rule is always the
+            // full `"vue/no-v-html"` string, so a `Map` lookup with a bare
+            // key never hits.
+            (
+                "<template>\n<!-- eslint-disable no-v-html -->\n<div v-html=\"rawHtml\" />\n</template>",
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

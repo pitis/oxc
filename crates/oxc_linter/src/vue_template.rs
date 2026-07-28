@@ -313,18 +313,27 @@ impl Linter {
 /// - A trailing `-- description` (two or more dashes, surrounded by
 ///   whitespace) is stripped before parsing, per `stripDirectiveComment`.
 /// - Rule lists are separated by commas and/or whitespace.
+/// - **Rule name matching is exact-string, full `plugin/rule` equality** —
+///   not oxlint's own cross-plugin
+///   [`crate::disable_directives::DisableDirectives::contains`] semantics
+///   (which strips the plugin prefix from *both* sides and compares bare
+///   names, deliberately letting e.g. `jest/no-only-tests` and
+///   `vitest/no-only-tests` cross-suppress). Upstream's processor
+///   (`dist/processor.js`) keys a `Map<string, string[]>` by the directive's
+///   listed rule ID verbatim and looks it up with the *reported* message's
+///   `ruleId` — which, for a plugin rule, ESLint always sets to the full
+///   `"<plugin>/<rule>"` string:
+///   `state.block.disableRuleKeys.get(message.ruleId)`. That is ordinary
+///   `Map` key equality, so `<!-- eslint-disable vue/no-v-html -->`
+///   suppresses `vue/no-v-html` and nothing else — a bare `no-v-html` does
+///   NOT match (the reported `ruleId` is never bare), and a
+///   different-plugin `typo/no-v-html` does NOT match (different string).
 ///
 /// ### Deliberate additions
 ///
 /// `oxlint-disable`/`oxlint-enable`/`oxlint-disable-line`/
 /// `oxlint-disable-next-line` are accepted as synonyms of the `eslint-`
 /// spellings, matching oxlint's script-comment directives.
-///
-/// Rule names are matched with oxlint's own
-/// [`crate::disable_directives::DisableDirectives::contains`] semantics — the
-/// plugin prefix is stripped from the directive's rule name and compared
-/// against the bare rule name — rather than upstream's exact `vue/x` string
-/// equality, so `vue/no-v-html` and a bare `no-v-html` both work.
 #[derive(Debug, Default)]
 struct TemplateCommentDirectives {
     /// Half-open file-offset ranges in which *every* rule is suppressed.
@@ -502,13 +511,15 @@ impl TemplateCommentDirectives {
     }
 }
 
-/// oxlint's cross-plugin rule-name matching (see
-/// [`crate::disable_directives::DisableDirectives::contains`]): strip the
-/// plugin prefix from the directive's rule name, then compare against the bare
-/// rule name. `plugin_name` is accepted (and ignored) so the signature reads
-/// the same as the call site's intent.
-fn rule_name_matches(directive: &str, _plugin_name: &str, rule_name: &str) -> bool {
-    directive.rsplit_once('/').map_or(directive, |(_, rule)| rule) == rule_name
+/// Upstream's rule-ID matching: exact equality against the full
+/// `"<plugin>/<rule>"` string (see the "Reproduced semantics" section on
+/// [`TemplateCommentDirectives`] for the processor.js evidence). A directive
+/// missing the plugin prefix, or naming a different plugin, does not match.
+fn rule_name_matches(directive: &str, plugin_name: &str, rule_name: &str) -> bool {
+    directive
+        .strip_prefix(plugin_name)
+        .and_then(|rest| rest.strip_prefix('/'))
+        .is_some_and(|rest| rest == rule_name)
 }
 
 /// `stripDirectiveComment`: drop everything from the first ` -- ` (two or more

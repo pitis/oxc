@@ -590,13 +590,6 @@ mod tests {
                 None,
                 Some(PathBuf::from("todo.vue")),
             ),
-            // Bare rule name (no plugin prefix), and a trailing description.
-            (
-                "<!-- eslint-disable multi-word-component-names -- legacy file -->\n<template><div/></template>",
-                None,
-                None,
-                Some(PathBuf::from("todo.vue")),
-            ),
             // `oxlint-` spelling, accepted as a synonym.
             (
                 "<!-- oxlint-disable vue/multi-word-component-names -->\n<template><div/></template>",
@@ -645,6 +638,20 @@ mod tests {
             // nothing either.
             (
                 "<!-- eslint-disable vue/no-v-html -->\n<template><div/></template>",
+                None,
+                None,
+                Some(PathBuf::from("todo.vue")),
+            ),
+            // A bare rule name (no plugin prefix), with a trailing
+            // description, does NOT suppress: upstream's processor matches
+            // the directive's listed rule ID by exact string equality
+            // against the reported message's `ruleId`, which for a plugin
+            // rule is always the full `"vue/multi-word-component-names"`
+            // string — a bare key never hits that lookup. Was previously in
+            // `pass` under oxlint's (incorrect, since-removed) cross-plugin
+            // bare-name matching; now correctly asserts no suppression.
+            (
+                "<!-- eslint-disable multi-word-component-names -- legacy file -->\n<template><div/></template>",
                 None,
                 None,
                 Some(PathBuf::from("todo.vue")),
