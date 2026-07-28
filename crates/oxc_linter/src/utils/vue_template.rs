@@ -74,12 +74,23 @@ pub fn is_custom_component(element: &Element<'_>) -> bool {
         return true;
     }
 
-    let name = element.name;
-    !(VUE_RESERVED_HTML_ELEMENTS.contains(name)
+    !is_reserved_element_name(element.name)
+}
+
+/// The tag-name portion of eslint-plugin-vue's `isCustomComponent`: whether
+/// `name` matches a reserved (native) HTML/SVG/MathML element name. Factored
+/// out of [`is_custom_component`] so callers that need the *name-only*
+/// classification — ignoring any `is`/`v-bind:is`/`v-is` attribute — can
+/// reuse it. `valid-v-is` needs exactly this: every element it checks
+/// necessarily carries a `v-is` attribute (that's what the rule visits), so
+/// `is_custom_component` itself would always answer `true` and be useless
+/// there.
+pub fn is_reserved_element_name(name: &str) -> bool {
+    VUE_RESERVED_HTML_ELEMENTS.contains(name)
         || VUE_RESERVED_DEPRECATED_HTML_ELEMENTS.contains(name)
         || VUE_RESERVED_SVG_ELEMENTS.contains(name)
         || VUE_RESERVED_KEBAB_CASE_ELEMENTS.contains(name)
-        || MATHML_ELEMENTS.contains(&name))
+        || MATHML_ELEMENTS.contains(&name)
 }
 
 /// MathML element names (eslint-plugin-vue checks these alongside HTML/SVG).

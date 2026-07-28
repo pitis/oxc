@@ -68,6 +68,11 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueValidVPre(rule) => Some(rule),
         RuleEnum::VueValidVHtml(rule) => Some(rule),
         RuleEnum::VueValidVText(rule) => Some(rule),
+        RuleEnum::VueValidVBind(rule) => Some(rule),
+        RuleEnum::VueValidVOn(rule) => Some(rule),
+        RuleEnum::VueValidVFor(rule) => Some(rule),
+        RuleEnum::VueValidVMemo(rule) => Some(rule),
+        RuleEnum::VueValidVIs(rule) => Some(rule),
         _ => None,
     }
 }

@@ -1,0 +1,53 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require that attribute value.
+   ╭─[valid_v_memo.tsx:1:16]
+ 1 │ <template><div v-memo /></template>
+   ·                ──────
+   ╰────
+  help: Give `v-memo` a dependency array, e.g. `v-memo="[a, b]"`.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require no argument.
+   ╭─[valid_v_memo.tsx:1:23]
+ 1 │ <template><div v-memo:foo="[a]" /></template>
+   ·                       ───
+   ╰────
+  help: Remove the argument, e.g. use `v-memo="[a, b]"`.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require no modifier.
+   ╭─[valid_v_memo.tsx:1:16]
+ 1 │ <template><div v-memo.foo="[a]" /></template>
+   ·                ──────────
+   ╰────
+  help: Remove the modifier; `v-memo` does not accept any.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require the attribute value to be an array.
+   ╭─[valid_v_memo.tsx:1:24]
+ 1 │ <template><div v-memo="1" /></template>
+   ·                        ─
+   ╰────
+  help: Wrap the dependencies in an array, e.g. `v-memo="[a, b]"`.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require the attribute value to be an array.
+   ╭─[valid_v_memo.tsx:1:24]
+ 1 │ <template><div v-memo="{ a }" /></template>
+   ·                        ─────
+   ╰────
+  help: Wrap the dependencies in an array, e.g. `v-memo="[a, b]"`.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directives require the attribute value to be an array.
+   ╭─[valid_v_memo.tsx:1:24]
+ 1 │ <template><div v-memo="a + b" /></template>
+   ·                        ─────
+   ╰────
+  help: Wrap the dependencies in an array, e.g. `v-memo="[a, b]"`.
+
+  ⚠ vue(valid-v-memo): 'v-memo' directive does not work inside 'v-for'.
+   ╭─[valid_v_memo.tsx:1:44]
+ 1 │ <template><div v-for="item in items"><span v-memo="[item.id]" /></div></template>
+   ·                                            ──────
+   ╰────
+  help: Move the `v-memo` to the `v-for`'d element itself, or remove it.

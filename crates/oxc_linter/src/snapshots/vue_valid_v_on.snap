@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-on): 'v-on' directives don't support the modifier 'bogus'.
+   ╭─[valid_v_on.tsx:1:19]
+ 1 │ <template><button @click.bogus="onClick" /></template>
+   ·                   ────────────
+   ╰────
+  help: Remove the modifier, or add it to the rule's `modifiers` option if it is a custom modifier your event handler recognizes.
+
+  ⚠ vue(valid-v-on): 'v-on' directives require a value or verb modifier (like 'stop' or 'prevent').
+   ╭─[valid_v_on.tsx:1:19]
+ 1 │ <template><button v-on:click /></template>
+   ·                   ──────────
+   ╰────
+  help: Give the listener a handler, e.g. `@click="onClick"`, or add `.stop`/`.prevent`.
+
+  ⚠ vue(valid-v-on): 'v-on' directives require a value or verb modifier (like 'stop' or 'prevent').
+   ╭─[valid_v_on.tsx:1:19]
+ 1 │ <template><button @click /></template>
+   ·                   ──────
+   ╰────
+  help: Give the listener a handler, e.g. `@click="onClick"`, or add `.stop`/`.prevent`.
+
+  ⚠ vue(valid-v-on): 'v-on' directives require a value or verb modifier (like 'stop' or 'prevent').
+   ╭─[valid_v_on.tsx:1:19]
+ 1 │ <template><button @click="" /></template>
+   ·                   ─────────
+   ╰────
+  help: Give the listener a handler, e.g. `@click="onClick"`, or add `.stop`/`.prevent`.
+
+  ⚠ vue(valid-v-on): Avoid using JavaScript keyword as "v-on" value: delete.
+   ╭─[valid_v_on.tsx:1:27]
+ 1 │ <template><button @click="delete" /></template>
+   ·                           ──────
+   ╰────
+  help: Use a method reference or an inline statement instead of a bare keyword.

@@ -1,0 +1,53 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bar'.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div v-bind:foo.bar="baz" /></template>
+   ·                ──────────────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bar'.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div :foo.bar="baz" /></template>
+   ·                ────────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives require an attribute value.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div :foo /></template>
+   ·                ────
+   ╰────
+  help: Give the binding a value, e.g. `:foo="bar"`, or use a plain attribute instead.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives require an attribute value.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div :foo="" /></template>
+   ·                ───────
+   ╰────
+  help: Give the binding a value, e.g. `:foo="bar"`, or use a plain attribute instead.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bar'.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div v-bind.bar="allProps" /></template>
+   ·                ──────────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'bar'.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div :foo.bar.baz="qux" /></template>
+   ·                ────────────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.
+
+  ⚠ vue(valid-v-bind): 'v-bind' directives don't support the modifier 'baz'.
+   ╭─[valid_v_bind.tsx:1:16]
+ 1 │ <template><div :foo.bar.baz="qux" /></template>
+   ·                ────────────
+   ╰────
+  help: Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.

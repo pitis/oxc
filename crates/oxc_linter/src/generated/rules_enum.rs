@@ -859,11 +859,16 @@ pub use crate::rules::vue::valid_define_emits::ValidDefineEmits as VueValidDefin
 pub use crate::rules::vue::valid_define_options::ValidDefineOptions as VueValidDefineOptions;
 pub use crate::rules::vue::valid_define_props::ValidDefineProps as VueValidDefineProps;
 pub use crate::rules::vue::valid_next_tick::ValidNextTick as VueValidNextTick;
+pub use crate::rules::vue::valid_v_bind::ValidVBind as VueValidVBind;
 pub use crate::rules::vue::valid_v_cloak::ValidVCloak as VueValidVCloak;
 pub use crate::rules::vue::valid_v_else::ValidVElse as VueValidVElse;
 pub use crate::rules::vue::valid_v_else_if::ValidVElseIf as VueValidVElseIf;
+pub use crate::rules::vue::valid_v_for::ValidVFor as VueValidVFor;
 pub use crate::rules::vue::valid_v_html::ValidVHtml as VueValidVHtml;
 pub use crate::rules::vue::valid_v_if::ValidVIf as VueValidVIf;
+pub use crate::rules::vue::valid_v_is::ValidVIs as VueValidVIs;
+pub use crate::rules::vue::valid_v_memo::ValidVMemo as VueValidVMemo;
+pub use crate::rules::vue::valid_v_on::ValidVOn as VueValidVOn;
 pub use crate::rules::vue::valid_v_once::ValidVOnce as VueValidVOnce;
 pub use crate::rules::vue::valid_v_pre::ValidVPre as VueValidVPre;
 pub use crate::rules::vue::valid_v_show::ValidVShow as VueValidVShow;
@@ -1735,11 +1740,16 @@ pub enum RuleEnum {
     VueValidDefineOptions(VueValidDefineOptions),
     VueValidDefineProps(VueValidDefineProps),
     VueValidNextTick(VueValidNextTick),
+    VueValidVBind(VueValidVBind),
     VueValidVCloak(VueValidVCloak),
     VueValidVElse(VueValidVElse),
     VueValidVElseIf(VueValidVElseIf),
+    VueValidVFor(VueValidVFor),
     VueValidVHtml(VueValidVHtml),
     VueValidVIf(VueValidVIf),
+    VueValidVIs(VueValidVIs),
+    VueValidVMemo(VueValidVMemo),
+    VueValidVOn(VueValidVOn),
     VueValidVOnce(VueValidVOnce),
     VueValidVPre(VueValidVPre),
     VueValidVShow(VueValidVShow),
@@ -2703,12 +2713,17 @@ const VUE_VALID_DEFINE_EMITS_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usi
 const VUE_VALID_DEFINE_OPTIONS_ID: usize = VUE_VALID_DEFINE_EMITS_ID + 1usize;
 const VUE_VALID_DEFINE_PROPS_ID: usize = VUE_VALID_DEFINE_OPTIONS_ID + 1usize;
 const VUE_VALID_NEXT_TICK_ID: usize = VUE_VALID_DEFINE_PROPS_ID + 1usize;
-const VUE_VALID_V_CLOAK_ID: usize = VUE_VALID_NEXT_TICK_ID + 1usize;
+const VUE_VALID_V_BIND_ID: usize = VUE_VALID_NEXT_TICK_ID + 1usize;
+const VUE_VALID_V_CLOAK_ID: usize = VUE_VALID_V_BIND_ID + 1usize;
 const VUE_VALID_V_ELSE_ID: usize = VUE_VALID_V_CLOAK_ID + 1usize;
 const VUE_VALID_V_ELSE_IF_ID: usize = VUE_VALID_V_ELSE_ID + 1usize;
-const VUE_VALID_V_HTML_ID: usize = VUE_VALID_V_ELSE_IF_ID + 1usize;
+const VUE_VALID_V_FOR_ID: usize = VUE_VALID_V_ELSE_IF_ID + 1usize;
+const VUE_VALID_V_HTML_ID: usize = VUE_VALID_V_FOR_ID + 1usize;
 const VUE_VALID_V_IF_ID: usize = VUE_VALID_V_HTML_ID + 1usize;
-const VUE_VALID_V_ONCE_ID: usize = VUE_VALID_V_IF_ID + 1usize;
+const VUE_VALID_V_IS_ID: usize = VUE_VALID_V_IF_ID + 1usize;
+const VUE_VALID_V_MEMO_ID: usize = VUE_VALID_V_IS_ID + 1usize;
+const VUE_VALID_V_ON_ID: usize = VUE_VALID_V_MEMO_ID + 1usize;
+const VUE_VALID_V_ONCE_ID: usize = VUE_VALID_V_ON_ID + 1usize;
 const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
 const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
@@ -3694,11 +3709,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VUE_VALID_DEFINE_OPTIONS_ID,
             Self::VueValidDefineProps(_) => VUE_VALID_DEFINE_PROPS_ID,
             Self::VueValidNextTick(_) => VUE_VALID_NEXT_TICK_ID,
+            Self::VueValidVBind(_) => VUE_VALID_V_BIND_ID,
             Self::VueValidVCloak(_) => VUE_VALID_V_CLOAK_ID,
             Self::VueValidVElse(_) => VUE_VALID_V_ELSE_ID,
             Self::VueValidVElseIf(_) => VUE_VALID_V_ELSE_IF_ID,
+            Self::VueValidVFor(_) => VUE_VALID_V_FOR_ID,
             Self::VueValidVHtml(_) => VUE_VALID_V_HTML_ID,
             Self::VueValidVIf(_) => VUE_VALID_V_IF_ID,
+            Self::VueValidVIs(_) => VUE_VALID_V_IS_ID,
+            Self::VueValidVMemo(_) => VUE_VALID_V_MEMO_ID,
+            Self::VueValidVOn(_) => VUE_VALID_V_ON_ID,
             Self::VueValidVOnce(_) => VUE_VALID_V_ONCE_ID,
             Self::VueValidVPre(_) => VUE_VALID_V_PRE_ID,
             Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
@@ -4670,11 +4690,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::NAME,
             Self::VueValidDefineProps(_) => VueValidDefineProps::NAME,
             Self::VueValidNextTick(_) => VueValidNextTick::NAME,
+            Self::VueValidVBind(_) => VueValidVBind::NAME,
             Self::VueValidVCloak(_) => VueValidVCloak::NAME,
             Self::VueValidVElse(_) => VueValidVElse::NAME,
             Self::VueValidVElseIf(_) => VueValidVElseIf::NAME,
+            Self::VueValidVFor(_) => VueValidVFor::NAME,
             Self::VueValidVHtml(_) => VueValidVHtml::NAME,
             Self::VueValidVIf(_) => VueValidVIf::NAME,
+            Self::VueValidVIs(_) => VueValidVIs::NAME,
+            Self::VueValidVMemo(_) => VueValidVMemo::NAME,
+            Self::VueValidVOn(_) => VueValidVOn::NAME,
             Self::VueValidVOnce(_) => VueValidVOnce::NAME,
             Self::VueValidVPre(_) => VueValidVPre::NAME,
             Self::VueValidVShow(_) => VueValidVShow::NAME,
@@ -5704,11 +5729,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::CATEGORY,
             Self::VueValidDefineProps(_) => VueValidDefineProps::CATEGORY,
             Self::VueValidNextTick(_) => VueValidNextTick::CATEGORY,
+            Self::VueValidVBind(_) => VueValidVBind::CATEGORY,
             Self::VueValidVCloak(_) => VueValidVCloak::CATEGORY,
             Self::VueValidVElse(_) => VueValidVElse::CATEGORY,
             Self::VueValidVElseIf(_) => VueValidVElseIf::CATEGORY,
+            Self::VueValidVFor(_) => VueValidVFor::CATEGORY,
             Self::VueValidVHtml(_) => VueValidVHtml::CATEGORY,
             Self::VueValidVIf(_) => VueValidVIf::CATEGORY,
+            Self::VueValidVIs(_) => VueValidVIs::CATEGORY,
+            Self::VueValidVMemo(_) => VueValidVMemo::CATEGORY,
+            Self::VueValidVOn(_) => VueValidVOn::CATEGORY,
             Self::VueValidVOnce(_) => VueValidVOnce::CATEGORY,
             Self::VueValidVPre(_) => VueValidVPre::CATEGORY,
             Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
@@ -6681,11 +6711,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::FIX,
             Self::VueValidDefineProps(_) => VueValidDefineProps::FIX,
             Self::VueValidNextTick(_) => VueValidNextTick::FIX,
+            Self::VueValidVBind(_) => VueValidVBind::FIX,
             Self::VueValidVCloak(_) => VueValidVCloak::FIX,
             Self::VueValidVElse(_) => VueValidVElse::FIX,
             Self::VueValidVElseIf(_) => VueValidVElseIf::FIX,
+            Self::VueValidVFor(_) => VueValidVFor::FIX,
             Self::VueValidVHtml(_) => VueValidVHtml::FIX,
             Self::VueValidVIf(_) => VueValidVIf::FIX,
+            Self::VueValidVIs(_) => VueValidVIs::FIX,
+            Self::VueValidVMemo(_) => VueValidVMemo::FIX,
+            Self::VueValidVOn(_) => VueValidVOn::FIX,
             Self::VueValidVOnce(_) => VueValidVOnce::FIX,
             Self::VueValidVPre(_) => VueValidVPre::FIX,
             Self::VueValidVShow(_) => VueValidVShow::FIX,
@@ -7926,11 +7961,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::documentation(),
             Self::VueValidDefineProps(_) => VueValidDefineProps::documentation(),
             Self::VueValidNextTick(_) => VueValidNextTick::documentation(),
+            Self::VueValidVBind(_) => VueValidVBind::documentation(),
             Self::VueValidVCloak(_) => VueValidVCloak::documentation(),
             Self::VueValidVElse(_) => VueValidVElse::documentation(),
             Self::VueValidVElseIf(_) => VueValidVElseIf::documentation(),
+            Self::VueValidVFor(_) => VueValidVFor::documentation(),
             Self::VueValidVHtml(_) => VueValidVHtml::documentation(),
             Self::VueValidVIf(_) => VueValidVIf::documentation(),
+            Self::VueValidVIs(_) => VueValidVIs::documentation(),
+            Self::VueValidVMemo(_) => VueValidVMemo::documentation(),
+            Self::VueValidVOn(_) => VueValidVOn::documentation(),
             Self::VueValidVOnce(_) => VueValidVOnce::documentation(),
             Self::VueValidVPre(_) => VueValidVPre::documentation(),
             Self::VueValidVShow(_) => VueValidVShow::documentation(),
@@ -10378,6 +10418,9 @@ impl RuleEnum {
                 .or_else(|| VueValidDefineProps::schema(generator)),
             Self::VueValidNextTick(_) => VueValidNextTick::config_schema(generator)
                 .or_else(|| VueValidNextTick::schema(generator)),
+            Self::VueValidVBind(_) => {
+                VueValidVBind::config_schema(generator).or_else(|| VueValidVBind::schema(generator))
+            }
             Self::VueValidVCloak(_) => VueValidVCloak::config_schema(generator)
                 .or_else(|| VueValidVCloak::schema(generator)),
             Self::VueValidVElse(_) => {
@@ -10385,11 +10428,23 @@ impl RuleEnum {
             }
             Self::VueValidVElseIf(_) => VueValidVElseIf::config_schema(generator)
                 .or_else(|| VueValidVElseIf::schema(generator)),
+            Self::VueValidVFor(_) => {
+                VueValidVFor::config_schema(generator).or_else(|| VueValidVFor::schema(generator))
+            }
             Self::VueValidVHtml(_) => {
                 VueValidVHtml::config_schema(generator).or_else(|| VueValidVHtml::schema(generator))
             }
             Self::VueValidVIf(_) => {
                 VueValidVIf::config_schema(generator).or_else(|| VueValidVIf::schema(generator))
+            }
+            Self::VueValidVIs(_) => {
+                VueValidVIs::config_schema(generator).or_else(|| VueValidVIs::schema(generator))
+            }
+            Self::VueValidVMemo(_) => {
+                VueValidVMemo::config_schema(generator).or_else(|| VueValidVMemo::schema(generator))
+            }
+            Self::VueValidVOn(_) => {
+                VueValidVOn::config_schema(generator).or_else(|| VueValidVOn::schema(generator))
             }
             Self::VueValidVOnce(_) => {
                 VueValidVOnce::config_schema(generator).or_else(|| VueValidVOnce::schema(generator))
@@ -11256,11 +11311,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => "vue",
             Self::VueValidDefineProps(_) => "vue",
             Self::VueValidNextTick(_) => "vue",
+            Self::VueValidVBind(_) => "vue",
             Self::VueValidVCloak(_) => "vue",
             Self::VueValidVElse(_) => "vue",
             Self::VueValidVElseIf(_) => "vue",
+            Self::VueValidVFor(_) => "vue",
             Self::VueValidVHtml(_) => "vue",
             Self::VueValidVIf(_) => "vue",
+            Self::VueValidVIs(_) => "vue",
+            Self::VueValidVMemo(_) => "vue",
+            Self::VueValidVOn(_) => "vue",
             Self::VueValidVOnce(_) => "vue",
             Self::VueValidVPre(_) => "vue",
             Self::VueValidVShow(_) => "vue",
@@ -14005,6 +14065,9 @@ impl RuleEnum {
             Self::VueValidNextTick(_) => {
                 Ok(Self::VueValidNextTick(VueValidNextTick::from_configuration(value)?))
             }
+            Self::VueValidVBind(_) => {
+                Ok(Self::VueValidVBind(VueValidVBind::from_configuration(value)?))
+            }
             Self::VueValidVCloak(_) => {
                 Ok(Self::VueValidVCloak(VueValidVCloak::from_configuration(value)?))
             }
@@ -14014,10 +14077,18 @@ impl RuleEnum {
             Self::VueValidVElseIf(_) => {
                 Ok(Self::VueValidVElseIf(VueValidVElseIf::from_configuration(value)?))
             }
+            Self::VueValidVFor(_) => {
+                Ok(Self::VueValidVFor(VueValidVFor::from_configuration(value)?))
+            }
             Self::VueValidVHtml(_) => {
                 Ok(Self::VueValidVHtml(VueValidVHtml::from_configuration(value)?))
             }
             Self::VueValidVIf(_) => Ok(Self::VueValidVIf(VueValidVIf::from_configuration(value)?)),
+            Self::VueValidVIs(_) => Ok(Self::VueValidVIs(VueValidVIs::from_configuration(value)?)),
+            Self::VueValidVMemo(_) => {
+                Ok(Self::VueValidVMemo(VueValidVMemo::from_configuration(value)?))
+            }
+            Self::VueValidVOn(_) => Ok(Self::VueValidVOn(VueValidVOn::from_configuration(value)?)),
             Self::VueValidVOnce(_) => {
                 Ok(Self::VueValidVOnce(VueValidVOnce::from_configuration(value)?))
             }
@@ -14887,11 +14958,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.to_configuration(),
             Self::VueValidDefineProps(rule) => rule.to_configuration(),
             Self::VueValidNextTick(rule) => rule.to_configuration(),
+            Self::VueValidVBind(rule) => rule.to_configuration(),
             Self::VueValidVCloak(rule) => rule.to_configuration(),
             Self::VueValidVElse(rule) => rule.to_configuration(),
             Self::VueValidVElseIf(rule) => rule.to_configuration(),
+            Self::VueValidVFor(rule) => rule.to_configuration(),
             Self::VueValidVHtml(rule) => rule.to_configuration(),
             Self::VueValidVIf(rule) => rule.to_configuration(),
+            Self::VueValidVIs(rule) => rule.to_configuration(),
+            Self::VueValidVMemo(rule) => rule.to_configuration(),
+            Self::VueValidVOn(rule) => rule.to_configuration(),
             Self::VueValidVOnce(rule) => rule.to_configuration(),
             Self::VueValidVPre(rule) => rule.to_configuration(),
             Self::VueValidVShow(rule) => rule.to_configuration(),
@@ -15750,11 +15826,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run(node, ctx),
             Self::VueValidDefineProps(rule) => rule.run(node, ctx),
             Self::VueValidNextTick(rule) => rule.run(node, ctx),
+            Self::VueValidVBind(rule) => rule.run(node, ctx),
             Self::VueValidVCloak(rule) => rule.run(node, ctx),
             Self::VueValidVElse(rule) => rule.run(node, ctx),
             Self::VueValidVElseIf(rule) => rule.run(node, ctx),
+            Self::VueValidVFor(rule) => rule.run(node, ctx),
             Self::VueValidVHtml(rule) => rule.run(node, ctx),
             Self::VueValidVIf(rule) => rule.run(node, ctx),
+            Self::VueValidVIs(rule) => rule.run(node, ctx),
+            Self::VueValidVMemo(rule) => rule.run(node, ctx),
+            Self::VueValidVOn(rule) => rule.run(node, ctx),
             Self::VueValidVOnce(rule) => rule.run(node, ctx),
             Self::VueValidVPre(rule) => rule.run(node, ctx),
             Self::VueValidVShow(rule) => rule.run(node, ctx),
@@ -16625,11 +16706,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_once(ctx),
             Self::VueValidDefineProps(rule) => rule.run_once(ctx),
             Self::VueValidNextTick(rule) => rule.run_once(ctx),
+            Self::VueValidVBind(rule) => rule.run_once(ctx),
             Self::VueValidVCloak(rule) => rule.run_once(ctx),
             Self::VueValidVElse(rule) => rule.run_once(ctx),
             Self::VueValidVElseIf(rule) => rule.run_once(ctx),
+            Self::VueValidVFor(rule) => rule.run_once(ctx),
             Self::VueValidVHtml(rule) => rule.run_once(ctx),
             Self::VueValidVIf(rule) => rule.run_once(ctx),
+            Self::VueValidVIs(rule) => rule.run_once(ctx),
+            Self::VueValidVMemo(rule) => rule.run_once(ctx),
+            Self::VueValidVOn(rule) => rule.run_once(ctx),
             Self::VueValidVOnce(rule) => rule.run_once(ctx),
             Self::VueValidVPre(rule) => rule.run_once(ctx),
             Self::VueValidVShow(rule) => rule.run_once(ctx),
@@ -17617,11 +17703,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidDefineProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidNextTick(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVBind(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVCloak(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVElse(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVElseIf(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVFor(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVHtml(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVIf(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVIs(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVMemo(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueValidVOn(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVOnce(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVPre(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18493,11 +18584,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.should_run(ctx),
             Self::VueValidDefineProps(rule) => rule.should_run(ctx),
             Self::VueValidNextTick(rule) => rule.should_run(ctx),
+            Self::VueValidVBind(rule) => rule.should_run(ctx),
             Self::VueValidVCloak(rule) => rule.should_run(ctx),
             Self::VueValidVElse(rule) => rule.should_run(ctx),
             Self::VueValidVElseIf(rule) => rule.should_run(ctx),
+            Self::VueValidVFor(rule) => rule.should_run(ctx),
             Self::VueValidVHtml(rule) => rule.should_run(ctx),
             Self::VueValidVIf(rule) => rule.should_run(ctx),
+            Self::VueValidVIs(rule) => rule.should_run(ctx),
+            Self::VueValidVMemo(rule) => rule.should_run(ctx),
+            Self::VueValidVOn(rule) => rule.should_run(ctx),
             Self::VueValidVOnce(rule) => rule.should_run(ctx),
             Self::VueValidVPre(rule) => rule.should_run(ctx),
             Self::VueValidVShow(rule) => rule.should_run(ctx),
@@ -19737,11 +19833,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::IS_TSGOLINT_RULE,
             Self::VueValidDefineProps(_) => VueValidDefineProps::IS_TSGOLINT_RULE,
             Self::VueValidNextTick(_) => VueValidNextTick::IS_TSGOLINT_RULE,
+            Self::VueValidVBind(_) => VueValidVBind::IS_TSGOLINT_RULE,
             Self::VueValidVCloak(_) => VueValidVCloak::IS_TSGOLINT_RULE,
             Self::VueValidVElse(_) => VueValidVElse::IS_TSGOLINT_RULE,
             Self::VueValidVElseIf(_) => VueValidVElseIf::IS_TSGOLINT_RULE,
+            Self::VueValidVFor(_) => VueValidVFor::IS_TSGOLINT_RULE,
             Self::VueValidVHtml(_) => VueValidVHtml::IS_TSGOLINT_RULE,
             Self::VueValidVIf(_) => VueValidVIf::IS_TSGOLINT_RULE,
+            Self::VueValidVIs(_) => VueValidVIs::IS_TSGOLINT_RULE,
+            Self::VueValidVMemo(_) => VueValidVMemo::IS_TSGOLINT_RULE,
+            Self::VueValidVOn(_) => VueValidVOn::IS_TSGOLINT_RULE,
             Self::VueValidVOnce(_) => VueValidVOnce::IS_TSGOLINT_RULE,
             Self::VueValidVPre(_) => VueValidVPre::IS_TSGOLINT_RULE,
             Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
@@ -20773,11 +20874,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::VERSION,
             Self::VueValidDefineProps(_) => VueValidDefineProps::VERSION,
             Self::VueValidNextTick(_) => VueValidNextTick::VERSION,
+            Self::VueValidVBind(_) => VueValidVBind::VERSION,
             Self::VueValidVCloak(_) => VueValidVCloak::VERSION,
             Self::VueValidVElse(_) => VueValidVElse::VERSION,
             Self::VueValidVElseIf(_) => VueValidVElseIf::VERSION,
+            Self::VueValidVFor(_) => VueValidVFor::VERSION,
             Self::VueValidVHtml(_) => VueValidVHtml::VERSION,
             Self::VueValidVIf(_) => VueValidVIf::VERSION,
+            Self::VueValidVIs(_) => VueValidVIs::VERSION,
+            Self::VueValidVMemo(_) => VueValidVMemo::VERSION,
+            Self::VueValidVOn(_) => VueValidVOn::VERSION,
             Self::VueValidVOnce(_) => VueValidVOnce::VERSION,
             Self::VueValidVPre(_) => VueValidVPre::VERSION,
             Self::VueValidVShow(_) => VueValidVShow::VERSION,
@@ -21848,11 +21954,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::HAS_CONFIG,
             Self::VueValidDefineProps(_) => VueValidDefineProps::HAS_CONFIG,
             Self::VueValidNextTick(_) => VueValidNextTick::HAS_CONFIG,
+            Self::VueValidVBind(_) => VueValidVBind::HAS_CONFIG,
             Self::VueValidVCloak(_) => VueValidVCloak::HAS_CONFIG,
             Self::VueValidVElse(_) => VueValidVElse::HAS_CONFIG,
             Self::VueValidVElseIf(_) => VueValidVElseIf::HAS_CONFIG,
+            Self::VueValidVFor(_) => VueValidVFor::HAS_CONFIG,
             Self::VueValidVHtml(_) => VueValidVHtml::HAS_CONFIG,
             Self::VueValidVIf(_) => VueValidVIf::HAS_CONFIG,
+            Self::VueValidVIs(_) => VueValidVIs::HAS_CONFIG,
+            Self::VueValidVMemo(_) => VueValidVMemo::HAS_CONFIG,
+            Self::VueValidVOn(_) => VueValidVOn::HAS_CONFIG,
             Self::VueValidVOnce(_) => VueValidVOnce::HAS_CONFIG,
             Self::VueValidVPre(_) => VueValidVPre::HAS_CONFIG,
             Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
@@ -22826,11 +22937,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(_) => VueValidDefineOptions::INFO,
             Self::VueValidDefineProps(_) => VueValidDefineProps::INFO,
             Self::VueValidNextTick(_) => VueValidNextTick::INFO,
+            Self::VueValidVBind(_) => VueValidVBind::INFO,
             Self::VueValidVCloak(_) => VueValidVCloak::INFO,
             Self::VueValidVElse(_) => VueValidVElse::INFO,
             Self::VueValidVElseIf(_) => VueValidVElseIf::INFO,
+            Self::VueValidVFor(_) => VueValidVFor::INFO,
             Self::VueValidVHtml(_) => VueValidVHtml::INFO,
             Self::VueValidVIf(_) => VueValidVIf::INFO,
+            Self::VueValidVIs(_) => VueValidVIs::INFO,
+            Self::VueValidVMemo(_) => VueValidVMemo::INFO,
+            Self::VueValidVOn(_) => VueValidVOn::INFO,
             Self::VueValidVOnce(_) => VueValidVOnce::INFO,
             Self::VueValidVPre(_) => VueValidVPre::INFO,
             Self::VueValidVShow(_) => VueValidVShow::INFO,
@@ -23693,11 +23809,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.types_info(),
             Self::VueValidDefineProps(rule) => rule.types_info(),
             Self::VueValidNextTick(rule) => rule.types_info(),
+            Self::VueValidVBind(rule) => rule.types_info(),
             Self::VueValidVCloak(rule) => rule.types_info(),
             Self::VueValidVElse(rule) => rule.types_info(),
             Self::VueValidVElseIf(rule) => rule.types_info(),
+            Self::VueValidVFor(rule) => rule.types_info(),
             Self::VueValidVHtml(rule) => rule.types_info(),
             Self::VueValidVIf(rule) => rule.types_info(),
+            Self::VueValidVIs(rule) => rule.types_info(),
+            Self::VueValidVMemo(rule) => rule.types_info(),
+            Self::VueValidVOn(rule) => rule.types_info(),
             Self::VueValidVOnce(rule) => rule.types_info(),
             Self::VueValidVPre(rule) => rule.types_info(),
             Self::VueValidVShow(rule) => rule.types_info(),
@@ -24555,11 +24676,16 @@ impl RuleEnum {
             Self::VueValidDefineOptions(rule) => rule.run_info(),
             Self::VueValidDefineProps(rule) => rule.run_info(),
             Self::VueValidNextTick(rule) => rule.run_info(),
+            Self::VueValidVBind(rule) => rule.run_info(),
             Self::VueValidVCloak(rule) => rule.run_info(),
             Self::VueValidVElse(rule) => rule.run_info(),
             Self::VueValidVElseIf(rule) => rule.run_info(),
+            Self::VueValidVFor(rule) => rule.run_info(),
             Self::VueValidVHtml(rule) => rule.run_info(),
             Self::VueValidVIf(rule) => rule.run_info(),
+            Self::VueValidVIs(rule) => rule.run_info(),
+            Self::VueValidVMemo(rule) => rule.run_info(),
+            Self::VueValidVOn(rule) => rule.run_info(),
             Self::VueValidVOnce(rule) => rule.run_info(),
             Self::VueValidVPre(rule) => rule.run_info(),
             Self::VueValidVShow(rule) => rule.run_info(),
@@ -25553,11 +25679,16 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidDefineOptions(VueValidDefineOptions::default()),
         RuleEnum::VueValidDefineProps(VueValidDefineProps::default()),
         RuleEnum::VueValidNextTick(VueValidNextTick::default()),
+        RuleEnum::VueValidVBind(VueValidVBind::default()),
         RuleEnum::VueValidVCloak(VueValidVCloak::default()),
         RuleEnum::VueValidVElse(VueValidVElse::default()),
         RuleEnum::VueValidVElseIf(VueValidVElseIf::default()),
+        RuleEnum::VueValidVFor(VueValidVFor::default()),
         RuleEnum::VueValidVHtml(VueValidVHtml::default()),
         RuleEnum::VueValidVIf(VueValidVIf::default()),
+        RuleEnum::VueValidVIs(VueValidVIs::default()),
+        RuleEnum::VueValidVMemo(VueValidVMemo::default()),
+        RuleEnum::VueValidVOn(VueValidVOn::default()),
         RuleEnum::VueValidVOnce(VueValidVOnce::default()),
         RuleEnum::VueValidVPre(VueValidVPre::default()),
         RuleEnum::VueValidVShow(VueValidVShow::default()),

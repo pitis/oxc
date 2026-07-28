@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-is): 'v-is' directives require that attribute value.
+   ╭─[valid_v_is.tsx:1:15]
+ 1 │ <template><tr v-is /></template>
+   ·               ────
+   ╰────
+  help: Give `v-is` a component name expression, e.g. `v-is="componentName"`.
+
+  ⚠ vue(valid-v-is): 'v-is' directives require that attribute value.
+   ╭─[valid_v_is.tsx:1:15]
+ 1 │ <template><tr v-is="" /></template>
+   ·               ───────
+   ╰────
+  help: Give `v-is` a component name expression, e.g. `v-is="componentName"`.
+
+  ⚠ vue(valid-v-is): 'v-is' directives require no argument.
+   ╭─[valid_v_is.tsx:1:20]
+ 1 │ <template><tr v-is:foo="componentName" /></template>
+   ·                    ───
+   ╰────
+  help: Remove the argument, e.g. use `v-is="componentName"`.
+
+  ⚠ vue(valid-v-is): 'v-is' directives require no modifier.
+   ╭─[valid_v_is.tsx:1:15]
+ 1 │ <template><tr v-is.foo="componentName" /></template>
+   ·               ────────
+   ╰────
+  help: Remove the modifier; `v-is` does not accept any.
+
+  ⚠ vue(valid-v-is): 'v-is' directive must be owned by a native HTML element, but 'MyComponent' is not.
+   ╭─[valid_v_is.tsx:1:24]
+ 1 │ <template><MyComponent v-is="componentName" /></template>
+   ·                        ────────────────────
+   ╰────
+  help: Use `v-is` only on native HTML tags (e.g. `<component>` is not a native tag); use `:is` on components instead.
+
+  ⚠ vue(valid-v-is): 'v-is' directive must be owned by a native HTML element, but 'my-component' is not.
+   ╭─[valid_v_is.tsx:1:25]
+ 1 │ <template><my-component v-is="componentName" /></template>
+   ·                         ────────────────────
+   ╰────
+  help: Use `v-is` only on native HTML tags (e.g. `<component>` is not a native tag); use `:is` on components instead.

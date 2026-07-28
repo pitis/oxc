@@ -909,11 +909,16 @@ pub(crate) mod vue {
     pub mod valid_define_options;
     pub mod valid_define_props;
     pub mod valid_next_tick;
+    pub mod valid_v_bind;
     pub mod valid_v_cloak;
     pub mod valid_v_else;
     pub mod valid_v_else_if;
+    pub mod valid_v_for;
     pub mod valid_v_html;
     pub mod valid_v_if;
+    pub mod valid_v_is;
+    pub mod valid_v_memo;
+    pub mod valid_v_on;
     pub mod valid_v_once;
     pub mod valid_v_pre;
     pub mod valid_v_show;

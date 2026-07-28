@@ -1,0 +1,74 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-for): 'v-for' directives require no argument.
+   ╭─[valid_v_for.tsx:1:22]
+ 1 │ <template><div v-for:foo="item in items" /></template>
+   ·                      ───
+   ╰────
+  help: Remove the argument, e.g. use `v-for="item in items"`.
+
+  ⚠ vue(valid-v-for): 'v-for' directives require no modifier.
+   ╭─[valid_v_for.tsx:1:16]
+ 1 │ <template><div v-for.foo="item in items" /></template>
+   ·                ─────────
+   ╰────
+  help: Remove the modifier; `v-for` does not accept any.
+
+  ⚠ vue(valid-v-for): 'v-for' directives require that attribute value.
+   ╭─[valid_v_for.tsx:1:16]
+ 1 │ <template><div v-for /></template>
+   ·                ─────
+   ╰────
+  help: Give `v-for` an iteration expression, e.g. `v-for="item in items"`.
+
+  ⚠ vue(valid-v-for): 'v-for' directives require that attribute value.
+   ╭─[valid_v_for.tsx:1:16]
+ 1 │ <template><div v-for="" /></template>
+   ·                ────────
+   ╰────
+  help: Give `v-for` an iteration expression, e.g. `v-for="item in items"`.
+
+  ⚠ vue(valid-v-for): 'v-for' directives require the special syntax '<alias> in <expression>'.
+   ╭─[valid_v_for.tsx:1:23]
+ 1 │ <template><div v-for="items" /></template>
+   ·                       ─────
+   ╰────
+  help: Use the form `item in items` or `(item, index) in items`.
+
+  ⚠ vue(valid-v-for): Invalid alias '1'.
+   ╭─[valid_v_for.tsx:1:30]
+ 1 │ <template><div v-for="(item, 1) in items" /></template>
+   ·                              ─
+   ╰────
+  help: Key and index aliases must be plain identifiers.
+
+  ⚠ vue(valid-v-for): Invalid alias 'foo.bar'.
+   ╭─[valid_v_for.tsx:1:35]
+ 1 │ <template><div v-for="(item, key, foo.bar) in items" /></template>
+   ·                                   ───────
+   ╰────
+  help: Key and index aliases must be plain identifiers.
+
+  ⚠ vue(valid-v-for): Invalid empty alias.
+   ╭─[valid_v_for.tsx:1:23]
+ 1 │ <template><div v-for="(value, , index) in items" /></template>
+   ·                       ─────────────────────────
+   ╰────
+  help: Give the alias a name, or enable the `allowEmptyAlias` option.
+
+  ⚠ vue(valid-v-for): Custom elements in iteration require 'v-bind:key' directives.
+   ╭─[valid_v_for.tsx:1:11]
+ 1 │ <template><MyRow v-for="item in items" /></template>
+   ·           ───────────────────────────────
+   ╰────
+  help: Add a `:key` binding so Vue can track each node's identity.
+
+  ⚠ vue(valid-v-for): Custom elements in iteration require 'v-bind:key' directives.
+   ╭─[valid_v_for.tsx:1:43]
+ 1 │ <template><template v-for="item in items"><MyRow /></template></template>
+   ·                                           ─────────
+   ╰────
+  help: Add a `:key` binding so Vue can track each node's identity.
