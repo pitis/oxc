@@ -106,12 +106,22 @@ fn check_else_if<'a>(
         return;
     };
 
-    let mut conditions_to_check: Vec<&Expression> = vec![&test];
+    // Upstream order matters: `[...splitByAnd(test), test]` — each conjunct
+    // individually, THEN the whole test — because the first candidate in
+    // this list to become fully covered (by a preceding branch, checked
+    // below) is the one reported, and a top-level `&&`'s own conjunct can
+    // become covered independently of (and before) the whole conjunction
+    // does. Reversing this order changes *which* span gets reported for
+    // e.g. `v-if="a"` `v-else-if="a && b"` (must report the 1-char `a`
+    // inside `a && b`, not the whole `a && b` span) — verified against real
+    // eslint-plugin-vue: see this rule's tests.
+    let mut conditions_to_check: Vec<&Expression> = Vec::new();
     if let Expression::LogicalExpression(logical) = &test
         && logical.operator == LogicalOperator::And
     {
         conditions_to_check.extend(split_by_and(&test));
     }
+    conditions_to_check.push(&test);
 
     // `(report_span, or_branches)`; `or_branches` shrinks as preceding
     // branches cover more of it.

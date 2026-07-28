@@ -30,3 +30,10 @@ assertion_line: 490
    ·                ──────
    ╰────
   help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="untrustedHtml" /></template>
+   ·                ──────────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
