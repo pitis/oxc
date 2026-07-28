@@ -828,6 +828,7 @@ pub use crate::rules::vue::no_deprecated_model_definition::NoDeprecatedModelDefi
 pub use crate::rules::vue::no_deprecated_props_default_this::NoDeprecatedPropsDefaultThis as VueNoDeprecatedPropsDefaultThis;
 pub use crate::rules::vue::no_deprecated_vue_config_keycodes::NoDeprecatedVueConfigKeycodes as VueNoDeprecatedVueConfigKeycodes;
 pub use crate::rules::vue::no_dupe_keys::NoDupeKeys as VueNoDupeKeys;
+pub use crate::rules::vue::no_duplicate_attributes::NoDuplicateAttributes as VueNoDuplicateAttributes;
 pub use crate::rules::vue::no_export_in_script_setup::NoExportInScriptSetup as VueNoExportInScriptSetup;
 pub use crate::rules::vue::no_expose_after_await::NoExposeAfterAwait as VueNoExposeAfterAwait;
 pub use crate::rules::vue::no_import_compiler_macros::NoImportCompilerMacros as VueNoImportCompilerMacros;
@@ -851,6 +852,7 @@ pub use crate::rules::vue::require_prop_types::RequirePropTypes as VueRequirePro
 pub use crate::rules::vue::require_render_return::RequireRenderReturn as VueRequireRenderReturn;
 pub use crate::rules::vue::require_slots_as_functions::RequireSlotsAsFunctions as VueRequireSlotsAsFunctions;
 pub use crate::rules::vue::require_typed_ref::RequireTypedRef as VueRequireTypedRef;
+pub use crate::rules::vue::require_v_for_key::RequireVForKey as VueRequireVForKey;
 pub use crate::rules::vue::return_in_computed_property::ReturnInComputedProperty as VueReturnInComputedProperty;
 pub use crate::rules::vue::return_in_emits_validator::ReturnInEmitsValidator as VueReturnInEmitsValidator;
 pub use crate::rules::vue::valid_define_emits::ValidDefineEmits as VueValidDefineEmits;
@@ -1693,6 +1695,7 @@ pub enum RuleEnum {
     VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis),
     VueNoDeprecatedVueConfigKeycodes(VueNoDeprecatedVueConfigKeycodes),
     VueNoDupeKeys(VueNoDupeKeys),
+    VueNoDuplicateAttributes(VueNoDuplicateAttributes),
     VueNoExportInScriptSetup(VueNoExportInScriptSetup),
     VueNoExposeAfterAwait(VueNoExposeAfterAwait),
     VueNoImportCompilerMacros(VueNoImportCompilerMacros),
@@ -1716,6 +1719,7 @@ pub enum RuleEnum {
     VueRequireRenderReturn(VueRequireRenderReturn),
     VueRequireSlotsAsFunctions(VueRequireSlotsAsFunctions),
     VueRequireTypedRef(VueRequireTypedRef),
+    VueRequireVForKey(VueRequireVForKey),
     VueReturnInComputedProperty(VueReturnInComputedProperty),
     VueReturnInEmitsValidator(VueReturnInEmitsValidator),
     VueValidDefineEmits(VueValidDefineEmits),
@@ -2648,7 +2652,8 @@ const VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID: usize =
 const VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID: usize =
     VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID + 1usize;
 const VUE_NO_DUPE_KEYS_ID: usize = VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID + 1usize;
-const VUE_NO_EXPORT_IN_SCRIPT_SETUP_ID: usize = VUE_NO_DUPE_KEYS_ID + 1usize;
+const VUE_NO_DUPLICATE_ATTRIBUTES_ID: usize = VUE_NO_DUPE_KEYS_ID + 1usize;
+const VUE_NO_EXPORT_IN_SCRIPT_SETUP_ID: usize = VUE_NO_DUPLICATE_ATTRIBUTES_ID + 1usize;
 const VUE_NO_EXPOSE_AFTER_AWAIT_ID: usize = VUE_NO_EXPORT_IN_SCRIPT_SETUP_ID + 1usize;
 const VUE_NO_IMPORT_COMPILER_MACROS_ID: usize = VUE_NO_EXPOSE_AFTER_AWAIT_ID + 1usize;
 const VUE_NO_LIFECYCLE_AFTER_AWAIT_ID: usize = VUE_NO_IMPORT_COMPILER_MACROS_ID + 1usize;
@@ -2673,7 +2678,8 @@ const VUE_REQUIRE_PROP_TYPES_ID: usize = VUE_REQUIRE_PROP_TYPE_CONSTRUCTOR_ID + 
 const VUE_REQUIRE_RENDER_RETURN_ID: usize = VUE_REQUIRE_PROP_TYPES_ID + 1usize;
 const VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID: usize = VUE_REQUIRE_RENDER_RETURN_ID + 1usize;
 const VUE_REQUIRE_TYPED_REF_ID: usize = VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID + 1usize;
-const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_TYPED_REF_ID + 1usize;
+const VUE_REQUIRE_V_FOR_KEY_ID: usize = VUE_REQUIRE_TYPED_REF_ID + 1usize;
+const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_V_FOR_KEY_ID + 1usize;
 const VUE_RETURN_IN_EMITS_VALIDATOR_ID: usize = VUE_RETURN_IN_COMPUTED_PROPERTY_ID + 1usize;
 const VUE_VALID_DEFINE_EMITS_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usize;
 const VUE_VALID_DEFINE_OPTIONS_ID: usize = VUE_VALID_DEFINE_EMITS_ID + 1usize;
@@ -3628,6 +3634,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VUE_NO_DEPRECATED_PROPS_DEFAULT_THIS_ID,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VUE_NO_DEPRECATED_VUE_CONFIG_KEYCODES_ID,
             Self::VueNoDupeKeys(_) => VUE_NO_DUPE_KEYS_ID,
+            Self::VueNoDuplicateAttributes(_) => VUE_NO_DUPLICATE_ATTRIBUTES_ID,
             Self::VueNoExportInScriptSetup(_) => VUE_NO_EXPORT_IN_SCRIPT_SETUP_ID,
             Self::VueNoExposeAfterAwait(_) => VUE_NO_EXPOSE_AFTER_AWAIT_ID,
             Self::VueNoImportCompilerMacros(_) => VUE_NO_IMPORT_COMPILER_MACROS_ID,
@@ -3653,6 +3660,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VUE_REQUIRE_RENDER_RETURN_ID,
             Self::VueRequireSlotsAsFunctions(_) => VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID,
             Self::VueRequireTypedRef(_) => VUE_REQUIRE_TYPED_REF_ID,
+            Self::VueRequireVForKey(_) => VUE_REQUIRE_V_FOR_KEY_ID,
             Self::VueReturnInComputedProperty(_) => VUE_RETURN_IN_COMPUTED_PROPERTY_ID,
             Self::VueReturnInEmitsValidator(_) => VUE_RETURN_IN_EMITS_VALIDATOR_ID,
             Self::VueValidDefineEmits(_) => VUE_VALID_DEFINE_EMITS_ID,
@@ -4593,6 +4601,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::NAME,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::NAME,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::NAME,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::NAME,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::NAME,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::NAME,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::NAME,
@@ -4618,6 +4627,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::NAME,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::NAME,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::NAME,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::NAME,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::NAME,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::NAME,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::NAME,
@@ -5616,6 +5626,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::CATEGORY,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::CATEGORY,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::CATEGORY,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::CATEGORY,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::CATEGORY,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::CATEGORY,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::CATEGORY,
@@ -5641,6 +5652,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::CATEGORY,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::CATEGORY,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::CATEGORY,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::CATEGORY,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::CATEGORY,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::CATEGORY,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::CATEGORY,
@@ -6582,6 +6594,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::FIX,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::FIX,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::FIX,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::FIX,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::FIX,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::FIX,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::FIX,
@@ -6607,6 +6620,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::FIX,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::FIX,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::FIX,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::FIX,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::FIX,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::FIX,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::FIX,
@@ -7814,6 +7828,7 @@ impl RuleEnum {
                 VueNoDeprecatedVueConfigKeycodes::documentation()
             }
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::documentation(),
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::documentation(),
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::documentation(),
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::documentation(),
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::documentation(),
@@ -7841,6 +7856,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::documentation(),
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::documentation(),
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::documentation(),
+            Self::VueRequireVForKey(_) => VueRequireVForKey::documentation(),
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::documentation(),
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::documentation(),
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::documentation(),
@@ -10210,6 +10226,8 @@ impl RuleEnum {
             Self::VueNoDupeKeys(_) => {
                 VueNoDupeKeys::config_schema(generator).or_else(|| VueNoDupeKeys::schema(generator))
             }
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::config_schema(generator)
+                .or_else(|| VueNoDuplicateAttributes::schema(generator)),
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::config_schema(generator)
                 .or_else(|| VueNoExportInScriptSetup::schema(generator)),
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::config_schema(generator)
@@ -10270,6 +10288,8 @@ impl RuleEnum {
             }
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::config_schema(generator)
                 .or_else(|| VueRequireTypedRef::schema(generator)),
+            Self::VueRequireVForKey(_) => VueRequireVForKey::config_schema(generator)
+                .or_else(|| VueRequireVForKey::schema(generator)),
             Self::VueReturnInComputedProperty(_) => {
                 VueReturnInComputedProperty::config_schema(generator)
                     .or_else(|| VueReturnInComputedProperty::schema(generator))
@@ -11108,6 +11128,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => "vue",
             Self::VueNoDeprecatedVueConfigKeycodes(_) => "vue",
             Self::VueNoDupeKeys(_) => "vue",
+            Self::VueNoDuplicateAttributes(_) => "vue",
             Self::VueNoExportInScriptSetup(_) => "vue",
             Self::VueNoExposeAfterAwait(_) => "vue",
             Self::VueNoImportCompilerMacros(_) => "vue",
@@ -11131,6 +11152,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => "vue",
             Self::VueRequireSlotsAsFunctions(_) => "vue",
             Self::VueRequireTypedRef(_) => "vue",
+            Self::VueRequireVForKey(_) => "vue",
             Self::VueReturnInComputedProperty(_) => "vue",
             Self::VueReturnInEmitsValidator(_) => "vue",
             Self::VueValidDefineEmits(_) => "vue",
@@ -13782,6 +13804,9 @@ impl RuleEnum {
             Self::VueNoDupeKeys(_) => {
                 Ok(Self::VueNoDupeKeys(VueNoDupeKeys::from_configuration(value)?))
             }
+            Self::VueNoDuplicateAttributes(_) => Ok(Self::VueNoDuplicateAttributes(
+                VueNoDuplicateAttributes::from_configuration(value)?,
+            )),
             Self::VueNoExportInScriptSetup(_) => Ok(Self::VueNoExportInScriptSetup(
                 VueNoExportInScriptSetup::from_configuration(value)?,
             )),
@@ -13852,6 +13877,9 @@ impl RuleEnum {
             )),
             Self::VueRequireTypedRef(_) => {
                 Ok(Self::VueRequireTypedRef(VueRequireTypedRef::from_configuration(value)?))
+            }
+            Self::VueRequireVForKey(_) => {
+                Ok(Self::VueRequireVForKey(VueRequireVForKey::from_configuration(value)?))
             }
             Self::VueReturnInComputedProperty(_) => Ok(Self::VueReturnInComputedProperty(
                 VueReturnInComputedProperty::from_configuration(value)?,
@@ -14697,6 +14725,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.to_configuration(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.to_configuration(),
             Self::VueNoDupeKeys(rule) => rule.to_configuration(),
+            Self::VueNoDuplicateAttributes(rule) => rule.to_configuration(),
             Self::VueNoExportInScriptSetup(rule) => rule.to_configuration(),
             Self::VueNoExposeAfterAwait(rule) => rule.to_configuration(),
             Self::VueNoImportCompilerMacros(rule) => rule.to_configuration(),
@@ -14720,6 +14749,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.to_configuration(),
             Self::VueRequireSlotsAsFunctions(rule) => rule.to_configuration(),
             Self::VueRequireTypedRef(rule) => rule.to_configuration(),
+            Self::VueRequireVForKey(rule) => rule.to_configuration(),
             Self::VueReturnInComputedProperty(rule) => rule.to_configuration(),
             Self::VueReturnInEmitsValidator(rule) => rule.to_configuration(),
             Self::VueValidDefineEmits(rule) => rule.to_configuration(),
@@ -15549,6 +15579,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run(node, ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run(node, ctx),
             Self::VueNoDupeKeys(rule) => rule.run(node, ctx),
+            Self::VueNoDuplicateAttributes(rule) => rule.run(node, ctx),
             Self::VueNoExportInScriptSetup(rule) => rule.run(node, ctx),
             Self::VueNoExposeAfterAwait(rule) => rule.run(node, ctx),
             Self::VueNoImportCompilerMacros(rule) => rule.run(node, ctx),
@@ -15572,6 +15603,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.run(node, ctx),
             Self::VueRequireSlotsAsFunctions(rule) => rule.run(node, ctx),
             Self::VueRequireTypedRef(rule) => rule.run(node, ctx),
+            Self::VueRequireVForKey(rule) => rule.run(node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run(node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run(node, ctx),
             Self::VueValidDefineEmits(rule) => rule.run(node, ctx),
@@ -16413,6 +16445,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_once(ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_once(ctx),
             Self::VueNoDupeKeys(rule) => rule.run_once(ctx),
+            Self::VueNoDuplicateAttributes(rule) => rule.run_once(ctx),
             Self::VueNoExportInScriptSetup(rule) => rule.run_once(ctx),
             Self::VueNoExposeAfterAwait(rule) => rule.run_once(ctx),
             Self::VueNoImportCompilerMacros(rule) => rule.run_once(ctx),
@@ -16436,6 +16469,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.run_once(ctx),
             Self::VueRequireSlotsAsFunctions(rule) => rule.run_once(ctx),
             Self::VueRequireTypedRef(rule) => rule.run_once(ctx),
+            Self::VueRequireVForKey(rule) => rule.run_once(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_once(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_once(ctx),
             Self::VueValidDefineEmits(rule) => rule.run_once(ctx),
@@ -17392,6 +17426,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoDupeKeys(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoDuplicateAttributes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoExportInScriptSetup(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoExposeAfterAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoImportCompilerMacros(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17417,6 +17452,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireSlotsAsFunctions(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireTypedRef(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueRequireVForKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidDefineEmits(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18259,6 +18295,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.should_run(ctx),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.should_run(ctx),
             Self::VueNoDupeKeys(rule) => rule.should_run(ctx),
+            Self::VueNoDuplicateAttributes(rule) => rule.should_run(ctx),
             Self::VueNoExportInScriptSetup(rule) => rule.should_run(ctx),
             Self::VueNoExposeAfterAwait(rule) => rule.should_run(ctx),
             Self::VueNoImportCompilerMacros(rule) => rule.should_run(ctx),
@@ -18282,6 +18319,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.should_run(ctx),
             Self::VueRequireSlotsAsFunctions(rule) => rule.should_run(ctx),
             Self::VueRequireTypedRef(rule) => rule.should_run(ctx),
+            Self::VueRequireVForKey(rule) => rule.should_run(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.should_run(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.should_run(ctx),
             Self::VueValidDefineEmits(rule) => rule.should_run(ctx),
@@ -19488,6 +19526,7 @@ impl RuleEnum {
                 VueNoDeprecatedVueConfigKeycodes::IS_TSGOLINT_RULE
             }
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::IS_TSGOLINT_RULE,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::IS_TSGOLINT_RULE,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::IS_TSGOLINT_RULE,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::IS_TSGOLINT_RULE,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::IS_TSGOLINT_RULE,
@@ -19515,6 +19554,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::IS_TSGOLINT_RULE,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::IS_TSGOLINT_RULE,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::IS_TSGOLINT_RULE,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::IS_TSGOLINT_RULE,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::IS_TSGOLINT_RULE,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::IS_TSGOLINT_RULE,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::IS_TSGOLINT_RULE,
@@ -20515,6 +20555,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::VERSION,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::VERSION,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::VERSION,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::VERSION,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::VERSION,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::VERSION,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::VERSION,
@@ -20540,6 +20581,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::VERSION,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::VERSION,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::VERSION,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::VERSION,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::VERSION,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::VERSION,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::VERSION,
@@ -21579,6 +21621,7 @@ impl RuleEnum {
                 VueNoDeprecatedVueConfigKeycodes::HAS_CONFIG
             }
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::HAS_CONFIG,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::HAS_CONFIG,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::HAS_CONFIG,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::HAS_CONFIG,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::HAS_CONFIG,
@@ -21604,6 +21647,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::HAS_CONFIG,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::HAS_CONFIG,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::HAS_CONFIG,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::HAS_CONFIG,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::HAS_CONFIG,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::HAS_CONFIG,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::HAS_CONFIG,
@@ -22546,6 +22590,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(_) => VueNoDeprecatedPropsDefaultThis::INFO,
             Self::VueNoDeprecatedVueConfigKeycodes(_) => VueNoDeprecatedVueConfigKeycodes::INFO,
             Self::VueNoDupeKeys(_) => VueNoDupeKeys::INFO,
+            Self::VueNoDuplicateAttributes(_) => VueNoDuplicateAttributes::INFO,
             Self::VueNoExportInScriptSetup(_) => VueNoExportInScriptSetup::INFO,
             Self::VueNoExposeAfterAwait(_) => VueNoExposeAfterAwait::INFO,
             Self::VueNoImportCompilerMacros(_) => VueNoImportCompilerMacros::INFO,
@@ -22571,6 +22616,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::INFO,
             Self::VueRequireSlotsAsFunctions(_) => VueRequireSlotsAsFunctions::INFO,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::INFO,
+            Self::VueRequireVForKey(_) => VueRequireVForKey::INFO,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::INFO,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::INFO,
             Self::VueValidDefineEmits(_) => VueValidDefineEmits::INFO,
@@ -23404,6 +23450,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.types_info(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.types_info(),
             Self::VueNoDupeKeys(rule) => rule.types_info(),
+            Self::VueNoDuplicateAttributes(rule) => rule.types_info(),
             Self::VueNoExportInScriptSetup(rule) => rule.types_info(),
             Self::VueNoExposeAfterAwait(rule) => rule.types_info(),
             Self::VueNoImportCompilerMacros(rule) => rule.types_info(),
@@ -23427,6 +23474,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.types_info(),
             Self::VueRequireSlotsAsFunctions(rule) => rule.types_info(),
             Self::VueRequireTypedRef(rule) => rule.types_info(),
+            Self::VueRequireVForKey(rule) => rule.types_info(),
             Self::VueReturnInComputedProperty(rule) => rule.types_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.types_info(),
             Self::VueValidDefineEmits(rule) => rule.types_info(),
@@ -24255,6 +24303,7 @@ impl RuleEnum {
             Self::VueNoDeprecatedPropsDefaultThis(rule) => rule.run_info(),
             Self::VueNoDeprecatedVueConfigKeycodes(rule) => rule.run_info(),
             Self::VueNoDupeKeys(rule) => rule.run_info(),
+            Self::VueNoDuplicateAttributes(rule) => rule.run_info(),
             Self::VueNoExportInScriptSetup(rule) => rule.run_info(),
             Self::VueNoExposeAfterAwait(rule) => rule.run_info(),
             Self::VueNoImportCompilerMacros(rule) => rule.run_info(),
@@ -24278,6 +24327,7 @@ impl RuleEnum {
             Self::VueRequireRenderReturn(rule) => rule.run_info(),
             Self::VueRequireSlotsAsFunctions(rule) => rule.run_info(),
             Self::VueRequireTypedRef(rule) => rule.run_info(),
+            Self::VueRequireVForKey(rule) => rule.run_info(),
             Self::VueReturnInComputedProperty(rule) => rule.run_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.run_info(),
             Self::VueValidDefineEmits(rule) => rule.run_info(),
@@ -25240,6 +25290,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoDeprecatedPropsDefaultThis(VueNoDeprecatedPropsDefaultThis::default()),
         RuleEnum::VueNoDeprecatedVueConfigKeycodes(VueNoDeprecatedVueConfigKeycodes::default()),
         RuleEnum::VueNoDupeKeys(VueNoDupeKeys::default()),
+        RuleEnum::VueNoDuplicateAttributes(VueNoDuplicateAttributes::default()),
         RuleEnum::VueNoExportInScriptSetup(VueNoExportInScriptSetup::default()),
         RuleEnum::VueNoExposeAfterAwait(VueNoExposeAfterAwait::default()),
         RuleEnum::VueNoImportCompilerMacros(VueNoImportCompilerMacros::default()),
@@ -25265,6 +25316,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueRequireRenderReturn(VueRequireRenderReturn::default()),
         RuleEnum::VueRequireSlotsAsFunctions(VueRequireSlotsAsFunctions::default()),
         RuleEnum::VueRequireTypedRef(VueRequireTypedRef::default()),
+        RuleEnum::VueRequireVForKey(VueRequireVForKey::default()),
         RuleEnum::VueReturnInComputedProperty(VueReturnInComputedProperty::default()),
         RuleEnum::VueReturnInEmitsValidator(VueReturnInEmitsValidator::default()),
         RuleEnum::VueValidDefineEmits(VueValidDefineEmits::default()),
