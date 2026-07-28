@@ -528,14 +528,27 @@ fn v_for_vars<'a>(v_slot: &Attribute<'a>, v_for: Option<&Attribute<'a>>) -> Opti
     Some(VSlotForVars { slots, used, iterator_text })
 }
 
-/// `equalVSlotVForVariables`: the two `v-for`s must iterate the same source
-/// (approximated by trimmed raw-text equality of the iterator, see this
-/// rule's doc comment), and every one of `a`'s *used* aliases must
-/// correspond — same top-level slot position, same name — to one of `b`'s,
-/// falling back to a plain name match against `b`'s used set. Deliberately
-/// asymmetric (mirrors upstream): this must be called as `equal(current,
-/// candidate)`.
+/// `equalVSlotVForVariables`: the two `v-for`s must use the same *number* of
+/// iteration variables and iterate the same source (the latter approximated
+/// by trimmed raw-text equality of the iterator, see this rule's doc
+/// comment), and every one of `a`'s *used* aliases must correspond — same
+/// top-level slot position, same name — to one of `b`'s, falling back to a
+/// plain name match against `b`'s used set. Deliberately asymmetric (mirrors
+/// upstream): this must be called as `equal(current, candidate)`.
 fn equal_v_for_vars(a: &VSlotForVars, b: &VSlotForVars) -> bool {
+    // `a.variables.length !== b.variables.length` — upstream's first guard.
+    // Without it, a *subset* of one side's used variables can spuriously
+    // "cover" a positionally-matching prefix of the other side's larger used
+    // set: e.g. `v-for="(key, value) in xxxx" #[key+value]` (both aliases
+    // used) vs `v-for="(key) in xxxx" #[key+value]` (only `key` is its own
+    // alias; `value` resolves to something outside this `v-for` entirely) —
+    // the second's single-element `used` set trivially "matches" the
+    // first's `key` slot, which the final `a.used.iter().all(...)` check
+    // alone can't catch when comparing in that direction (confirmed against
+    // a live eslint-plugin-vue run: reports nothing for this pair).
+    if a.used.len() != b.used.len() {
+        return false;
+    }
     if a.iterator_text != b.iterator_text {
         return false;
     }
@@ -800,6 +813,21 @@ mod tests {
             ),
             (
                 r#"<template><MyComponent><template v-for="(key) in xxxx" #[key+value]>{{value}}</template><template v-for="(key, value) in xxxx" #[key+value]>{{value}}</template></MyComponent></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Same pair, DOM order reversed (larger used-variable set
+            // first, smaller second): a regression case for a missed
+            // `a.variables.length !== b.variables.length` guard in
+            // `equal_v_for_vars`. Without that guard, the second
+            // (single-variable) `v-slot` spuriously "matched" the first
+            // (two-variable) one via the position-loop's partial
+            // correspondence, and — because it isn't in the first matching
+            // group — got wrongly flagged as a duplicate. Confirmed against
+            // a live eslint-plugin-vue run: reports nothing for this pair.
+            (
+                r#"<template><MyComponent><template v-for="(key, value) in xxxx" #[key+value]>{{value}}</template><template v-for="(key) in xxxx" #[key+value]>{{value}}</template></MyComponent></template>"#,
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

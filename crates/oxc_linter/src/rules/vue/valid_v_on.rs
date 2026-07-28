@@ -404,11 +404,18 @@ fn expected_value_or_verb_diagnostic(span: Span) -> OxcDiagnostic {
 
 #[derive(Debug, Clone, Default, JsonSchema, Deserialize)]
 #[serde(rename_all = "camelCase", default, deny_unknown_fields)]
-pub struct ValidVOn {
+pub struct ValidVOnConfig {
     /// Additional modifier names to accept beyond the built-in ones (e.g.
     /// project-specific custom directives layered on `v-on`).
     modifiers: Vec<String>,
 }
+
+// Boxed (like `vue/no-dupe-keys`'s `NoDupeKeys`): `modifiers: Vec<String>` is
+// 24 bytes unboxed, which would make this the largest `RuleEnum` variant and
+// grow every rule's in-memory representation from 16 to 24 bytes. `Box`
+// keeps this rule's own footprint at one pointer (8 bytes) instead.
+#[derive(Debug, Clone, Default, JsonSchema, Deserialize)]
+pub struct ValidVOn(Box<ValidVOnConfig>);
 
 declare_oxc_lint!(
     /// ### What it does
@@ -501,7 +508,7 @@ impl ValidVOn {
             || looks_like_key_code(modifier)
             || modifier.chars().count() == 1
             || KEY_ALIASES.contains(&modifier)
-            || self.modifiers.iter().any(|custom| custom == modifier)
+            || self.0.modifiers.iter().any(|custom| custom == modifier)
     }
 }
 
