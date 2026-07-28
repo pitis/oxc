@@ -425,6 +425,12 @@ fn v_for_snippet(raw: &str) -> Result<String, &'static str> {
         aliases_raw
     };
 
+    // The `\n` puts the closing `)` on its own line so a trailing `//` line
+    // comment in the iterator (`v-for="x in xs // note"`) can't comment it out.
+    // This is not purely cosmetic for [`v_for_alias_names`]: such a value used
+    // to fail to parse and yield *no* aliases, and now yields them, so
+    // [`walk_nodes_with_scope`] sees a wider (correct) scope for the rules
+    // built on it — strictly fewer false positives there.
     Ok(format!("for(let [{inner}]{delimiter}{iterator_raw}\n);"))
 }
 
@@ -468,9 +474,13 @@ pub enum TemplateExpressionKind {
 ///   token. Upstream inlines the code and *does* report those; erring toward
 ///   fewer false positives is the deliberate choice here.
 /// - Upstream's expression wrapper is `0(<text>)`, which additionally rejects
-///   a spread (`...a`) and a top-level comma (`a, b`); the parenthesised
-///   wrapper used here accepts both. That's under-reporting, not a false
-///   positive.
+///   a spread (`...a`, via `throwUnexpectedTokenError`) and a top-level comma
+///   (`a, b`, likewise). Of those two only the comma is missed here: the
+///   parenthesised wrapper parses `a, b` clean as a sequence expression,
+///   whereas a parenthesised spread is a parse error in its own right (it can
+///   only be an arrow-function parameter list, so the parser demands a `=>`)
+///   and is therefore still reported, just with a different message. The
+///   comma case is under-reporting, not a false positive.
 /// - `v-on` is always parsed as a statement list. Upstream first regex-tests
 ///   for a function expression / simple path and parses those as an
 ///   expression instead; every such value is also a valid statement, so the

@@ -149,6 +149,17 @@ fn check_expressions<'a>(nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
                 // (`parseExpression(…, { allowEmpty: true })`), and an
                 // unterminated one never becomes an expression container at
                 // all — its text has swallowed the rest of the template.
+                //
+                // The `trim()` here and its absence in
+                // `check_attribute_expression`'s `value.text.is_empty()` are
+                // both deliberate, and they mirror two *different* upstream
+                // skips. `allowEmpty` is checked after parsing, against the
+                // parsed expression, so `{{   }}` is whitespace that produced
+                // no expression and is allowed — hence `trim()`. A directive
+                // value instead short-circuits *before* any parse on the
+                // exact test `quoted && node.value === ""`, so `v-if=" "` is
+                // whitespace that upstream really does hand to the parser and
+                // really does report — hence no `trim()` there.
                 if interpolation.unterminated || interpolation.expression.trim().is_empty() {
                     continue;
                 }
