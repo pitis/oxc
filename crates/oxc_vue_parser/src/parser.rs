@@ -18,11 +18,29 @@ use crate::ast::{
 /// whole `.vue` file, offset them by the block's content start.
 pub fn parse_template(source: &str) -> Vec<Node<'_>> {
     let mut parser = Parser { source: source.as_bytes(), text: source, position: 0, depth: 0 };
-    parser.children(None)
+    parser.children(&Ancestors::Root)
 }
 
 /// Recursion guard: beyond this depth elements are captured as raw text.
 const MAX_DEPTH: u32 = 256;
+
+/// The stack of names of currently-open ancestor elements, threaded through
+/// the recursive descent without heap allocation: each frame borrows its
+/// caller's, mirroring the parser's own call stack.
+enum Ancestors<'p, 'a> {
+    Root,
+    Open { name: &'a str, parent: &'p Ancestors<'p, 'a> },
+}
+
+impl<'a> Ancestors<'_, 'a> {
+    /// The name of the innermost open element, if any.
+    fn name(&self) -> Option<&'a str> {
+        match self {
+            Ancestors::Root => None,
+            Ancestors::Open { name, .. } => Some(name),
+        }
+    }
+}
 
 struct Parser<'a> {
     source: &'a [u8],
@@ -56,9 +74,9 @@ impl<'a> Parser<'a> {
         &self.text[span.start as usize..span.end as usize]
     }
 
-    /// Parse children until the closing tag of `parent`, or end of input.
-    /// The caller consumes the closing tag.
-    fn children(&mut self, parent: Option<&str>) -> Vec<Node<'a>> {
+    /// Parse children until a closing tag that belongs to `ancestors`, or end
+    /// of input. The caller consumes the closing tag.
+    fn children(&mut self, ancestors: &Ancestors<'_, 'a>) -> Vec<Node<'a>> {
         let mut nodes = Vec::new();
         if self.depth > MAX_DEPTH {
             let start = self.position;
@@ -78,7 +96,7 @@ impl<'a> Parser<'a> {
                 // HTML implied end tags: `<li>a<li>b` are siblings — a new
                 // `<li>` closes the previous one. Leave the tag for the
                 // grandparent loop.
-                if let Some(parent) = parent
+                if let Some(parent) = ancestors.name()
                     && self.at(1) != b'/'
                     && self.at(1) != b'!'
                     && self.opening_tag_closes(parent)
@@ -86,9 +104,17 @@ impl<'a> Parser<'a> {
                     return nodes;
                 }
                 if self.at(1) == b'/' {
-                    // A closing tag belongs to whoever opened it; an orphan
-                    // closing tag (no matching parent) is skipped as raw.
-                    if parent.is_some() {
+                    // A closing tag belongs to whoever opened it: if it
+                    // matches this element or an outer ancestor, leave it
+                    // unconsumed for that level to close — bubbling up marks
+                    // intervening elements `unclosed` (this is what makes
+                    // `<div><p></div>` recover correctly). If it matches no
+                    // open ancestor at all (a browser would just drop it —
+                    // e.g. `</br>` after a void `<br>`, `</span>` never
+                    // opened, an orphan `</template>`), it doesn't close
+                    // anything: consume it as raw markup and keep parsing
+                    // siblings at this level so nothing here is lost.
+                    if self.closing_tag_matches_any(ancestors) {
                         return nodes;
                     }
                     let start = self.position;
@@ -109,7 +135,7 @@ impl<'a> Parser<'a> {
                     nodes.push(Node::Raw(Span::new(start, self.position)));
                     continue;
                 }
-                if let Some(node) = self.element() {
+                if let Some(node) = self.element(ancestors) {
                     nodes.push(node);
                     continue;
                 }
@@ -176,7 +202,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn element(&mut self) -> Option<Node<'a>> {
+    fn element(&mut self, ancestors: &Ancestors<'_, 'a>) -> Option<Node<'a>> {
         let start = self.position;
         self.position += 1; // `<`
         let name_start = self.position;
@@ -244,7 +270,8 @@ impl<'a> Parser<'a> {
         }
 
         self.depth += 1;
-        let children = self.children(Some(name));
+        let element_ancestors = Ancestors::Open { name, parent: ancestors };
+        let children = self.children(&element_ancestors);
         self.depth -= 1;
         // Recover from a mismatched closing tag: only consume it when it
         // matches this element; otherwise the element is unclosed and the
@@ -289,6 +316,17 @@ impl<'a> Parser<'a> {
         }
         matches!(rest.get(name.len()), None | Some(b'>' | b'/'))
             || rest[name.len()].is_ascii_whitespace()
+    }
+
+    /// Whether the closing tag at the current position matches this element
+    /// or any enclosing open ancestor.
+    fn closing_tag_matches_any(&self, ancestors: &Ancestors) -> bool {
+        match ancestors {
+            Ancestors::Root => false,
+            Ancestors::Open { name, parent } => {
+                self.closing_tag_matches(name) || self.closing_tag_matches_any(parent)
+            }
+        }
     }
 
     fn consume_closing_tag(&mut self) {
