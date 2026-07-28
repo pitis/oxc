@@ -9,13 +9,21 @@ use rustc_hash::FxHashSet;
 
 use crate::{
     rule::Rule,
-    utils::walk_elements,
+    utils::{
+        TemplateExpressionKind, has_directive, template_expression_parse_error, walk_elements,
+    },
     vue_template::{VueTemplateContext, VueTemplateRule},
 };
 
 fn parsing_error_diagnostic(code: &str, span: Span) -> OxcDiagnostic {
     OxcDiagnostic::warn(format!("Parsing error: {code}."))
         .with_help("Fix the malformed markup in the template.")
+        .with_label(span)
+}
+
+fn expression_parsing_error_diagnostic(message: &str, span: Span) -> OxcDiagnostic {
+    OxcDiagnostic::warn(format!("Parsing error: {message}."))
+        .with_help("Fix the JavaScript expression in the template.")
         .with_label(span)
 }
 
@@ -58,6 +66,19 @@ declare_oxc_lint!(
     /// the unterminated value, so it renders as a genuine zero-width span
     /// there instead. This is a deliberate, conservative subset —
     /// under-reporting is preferred to false positives.
+    ///
+    /// In addition to those three HTML codes, this rule reports **JavaScript
+    /// parse errors in template expressions** — an interpolation's contents
+    /// (`{{ foo &&& }}`) and every directive value that holds JS (`v-if`,
+    /// `:bind`, `@on`, `v-for`, `v-model`, `v-slot`'s pattern, custom
+    /// directives, …). vue-eslint-parser parses those as part of building the
+    /// template body and pushes any failure into `templateBody.errors`, which
+    /// upstream's `no-parsing-error` then reports; `oxc_vue_parser` has no
+    /// error channel, and every expression-inspecting rule here bails
+    /// silently when a value doesn't parse, so without this the whole class
+    /// of broken expressions would be invisible. The diagnostic is placed on
+    /// the expression's own span (upstream points at the exact offset inside
+    /// it).
     ///
     /// ### Why is this bad?
     ///
@@ -107,7 +128,103 @@ impl VueTemplateRule for NoParsingError {
                 check_eof_in_tag(attribute, source, ctx);
             }
         });
+        check_expressions(nodes, ctx);
     }
+}
+
+/// Parse every expression-bearing site in `nodes` and report the failures.
+///
+/// Recurses by hand rather than through [`walk_elements`] because it must
+/// (a) see [`Node::Interpolation`]s, not just elements, and (b) stop at a
+/// `v-pre` element: vue-eslint-parser turns expression handling *off* for a
+/// `v-pre` element's own attributes and its whole subtree (its
+/// `expressionEnabled` flag), so directives there stay plain attributes and
+/// mustaches stay literal text — nothing inside is ever parsed as JS, and
+/// nothing inside can produce a parse error.
+fn check_expressions<'a>(nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
+    for node in nodes {
+        match node {
+            Node::Interpolation(interpolation) => {
+                // An empty mustache is explicitly allowed upstream
+                // (`parseExpression(…, { allowEmpty: true })`), and an
+                // unterminated one never becomes an expression container at
+                // all — its text has swallowed the rest of the template.
+                if interpolation.unterminated || interpolation.expression.trim().is_empty() {
+                    continue;
+                }
+                if let Some(message) = template_expression_parse_error(
+                    interpolation.expression,
+                    TemplateExpressionKind::Expression,
+                ) {
+                    ctx.diagnostic(expression_parsing_error_diagnostic(
+                        &message,
+                        interpolation.expression_span,
+                    ));
+                }
+            }
+            Node::Element(element) => {
+                if has_directive(element, "pre", None) {
+                    continue;
+                }
+                for attribute in &element.attributes {
+                    check_attribute_expression(element, attribute, ctx);
+                }
+                check_expressions(&element.children, ctx);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn check_attribute_expression<'a>(
+    element: &Element<'a>,
+    attribute: &Attribute<'a>,
+    ctx: &mut VueTemplateContext<'a>,
+) {
+    let Some(kind) = attribute_expression_kind(element, attribute) else { return };
+    let Some(value) = &attribute.value else { return };
+    // A valueless directive (`v-else`, `v-once`, `:foo` same-name shorthand)
+    // and a quoted *empty* value are both skipped outright upstream — no
+    // parse is attempted, so neither can be a parsing error. An unterminated
+    // quoted value is already reported as `eof-in-tag` above, and its text is
+    // the rest of the template rather than an expression.
+    if value.text.is_empty() || value.unterminated {
+        return;
+    }
+    if let Some(message) = template_expression_parse_error(value.text, kind) {
+        ctx.diagnostic(expression_parsing_error_diagnostic(&message, value.span));
+    }
+}
+
+/// Which grammar `attribute`'s value is parsed with, or `None` when it holds
+/// no JavaScript at all — mirroring vue-eslint-parser's
+/// `getStandardDirectiveKind` plus its `needConvertToDirective` gate (which is
+/// what makes the two deprecated *plain* attributes `slot-scope` and
+/// `<template scope>` expression-bearing).
+fn attribute_expression_kind(
+    element: &Element<'_>,
+    attribute: &Attribute<'_>,
+) -> Option<TemplateExpressionKind> {
+    let Some(directive) = &attribute.directive else {
+        // Case-sensitive, like the two `no-deprecated-*-attribute` rules:
+        // vue-eslint-parser's SFC `getTagName` never case-folds for this
+        // bare-attribute-to-directive conversion.
+        if attribute.name == "slot-scope"
+            || (element.name == "template" && attribute.name == "scope")
+        {
+            return Some(TemplateExpressionKind::SlotScope);
+        }
+        return None;
+    };
+    Some(match directive.name {
+        "for" => TemplateExpressionKind::For,
+        // Upstream gates the statement-list grammar on there being an
+        // argument: argument-less `v-on="{ click: fn }"` is a plain object
+        // *expression*.
+        "on" if directive.argument.is_some() => TemplateExpressionKind::OnStatements,
+        "slot" => TemplateExpressionKind::SlotScope,
+        _ => TemplateExpressionKind::Expression,
+    })
 }
 
 /// WHATWG `duplicate-attribute`: two attributes with the same raw name
@@ -230,6 +347,117 @@ mod tests {
                 None,
                 Some(PathBuf::from("test.vue")),
             ),
+            // Template expressions that parse cleanly.
+            (
+                r#"<template><div v-if="x === 1" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A cross-section of real-world template expressions, guarding
+            // against false positives from the wrapper snippets: object and
+            // array literals (which need the parenthesised wrapper to not be
+            // read as a block), optional chaining / nullish coalescing, a TS
+            // cast, an inline arrow handler with a block body, a Vue 2 filter
+            // pipe (valid JS as a bitwise `|`, so it must stay silent here),
+            // and a three-alias `v-for` over an object.
+            (
+                r#"<template><div :class="{ active: isActive, 'text-danger': hasError }" :style="[base, override]" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><input v-model="form.name" :disabled="!!error" @input="$emit('update:modelValue', $event.target.value)" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div v-if="(a as string) === b">{{ obj?.deep ?? 'fallback' }}</div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><button v-bind="$attrs" @keyup.enter="() => { submit() }">{{ items.map((i) => i.name).join(', ') }}</button></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><span v-for="(value, key, index) in object" :key="key">{{ value | capitalize }}{{ index }}</span></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (r"<template>{{ foo && bar }}</template>", None, None, Some(PathBuf::from("test.vue"))),
+            (
+                r#"<template><li v-for="(item, i) of items" :key="item.id">{{ item.name }}</li></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `v-on` with an argument is a statement *list*, not an
+            // expression: two statements in a row must not be an error.
+            (
+                r#"<template><button @click="count++; save()" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Argument-less `v-on` is a plain object expression.
+            (
+                r#"<template><div v-on="{ click: onClick }" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `v-slot`'s value is a destructuring pattern, not an expression.
+            (
+                r#"<template><Comp #default="{ msg, list: [first] }">{{ msg }}{{ first }}</Comp></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><template scope="props">{{ props }}</template></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A quoted empty value is never parsed upstream, and an empty
+            // mustache is explicitly allowed.
+            (
+                r#"<template><div v-if="" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (r"<template>{{ }}</template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Valueless directives have nothing to parse.
+            (
+                r#"<template><div v-if="a" /><div v-else /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `v-pre` turns expression handling off for the element and its
+            // whole subtree.
+            (
+                r#"<template><div v-pre :foo="x ===">{{ foo &&& }}</div></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // An `eslint-disable` HTML comment suppresses the expression
+            // diagnostic like any other.
+            (
+                "<template>\n<!-- eslint-disable vue/no-parsing-error -->\n<div v-if=\"x ===\" />\n</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
         ];
 
         let fail = vec![
@@ -266,6 +494,53 @@ mod tests {
             // not the opening quote's line.
             (
                 "<template><div foo=\"a\nb\nc</template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Broken JavaScript in a directive value.
+            (
+                r#"<template><div v-if="x ===" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // …and in an interpolation.
+            (r"<template>{{ foo &&& }}</template>", None, None, Some(PathBuf::from("test.vue"))),
+            // `v-for` with no iterator after `in`.
+            (
+                r#"<template><li v-for="item in" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `v-for` with no alias list at all: upstream's `ALIAS_ITERATOR`
+            // doesn't match and it reports the missing alias.
+            (
+                r#"<template><li v-for="items" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A `v-on` handler that isn't valid as statements either.
+            (
+                r#"<template><button @click="foo(" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // A broken `v-slot` destructuring pattern.
+            (
+                r#"<template><Comp #default="{ msg" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The `<template>` is not the first block: locks in that the
+            // reported position is file-relative (the template AST's spans
+            // already carry the block's offset), not template-relative.
+            (
+                "<script setup>\nconst x = 1;\n</script>\n\n<template>\n  <div v-if=\"x ===\" />\n</template>",
                 None,
                 None,
                 Some(PathBuf::from("test.vue")),

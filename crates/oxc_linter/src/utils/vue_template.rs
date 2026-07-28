@@ -393,19 +393,27 @@ fn find_for_separator(text: &str) -> Option<(usize, usize)> {
     None
 }
 
-/// The `v-for` alias *names* declared by a `v-for="<aliases> in/of <expr>"`
-/// value, via the same parse-as-a-real-`for`-statement mechanism as
-/// `valid-v-for`'s `check_for_value` (see there for the full rationale) —
-/// see [`find_for_separator`]'s doc comment for why this particular copy is
-/// shared rather than duplicated. Silently returns nothing on any parse
-/// failure, matching this fork's established silent-on-parse-failure
-/// discipline for template expression parsing.
-fn v_for_alias_names(raw: &str) -> FxHashSet<String> {
-    let mut names = FxHashSet::default();
-    let Some((sep_start, sep_end)) = find_for_separator(raw) else { return names };
+/// The `for (let […] in/of …);` snippet a `v-for` value desugars to — the
+/// "reuse real JS grammar" mechanism shared by [`v_for_alias_names`] (which
+/// wants the parsed aliases) and [`template_expression_parse_error`] (which
+/// wants the parse *errors*), so the alias/iterator split lives in exactly one
+/// place.
+///
+/// `Err` carries vue-eslint-parser's own message for the two cases it rejects
+/// before parsing anything: a blank value, and a value with no alias list in
+/// front of the `in`/`of` (including one with no `in`/`of` at all, e.g.
+/// `v-for="items"` — upstream's `ALIAS_ITERATOR` simply fails to match and it
+/// reports the missing alias).
+fn v_for_snippet(raw: &str) -> Result<String, &'static str> {
+    if raw.trim().is_empty() {
+        return Err("Expected to be '<alias> in <expression>', but got empty");
+    }
+    let Some((sep_start, sep_end)) = find_for_separator(raw) else {
+        return Err("Expected to be an alias, but got empty");
+    };
     let aliases_raw = &raw[..sep_start];
     if aliases_raw.trim().is_empty() {
-        return names;
+        return Err("Expected to be an alias, but got empty");
     }
     let delimiter = &raw[sep_start..sep_end];
     let iterator_raw = &raw[sep_end..];
@@ -417,7 +425,96 @@ fn v_for_alias_names(raw: &str) -> FxHashSet<String> {
         aliases_raw
     };
 
-    let snippet = format!("for(let [{inner}]{delimiter}{iterator_raw});");
+    Ok(format!("for(let [{inner}]{delimiter}{iterator_raw}\n);"))
+}
+
+/// Which JavaScript grammar a `<template>` value has to be parsed with, for
+/// [`template_expression_parse_error`] — mirroring vue-eslint-parser's
+/// `getStandardDirectiveKind` dispatch in `parseAttributeValue`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TemplateExpressionKind {
+    /// A plain expression: an interpolation's contents, and every directive
+    /// value that isn't one of the three below — `v-if`, `v-show`, `v-model`,
+    /// `v-html`, `v-text`, `v-memo`, `:bind`, argument-less `v-on="{ … }"`,
+    /// custom directives, … (upstream's fall-through to `parseExpression`).
+    Expression,
+    /// `v-on:x` / `@x` — an inline *statement list*, not an expression
+    /// (`@click="a(); b()"` is valid), parsed as a function body the way
+    /// upstream's `parseVOnExpressionBody` does.
+    OnStatements,
+    /// `v-for` — `<alias(es)> in/of <iterator>`.
+    For,
+    /// `v-slot` / `#` / `slot-scope` / `scope` — a destructuring *pattern*,
+    /// parsed as a function parameter list.
+    SlotScope,
+}
+
+/// The first parse error from parsing `text` as `kind`, or `None` when it
+/// parses cleanly — the error channel `oxc_vue_parser` doesn't have.
+///
+/// Every other expression helper here (and in the individual rules) bails
+/// *silently* on a parse failure, which is safe but leaves a broken expression
+/// completely unreported; `vue/no-parsing-error` calls this to be the one
+/// place that surfaces it, mirroring vue-eslint-parser pushing a `ParseError`
+/// into `templateBody.errors`.
+///
+/// The returned message is the raw parser message with any trailing `.`
+/// stripped, matching how `no-parsing-error` interpolates it.
+///
+/// ### Deviations from vue-eslint-parser
+///
+/// - Each wrapper puts `text` on its own line, so a trailing `//` line comment
+///   inside a template expression can't comment out the wrapper's own closing
+///   token. Upstream inlines the code and *does* report those; erring toward
+///   fewer false positives is the deliberate choice here.
+/// - Upstream's expression wrapper is `0(<text>)`, which additionally rejects
+///   a spread (`...a`) and a top-level comma (`a, b`); the parenthesised
+///   wrapper used here accepts both. That's under-reporting, not a false
+///   positive.
+/// - `v-on` is always parsed as a statement list. Upstream first regex-tests
+///   for a function expression / simple path and parses those as an
+///   expression instead; every such value is also a valid statement, so the
+///   only observable difference is which message a broken one gets.
+pub fn template_expression_parse_error(text: &str, kind: TemplateExpressionKind) -> Option<String> {
+    match kind {
+        TemplateExpressionKind::Expression => snippet_parse_error(&format!("(\n{text}\n);")),
+        TemplateExpressionKind::OnStatements => {
+            snippet_parse_error(&format!("void function($event) {{\n{text}\n}};"))
+        }
+        TemplateExpressionKind::SlotScope => snippet_parse_error(&format!("(\n{text}\n) => 0;")),
+        TemplateExpressionKind::For => match v_for_snippet(text) {
+            Ok(snippet) => snippet_parse_error(&snippet),
+            Err(message) => Some(message.to_string()),
+        },
+    }
+}
+
+/// The first `oxc_parser` diagnostic message from parsing `snippet`, or `None`
+/// when it parses cleanly.
+fn snippet_parse_error(snippet: &str) -> Option<String> {
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, snippet, SourceType::ts()).parse();
+    match parser_ret.diagnostics.first() {
+        Some(diagnostic) => {
+            let message = diagnostic.message.as_ref();
+            Some(message.strip_suffix('.').unwrap_or(message).to_string())
+        }
+        // A panic without a diagnostic shouldn't happen, but it is still a
+        // parse failure and must not be reported as success.
+        None => parser_ret.panicked.then(|| "Unexpected token".to_string()),
+    }
+}
+
+/// The `v-for` alias *names* declared by a `v-for="<aliases> in/of <expr>"`
+/// value, via the same parse-as-a-real-`for`-statement mechanism as
+/// `valid-v-for`'s `check_for_value` (see there for the full rationale) —
+/// see [`find_for_separator`]'s doc comment for why this particular copy is
+/// shared rather than duplicated. Silently returns nothing on any parse
+/// failure, matching this fork's established silent-on-parse-failure
+/// discipline for template expression parsing.
+fn v_for_alias_names(raw: &str) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    let Ok(snippet) = v_for_snippet(raw) else { return names };
     let allocator = Allocator::new();
     let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
     if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
