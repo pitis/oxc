@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-v-on-native-modifier): '.native' modifier on 'v-on' directive is deprecated.
+   ╭─[no_deprecated_v_on_native_modifier.tsx:1:29]
+ 1 │ <template><input v-on:keyup.native='fore'></template>
+   ·                             ──────
+   ╰────
+  help: Vue 3 removed the `.native` modifier; listen for native DOM events on the root element with `emits`/`inheritAttrs: false` instead, or bind directly to a plain element.
+
+  ⚠ vue(no-deprecated-v-on-native-modifier): '.native' modifier on 'v-on' directive is deprecated.
+   ╭─[no_deprecated_v_on_native_modifier.tsx:1:33]
+ 1 │ <template><input v-on:keyup.foo.native.bar='fore'></template>
+   ·                                 ──────
+   ╰────
+  help: Vue 3 removed the `.native` modifier; listen for native DOM events on the root element with `emits`/`inheritAttrs: false` instead, or bind directly to a plain element.
+
+  ⚠ vue(no-deprecated-v-on-native-modifier): '.native' modifier on 'v-on' directive is deprecated.
+   ╭─[no_deprecated_v_on_native_modifier.tsx:1:25]
+ 1 │ <template><input @click.native='onClick'></template>
+   ·                         ──────
+   ╰────
+  help: Vue 3 removed the `.native` modifier; listen for native DOM events on the root element with `emits`/`inheritAttrs: false` instead, or bind directly to a plain element.

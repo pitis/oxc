@@ -249,7 +249,7 @@ impl Tool for ServerFormatter {
 
         // Handle result
         match result {
-            FormatResult::Success { code, is_changed } => {
+            FormatResult::Success { code, is_changed, .. } => {
                 if !is_changed {
                     return Ok(vec![]);
                 }

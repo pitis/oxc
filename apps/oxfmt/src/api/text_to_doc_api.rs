@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 use serde_json::Value;
-use tracing::{debug, instrument};
+use tracing::{instrument, warn};
 
 use oxc_allocator::Allocator;
 use oxc_formatter::FragmentContext;
@@ -24,7 +24,6 @@ use crate::{
 };
 
 /// Fragment kind for embedded JS/TS contexts.
-#[expect(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug)]
 enum FragmentKind {
     /// `v-for` left-hand side: `(item, index) in items` → formats `item, index` part.
@@ -33,14 +32,76 @@ enum FragmentKind {
     VueBindings,
     /// `<script generic="T extends Foo">` → formats type parameters without angle brackets.
     VueScriptGeneric,
+    /// A bare expression inside a double-quoted attribute, from the plain
+    /// `__(js|ts)_expression` parsers: `v-if`/`v-show` and other simple
+    /// directives, the `v-for` right-hand side, and the expression form of
+    /// `v-on`/`@event`.
+    ExpressionAttribute,
+    /// A bare expression inside an interpolation from a non-Vue parser.
+    /// (Currently unreachable — Vue interpolations arrive as
+    /// [`FragmentKind::VueExpressionInterpolation`] — kept for symmetry.)
+    ExpressionInterpolation,
+    /// A bare expression inside a double-quoted attribute, from the
+    /// `__vue(_ts)_expression` parsers: `v-bind`/`:prop` values.
+    /// Enables the Vue 2 filter layout (filters are only valid in `v-bind`
+    /// and interpolations).
+    VueExpressionAttribute,
+    /// A bare expression inside an interpolation: `{{ ... }}`, from the
+    /// `__vue(_ts)_expression` parsers. Enables the Vue 2 filter layout.
+    VueExpressionInterpolation,
+    /// Statement(s) of an inline event handler: `v-on`/`@event` values that
+    /// did not parse as a single expression.
+    EventHandler,
+}
+
+/// A classified failure of an embedded-JS/TS `textToDoc()` call.
+///
+/// Prettier's `printEmbeddedLanguage()` swallows every `textToDoc()` failure in
+/// production (the fragment is then emitted unformatted), so the failure has to
+/// travel back as *data* for the JS side to surface it on the format result.
+/// The distinction matters to users: [`Self::Syntax`] is their own broken input,
+/// [`Self::Internal`] is an oxfmt bug that should be reported.
+enum EmbedFailure {
+    /// The embedded script/expression did not parse.
+    Syntax(String),
+    /// oxfmt itself failed: malformed plugin payload, config that no longer
+    /// validates, an IR → Prettier `Doc` conversion bug, or an unmapped
+    /// pseudo-parser.
+    Internal(String),
+}
+
+impl EmbedFailure {
+    fn internal(message: impl Into<String>) -> Self {
+        Self::Internal(message.into())
+    }
+
+    fn kind(&self) -> &'static str {
+        match self {
+            Self::Syntax(_) => "syntax",
+            Self::Internal(_) => "internal",
+        }
+    }
+
+    fn message(&self) -> &str {
+        match self {
+            Self::Syntax(message) | Self::Internal(message) => message,
+        }
+    }
+
+    /// The JSON payload handed to the JS side (`text-to-doc.ts`).
+    fn to_json(&self) -> Value {
+        serde_json::json!({ "error": { "kind": self.kind(), "message": self.message() } })
+    }
 }
 
 /// `js_text_to_doc()` implementation for NAPI API.
 ///
-/// Returns `None` on failure.
-/// Prettier's `multiparser.js` silently swallows errors from `textToDoc()` in production,
-/// so detailed error reporting is unnecessary.
-/// Errors are logged via `tracing::debug!` for observability with `OXC_LOG=debug`.
+/// Prettier's `printEmbeddedLanguage()` silently swallows errors thrown from
+/// `textToDoc()` in production, so failures are returned as data instead:
+/// the JSON payload carries an `error: { kind, message }` object that the JS
+/// side turns into a user-visible warning on the format result.
+///
+/// Returns `None` only when the failure payload itself cannot be serialized.
 #[instrument(
     level = "debug",
     name = "oxfmt::text_to_doc",
@@ -61,28 +122,140 @@ pub fn run(
         "vue-for-binding-left" => Some(FragmentKind::VueForBindingLeft),
         "vue-bindings" => Some(FragmentKind::VueBindings),
         "vue-script-generic" => Some(FragmentKind::VueScriptGeneric),
-        // "vue-script", "svelte-script"
+        "expression-attribute" => Some(FragmentKind::ExpressionAttribute),
+        "expression-interpolation" => Some(FragmentKind::ExpressionInterpolation),
+        "vue-expression-attribute" => Some(FragmentKind::VueExpressionAttribute),
+        "vue-expression-interpolation" => Some(FragmentKind::VueExpressionInterpolation),
+        "event-handler" => Some(FragmentKind::EventHandler),
+        // Full-program contexts: "vue-script", "svelte-script", "markdown", "mdx",
+        // and any other host parser name forwarded by `detectParentContext()`.
+        //
+        // A `__`-prefixed name is one of Prettier's pseudo-parsers, which always
+        // request a *fragment*. Reaching here means the plugin registered a
+        // pseudo-parser that was never mapped to a `FragmentKind`; formatting it
+        // as a full program would silently produce wrong output, so fail loudly.
+        unmapped if unmapped.starts_with("__") => {
+            let failure = EmbedFailure::internal(format!(
+                "unmapped pseudo-parser context `{unmapped}`; embedded fragment left unformatted"
+            ));
+            return Some(failure_payload(&failure, parent_context, None));
+        }
         _ => None,
     };
 
-    let doc_json = if let Some(kind) = fragment_kind {
-        run_fragment(source_ext, source_text, oxfmt_plugin_options_json, kind)?
+    // Only the markdown/mdx embeds format under a synthetic JS/TS `filepath`
+    // (Prettier overrides it to `dummy.ts(x)`); every other host (vue, svelte,
+    // html) passes its own non-JS/TS filepath through, which drives the tsx
+    // generic trailing-comma rule (see `embedded_source_type`). Fragments only
+    // occur in vue/html hosts, so they never format under a JS/TS filepath.
+    let host_is_js_ts_file = matches!(parent_context, "markdown" | "mdx");
+
+    let result = if let Some(kind) = fragment_kind {
+        run_fragment(source_ext, source_text, oxfmt_plugin_options_json, kind)
     } else {
         run_full(
             source_ext,
+            host_is_js_ts_file,
             source_text,
             oxfmt_plugin_options_json,
             format_file_cb,
             format_embedded_cb,
             format_embedded_doc_cb,
             sort_tailwind_classes_cb,
-        )?
+        )
     };
 
-    Some(serde_json::to_string(&doc_json).expect("Doc JSON serialization should not fail"))
+    let doc_json = match result {
+        Ok(doc_json) => doc_json,
+        Err(failure) => return Some(failure_payload(&failure, parent_context, fragment_kind)),
+    };
+
+    match serde_json::to_string(&doc_json) {
+        Ok(json) => Some(json),
+        Err(err) => {
+            let failure = EmbedFailure::internal(format!("Doc JSON serialization failed: {err}"));
+            Some(failure_payload(&failure, parent_context, fragment_kind))
+        }
+    }
+}
+
+/// Serialize a failure for the JS side.
+///
+/// This is the single funnel for every `run_full` / `run_fragment` swallow site,
+/// so the log lives here: `warn!` (was `debug!`) with the `syntax` vs `internal`
+/// kind, which makes `OXC_LOG=oxfmt=warn` enough instead of full `debug`. The
+/// user-visible signal is the returned payload, not this log.
+///
+/// The expression / event-handler fragment kinds additionally report a syntax
+/// failure as `parseError` data: Prettier's `v-on` printer needs a recognizable
+/// Babel-shaped syntax error to fall back from the expression form to the
+/// event-handler (statements) form.
+fn failure_payload(
+    failure: &EmbedFailure,
+    parent_context: &str,
+    fragment_kind: Option<FragmentKind>,
+) -> String {
+    warn!(
+        kind = failure.kind(),
+        parent_context,
+        "oxfmt could not format an embedded JS/TS fragment: {}",
+        failure.message()
+    );
+
+    let mut payload = failure.to_json();
+    let needs_parse_error_marker = matches!(failure, EmbedFailure::Syntax(_))
+        && matches!(
+            fragment_kind,
+            Some(
+                FragmentKind::ExpressionAttribute
+                    | FragmentKind::ExpressionInterpolation
+                    | FragmentKind::VueExpressionAttribute
+                    | FragmentKind::VueExpressionInterpolation
+                    | FragmentKind::EventHandler
+            )
+        );
+    if needs_parse_error_marker && let Some(object) = payload.as_object_mut() {
+        object.insert("parseError".to_string(), Value::Bool(true));
+    }
+
+    // A `{ error: { kind, message } }` object is always serializable; the
+    // fallback only exists so this helper stays infallible.
+    serde_json::to_string(&payload).unwrap_or_else(|_| {
+        r#"{"error":{"kind":"internal","message":"failure payload serialization failed"}}"#
+            .to_string()
+    })
 }
 
 // ---
+
+/// [`SourceType`] for an embedded JS/TS block or fragment.
+///
+/// When the *host* file is not itself a JS/TS file (`.vue`, `.svelte`,
+/// `.html`), the source type keeps the language/variant of the requested
+/// extension but drops the extension itself: Prettier's tsx generic
+/// trailing-comma rule keys on the formatted file's path
+/// (`/\.ts$/.test(options.filepath)` in `shouldForceTrailingComma`,
+/// language-js/print/type-parameters.js), and the host's path is not `.ts` —
+/// so `<T = any,>() => ...` keeps its comma inside a `.vue` file.
+/// Markdown/mdx embeds are the exception: Prettier overrides their `filepath`
+/// to a synthetic `dummy.ts(x)`, so they behave like real `.ts(x)` files.
+fn embedded_source_type(
+    source_ext: &str,
+    host_is_js_ts_file: bool,
+) -> Result<SourceType, EmbedFailure> {
+    let source_type = SourceType::from_extension(source_ext).map_err(|_| {
+        EmbedFailure::internal(format!("`{source_ext}` is not a valid JS/TS extension"))
+    })?;
+    if host_is_js_ts_file {
+        return Ok(source_type);
+    }
+    // Same language / variant / module kind as `from_extension`, extension-less.
+    Ok(match source_ext {
+        "ts" => SourceType::ts(),
+        "tsx" => SourceType::tsx(),
+        _ => SourceType::unambiguous().with_jsx(true),
+    })
+}
 
 /// Full mode:
 /// - Format entire source as IR
@@ -98,17 +271,14 @@ pub fn run(
 #[instrument(level = "debug", name = "oxfmt::text_to_doc::full", skip_all, fields(%source_ext))]
 fn run_full(
     source_ext: &str,
+    host_is_js_ts_file: bool,
     source_text: &str,
     oxfmt_plugin_options_json: &str,
     format_file_cb: JsFormatFileCb,
     format_embedded_cb: JsFormatEmbeddedCb,
     format_embedded_doc_cb: JsFormatEmbeddedDocCb,
     sort_tailwind_classes_cb: JsSortTailwindClassesCb,
-) -> Option<Value> {
-    // Tailwind paths in the payload are already absolute (resolved by the host before serialization),
-    // so no `cwd` is threaded through here.
-    let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json);
-
+) -> Result<Value, EmbedFailure> {
     let external_formatter = ExternalFormatter::new(
         format_file_cb,
         format_embedded_cb,
@@ -116,11 +286,34 @@ fn run_full(
         sort_tailwind_classes_cb,
     );
 
-    let source_type = SourceType::from_extension(source_ext)
-        .expect("source_ext should be a valid JS/TS extension");
+    // The TSFNs must be released on every exit path, including the failure ones.
+    let result = format_full(
+        &external_formatter,
+        source_ext,
+        host_is_js_ts_file,
+        source_text,
+        oxfmt_plugin_options_json,
+    );
+    external_formatter.cleanup();
+    result
+}
 
-    let resolved = resolve_for_embedded_js(config, parent_filepath)
-        .expect("`_oxfmtPluginOptionsJson` should contain valid config");
+fn format_full(
+    external_formatter: &ExternalFormatter,
+    source_ext: &str,
+    host_is_js_ts_file: bool,
+    source_text: &str,
+    oxfmt_plugin_options_json: &str,
+) -> Result<Value, EmbedFailure> {
+    // Tailwind paths in the payload are already absolute (resolved by the host before serialization),
+    // so no `cwd` is threaded through here.
+    let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json)?;
+
+    let source_type = embedded_source_type(source_ext, host_is_js_ts_file)?;
+
+    let resolved = resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
+        EmbedFailure::internal(format!("`_oxfmtPluginOptionsJson` carries invalid config: {err}"))
+    })?;
 
     // Prettier options for callbacks that `oxc_formatter` may dispatch (e.g., CSS-in-JS).
     // The embedded JS context is treated as always Tailwind-capable, so the inject is unconditional.
@@ -132,11 +325,13 @@ fn run_full(
     // Dual mapping of the same resolved config for the dispatcher's Rust branches.
     // Cannot fail here: `resolve_for_embedded_js()` already built `JsFormatOptions`
     // from this config, and both share the same `to_core_options()` validation.
-    let graphql_options = to_oxc_formatter_graphql(&resolved.config)
-        .expect("config was already validated by `resolve_for_embedded_js()`");
+    let graphql_options = to_oxc_formatter_graphql(&resolved.config).map_err(|err| {
+        EmbedFailure::internal(format!("GraphQL options mapping failed unexpectedly: {err}"))
+    })?;
     // CSS-in-JS is always parsed as SCSS, mirroring Prettier's embed.
-    let css_options = to_oxc_formatter_css(&resolved.config, CssVariant::Scss)
-        .expect("config was already validated by `resolve_for_embedded_js()`");
+    let css_options = to_oxc_formatter_css(&resolved.config, CssVariant::Scss).map_err(|err| {
+        EmbedFailure::internal(format!("CSS options mapping failed unexpectedly: {err}"))
+    })?;
 
     let external_callbacks = external_formatter.to_external_callbacks(
         &resolved.format_options,
@@ -157,20 +352,17 @@ fn run_full(
         )
     }) {
         Ok(formatted) => formatted,
-        Err(err) => {
-            debug!("`oxc_formatter::format()` failed: {err:?}");
-            external_formatter.cleanup();
-            return None;
-        }
+        // `oxc_formatter::format()` only fails when the source does not parse.
+        Err(err) => return Err(EmbedFailure::Syntax(format!("{err}"))),
     };
 
     let (elements, sorted_tailwind_classes) =
         formatted.into_document().into_elements_and_tailwind_classes();
 
-    external_formatter.cleanup();
-    Some(
-        to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes)
-            .expect("Formatter IR to Prettier Doc conversion should not fail"),
+    to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes).map_err(
+        |err| {
+            EmbedFailure::internal(format!("Formatter IR to Prettier Doc conversion failed: {err}"))
+        },
     )
 }
 
@@ -190,15 +382,16 @@ fn run_fragment(
     source_text: &str,
     oxfmt_plugin_options_json: &str,
     kind: FragmentKind,
-) -> Option<Value> {
-    let source_type = SourceType::from_extension(source_ext)
-        .expect("source_ext should be a valid JS/TS extension");
+) -> Result<Value, EmbedFailure> {
+    // Fragments only occur in vue/html hosts, never under a JS/TS filepath.
+    let source_type = embedded_source_type(source_ext, false)?;
 
-    let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json);
+    let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json)?;
     // Reuses the same config resolver as `run_full()`, but only `format_options` is needed here,
     // since `run_fragment()` does not dispatch external formatter callbacks.
-    let resolved = resolve_for_embedded_js(config, parent_filepath)
-        .expect("`_oxfmtPluginOptionsJson` should contain valid config");
+    let resolved = resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
+        EmbedFailure::internal(format!("`_oxfmtPluginOptionsJson` carries invalid config: {err}"))
+    })?;
     let format_options = resolved.format_options;
 
     // Map the Prettier-side fragment kind to the formatter's usage context.
@@ -207,41 +400,122 @@ fn run_fragment(
         FragmentKind::VueForBindingLeft => FragmentContext::FunctionParamsAsBindingLhs,
         FragmentKind::VueBindings => FragmentContext::FunctionParamsAsBinding,
         FragmentKind::VueScriptGeneric => FragmentContext::TypeParameters,
+        FragmentKind::ExpressionAttribute => {
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: false }
+        }
+        FragmentKind::ExpressionInterpolation => {
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: false }
+        }
+        FragmentKind::VueExpressionAttribute => {
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: true }
+        }
+        FragmentKind::VueExpressionInterpolation => {
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: true }
+        }
+        FragmentKind::EventHandler => FragmentContext::EventHandlerStatements,
     };
 
     let allocator = Allocator::default();
-    let formatted = match oxc_formatter::format_fragment(
+    let fragment = match oxc_formatter::format_fragment(
         &allocator,
         source_text,
         source_type,
         *format_options,
         context,
     ) {
-        Ok(formatted) => formatted,
-        Err(err) => {
-            debug!("`oxc_formatter::format_fragment()` failed: {err:?}");
-            return None;
-        }
+        Ok(fragment) => fragment,
+        // `oxc_formatter::format_fragment()` fails when the pre-wrapped source
+        // does not parse (the dominant case) or does not match the shape the
+        // context expects; both are reported as a syntax failure, and `run()`
+        // adds the `parseError` marker the `v-on` fallback depends on.
+        Err(err) => return Err(EmbedFailure::Syntax(format!("{err}"))),
     };
 
+    let expression_root = fragment.expression_root;
     let (elements, sorted_tailwind_classes) =
-        formatted.into_document().into_elements_and_tailwind_classes();
-    Some(
+        fragment.formatted.into_document().into_elements_and_tailwind_classes();
+    let mut doc_json =
         to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes)
-            .expect("Formatter IR to Prettier Doc conversion should not fail"),
-    )
+            .map_err(|err| {
+                EmbedFailure::internal(format!(
+                    "Formatter IR to Prettier Doc conversion failed: {err}"
+                ))
+            })?;
+
+    // Report the root expression kind so the JS side can feed Prettier's
+    // `__onHtmlBindingRoot` hook (hug-vs-expand layout for attribute values).
+    if let (Some(root), Some(object)) = (expression_root, doc_json.as_object_mut()) {
+        use oxc_formatter::ExpressionRootKind;
+        let estree_type = match root {
+            ExpressionRootKind::ObjectExpression => "ObjectExpression",
+            ExpressionRootKind::ArrayExpression => "ArrayExpression",
+            ExpressionRootKind::TemplateLiteral => "TemplateLiteral",
+            ExpressionRootKind::StringLiteral => "StringLiteral",
+            // Any type outside the hug list behaves the same; `Unknown` is not
+            // a real estree type, it only needs to miss `shouldHugJsExpression`.
+            ExpressionRootKind::Other => "Unknown",
+        };
+        object.insert("expressionRoot".to_string(), Value::String(estree_type.to_string()));
+    }
+    Ok(doc_json)
 }
 
 // ---
 
 /// Deserialize `_oxfmtPluginOptionsJson` into the typed config + parent filepath.
-fn parse_payload(oxfmt_plugin_options_json: &str) -> (FormatConfig, PathBuf) {
+fn parse_payload(oxfmt_plugin_options_json: &str) -> Result<(FormatConfig, PathBuf), EmbedFailure> {
     #[derive(Deserialize)]
     struct Payload {
         config: FormatConfig,
         filepath: String,
     }
-    let payload: Payload = serde_json::from_str(oxfmt_plugin_options_json)
-        .expect("`_oxfmtPluginOptionsJson` should deserialize");
-    (payload.config, PathBuf::from(payload.filepath))
+    let payload: Payload = serde_json::from_str(oxfmt_plugin_options_json).map_err(|err| {
+        EmbedFailure::internal(format!("`_oxfmtPluginOptionsJson` failed to deserialize: {err}"))
+    })?;
+    Ok((payload.config, PathBuf::from(payload.filepath)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EmbedFailure, FragmentKind, failure_payload};
+
+    #[test]
+    fn syntax_failure_payload_marks_parse_error_for_expression_fragments() {
+        let failure = EmbedFailure::Syntax("Unexpected token".to_string());
+        let payload = failure_payload(
+            &failure,
+            "expression-attribute",
+            Some(FragmentKind::ExpressionAttribute),
+        );
+        let payload: serde_json::Value = serde_json::from_str(&payload).unwrap();
+
+        assert_eq!(payload["parseError"], serde_json::json!(true));
+        assert_eq!(payload["error"]["kind"], "syntax");
+        assert_eq!(payload["error"]["message"], "Unexpected token");
+    }
+
+    #[test]
+    fn internal_failure_payload_never_marks_parse_error() {
+        let failure = EmbedFailure::internal("boom");
+        let payload = failure_payload(
+            &failure,
+            "expression-attribute",
+            Some(FragmentKind::ExpressionAttribute),
+        );
+        let payload: serde_json::Value = serde_json::from_str(&payload).unwrap();
+
+        assert!(payload.get("parseError").is_none());
+        assert_eq!(payload["error"]["kind"], "internal");
+        assert_eq!(payload["error"]["message"], "boom");
+    }
+
+    #[test]
+    fn full_mode_syntax_failure_has_no_parse_error_marker() {
+        let failure = EmbedFailure::Syntax("Unexpected token".to_string());
+        let payload = failure_payload(&failure, "vue-script", None);
+        let payload: serde_json::Value = serde_json::from_str(&payload).unwrap();
+
+        assert!(payload.get("parseError").is_none());
+        assert_eq!(payload["error"]["kind"], "syntax");
+    }
 }

@@ -1,0 +1,84 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="rawHtml" /></template>
+   ·                ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:3:6]
+ 2 │ <!-- eslint-disable vue/no-lone-template -->
+ 3 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 4 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:3:6]
+ 2 │ <!-- eslint-disable typo/no-v-html -->
+ 3 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 4 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:3:6]
+ 2 │ <!-- eslint-disable no-v-html -->
+ 3 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 4 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:4:6]
+ 3 │ <div v-html="ok" />
+ 4 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 5 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:4:6]
+ 3 │ <!-- eslint-enable vue/no-v-html -->
+ 4 │ <div v-html="rawHtml" />
+   ·      ────────────────
+ 5 │ </template>
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="rawHtml">child content ignored by the check</div></template>
+   ·                ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:19]
+ 1 │ <template><MyComp v-html="rawHtml" /></template>
+   ·                   ────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html /></template>
+   ·                ──────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.
+
+  ⚠ vue(no-v-html): 'v-html' directive can lead to XSS attack.
+   ╭─[no_v_html.tsx:1:16]
+ 1 │ <template><div v-html="untrustedHtml" /></template>
+   ·                ──────────────────────
+   ╰────
+  help: Avoid `v-html`; sanitize untrusted content before rendering it, or render it as plain text instead.

@@ -1,0 +1,32 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(use-v-on-exact): Consider to use '.exact' modifier.
+   ╭─[use_v_on_exact.tsx:1:19]
+ 1 │ <template><button @click="a" @click.ctrl="b" /></template>
+   ·                   ──────
+   ╰────
+  help: Add `.exact` so this listener does not also fire for the same event with extra system modifiers held down.
+
+  ⚠ vue(use-v-on-exact): Consider to use '.exact' modifier.
+   ╭─[use_v_on_exact.tsx:1:19]
+ 1 │ <template><button @click.ctrl="a" @click.ctrl.shift="b" /></template>
+   ·                   ───────────
+   ╰────
+  help: Add `.exact` so this listener does not also fire for the same event with extra system modifiers held down.
+
+  ⚠ vue(use-v-on-exact): Consider to use '.exact' modifier.
+   ╭─[use_v_on_exact.tsx:1:19]
+ 1 │ <template><button @keyup.enter="a" @keyup.enter.ctrl="b" /></template>
+   ·                   ────────────
+   ╰────
+  help: Add `.exact` so this listener does not also fire for the same event with extra system modifiers held down.
+
+  ⚠ vue(use-v-on-exact): Consider to use '.exact' modifier.
+   ╭─[use_v_on_exact.tsx:1:19]
+ 1 │ <template><MyComp @click.native="a" @click.native.ctrl="b" /></template>
+   ·                   ─────────────
+   ╰────
+  help: Add `.exact` so this listener does not also fire for the same event with extra system modifiers held down.

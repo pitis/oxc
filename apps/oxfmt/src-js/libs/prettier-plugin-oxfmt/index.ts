@@ -34,6 +34,16 @@ export const parsers: Record<string, Parser> = {
   babel: oxfmtParser,
   "babel-ts": oxfmtParser,
   typescript: oxfmtParser,
+  // Override the pseudo-parsers Prettier uses for embedded expressions:
+  // Vue `v-if`/`v-show`-style directives and the `v-for` right-hand side...
+  __js_expression: oxfmtParser,
+  __ts_expression: oxfmtParser,
+  // ...`{{ ... }}` interpolations and `v-bind`/`:prop` values...
+  __vue_expression: oxfmtParser,
+  __vue_ts_expression: oxfmtParser,
+  // ...and `v-on`/`@event` values that don't parse as a single expression.
+  __vue_event_binding: oxfmtParser,
+  __vue_ts_event_binding: oxfmtParser,
 };
 
 export const printers: Record<string, Printer<Doc>> = {

@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-pre): 'v-pre' directives require no argument.
+   ╭─[valid_v_pre.tsx:1:22]
+ 1 │ <template><div v-pre:aaa /></template>
+   ·                      ───
+   ╰────
+  help: Remove the argument; `v-pre` does not accept one.
+
+  ⚠ vue(valid-v-pre): 'v-pre' directives require no modifier.
+   ╭─[valid_v_pre.tsx:1:22]
+ 1 │ <template><div v-pre.aaa /></template>
+   ·                      ───
+   ╰────
+  help: Remove the modifier; `v-pre` does not accept any.
+
+  ⚠ vue(valid-v-pre): 'v-pre' directives require no attribute value.
+   ╭─[valid_v_pre.tsx:1:23]
+ 1 │ <template><div v-pre="foo" /></template>
+   ·                       ───
+   ╰────
+  help: Remove the value; `v-pre` is a plain marker with nothing to bind.

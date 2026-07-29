@@ -191,7 +191,14 @@ impl FormatStrategy {
 // ---
 
 pub enum FormatResult {
-    Success { is_changed: bool, code: String },
+    Success {
+        is_changed: bool,
+        code: String,
+        /// Non-fatal problems hit while formatting: today, embedded JS/TS
+        /// fragments that Prettier's `textToDoc()` swallow left unformatted.
+        /// The file still formatted, so these must not change exit semantics.
+        warnings: Vec<String>,
+    },
     Error(Vec<OxcDiagnostic>),
 }
 
@@ -221,9 +228,17 @@ impl SourceFormatter {
             return FormatResult::Success {
                 is_changed: !source_text.is_empty(),
                 code: String::new(),
+                warnings: vec![],
             };
         }
 
+        // Only the external formatter (Prettier) reports non-fatal warnings today;
+        // every Rust-side strategy leaves this empty, so the pure-Rust build has
+        // nothing to mutate.
+        #[cfg(feature = "napi")]
+        let mut warnings: Vec<String> = vec![];
+        #[cfg(not(feature = "napi"))]
+        let warnings: Vec<String> = vec![];
         let (result, insert_final_newline) = match resolved {
             FormatStrategy::OxcFormatter {
                 path,
@@ -302,6 +317,7 @@ impl SourceFormatter {
                     supports_tailwind,
                     supports_oxfmt,
                     supports_svelte,
+                    &mut warnings,
                 ),
                 insert_final_newline,
             ),
@@ -318,7 +334,7 @@ impl SourceFormatter {
                     code.truncate(trimmed_len);
                 }
 
-                FormatResult::Success { is_changed: source_text != code, code }
+                FormatResult::Success { is_changed: source_text != code, code, warnings }
             }
             Err(err) => FormatResult::Error(vec![err]),
         }
@@ -575,6 +591,7 @@ impl SourceFormatter {
         supports_tailwind: bool,
         supports_oxfmt: bool,
         supports_svelte: bool,
+        warnings: &mut Vec<String>,
     ) -> Result<String, OxcDiagnostic> {
         let mut external_options = to_prettier(config);
         inject_parser(&mut external_options, parser_name);
@@ -595,23 +612,27 @@ impl SourceFormatter {
             .as_ref()
             .expect("`external_formatter` must exist when `napi` feature is enabled");
 
-        external_formatter.format_file(external_options, source_text).map_err(|err| {
-            // NOTE: We are trying to make the error from oxc_formatter(_xxx) and external_formatter (Prettier) look similar.
-            // Ideally, we would unify them into `OxcDiagnostic`, which would eliminate the need for relative path conversion.
-            // However, doing so would require:
-            // - Parsing Prettier's error messages
-            // - Converting span information from UTF-16 to UTF-8
-            // This is a non-trivial amount of work, so for now, just leave this as a best effort.
-            let relative = std::env::current_dir()
-                .ok()
-                .and_then(|cwd| path.strip_prefix(cwd).ok().map(Path::to_path_buf));
-            let display_path = relative.as_deref().unwrap_or(path).to_string_lossy();
-            let message = if let Some((first, rest)) = err.split_once('\n') {
-                format!("{first}\n[{display_path}]\n{rest}")
-            } else {
-                format!("{err}\n[{display_path}]")
-            };
-            OxcDiagnostic::error(message)
-        })
+        let output =
+            external_formatter.format_file(external_options, source_text).map_err(|err| {
+                // NOTE: We are trying to make the error from oxc_formatter(_xxx) and external_formatter (Prettier) look similar.
+                // Ideally, we would unify them into `OxcDiagnostic`, which would eliminate the need for relative path conversion.
+                // However, doing so would require:
+                // - Parsing Prettier's error messages
+                // - Converting span information from UTF-16 to UTF-8
+                // This is a non-trivial amount of work, so for now, just leave this as a best effort.
+                let relative = std::env::current_dir()
+                    .ok()
+                    .and_then(|cwd| path.strip_prefix(cwd).ok().map(Path::to_path_buf));
+                let display_path = relative.as_deref().unwrap_or(path).to_string_lossy();
+                let message = if let Some((first, rest)) = err.split_once('\n') {
+                    format!("{first}\n[{display_path}]\n{rest}")
+                } else {
+                    format!("{err}\n[{display_path}]")
+                };
+                OxcDiagnostic::error(message)
+            })?;
+
+        warnings.extend(output.warnings);
+        Ok(output.code)
     }
 }

@@ -2249,6 +2249,7 @@ dependencies = [
  "oxc_span",
  "oxc_str",
  "oxc_syntax",
+ "oxc_vue_parser",
  "papaya",
  "phf",
  "rayon",
@@ -2817,6 +2818,13 @@ dependencies = [
  "rayon",
  "rustc-hash",
  "self_cell",
+]
+
+[[package]]
+name = "oxc_vue_parser"
+version = "0.0.1"
+dependencies = [
+ "oxc_span",
 ]
 
 [[package]]

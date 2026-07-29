@@ -19,7 +19,10 @@ The AST-wrapping IR primitives (`AstNode`, `Format`, `Buffer`, …) are `pub(cra
 - `format`: Format a whole file (text-in)
 - `format_fragment`: Format a JS/TS fragment for js-in-xxx embedding, parameterized by `FragmentContext`
   - Drives context-dependent decisions like forced parentheses / quote style
-  - The formatter knows nothing about Prettier/Vue vocabulary, callers pass wrapped source
+  - Most variants expect source pre-wrapped per Prettier's parser contract (e.g. `function _(PARAMS) {}`);
+    `FragmentContext::Expression` is the exception — it takes bare, un-wrapped text and wraps it internally
+  - `vue_expression` semantics (the Vue 2 filter-sequence layout for top-level `|` chains) live in this crate,
+    not the caller: `FragmentContext::Expression { vue_expression: bool, .. }` is a first-class flag
 - `format_program`: Special-purpose AST-in entry point
 - `ExternalCallbacks` (in `external_formatter.rs`): The host-supplied `FormatDispatcher`
   (embedded-language formatting, see `oxc_formatter_core`'s `embedded` module)

@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(require-component-is): Expected '<component>' elements to have 'v-bind:is' attribute.
+   ╭─[require_component_is.tsx:1:11]
+ 1 │ <template><Component /></template>
+   ·           ─────────────
+   ╰────
+  help: Add `:is="..."` (or `v-bind:is="..."`) to tell `<component>` which component to render.
+
+  ⚠ vue(require-component-is): Expected '<component>' elements to have 'v-bind:is' attribute.
+   ╭─[require_component_is.tsx:1:11]
+ 1 │ <template><component></component></template>
+   ·           ───────────────────────
+   ╰────
+  help: Add `:is="..."` (or `v-bind:is="..."`) to tell `<component>` which component to render.
+
+  ⚠ vue(require-component-is): Expected '<component>' elements to have 'v-bind:is' attribute.
+   ╭─[require_component_is.tsx:1:11]
+ 1 │ <template><component is="my-component"></component></template>
+   ·           ─────────────────────────────────────────
+   ╰────
+  help: Add `:is="..."` (or `v-bind:is="..."`) to tell `<component>` which component to render.
+
+  ⚠ vue(require-component-is): Expected '<component>' elements to have 'v-bind:is' attribute.
+   ╭─[require_component_is.tsx:1:11]
+ 1 │ <template><component v-is="currentView"></component></template>
+   ·           ──────────────────────────────────────────
+   ╰────
+  help: Add `:is="..."` (or `v-bind:is="..."`) to tell `<component>` which component to render.
+
+  ⚠ vue(require-component-is): Expected '<component>' elements to have 'v-bind:is' attribute.
+   ╭─[require_component_is.tsx:1:11]
+ 1 │ <template><component v-bind:[attr]="currentView"></component></template>
+   ·           ───────────────────────────────────────────────────
+   ╰────
+  help: Add `:is="..."` (or `v-bind:is="..."`) to tell `<component>` which component to render.

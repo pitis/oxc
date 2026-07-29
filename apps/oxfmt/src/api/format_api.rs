@@ -13,6 +13,8 @@ use crate::core::{
 pub struct ApiFormatResult {
     pub code: String,
     pub errors: Vec<OxcError>,
+    /// Non-fatal problems reported alongside a successful format.
+    pub warnings: Vec<OxcError>,
 }
 
 /// `format()` implementation for NAPI API.
@@ -47,6 +49,7 @@ pub fn run(
         return ApiFormatResult {
             code: source_text,
             errors: vec![OxcError::new(format!("Unsupported file type: {filename}"))],
+            warnings: vec![],
         };
     };
     let strategy = match resolve_for_api(options.unwrap_or_default(), kind, &cwd) {
@@ -58,6 +61,7 @@ pub fn run(
                 errors: vec![OxcError::new(format!(
                     "Cannot format `.{plugin}`: `{plugin}` plugin is not enabled in resolved config: {filename}"
                 ))],
+                warnings: vec![],
             };
         }
         Err(err) => {
@@ -65,6 +69,7 @@ pub fn run(
             return ApiFormatResult {
                 code: source_text,
                 errors: vec![OxcError::new(format!("Failed to parse configuration: {err}"))],
+                warnings: vec![],
             };
         }
     };
@@ -75,10 +80,16 @@ pub fn run(
 
     // Use `block_in_place()` to avoid nested async runtime access
     let result = match tokio::task::block_in_place(|| formatter.format(&source_text, strategy)) {
-        FormatResult::Success { code, .. } => ApiFormatResult { code, errors: vec![] },
+        // Warnings are non-fatal: the file DID format, so they must not land in
+        // `errors` (consumers read a non-empty `errors` as "formatting failed").
+        FormatResult::Success { code, warnings, .. } => ApiFormatResult {
+            code,
+            errors: vec![],
+            warnings: warnings.into_iter().map(OxcError::new).collect(),
+        },
         FormatResult::Error(diagnostics) => {
             let errors = OxcError::from_diagnostics(filename, &source_text, diagnostics);
-            ApiFormatResult { code: source_text, errors }
+            ApiFormatResult { code: source_text, errors, warnings: vec![] }
         }
     };
 

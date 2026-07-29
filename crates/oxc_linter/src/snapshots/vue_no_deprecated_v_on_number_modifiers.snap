@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-v-on-number-modifiers): 'KeyboardEvent.keyCode' modifier on 'v-on' directive is deprecated. Using 'KeyboardEvent.key' instead.
+   ╭─[no_deprecated_v_on_number_modifiers.tsx:1:29]
+ 1 │ <template><input v-on:keyup.34='onArrowUp'></template>
+   ·                             ──
+   ╰────
+  help: Replace the numeric keyCode modifier with the named `KeyboardEvent.key` modifier, e.g. `.13` becomes `.enter`.
+
+  ⚠ vue(no-deprecated-v-on-number-modifiers): 'KeyboardEvent.keyCode' modifier on 'v-on' directive is deprecated. Using 'KeyboardEvent.key' instead.
+   ╭─[no_deprecated_v_on_number_modifiers.tsx:1:29]
+ 1 │ <template><input v-on:keyup.34.native='onArrowUp'></template>
+   ·                             ──
+   ╰────
+  help: Replace the numeric keyCode modifier with the named `KeyboardEvent.key` modifier, e.g. `.13` becomes `.enter`.
+
+  ⚠ vue(no-deprecated-v-on-number-modifiers): 'KeyboardEvent.keyCode' modifier on 'v-on' directive is deprecated. Using 'KeyboardEvent.key' instead.
+   ╭─[no_deprecated_v_on_number_modifiers.tsx:1:37]
+ 1 │ <template><input v-on:keyup.unknown.34='onArrowUp'></template>
+   ·                                     ──
+   ╰────
+  help: Replace the numeric keyCode modifier with the named `KeyboardEvent.key` modifier, e.g. `.13` becomes `.enter`.
+
+  ⚠ vue(no-deprecated-v-on-number-modifiers): 'KeyboardEvent.keyCode' modifier on 'v-on' directive is deprecated. Using 'KeyboardEvent.key' instead.
+   ╭─[no_deprecated_v_on_number_modifiers.tsx:1:36]
+ 1 │ <template><input v-on:[dynamicArg].34='onArrowUp'></template>
+   ·                                    ──
+   ╰────
+  help: Replace the numeric keyCode modifier with the named `KeyboardEvent.key` modifier, e.g. `.13` becomes `.enter`.
+
+  ⚠ vue(no-deprecated-v-on-number-modifiers): 'KeyboardEvent.keyCode' modifier on 'v-on' directive is deprecated. Using 'KeyboardEvent.key' instead.
+   ╭─[no_deprecated_v_on_number_modifiers.tsx:1:25]
+ 1 │ <template><input @keyup.10='onArrowUp'></template>
+   ·                         ──
+   ╰────
+  help: Replace the numeric keyCode modifier with the named `KeyboardEvent.key` modifier, e.g. `.13` becomes `.enter`.

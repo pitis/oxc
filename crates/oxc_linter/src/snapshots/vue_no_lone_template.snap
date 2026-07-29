@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-lone-template): `<template>` require directive.
+   ╭─[no_lone_template.tsx:1:16]
+ 1 │ <template><div><Template>content</Template></div></template>
+   ·                ──────────
+   ╰────
+  help: A bare `<template>` renders nothing extra over its children; add a directive (`v-if`, `v-for`, `v-slot`/`#name`, …) or replace it with its children directly.
+
+  ⚠ vue(no-lone-template): `<template>` require directive.
+   ╭─[no_lone_template.tsx:1:16]
+ 1 │ <template><div><template></template></div></template>
+   ·                ──────────
+   ╰────
+  help: A bare `<template>` renders nothing extra over its children; add a directive (`v-if`, `v-for`, `v-slot`/`#name`, …) or replace it with its children directly.
+
+  ⚠ vue(no-lone-template): `<template>` require directive.
+   ╭─[no_lone_template.tsx:1:16]
+ 1 │ <template><div><template id="a" ref="b"></template></div></template>
+   ·                ─────────────────────────
+   ╰────
+  help: A bare `<template>` renders nothing extra over its children; add a directive (`v-if`, `v-for`, `v-slot`/`#name`, …) or replace it with its children directly.
+
+  ⚠ vue(no-lone-template): `<template>` require directive.
+   ╭─[no_lone_template.tsx:1:16]
+ 1 │ <template><div><template class="a"></template></div></template>
+   ·                ────────────────────
+   ╰────
+  help: A bare `<template>` renders nothing extra over its children; add a directive (`v-if`, `v-for`, `v-slot`/`#name`, …) or replace it with its children directly.
+
+  ⚠ vue(no-lone-template): `<template>` require directive.
+   ╭─[no_lone_template.tsx:1:11]
+ 1 │ <template><template></template></template>
+   ·           ──────────
+   ╰────
+  help: A bare `<template>` renders nothing extra over its children; add a directive (`v-if`, `v-for`, `v-slot`/`#name`, …) or replace it with its children directly.

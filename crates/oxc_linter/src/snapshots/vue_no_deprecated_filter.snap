@@ -1,0 +1,74 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:19]
+ 1 │ <template><div>{{ a | b }}</div></template>
+   ·                   ─────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:19]
+ 1 │ <template><div>{{ a | b | c }}</div></template>
+   ·                   ─────────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:19]
+ 1 │ <template><div>{{ a | b(c) }}</div></template>
+   ·                   ────────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:22]
+ 1 │ <template><div :foo="a | b"></div></template>
+   ·                      ─────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:28]
+ 1 │ <template><div v-bind:foo="a | b"></div></template>
+   ·                            ─────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:24]
+ 1 │ <template><div v-bind="a | b"></div></template>
+   ·                        ─────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:30]
+ 1 │ <template><div v-bind:[dyn]="a | b"></div></template>
+   ·                              ─────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:22]
+ 1 │ <template><div :foo="a | b('x|y')"></div></template>
+   ·                      ────────────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:22]
+ 1 │ <template><div :foo="{ x: a } | b"></div></template>
+   ·                      ────────────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).
+
+  ⚠ vue(no-deprecated-filter): Filters are deprecated.
+   ╭─[no_deprecated_filter.tsx:1:21]
+ 1 │ <template><div>{{   a   |   b   }}</div></template>
+   ·                     ─────────
+   ╰────
+  help: Vue 3 removed Vue 2's `|` filter syntax; call a method or computed property instead (e.g. `{{ formatted(value) }}` instead of `{{ value | formatted }}`).

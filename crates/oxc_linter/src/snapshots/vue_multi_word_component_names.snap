@@ -1,0 +1,124 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <!-- just a comment -->
+   · ▲
+ 2 │ <template><div/></template>
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <!-- eslint-disable vue/no-v-html -->
+   · ▲
+ 2 │ <template><div/></template>
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <!-- eslint-disable multi-word-component-names -- legacy file -->
+   · ▲
+ 2 │ <template><div/></template>
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template><script setup>/* eslint-disable vue/multi-word-component-names */</script>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  × Unexpected token
+   ╭─[multi_word_component_names.tsx:1:66]
+ 1 │ <template><div/></template><script>export default { name: 'foo' ,,, }</script>
+   ·                                                                  ─
+   ╰────
+
+  × Unexpected token
+   ╭─[multi_word_component_names.tsx:1:71]
+ 1 │ <template><div/></template><script setup>defineOptions({ name: 'qux' ,,, })</script>
+   ·                                                                       ─
+   ╰────
+
+  ⚠ vue(multi-word-component-names): Component name "widget" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template><script setup></script>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "gadget" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template><script></script>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "gizmo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template><script>// just a comment</script>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "thing" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template><script>export default {};</script>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "Todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:64]
+ 1 │ <template><div/></template><script setup>defineOptions({ name: 'Todo' });</script>
+   ·                                                                ──────
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "Todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:59]
+ 1 │ <template><div/></template><script>export default { name: 'Todo' };</script>
+   ·                                                           ──────
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "Todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:75]
+ 1 │ <template><div/></template><script>export default defineComponent({ name: 'Todo' });</script>
+   ·                                                                           ──────
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "Todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:50]
+ 1 │ <template><div/></template><script>Vue.component('Todo', {});</script>
+   ·                                                  ──────
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "Todoitem" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.
+
+  ⚠ vue(multi-word-component-names): Component name "todo" should always be multi-word.
+   ╭─[multi_word_component_names.tsx:1:1]
+ 1 │ <template><div/></template>
+   · ▲
+   ╰────
+  help: Rename to a multi-word name (e.g. `TodoItem` instead of `Todo`) so template usage can't be confused with a native HTML element.

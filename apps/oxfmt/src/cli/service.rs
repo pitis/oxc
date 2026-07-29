@@ -63,7 +63,33 @@ impl FormatService {
             };
 
             let (code, is_changed) = match self.formatter.format(&source_text, strategy) {
-                FormatResult::Success { code, is_changed } => (code, is_changed),
+                FormatResult::Success { code, is_changed, warnings } => {
+                    // Non-fatal: the file formatted fine. Reported as `warning`
+                    // severity so `DiagnosticService::errors_count()` (which drives
+                    // the exit code) stays untouched.
+                    if !warnings.is_empty() {
+                        // The warnings carry no span, so miette renders no file
+                        // header: name the file in the message, mirroring the
+                        // `[path]` suffix used for external-formatter errors.
+                        let display_path =
+                            path.strip_prefix(&self.cwd).unwrap_or(path.as_ref()).to_string_lossy();
+                        let diagnostics = DiagnosticService::wrap_diagnostics(
+                            self.cwd.clone(),
+                            &path,
+                            &source_text,
+                            warnings
+                                .into_iter()
+                                .map(|warning| {
+                                    oxc_diagnostics::OxcDiagnostic::warn(format!(
+                                        "{warning}\n[{display_path}]"
+                                    ))
+                                })
+                                .collect(),
+                        );
+                        let _ = tx_error.send(diagnostics);
+                    }
+                    (code, is_changed)
+                }
                 FormatResult::Error(diagnostics) => {
                     let errors = DiagnosticService::wrap_diagnostics(
                         self.cwd.clone(),

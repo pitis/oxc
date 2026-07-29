@@ -54,8 +54,17 @@ impl<'a> FormatLiteralStringToken<'a> {
             QuoteProperties::Consistent => f.context().is_quote_needed(),
         };
 
-        let string_cleaner =
-            LiteralStringNormalizer::new(*self, chosen_quote_style, is_quote_needed);
+        // Inside a double-quoted HTML attribute the chosen quote is forced, not
+        // preferred: swapping to reduce escapes would emit a quote the host has
+        // to entity-escape (`&quot;`). Mirrors Prettier's `__isInHtmlAttribute`.
+        let is_quote_forced = f.context().embedded_in_html_attribute();
+
+        let string_cleaner = LiteralStringNormalizer::new(
+            *self,
+            chosen_quote_style,
+            is_quote_needed,
+            is_quote_forced,
+        );
 
         let content = string_cleaner.normalize_text(source_type);
 
@@ -130,7 +139,11 @@ impl FormatLiteralStringToken<'_> {
     /// (' content """ dont\'t ')
     /// ```
     /// Like this, we reduced the number of escaped quotes.
-    fn compute_string_information(&self, chosen_quote: QuoteStyle) -> StringInformation {
+    fn compute_string_information(
+        &self,
+        chosen_quote: QuoteStyle,
+        is_quote_forced: bool,
+    ) -> StringInformation {
         let literal = self.string;
         let alternate_quote = chosen_quote.other();
         let chosen_quote_byte = chosen_quote.as_byte();
@@ -170,7 +183,7 @@ impl FormatLiteralStringToken<'_> {
 
         StringInformation {
             current_quote,
-            preferred_quote: if chosen_quote_count > alternate_quote_count {
+            preferred_quote: if !is_quote_forced && chosen_quote_count > alternate_quote_count {
                 alternate_quote
             } else {
                 chosen_quote
@@ -189,6 +202,9 @@ struct LiteralStringNormalizer<'a> {
     chosen_quote_style: QuoteStyle,
     /// State whether we need to print the quotes or not.
     is_quote_needed: bool,
+    /// When `true`, the chosen quote is used even when swapping would reduce
+    /// the number of escapes (js-in-html-attribute fragments).
+    is_quote_forced: bool,
 }
 
 impl<'a> LiteralStringNormalizer<'a> {
@@ -196,8 +212,9 @@ impl<'a> LiteralStringNormalizer<'a> {
         token: FormatLiteralStringToken<'a>,
         chosen_quote_style: QuoteStyle,
         is_quote_needed: bool,
+        is_quote_forced: bool,
     ) -> Self {
-        Self { token, chosen_quote_style, is_quote_needed }
+        Self { token, chosen_quote_style, is_quote_needed, is_quote_forced }
     }
 
     fn normalize_text(&self, source_type: SourceType) -> Cow<'a, str> {
@@ -206,7 +223,8 @@ impl<'a> LiteralStringNormalizer<'a> {
             return self.normalize_jsx_attribute();
         }
 
-        let str_info = self.token.compute_string_information(self.chosen_quote_style);
+        let str_info =
+            self.token.compute_string_information(self.chosen_quote_style, self.is_quote_forced);
         match self.token.parent_kind {
             StringLiteralParentKind::Expression => self.normalize_string_literal(str_info),
             StringLiteralParentKind::Directive => self.normalize_directive(str_info),

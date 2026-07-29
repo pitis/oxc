@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:16]
+ 1 │ <template><div is="my-component"></div></template>
+   ·                ─────────────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:16]
+ 1 │ <template><div :is="something"></div></template>
+   ·                ───────────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:16]
+ 1 │ <template><div v-bind:is="something"></div></template>
+   ·                ─────────────────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:18]
+ 1 │ <template><table is="my-table"></table></template>
+   ·                  ─────────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:16]
+ 1 │ <template><svg is="my-svg"></svg></template>
+   ·                ───────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.
+
+  ⚠ vue(no-deprecated-html-element-is): The `is` attribute on HTML element are deprecated.
+   ╭─[no_deprecated_html_element_is.tsx:1:17]
+ 1 │ <template><math is="my-math"></math></template>
+   ·                 ────────────
+   ╰────
+  help: Vue 3 only allows `is`/`:is` on native HTML elements when the value is prefixed with `vue:` (e.g. `is="vue:my-component"`); otherwise rename the tag to the component directly.

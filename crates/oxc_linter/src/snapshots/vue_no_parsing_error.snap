@@ -1,0 +1,95 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:24]
+ 1 │ <template><div foo="a" foo="b" /></template>
+   ·                        ─
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:24]
+ 1 │ <template><div foo="a" FOO="b" /></template>
+   ·                        ─
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: duplicate-attribute.
+   ╭─[no_parsing_error.tsx:1:25]
+ 1 │ <template><div :foo="a" :foo="b" /></template>
+   ·                         ─
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: missing-attribute-value.
+   ╭─[no_parsing_error.tsx:1:20]
+ 1 │ <template><div foo=>bar</div></template>
+   ·                    ─
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: eof-in-tag.
+   ╭─[no_parsing_error.tsx:1:33]
+ 1 │ <template><div foo="a</template>
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: eof-in-tag.
+   ╭─[no_parsing_error.tsx:3:13]
+ 2 │ b
+ 3 │ c</template>
+   ╰────
+  help: Fix the malformed markup in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Unexpected token.
+   ╭─[no_parsing_error.tsx:1:22]
+ 1 │ <template><div v-if="x ===" /></template>
+   ·                      ─────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Unexpected token.
+   ╭─[no_parsing_error.tsx:1:13]
+ 1 │ <template>{{ foo &&& }}</template>
+   ·             ─────────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Unexpected token.
+   ╭─[no_parsing_error.tsx:1:22]
+ 1 │ <template><li v-for="item in" /></template>
+   ·                      ───────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Expected to be an alias, but got empty.
+   ╭─[no_parsing_error.tsx:1:22]
+ 1 │ <template><li v-for="items" /></template>
+   ·                      ─────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Unexpected token.
+   ╭─[no_parsing_error.tsx:1:27]
+ 1 │ <template><button @click="foo(" /></template>
+   ·                           ────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Expected `,` or `}` but found `)`.
+   ╭─[no_parsing_error.tsx:1:27]
+ 1 │ <template><Comp #default="{ msg" /></template>
+   ·                           ─────
+   ╰────
+  help: Fix the JavaScript expression in the template.
+
+  ⚠ vue(no-parsing-error): Parsing error: Unexpected token.
+   ╭─[no_parsing_error.tsx:6:14]
+ 5 │ <template>
+ 6 │   <div v-if="x ===" />
+   ·              ─────
+ 7 │ </template>
+   ╰────
+  help: Fix the JavaScript expression in the template.

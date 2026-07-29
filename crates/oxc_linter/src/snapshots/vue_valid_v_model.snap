@@ -1,0 +1,144 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-model): 'v-model' directives aren't supported on <div> elements.
+   ╭─[valid_v_model.tsx:1:16]
+ 1 │ <template><div v-model="foo"></div></template>
+   ·                ─────────────
+   ╰────
+  help: Use `v-model` only on form elements (`input`/`select`/`textarea`) or components.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require no argument.
+   ╭─[valid_v_model.tsx:1:26]
+ 1 │ <template><input v-model:aaa="foo"></template>
+   ·                          ───
+   ╰────
+  help: Remove the argument; native elements don't support `v-model:foo`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives don't support the modifier 'aaa'.
+   ╭─[valid_v_model.tsx:1:26]
+ 1 │ <template><input v-model.aaa="foo"></template>
+   ·                          ───
+   ╰────
+  help: Native elements only support `.lazy`, `.number`, and `.trim`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require that attribute value.
+   ╭─[valid_v_model.tsx:1:18]
+ 1 │ <template><input v-model></template>
+   ·                  ───────
+   ╰────
+  help: Give `v-model` a binding target, e.g. `v-model="value"`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require the attribute value which is valid as LHS.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="a + b"></template>
+   ·                           ─────
+   ╰────
+  help: Use an identifier or member expression, e.g. `foo` or `foo.bar`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives don't support 'file' input type.
+   ╭─[valid_v_model.tsx:1:30]
+ 1 │ <template><input type="file" v-model="b"></template>
+   ·                              ───────────
+   ╰────
+  help: File inputs can't be programmatically set; use a `ref` and a `change` listener instead.
+
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'x' itself.
+   ╭─[valid_v_model.tsx:1:55]
+ 1 │ <template><div><div v-for="x in list"><input v-model="x"></div></div></template>
+   ·                                                       ─
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'x' itself.
+   ╭─[valid_v_model.tsx:1:55]
+ 1 │ <template><div><div v-for="x in list"><input v-model="(x)"></div></div></template>
+   ·                                                       ───
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'x' itself.
+   ╭─[valid_v_model.tsx:1:55]
+ 1 │ <template><div><div v-for="x in list"><input v-model="(((x)))"></div></div></template>
+   ·                                                       ───────
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'e' itself.
+   ╭─[valid_v_model.tsx:1:55]
+ 1 │ <template><div><div v-for="e in list"><input v-model="e"></div></div></template>
+   ·                                                       ─
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives cannot update the iteration variable 'item' itself.
+   ╭─[valid_v_model.tsx:1:49]
+ 1 │ <template><input v-for="item in items" v-model="item"></template>
+   ·                                                 ────
+   ╰────
+  help: Bind to a property of the iterated item instead, e.g. `item.value`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require that attribute value.
+   ╭─[valid_v_model.tsx:1:24]
+ 1 │ <template><MyComponent v-model="" /></template>
+   ·                        ──────────
+   ╰────
+  help: Give `v-model` a binding target, e.g. `v-model="value"`.
+
+  ⚠ vue(valid-v-model): Optional chaining cannot appear in 'v-model' directives.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="foo?.bar"></template>
+   ·                           ────────
+   ╰────
+  help: `v-model` needs a plain assignable target; remove the `?.`.
+
+  ⚠ vue(valid-v-model): Optional chaining cannot appear in 'v-model' directives.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="foo?.bar.baz"></template>
+   ·                           ────────────
+   ╰────
+  help: `v-model` needs a plain assignable target; remove the `?.`.
+
+  ⚠ vue(valid-v-model): Optional chaining cannot appear in 'v-model' directives.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="(a?.b)?.c"></template>
+   ·                           ─────────
+   ╰────
+  help: `v-model` needs a plain assignable target; remove the `?.`.
+
+  ⚠ vue(valid-v-model): 'v-model' directive has potential null object property access.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="(a?.b).c"></template>
+   ·                           ────────
+   ╰────
+  help: Ensure the object being accessed can't be `null`/optionally-chained before assigning to it.
+
+  ⚠ vue(valid-v-model): 'v-model' directive has potential null object property access.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="(null).foo"></template>
+   ·                           ──────────
+   ╰────
+  help: Ensure the object being accessed can't be `null`/optionally-chained before assigning to it.
+
+  ⚠ vue(valid-v-model): 'v-model' directive has potential null object property access.
+   ╭─[valid_v_model.tsx:1:27]
+ 1 │ <template><input v-model="(a?.b).c.d"></template>
+   ·                           ──────────
+   ╰────
+  help: Ensure the object being accessed can't be `null`/optionally-chained before assigning to it.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require the attribute value which is valid as LHS.
+   ╭─[valid_v_model.tsx:1:33]
+ 1 │ <template><MyComponent v-model="a() as string"></MyComponent></template>
+   ·                                 ─────────────
+   ╰────
+  help: Use an identifier or member expression, e.g. `foo` or `foo.bar`.
+
+  ⚠ vue(valid-v-model): 'v-model' directives require the attribute value which is valid as LHS.
+   ╭─[valid_v_model.tsx:1:33]
+ 1 │ <template><MyComponent v-model="a()!!!!"></MyComponent></template>
+   ·                                 ───────
+   ╰────
+  help: Use an identifier or member expression, e.g. `foo` or `foo.bar`.

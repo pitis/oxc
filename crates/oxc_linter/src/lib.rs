@@ -47,6 +47,7 @@ mod suppression;
 pub(crate) mod timing;
 mod tsgolint;
 mod utils;
+mod vue_template;
 
 pub mod loader;
 pub mod rules;

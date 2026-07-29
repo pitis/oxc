@@ -1,0 +1,34 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(v-bind-style): Unexpected 'v-bind' before ':'.
+   ╭─[v_bind_style.tsx:1:16]
+ 1 │ <template><div v-bind:foo="bar" /></template>
+   ·                ────────────────
+   ╰────
+
+  ⚠ vue(v-bind-style): Expected 'v-bind' before ':'.
+   ╭─[v_bind_style.tsx:1:16]
+ 1 │ <template><div :foo="bar" /></template>
+   ·                ──────────
+   ╰────
+
+  ⚠ vue(v-bind-style): Expected 'v-bind:' instead of '.'.
+   ╭─[v_bind_style.tsx:1:16]
+ 1 │ <template><div .foo="bar" /></template>
+   ·                ──────────
+   ╰────
+
+  ⚠ vue(v-bind-style): Expected same-name shorthand.
+   ╭─[v_bind_style.tsx:1:16]
+ 1 │ <template><div :foo="foo" /></template>
+   ·                ──────────
+   ╰────
+
+  ⚠ vue(v-bind-style): Unexpected same-name shorthand.
+   ╭─[v_bind_style.tsx:1:16]
+ 1 │ <template><div :foo /></template>
+   ·                ────
+   ╰────

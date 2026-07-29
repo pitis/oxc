@@ -1,0 +1,11 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-v-is): `v-is` directive is deprecated.
+   ╭─[no_deprecated_v_is.tsx:1:16]
+ 1 │ <template><div v-is="'MyComponent'" /></template>
+   ·                ────
+   ╰────
+  help: Vue 3.1 deprecated `v-is`; use a dynamic `is` binding instead, e.g. `:is="'vue:' + name"`.

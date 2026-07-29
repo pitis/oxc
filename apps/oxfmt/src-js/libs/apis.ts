@@ -12,6 +12,7 @@
  * and avoiding redundant dynamic imports within the same process.
  */
 
+import { withEmbeddedWarnings } from "./embedded-warnings";
 import type { Options, Plugin } from "prettier";
 
 const CACHES = {
@@ -76,12 +77,21 @@ export type FormatFileParam = {
   options: Options;
 };
 
+export type FormatFileOutput = {
+  code: string;
+  /**
+   * Non-fatal problems from embedded JS/TS formatting that Prettier swallowed.
+   * See `libs/embedded-warnings.ts`.
+   */
+  warnings: string[];
+};
+
 /**
  * Format non-js file
  *
- * @returns Formatted code
+ * @returns Formatted code plus any non-fatal embedded-formatting warnings
  */
-export async function formatFile({ code, options }: FormatFileParam): Promise<string> {
+export async function formatFile({ code, options }: FormatFileParam): Promise<FormatFileOutput> {
   const prettier = CACHES.prettier ?? (await loadPrettier());
 
   // NOTE: Plugins order matters here!
@@ -92,7 +102,8 @@ export async function formatFile({ code, options }: FormatFileParam): Promise<st
   // This plugin overrides `babel(-ts)` and `typescript` parsers to use `oxc_formatter` instead of built-in parsers
   if ("_oxfmtPluginOptionsJson" in options) await setupOxfmtPlugin(options);
 
-  return prettier.format(code, options);
+  const { value, warnings } = await withEmbeddedWarnings(() => prettier.format(code, options));
+  return { code: value, warnings };
 }
 
 // ---
