@@ -260,6 +260,24 @@ fn sfc_blocks_split_and_script_is_raw() {
 }
 
 #[test]
+fn sfc_collects_only_top_level_comments() {
+    // Only the comments outside every block: a linter reads these as
+    // file-scoped directive comments, while the ones inside `<template>` are
+    // reached through that block's own parse.
+    let source = "<!-- first -->\n<template>\n  <!-- inside -->\n  <div/>\n</template>\n<!-- second -->\n<script>/* not a comment node */</script>\n<!-- third -->\n";
+    let sfc = parse_sfc(source);
+    let comments: Vec<&str> =
+        sfc.top_level_comments.iter().map(|comment| comment.content.trim()).collect();
+    assert_eq!(comments, ["first", "second", "third"]);
+    // Spans are file offsets, and in source order.
+    assert_eq!(sfc.top_level_comments[0].span.start, 0);
+    assert!(
+        sfc.top_level_comments.windows(2).all(|pair| pair[0].span.start < pair[1].span.start),
+        "top-level comments must be in source order"
+    );
+}
+
+#[test]
 fn template_reparse_of_sfc_block_content() {
     let source = "<template>\n  <button @click=\"n++\">{{ n }}</button>\n</template>\n";
     let sfc = parse_sfc(source);

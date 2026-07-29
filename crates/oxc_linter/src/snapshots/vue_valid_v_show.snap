@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-show): 'v-show' directives cannot be put on <template> tags.
+   ╭─[valid_v_show.tsx:1:21]
+ 1 │ <template><Template v-show="ok"><div /></Template></template>
+   ·                     ───────────
+   ╰────
+  help: `v-show` toggles CSS display and needs a real element to apply to; move it to a child element or use `v-if` instead.
+
+  ⚠ vue(valid-v-show): 'v-show' directives require that attribute value.
+   ╭─[valid_v_show.tsx:1:16]
+ 1 │ <template><div v-show /></template>
+   ·                ──────
+   ╰────
+  help: Give `v-show` a condition expression, e.g. `v-show="isVisible"`.
+
+  ⚠ vue(valid-v-show): 'v-show' directives require that attribute value.
+   ╭─[valid_v_show.tsx:1:16]
+ 1 │ <template><div v-show="" /></template>
+   ·                ─────────
+   ╰────
+  help: Give `v-show` a condition expression, e.g. `v-show="isVisible"`.
+
+  ⚠ vue(valid-v-show): 'v-show' directives require no argument.
+   ╭─[valid_v_show.tsx:1:23]
+ 1 │ <template><div v-show:aaa="foo" /></template>
+   ·                       ───
+   ╰────
+  help: Remove the argument; `v-show` does not accept one.
+
+  ⚠ vue(valid-v-show): 'v-show' directives require no modifier.
+   ╭─[valid_v_show.tsx:1:23]
+ 1 │ <template><div v-show.aaa="foo" /></template>
+   ·                       ───
+   ╰────
+  help: Remove the modifier; `v-show` does not accept any.
+
+  ⚠ vue(valid-v-show): 'v-show' directives cannot be put on <template> tags.
+   ╭─[valid_v_show.tsx:1:21]
+ 1 │ <template><template v-show="foo"><div /></template></template>
+   ·                     ────────────
+   ╰────
+  help: `v-show` toggles CSS display and needs a real element to apply to; move it to a child element or use `v-if` instead.

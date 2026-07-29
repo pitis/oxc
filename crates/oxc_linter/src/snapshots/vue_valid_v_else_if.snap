@@ -1,0 +1,67 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require being preceded by the element which has a 'v-if' or 'v-else-if' directive.
+   ╭─[valid_v_else_if.tsx:1:16]
+ 1 │ <template><div v-else-if="foo" /></template>
+   ·                ───────────────
+   ╰────
+  help: Add a preceding element with `v-if`/`v-else-if`, or change this to `v-if`.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require being preceded by the element which has a 'v-if' or 'v-else-if' directive.
+   ╭─[valid_v_else_if.tsx:1:23]
+ 1 │ <template><div /><div v-else-if="foo" /></template>
+   ·                       ───────────────
+   ╰────
+  help: Add a preceding element with `v-if`/`v-else-if`, or change this to `v-if`.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require being preceded by the element which has a 'v-if' or 'v-else-if' directive.
+   ╭─[valid_v_else_if.tsx:1:27]
+ 1 │ <template><div v-if="foo" v-else-if="bar" /></template>
+   ·                           ───────────────
+   ╰────
+  help: Add a preceding element with `v-if`/`v-else-if`, or change this to `v-if`.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' and 'v-if' directives can't exist on the same element.
+   ╭─[valid_v_else_if.tsx:1:27]
+ 1 │ <template><div v-if="foo" v-else-if="bar" /></template>
+   ·                           ───────────────
+   ╰────
+  help: Remove one of the directives; an element can only start one branch of a conditional chain.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' and 'v-else' directives can't exist on the same element.
+   ╭─[valid_v_else_if.tsx:1:41]
+ 1 │ <template><div v-if="foo" /><div v-else v-else-if="bar" /></template>
+   ·                                         ───────────────
+   ╰────
+  help: Remove one of the directives; an element can only end a conditional chain once.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require no argument.
+   ╭─[valid_v_else_if.tsx:1:44]
+ 1 │ <template><div v-if="foo" /><div v-else-if:aaa="bar" /></template>
+   ·                                            ───
+   ╰────
+  help: Remove the argument; `v-else-if` does not accept one.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require no modifier.
+   ╭─[valid_v_else_if.tsx:1:44]
+ 1 │ <template><div v-if="foo" /><div v-else-if.aaa="bar" /></template>
+   ·                                            ───
+   ╰────
+  help: Remove the modifier; `v-else-if` does not accept any.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require that attribute value.
+   ╭─[valid_v_else_if.tsx:1:34]
+ 1 │ <template><div v-if="foo" /><div v-else-if /></template>
+   ·                                  ─────────
+   ╰────
+  help: Give `v-else-if` a condition expression, e.g. `v-else-if="otherCondition"`.
+
+  ⚠ vue(valid-v-else-if): 'v-else-if' directives require that attribute value.
+   ╭─[valid_v_else_if.tsx:1:34]
+ 1 │ <template><div v-if="foo" /><div v-else-if="" /></template>
+   ·                                  ────────────
+   ╰────
+  help: Give `v-else-if` a condition expression, e.g. `v-else-if="otherCondition"`.

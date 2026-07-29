@@ -1,0 +1,300 @@
+use oxc_diagnostics::OxcDiagnostic;
+use oxc_macros::declare_oxc_lint;
+use oxc_span::Span;
+use oxc_vue_parser::ast::{Attribute, Node};
+
+use crate::{
+    rule::Rule,
+    utils::{directive_modifier_span, directive_value_missing, walk_elements},
+    vue_template::{VueTemplateContext, VueTemplateRule},
+};
+
+/// eslint-plugin-vue `valid-v-bind`'s `VALID_MODIFIERS`. `sync` is kept even
+/// though the `.sync` modifier itself was removed in Vue 3 (superseded by
+/// `v-model:foo`) because upstream still accepts it as a *known* (if
+/// pointless) modifier rather than an unsupported one — copied verbatim.
+const VALID_MODIFIERS: &[&str] = &["prop", "camel", "sync", "attr"];
+
+fn unsupported_modifier_diagnostic(name: &str, span: Span) -> OxcDiagnostic {
+    OxcDiagnostic::warn(format!("'v-bind' directives don't support the modifier '{name}'."))
+        .with_help(
+            "Remove the modifier; `v-bind` only supports `.prop`, `.camel`, `.sync`, and `.attr`.",
+        )
+        .with_label(span)
+}
+
+fn expected_value_diagnostic(span: Span) -> OxcDiagnostic {
+    OxcDiagnostic::warn("'v-bind' directives require an attribute value.")
+        .with_help(
+            "Give the binding a value, e.g. `:foo=\"bar\"`, or use a plain attribute instead.",
+        )
+        .with_label(span)
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct ValidVBind;
+
+declare_oxc_lint!(
+    /// ### What it does
+    ///
+    /// Enforces valid `v-bind` directives in Vue `<template>` blocks: only
+    /// the `prop`, `camel`, `sync`, and `attr` modifiers are recognized, and
+    /// a binding must have a value — except for Vue 3.4's same-name shorthand
+    /// (`:foo`, i.e. a value-less binding with a static argument).
+    ///
+    /// ### Why is this bad?
+    ///
+    /// An unsupported modifier or a value-less binding either fails to
+    /// compile or silently does nothing useful.
+    ///
+    /// ### Examples
+    ///
+    /// Examples of **incorrect** code for this rule:
+    /// ```vue
+    /// <template>
+    ///   <div :foo.bar="baz" />
+    ///   <div v-bind />
+    ///   <div :[dynamic] />
+    /// </template>
+    /// ```
+    ///
+    /// Examples of **correct** code for this rule:
+    /// ```vue
+    /// <template>
+    ///   <div :foo="baz" />
+    ///   <div :foo.camel="baz" />
+    ///   <div v-bind="allProps" />
+    ///   <div :foo />
+    /// </template>
+    /// ```
+    ValidVBind,
+    vue,
+    correctness,
+    version = "1.77.0",
+    short_description = "Enforce valid `v-bind` directives.",
+);
+
+impl Rule for ValidVBind {}
+
+impl VueTemplateRule for ValidVBind {
+    fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>) {
+        walk_elements(nodes, &mut |element| {
+            for attribute in &element.attributes {
+                let Some(directive) = &attribute.directive else { continue };
+                if directive.name != "bind" {
+                    continue;
+                }
+
+                for (index, modifier) in directive.modifiers.iter().enumerate() {
+                    if !VALID_MODIFIERS.contains(modifier) {
+                        let span = directive_modifier_span(attribute, ctx.source_text(), index);
+                        ctx.diagnostic(unsupported_modifier_diagnostic(modifier, span));
+                    }
+                }
+
+                if !is_same_name_shorthand(attribute) && directive_value_missing(attribute) {
+                    ctx.diagnostic(expected_value_diagnostic(attribute.span));
+                }
+            }
+        });
+    }
+}
+
+/// Vue 3.4's *same-name shorthand* for `v-bind`: a value-less binding with a
+/// **static** argument, e.g. `:showToolbar` — sugar for
+/// `:showToolbar="showToolbar"`.
+///
+/// Upstream's `valid-v-bind` has no explicit carve-out for this; it falls out
+/// of vue-eslint-parser, which synthesizes the omitted value node for exactly
+/// this shape, so `!node.value` is false and `expectedValue` never fires.
+/// This parser keeps the attribute value as literally absent, so the carve-out
+/// has to be explicit here.
+///
+/// The shape is narrow, and verified against real eslint-plugin-vue 10.10.0:
+/// `:foo`, `v-bind:foo`, `.foo`, `:foo-bar`, `:foo.camel` all pass, while a
+/// value-less `v-bind` (no argument) and a value-less **dynamic** argument
+/// (`:[dyn]`, `v-bind:[dyn]`) both still report — a dynamic argument has no
+/// statically known name to shorthand from. `:foo=""` (present but empty) is
+/// likewise still a report; only a wholly absent value qualifies.
+fn is_same_name_shorthand(attribute: &Attribute<'_>) -> bool {
+    attribute.value.is_none()
+        && attribute
+            .directive
+            .as_ref()
+            .and_then(|directive| directive.argument.as_ref())
+            .is_some_and(|argument| !argument.dynamic)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::ValidVBind;
+    use crate::{rule::RuleMeta, tester::Tester};
+
+    #[test]
+    fn test() {
+        let pass = vec![
+            (
+                r#"<template><div v-bind:foo="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo.camel="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo.prop="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo.attr="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo.sync="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // `.prop` shorthand.
+            (
+                r#"<template><div .foo="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Dynamic argument.
+            (
+                r#"<template><div :[foo]="bar" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Spread bind, no argument.
+            (
+                r#"<template><div v-bind="allProps" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (r"<template><div /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Vue 3.4 same-name shorthand: value-less binding with a static
+            // argument. Verified against real eslint-plugin-vue 10.10.0 —
+            // none of these report `expectedValue`.
+            (
+                r"<template><div :showToolbar /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r"<template><slot :headingValue /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r"<template><div v-bind:foo /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (r"<template><div .foo /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (r"<template><div :foo-bar /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (
+                r"<template><div :foo.camel /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+        ];
+
+        let fail = vec![
+            (
+                r#"<template><div v-bind:foo.bar="baz" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :foo.bar="baz" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Bare `v-bind` with no argument and no value: still a report
+            // (there is no name to shorthand from).
+            (r"<template><div v-bind /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            // Value-less *dynamic* argument: also still a report — the
+            // same-name shorthand needs a statically known name.
+            (r"<template><div :[dyn] /></template>", None, None, Some(PathBuf::from("test.vue"))),
+            (
+                r"<template><div v-bind:[dyn] /></template>",
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Empty value.
+            (
+                r#"<template><div :foo="" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Spread with unsupported modifier.
+            (
+                r#"<template><div v-bind.bar="allProps" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Multiple unsupported modifiers reported individually.
+            (
+                r#"<template><div :foo.bar.baz="qux" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // The `.prop` shorthand's leading `.` introduces the *argument*,
+            // not a modifier: the report must underline `bogus`, not `foo`
+            // (eslint-plugin-vue 10.10.0 underlines `bogus`).
+            (
+                r#"<template><div .foo.bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            // Dots inside a dynamic argument aren't modifier separators
+            // either, under both the `.prop` and `:` shorthands.
+            (
+                r#"<template><div .[a.b].bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+            (
+                r#"<template><div :[a.b].bogus="x" /></template>"#,
+                None,
+                None,
+                Some(PathBuf::from("test.vue")),
+            ),
+        ];
+
+        Tester::new(ValidVBind::NAME, ValidVBind::PLUGIN, pass, fail).test_and_snapshot();
+    }
+}

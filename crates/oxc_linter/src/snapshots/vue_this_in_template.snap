@@ -1,0 +1,88 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this.foo }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this.foo() }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this.foo.bar() }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:24]
+ 1 │ <template><div :class="this.foo"></div></template>
+   ·                        ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this?.foo }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this['xs'] }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ this.foo }}</div></template>
+   ·                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Expected 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ foo }}</div></template>
+   ·                   ───
+   ╰────
+  help: Prefix the property reference with `this.`, e.g. `this.foo`.
+
+  ⚠ vue(this-in-template): Expected 'this'.
+   ╭─[this_in_template.tsx:1:19]
+ 1 │ <template><div>{{ foo() }}</div></template>
+   ·                   ───
+   ╰────
+  help: Prefix the property reference with `this.`, e.g. `this.foo`.
+
+  ⚠ vue(this-in-template): Expected 'this'.
+   ╭─[this_in_template.tsx:1:22]
+ 1 │ <template><div v-if="foo"></div></template>
+   ·                      ───
+   ╰────
+  help: Prefix the property reference with `this.`, e.g. `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:50]
+ 1 │ <template><template v-slot="{ foo: renamed }">{{ this.foo }}</template></template>
+   ·                                                  ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.
+
+  ⚠ vue(this-in-template): Unexpected usage of 'this'.
+   ╭─[this_in_template.tsx:1:35]
+ 1 │ <template><div scope="{ foo }">{{ this.foo }}</div></template>
+   ·                                   ────
+   ╰────
+  help: Template expressions already evaluate against the component instance; drop the `this.` prefix, e.g. use `foo` instead of `this.foo`.

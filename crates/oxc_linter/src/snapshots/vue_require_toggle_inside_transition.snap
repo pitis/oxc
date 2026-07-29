@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(require-toggle-inside-transition): The element inside `<transition>` is expected to have a `v-if` or `v-show` directive.
+   ╭─[require_toggle_inside_transition.tsx:1:23]
+ 1 │ <template><transition><div>x</div></transition></template>
+   ·                       ─────
+   ╰────
+  help: Add a toggling directive so the transition has something to animate; a `:key` binding also satisfies this.
+
+  ⚠ vue(require-toggle-inside-transition): The element inside `<transition>` is expected to have a `v-if` or `v-show` directive.
+   ╭─[require_toggle_inside_transition.tsx:1:39]
+ 1 │ <template><transition :appear="false"><div>x</div></transition></template>
+   ·                                       ─────
+   ╰────
+  help: Add a toggling directive so the transition has something to animate; a `:key` binding also satisfies this.
+
+  ⚠ vue(require-toggle-inside-transition): The element inside `<transition>` is expected to have a `v-if` or `v-show` directive.
+   ╭─[require_toggle_inside_transition.tsx:1:23]
+ 1 │ <template><transition><div>x</div><div>y</div></transition></template>
+   ·                       ─────
+   ╰────
+  help: Add a toggling directive so the transition has something to animate; a `:key` binding also satisfies this.

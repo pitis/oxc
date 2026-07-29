@@ -1,0 +1,22 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(v-on-style): Expected '@' instead of 'v-on:'.
+   ╭─[v_on_style.tsx:1:19]
+ 1 │ <template><button v-on:click="onClick" /></template>
+   ·                   ────────────────────
+   ╰────
+
+  ⚠ vue(v-on-style): Expected 'v-on:' instead of '@'.
+   ╭─[v_on_style.tsx:1:19]
+ 1 │ <template><button @click="onClick" /></template>
+   ·                   ────────────────
+   ╰────
+
+  ⚠ vue(v-on-style): Expected 'v-on:' instead of '@'.
+   ╭─[v_on_style.tsx:1:19]
+ 1 │ <template><button @[event]="onEvent" /></template>
+   ·                   ──────────────────
+   ╰────

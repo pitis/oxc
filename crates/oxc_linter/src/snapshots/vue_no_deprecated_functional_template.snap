@@ -1,0 +1,25 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(no-deprecated-functional-template): The `functional` template are deprecated.
+   ╭─[no_deprecated_functional_template.tsx:1:11]
+ 1 │ <template functional><div></div></template>
+   ·           ──────────
+   ╰────
+  help: Vue 3 removed functional SFC templates; use a plain function component or a regular component with the same effect instead.
+
+  ⚠ vue(no-deprecated-functional-template): The `functional` template are deprecated.
+   ╭─[no_deprecated_functional_template.tsx:1:11]
+ 1 │ <template functional="true"><div></div></template>
+   ·           ─────────────────
+   ╰────
+  help: Vue 3 removed functional SFC templates; use a plain function component or a regular component with the same effect instead.
+
+  ⚠ vue(no-deprecated-functional-template): The `functional` template are deprecated.
+   ╭─[no_deprecated_functional_template.tsx:1:11]
+ 1 │ <template FUNCTIONAL><div></div></template>
+   ·           ──────────
+   ╰────
+  help: Vue 3 removed functional SFC templates; use a plain function component or a regular component with the same effect instead.

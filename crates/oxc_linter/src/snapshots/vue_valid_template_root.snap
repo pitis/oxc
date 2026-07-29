@@ -1,0 +1,32 @@
+---
+source: crates/oxc_linter/src/tester.rs
+assertion_line: 490
+---
+
+  ⚠ vue(valid-template-root): The template requires child element.
+   ╭─[valid_template_root.tsx:1:1]
+ 1 │ <template></template>
+   · ─────────────────────
+   ╰────
+  help: Add at least one element, text run, or interpolation as the template's root content.
+
+  ⚠ vue(valid-template-root): The template requires child element.
+   ╭─[valid_template_root.tsx:1:1]
+ 1 │ ╭─▶ <template>
+ 2 │ ╰─▶ </template>
+   ╰────
+  help: Add at least one element, text run, or interpolation as the template's root content.
+
+  ⚠ vue(valid-template-root): The template requires child element.
+   ╭─[valid_template_root.tsx:1:1]
+ 1 │ <template><!-- just a comment --></template>
+   · ────────────────────────────────────────────
+   ╰────
+  help: Add at least one element, text run, or interpolation as the template's root content.
+
+  ⚠ vue(valid-template-root): The template root with 'src' attribute is required to be empty.
+   ╭─[valid_template_root.tsx:1:29]
+ 1 │ <template src="./root.html"><div>a</div></template>
+   ·                             ────────────
+   ╰────
+  help: Remove the child content, or drop the `src` attribute — a `<template src="...">` may not have both.

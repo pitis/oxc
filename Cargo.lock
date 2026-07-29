@@ -2249,6 +2249,7 @@ dependencies = [
  "oxc_span",
  "oxc_str",
  "oxc_syntax",
+ "oxc_vue_parser",
  "papaya",
  "phf",
  "rayon",

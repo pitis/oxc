@@ -12,7 +12,7 @@
 
 use oxc_span::Span;
 
-use crate::ast::{Attribute, AttributeValue};
+use crate::ast::{Attribute, AttributeValue, Comment};
 use crate::parser::parse_template;
 
 #[derive(Debug)]
@@ -24,6 +24,13 @@ pub struct Sfc<'a> {
     /// included. Lets a future no-parsing-error rule surface it instead of
     /// it silently vanishing.
     pub orphan_spans: Vec<Span>,
+    /// The `<!-- … -->` comments that sit at the top level of the file, i.e.
+    /// outside every block, in source order. These are what
+    /// eslint-plugin-vue's `vue/comment-directive` rule calls the "top-level
+    /// document fragment comments" (`extractTopLevelDocumentFragmentComments`)
+    /// and treats as file-scoped directive comments; comments *inside* a block
+    /// are reachable through that block's parsed content instead.
+    pub top_level_comments: Vec<Comment<'a>>,
 }
 
 #[derive(Debug)]
@@ -88,6 +95,7 @@ pub fn parse_sfc(source: &str) -> Sfc<'_> {
     let nodes = parse_template(source, 0);
     let mut blocks = Vec::new();
     let mut orphan_spans = Vec::new();
+    let mut top_level_comments = Vec::new();
     for node in nodes {
         match node {
             crate::ast::Node::Element(element) => {
@@ -123,8 +131,11 @@ pub fn parse_sfc(source: &str) -> Sfc<'_> {
                 }
             }
             crate::ast::Node::Raw(span) => orphan_spans.push(span),
-            crate::ast::Node::Comment(_) | crate::ast::Node::Interpolation(_) => {}
+            // Kept (rather than dropped) because a top-level comment can be a
+            // file-scoped `<!-- eslint-disable … -->` directive.
+            crate::ast::Node::Comment(comment) => top_level_comments.push(comment),
+            crate::ast::Node::Interpolation(_) => {}
         }
     }
-    Sfc { blocks, orphan_spans }
+    Sfc { blocks, orphan_spans, top_level_comments }
 }
