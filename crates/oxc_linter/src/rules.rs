@@ -1090,6 +1090,7 @@ pub(crate) mod svelte {
     pub mod prefer_writable_derived;
     pub mod require_each_key;
     pub mod require_event_dispatcher_types;
+    pub mod require_event_prefix;
     pub mod require_optimized_style_attribute;
     pub mod require_store_callbacks_use_set_param;
     pub mod require_store_reactive_access;

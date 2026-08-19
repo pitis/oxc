@@ -583,6 +583,7 @@ pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity a
 pub use crate::rules::svelte::prefer_writable_derived::PreferWritableDerived as SveltePreferWritableDerived;
 pub use crate::rules::svelte::require_each_key::RequireEachKey as SvelteRequireEachKey;
 pub use crate::rules::svelte::require_event_dispatcher_types::RequireEventDispatcherTypes as SvelteRequireEventDispatcherTypes;
+pub use crate::rules::svelte::require_event_prefix::RequireEventPrefix as SvelteRequireEventPrefix;
 pub use crate::rules::svelte::require_optimized_style_attribute::RequireOptimizedStyleAttribute as SvelteRequireOptimizedStyleAttribute;
 pub use crate::rules::svelte::require_store_callbacks_use_set_param::RequireStoreCallbacksUseSetParam as SvelteRequireStoreCallbacksUseSetParam;
 pub use crate::rules::svelte::require_store_reactive_access::RequireStoreReactiveAccess as SvelteRequireStoreReactiveAccess;
@@ -2032,6 +2033,7 @@ pub enum RuleEnum {
     SveltePreferWritableDerived(SveltePreferWritableDerived),
     SvelteRequireEachKey(SvelteRequireEachKey),
     SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes),
+    SvelteRequireEventPrefix(SvelteRequireEventPrefix),
     SvelteRequireOptimizedStyleAttribute(SvelteRequireOptimizedStyleAttribute),
     SvelteRequireStoreCallbacksUseSetParam(SvelteRequireStoreCallbacksUseSetParam),
     SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess),
@@ -3169,8 +3171,8 @@ const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_STYLE_DIRECTIVE_
 const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
 const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_PREFER_WRITABLE_DERIVED_ID + 1usize;
 const SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID: usize = SVELTE_REQUIRE_EACH_KEY_ID + 1usize;
-const SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID: usize =
-    SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID + 1usize;
+const SVELTE_REQUIRE_EVENT_PREFIX_ID: usize = SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID + 1usize;
+const SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID: usize = SVELTE_REQUIRE_EVENT_PREFIX_ID + 1usize;
 const SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID: usize =
     SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID + 1usize;
 const SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID: usize =
@@ -3184,7 +3186,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1008usize] = [
+static RULE_NAMES: [&str; 1009usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4181,6 +4183,7 @@ static RULE_NAMES: [&str; 1008usize] = [
     SveltePreferWritableDerived::NAME,
     SvelteRequireEachKey::NAME,
     SvelteRequireEventDispatcherTypes::NAME,
+    SvelteRequireEventPrefix::NAME,
     SvelteRequireOptimizedStyleAttribute::NAME,
     SvelteRequireStoreCallbacksUseSetParam::NAME,
     SvelteRequireStoreReactiveAccess::NAME,
@@ -5345,6 +5348,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(_) => SVELTE_PREFER_WRITABLE_DERIVED_ID,
             Self::SvelteRequireEachKey(_) => SVELTE_REQUIRE_EACH_KEY_ID,
             Self::SvelteRequireEventDispatcherTypes(_) => SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID,
+            Self::SvelteRequireEventPrefix(_) => SVELTE_REQUIRE_EVENT_PREFIX_ID,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID
             }
@@ -6572,6 +6576,7 @@ impl RuleEnum {
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::CATEGORY
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::CATEGORY,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::CATEGORY
             }
@@ -7717,6 +7722,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::FIX,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::FIX,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::FIX,
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::FIX,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::FIX
             }
@@ -9192,6 +9198,7 @@ impl RuleEnum {
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::documentation()
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::documentation(),
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::documentation()
             }
@@ -12093,6 +12100,8 @@ impl RuleEnum {
                 SvelteRequireEventDispatcherTypes::config_schema(generator)
                     .or_else(|| SvelteRequireEventDispatcherTypes::schema(generator))
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::config_schema(generator)
+                .or_else(|| SvelteRequireEventPrefix::schema(generator)),
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::config_schema(generator)
                     .or_else(|| SvelteRequireOptimizedStyleAttribute::schema(generator))
@@ -13126,6 +13135,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(_) => "svelte",
             Self::SvelteRequireEachKey(_) => "svelte",
             Self::SvelteRequireEventDispatcherTypes(_) => "svelte",
+            Self::SvelteRequireEventPrefix(_) => "svelte",
             Self::SvelteRequireOptimizedStyleAttribute(_) => "svelte",
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => "svelte",
             Self::SvelteRequireStoreReactiveAccess(_) => "svelte",
@@ -14360,6 +14370,9 @@ impl RuleEnum {
             Self::SveltePreferConst(_) => {
                 Ok(Self::SveltePreferConst(SveltePreferConst::from_configuration(value)?))
             }
+            Self::SvelteRequireEventPrefix(_) => Ok(Self::SvelteRequireEventPrefix(
+                SvelteRequireEventPrefix::from_configuration(value)?,
+            )),
             Self::SvelteShorthandAttribute(_) => Ok(Self::SvelteShorthandAttribute(
                 SvelteShorthandAttribute::from_configuration(value)?,
             )),
@@ -15412,6 +15425,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.run(node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run(node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run(node, ctx),
+            Self::SvelteRequireEventPrefix(rule) => rule.run(node, ctx),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run(node, ctx),
@@ -16437,6 +16451,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.run_once(ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_once(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_once(ctx),
+            Self::SvelteRequireEventPrefix(rule) => rule.run_once(ctx),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_once(ctx),
@@ -17593,6 +17608,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireEventPrefix(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
@@ -18623,6 +18639,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.should_run(ctx),
             Self::SvelteRequireEachKey(rule) => rule.should_run(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.should_run(ctx),
+            Self::SvelteRequireEventPrefix(rule) => rule.should_run(ctx),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.should_run(ctx),
@@ -20093,6 +20110,7 @@ impl RuleEnum {
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::IS_TSGOLINT_RULE
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::IS_TSGOLINT_RULE,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::IS_TSGOLINT_RULE
             }
@@ -21323,6 +21341,7 @@ impl RuleEnum {
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::VERSION
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::VERSION,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::VERSION
             }
@@ -22598,6 +22617,7 @@ impl RuleEnum {
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::HAS_CONFIG
             }
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::HAS_CONFIG,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::HAS_CONFIG
             }
@@ -23746,6 +23766,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::INFO,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::INFO,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::INFO,
+            Self::SvelteRequireEventPrefix(_) => SvelteRequireEventPrefix::INFO,
             Self::SvelteRequireOptimizedStyleAttribute(_) => {
                 SvelteRequireOptimizedStyleAttribute::INFO
             }
@@ -24767,6 +24788,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.types_info(),
             Self::SvelteRequireEachKey(rule) => rule.types_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.types_info(),
+            Self::SvelteRequireEventPrefix(rule) => rule.types_info(),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.types_info(),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.types_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.types_info(),
@@ -25779,6 +25801,7 @@ impl RuleEnum {
             Self::SveltePreferWritableDerived(rule) => rule.run_info(),
             Self::SvelteRequireEachKey(rule) => rule.run_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_info(),
+            Self::SvelteRequireEventPrefix(rule) => rule.run_info(),
             Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run_info(),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_info(),
@@ -26941,6 +26964,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SveltePreferWritableDerived(SveltePreferWritableDerived::default()),
         RuleEnum::SvelteRequireEachKey(SvelteRequireEachKey::default()),
         RuleEnum::SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes::default()),
+        RuleEnum::SvelteRequireEventPrefix(SvelteRequireEventPrefix::default()),
         RuleEnum::SvelteRequireOptimizedStyleAttribute(
             SvelteRequireOptimizedStyleAttribute::default(),
         ),
