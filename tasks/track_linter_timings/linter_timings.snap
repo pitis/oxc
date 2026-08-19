@@ -501,6 +501,7 @@ svelte/button-has-type                                     |      0
 svelte/comment-directive                                   |      0
 svelte/experimental-require-slot-types                     |      0
 svelte/experimental-require-strict-events                  |      0
+svelte/max-lines-per-block                                 |      0
 svelte/no-at-const-tags                                    |      0
 svelte/no-at-debug-tags                                    |      0
 svelte/no-at-html-tags                                     |      0
@@ -511,7 +512,9 @@ svelte/no-dupe-on-directives                               |      0
 svelte/no-dupe-style-properties                            |      0
 svelte/no-dupe-use-directives                              |      0
 svelte/no-dynamic-slot-name                                |      0
+svelte/no-goto-without-base                                |      0
 svelte/no-inline-styles                                    |      0
+svelte/no-navigation-without-base                          |      0
 svelte/no-navigation-without-resolve                       |      0
 svelte/no-nested-style-tag                                 |      0
 svelte/no-not-function-handler                             |      0
@@ -522,10 +525,12 @@ svelte/no-shorthand-style-property-overrides               |      0
 svelte/no-spaces-around-equal-signs-in-attribute           |      0
 svelte/no-target-blank                                     |      0
 svelte/no-unknown-style-directive-property                 |      0
+svelte/no-unused-class-name                                |      0
 svelte/no-unused-props                                     |      0
 svelte/no-unused-svelte-ignore                             |      0
 svelte/no-useless-children-snippet                         |      0
 svelte/no-useless-mustaches                                |      0
+svelte/prefer-attribute-interpolation                      |      0
 svelte/prefer-style-directive                              |      0
 svelte/require-each-key                                    |      0
 svelte/require-optimized-style-attribute                   |      0

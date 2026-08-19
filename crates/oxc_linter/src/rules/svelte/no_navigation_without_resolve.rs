@@ -16,7 +16,7 @@ use svelte_markup_parser::ast::{AttributeKind, AttributeValue, Element, Node, Va
 use crate::{
     rule::{DefaultRuleConfig, Rule},
     svelte_template::{SvelteTemplateContext, SvelteTemplateRule},
-    utils::{svelte_scripts, walk_svelte_elements, walk_svelte_nodes},
+    utils::{parse_svelte_expression, svelte_scripts, walk_svelte_elements, walk_svelte_nodes},
 };
 
 fn goto_diagnostic(span: Span) -> OxcDiagnostic {
@@ -180,7 +180,7 @@ impl SvelteTemplateRule for NoNavigationWithoutResolve {
             let mut expressions: Vec<(&str, u32)> = Vec::new();
             collect_template_expressions(nodes, &mut expressions);
             for (text, offset) in expressions {
-                if let Some(expression) = parse_expression_text(&allocator, text) {
+                if let Some(expression) = parse_svelte_expression(&allocator, text) {
                     visitor.offset = offset;
                     visitor.visit_expression(&expression);
                 }
@@ -433,10 +433,13 @@ fn check_link_element(
                     ValuePart::Text(text) => {
                         value_is_absolute_url(text.value) || text.value.starts_with('#')
                     }
-                    ValuePart::Expression(tag) => parse_expression_text(allocator, tag.expression)
-                        .is_none_or(|expression| {
-                            is_value_allowed(&expression, env, LINK_CONFIG, &mut vec![])
-                        }),
+                    ValuePart::Expression(tag) => {
+                        parse_svelte_expression(allocator, tag.expression).is_none_or(
+                            |expression| {
+                                is_value_allowed(&expression, env, LINK_CONFIG, &mut vec![])
+                            },
+                        )
+                    }
                 };
                 if !allowed {
                     // Upstream labels the whole `href="…"` attribute.
@@ -468,7 +471,8 @@ fn has_rel_external(element: &Element<'_>, env: &ScriptEnv<'_, '_>, allocator: &
                         }
                     }
                     Some(ValuePart::Expression(tag)) => {
-                        if let Some(expression) = parse_expression_text(allocator, tag.expression) {
+                        if let Some(expression) = parse_svelte_expression(allocator, tag.expression)
+                        {
                             match &expression {
                                 Expression::StringLiteral(literal) => {
                                     if literal
@@ -643,16 +647,6 @@ fn starts_with_fragment<'a>(
         }
         _ => false,
     }
-}
-
-fn parse_expression_text<'alloc>(
-    allocator: &'alloc Allocator,
-    text: &'alloc str,
-) -> Option<Expression<'alloc>> {
-    Parser::new(allocator, text, SourceType::ts())
-        .with_options(ParseOptions { preserve_parens: false, ..ParseOptions::default() })
-        .parse_expression()
-        .ok()
 }
 
 #[test]

@@ -520,6 +520,7 @@ pub use crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInp
 pub use crate::rules::svelte::experimental_require_slot_types::ExperimentalRequireSlotTypes as SvelteExperimentalRequireSlotTypes;
 pub use crate::rules::svelte::experimental_require_strict_events::ExperimentalRequireStrictEvents as SvelteExperimentalRequireStrictEvents;
 pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
+pub use crate::rules::svelte::max_lines_per_block::MaxLinesPerBlock as SvelteMaxLinesPerBlock;
 pub use crate::rules::svelte::no_add_event_listener::NoAddEventListener as SvelteNoAddEventListener;
 pub use crate::rules::svelte::no_at_const_tags::NoAtConstTags as SvelteNoAtConstTags;
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
@@ -533,11 +534,13 @@ pub use crate::rules::svelte::no_dupe_use_directives::NoDupeUseDirectives as Sve
 pub use crate::rules::svelte::no_dynamic_slot_name::NoDynamicSlotName as SvelteNoDynamicSlotName;
 pub use crate::rules::svelte::no_export_load_in_svelte_module_in_kit_pages::NoExportLoadInSvelteModuleInKitPages as SvelteNoExportLoadInSvelteModuleInKitPages;
 pub use crate::rules::svelte::no_extra_reactive_curlies::NoExtraReactiveCurlies as SvelteNoExtraReactiveCurlies;
+pub use crate::rules::svelte::no_goto_without_base::NoGotoWithoutBase as SvelteNoGotoWithoutBase;
 pub use crate::rules::svelte::no_ignored_unsubscribe::NoIgnoredUnsubscribe as SvelteNoIgnoredUnsubscribe;
 pub use crate::rules::svelte::no_immutable_reactive_statements::NoImmutableReactiveStatements as SvelteNoImmutableReactiveStatements;
 pub use crate::rules::svelte::no_inline_styles::NoInlineStyles as SvelteNoInlineStyles;
 pub use crate::rules::svelte::no_inner_declarations::NoInnerDeclarations as SvelteNoInnerDeclarations;
 pub use crate::rules::svelte::no_inspect::NoInspect as SvelteNoInspect;
+pub use crate::rules::svelte::no_navigation_without_base::NoNavigationWithoutBase as SvelteNoNavigationWithoutBase;
 pub use crate::rules::svelte::no_navigation_without_resolve::NoNavigationWithoutResolve as SvelteNoNavigationWithoutResolve;
 pub use crate::rules::svelte::no_nested_style_tag::NoNestedStyleTag as SvelteNoNestedStyleTag;
 pub use crate::rules::svelte::no_not_function_handler::NoNotFunctionHandler as SvelteNoNotFunctionHandler;
@@ -554,10 +557,12 @@ pub use crate::rules::svelte::no_svelte_internal::NoSvelteInternal as SvelteNoSv
 pub use crate::rules::svelte::no_target_blank::NoTargetBlank as SvelteNoTargetBlank;
 pub use crate::rules::svelte::no_unknown_style_directive_property::NoUnknownStyleDirectiveProperty as SvelteNoUnknownStyleDirectiveProperty;
 pub use crate::rules::svelte::no_unnecessary_state_wrap::NoUnnecessaryStateWrap as SvelteNoUnnecessaryStateWrap;
+pub use crate::rules::svelte::no_unused_class_name::NoUnusedClassName as SvelteNoUnusedClassName;
 pub use crate::rules::svelte::no_unused_props::NoUnusedProps as SvelteNoUnusedProps;
 pub use crate::rules::svelte::no_unused_svelte_ignore::NoUnusedSvelteIgnore as SvelteNoUnusedSvelteIgnore;
 pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
 pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
+pub use crate::rules::svelte::prefer_attribute_interpolation::PreferAttributeInterpolation as SveltePreferAttributeInterpolation;
 pub use crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy as SveltePreferDerivedOverDerivedBy;
 pub use crate::rules::svelte::prefer_style_directive::PreferStyleDirective as SveltePreferStyleDirective;
 pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity as SveltePreferSvelteReactivity;
@@ -1947,6 +1952,7 @@ pub enum RuleEnum {
     SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes),
     SvelteExperimentalRequireStrictEvents(SvelteExperimentalRequireStrictEvents),
     SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
+    SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock),
     SvelteNoAddEventListener(SvelteNoAddEventListener),
     SvelteNoAtConstTags(SvelteNoAtConstTags),
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
@@ -1960,11 +1966,13 @@ pub enum RuleEnum {
     SvelteNoDynamicSlotName(SvelteNoDynamicSlotName),
     SvelteNoExportLoadInSvelteModuleInKitPages(SvelteNoExportLoadInSvelteModuleInKitPages),
     SvelteNoExtraReactiveCurlies(SvelteNoExtraReactiveCurlies),
+    SvelteNoGotoWithoutBase(SvelteNoGotoWithoutBase),
     SvelteNoIgnoredUnsubscribe(SvelteNoIgnoredUnsubscribe),
     SvelteNoImmutableReactiveStatements(SvelteNoImmutableReactiveStatements),
     SvelteNoInlineStyles(SvelteNoInlineStyles),
     SvelteNoInnerDeclarations(SvelteNoInnerDeclarations),
     SvelteNoInspect(SvelteNoInspect),
+    SvelteNoNavigationWithoutBase(SvelteNoNavigationWithoutBase),
     SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve),
     SvelteNoNestedStyleTag(SvelteNoNestedStyleTag),
     SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler),
@@ -1981,10 +1989,12 @@ pub enum RuleEnum {
     SvelteNoTargetBlank(SvelteNoTargetBlank),
     SvelteNoUnknownStyleDirectiveProperty(SvelteNoUnknownStyleDirectiveProperty),
     SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap),
+    SvelteNoUnusedClassName(SvelteNoUnusedClassName),
     SvelteNoUnusedProps(SvelteNoUnusedProps),
     SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore),
     SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
     SvelteNoUselessMustaches(SvelteNoUselessMustaches),
+    SveltePreferAttributeInterpolation(SveltePreferAttributeInterpolation),
     SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy),
     SveltePreferStyleDirective(SveltePreferStyleDirective),
     SveltePreferSvelteReactivity(SveltePreferSvelteReactivity),
@@ -3051,7 +3061,8 @@ const SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID: usize =
     SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID + 1usize;
 const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize =
     SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID + 1usize;
-const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_MAX_LINES_PER_BLOCK_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_MAX_LINES_PER_BLOCK_ID + 1usize;
 const SVELTE_NO_AT_CONST_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
 const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_AT_CONST_TAGS_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
@@ -3066,12 +3077,15 @@ const SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID: usize =
     SVELTE_NO_DYNAMIC_SLOT_NAME_ID + 1usize;
 const SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID: usize =
     SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID + 1usize;
-const SVELTE_NO_IGNORED_UNSUBSCRIBE_ID: usize = SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID + 1usize;
+const SVELTE_NO_GOTO_WITHOUT_BASE_ID: usize = SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID + 1usize;
+const SVELTE_NO_IGNORED_UNSUBSCRIBE_ID: usize = SVELTE_NO_GOTO_WITHOUT_BASE_ID + 1usize;
 const SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID: usize = SVELTE_NO_IGNORED_UNSUBSCRIBE_ID + 1usize;
 const SVELTE_NO_INLINE_STYLES_ID: usize = SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID + 1usize;
 const SVELTE_NO_INNER_DECLARATIONS_ID: usize = SVELTE_NO_INLINE_STYLES_ID + 1usize;
 const SVELTE_NO_INSPECT_ID: usize = SVELTE_NO_INNER_DECLARATIONS_ID + 1usize;
-const SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID: usize = SVELTE_NO_INSPECT_ID + 1usize;
+const SVELTE_NO_NAVIGATION_WITHOUT_BASE_ID: usize = SVELTE_NO_INSPECT_ID + 1usize;
+const SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID: usize =
+    SVELTE_NO_NAVIGATION_WITHOUT_BASE_ID + 1usize;
 const SVELTE_NO_NESTED_STYLE_TAG_ID: usize = SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID + 1usize;
 const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_NESTED_STYLE_TAG_ID + 1usize;
 const SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID: usize = SVELTE_NO_NOT_FUNCTION_HANDLER_ID + 1usize;
@@ -3091,11 +3105,14 @@ const SVELTE_NO_TARGET_BLANK_ID: usize = SVELTE_NO_SVELTE_INTERNAL_ID + 1usize;
 const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
 const SVELTE_NO_UNNECESSARY_STATE_WRAP_ID: usize =
     SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID + 1usize;
-const SVELTE_NO_UNUSED_PROPS_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1usize;
+const SVELTE_NO_UNUSED_CLASS_NAME_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1usize;
+const SVELTE_NO_UNUSED_PROPS_ID: usize = SVELTE_NO_UNUSED_CLASS_NAME_ID + 1usize;
 const SVELTE_NO_UNUSED_SVELTE_IGNORE_ID: usize = SVELTE_NO_UNUSED_PROPS_ID + 1usize;
 const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_UNUSED_SVELTE_IGNORE_ID + 1usize;
 const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
-const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+const SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize =
+    SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID + 1usize;
 const SVELTE_PREFER_STYLE_DIRECTIVE_ID: usize = SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
 const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_STYLE_DIRECTIVE_ID + 1usize;
 const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
@@ -3113,7 +3130,7 @@ const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_SORT_ATTRIBUTES_ID + 1usize;
 const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
-static RULE_NAMES: [&str; 986usize] = [
+static RULE_NAMES: [&str; 991usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4047,6 +4064,7 @@ static RULE_NAMES: [&str; 986usize] = [
     SvelteExperimentalRequireSlotTypes::NAME,
     SvelteExperimentalRequireStrictEvents::NAME,
     SvelteInfiniteReactiveLoop::NAME,
+    SvelteMaxLinesPerBlock::NAME,
     SvelteNoAddEventListener::NAME,
     SvelteNoAtConstTags::NAME,
     SvelteNoAtDebugTags::NAME,
@@ -4060,11 +4078,13 @@ static RULE_NAMES: [&str; 986usize] = [
     SvelteNoDynamicSlotName::NAME,
     SvelteNoExportLoadInSvelteModuleInKitPages::NAME,
     SvelteNoExtraReactiveCurlies::NAME,
+    SvelteNoGotoWithoutBase::NAME,
     SvelteNoIgnoredUnsubscribe::NAME,
     SvelteNoImmutableReactiveStatements::NAME,
     SvelteNoInlineStyles::NAME,
     SvelteNoInnerDeclarations::NAME,
     SvelteNoInspect::NAME,
+    SvelteNoNavigationWithoutBase::NAME,
     SvelteNoNavigationWithoutResolve::NAME,
     SvelteNoNestedStyleTag::NAME,
     SvelteNoNotFunctionHandler::NAME,
@@ -4081,10 +4101,12 @@ static RULE_NAMES: [&str; 986usize] = [
     SvelteNoTargetBlank::NAME,
     SvelteNoUnknownStyleDirectiveProperty::NAME,
     SvelteNoUnnecessaryStateWrap::NAME,
+    SvelteNoUnusedClassName::NAME,
     SvelteNoUnusedProps::NAME,
     SvelteNoUnusedSvelteIgnore::NAME,
     SvelteNoUselessChildrenSnippet::NAME,
     SvelteNoUselessMustaches::NAME,
+    SveltePreferAttributeInterpolation::NAME,
     SveltePreferDerivedOverDerivedBy::NAME,
     SveltePreferStyleDirective::NAME,
     SveltePreferSvelteReactivity::NAME,
@@ -5175,6 +5197,7 @@ impl RuleEnum {
                 SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID
             }
             Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
+            Self::SvelteMaxLinesPerBlock(_) => SVELTE_MAX_LINES_PER_BLOCK_ID,
             Self::SvelteNoAddEventListener(_) => SVELTE_NO_ADD_EVENT_LISTENER_ID,
             Self::SvelteNoAtConstTags(_) => SVELTE_NO_AT_CONST_TAGS_ID,
             Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
@@ -5192,6 +5215,7 @@ impl RuleEnum {
                 SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID,
+            Self::SvelteNoGotoWithoutBase(_) => SVELTE_NO_GOTO_WITHOUT_BASE_ID,
             Self::SvelteNoIgnoredUnsubscribe(_) => SVELTE_NO_IGNORED_UNSUBSCRIBE_ID,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID
@@ -5199,6 +5223,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SVELTE_NO_INLINE_STYLES_ID,
             Self::SvelteNoInnerDeclarations(_) => SVELTE_NO_INNER_DECLARATIONS_ID,
             Self::SvelteNoInspect(_) => SVELTE_NO_INSPECT_ID,
+            Self::SvelteNoNavigationWithoutBase(_) => SVELTE_NO_NAVIGATION_WITHOUT_BASE_ID,
             Self::SvelteNoNavigationWithoutResolve(_) => SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID,
             Self::SvelteNoNestedStyleTag(_) => SVELTE_NO_NESTED_STYLE_TAG_ID,
             Self::SvelteNoNotFunctionHandler(_) => SVELTE_NO_NOT_FUNCTION_HANDLER_ID,
@@ -5221,10 +5246,12 @@ impl RuleEnum {
                 SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SVELTE_NO_UNNECESSARY_STATE_WRAP_ID,
+            Self::SvelteNoUnusedClassName(_) => SVELTE_NO_UNUSED_CLASS_NAME_ID,
             Self::SvelteNoUnusedProps(_) => SVELTE_NO_UNUSED_PROPS_ID,
             Self::SvelteNoUnusedSvelteIgnore(_) => SVELTE_NO_UNUSED_SVELTE_IGNORE_ID,
             Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
             Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
+            Self::SveltePreferAttributeInterpolation(_) => SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID,
             Self::SveltePreferDerivedOverDerivedBy(_) => SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID,
             Self::SveltePreferStyleDirective(_) => SVELTE_PREFER_STYLE_DIRECTIVE_ID,
             Self::SveltePreferSvelteReactivity(_) => SVELTE_PREFER_SVELTE_REACTIVITY_ID,
@@ -6374,6 +6401,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::CATEGORY
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::CATEGORY,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::CATEGORY,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::CATEGORY,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
@@ -6391,6 +6419,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::CATEGORY
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::CATEGORY,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::CATEGORY,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::CATEGORY,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::CATEGORY
@@ -6398,6 +6427,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::CATEGORY,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::CATEGORY,
             Self::SvelteNoInspect(_) => SvelteNoInspect::CATEGORY,
+            Self::SvelteNoNavigationWithoutBase(_) => SvelteNoNavigationWithoutBase::CATEGORY,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::CATEGORY,
             Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::CATEGORY,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::CATEGORY,
@@ -6420,10 +6450,14 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::CATEGORY
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::CATEGORY,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::CATEGORY,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::CATEGORY,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::CATEGORY,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::CATEGORY,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::CATEGORY,
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::CATEGORY
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::CATEGORY,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::CATEGORY,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::CATEGORY,
@@ -7501,6 +7535,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::FIX
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::FIX,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::FIX,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::FIX,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
@@ -7516,6 +7551,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::FIX
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::FIX,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::FIX,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::FIX,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::FIX
@@ -7523,6 +7559,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::FIX,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::FIX,
             Self::SvelteNoInspect(_) => SvelteNoInspect::FIX,
+            Self::SvelteNoNavigationWithoutBase(_) => SvelteNoNavigationWithoutBase::FIX,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::FIX,
             Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::FIX,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::FIX,
@@ -7545,10 +7582,12 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::FIX
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::FIX,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::FIX,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::FIX,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::FIX,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
+            Self::SveltePreferAttributeInterpolation(_) => SveltePreferAttributeInterpolation::FIX,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::FIX,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::FIX,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::FIX,
@@ -8922,6 +8961,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::documentation()
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::documentation(),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::documentation(),
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::documentation(),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
@@ -8939,6 +8979,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::documentation()
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::documentation(),
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::documentation(),
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::documentation(),
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::documentation()
@@ -8946,6 +8987,9 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::documentation(),
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::documentation(),
             Self::SvelteNoInspect(_) => SvelteNoInspect::documentation(),
+            Self::SvelteNoNavigationWithoutBase(_) => {
+                SvelteNoNavigationWithoutBase::documentation()
+            }
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::documentation()
             }
@@ -8974,12 +9018,16 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::documentation()
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::documentation(),
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::documentation(),
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::documentation(),
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::documentation(),
             Self::SvelteNoUselessChildrenSnippet(_) => {
                 SvelteNoUselessChildrenSnippet::documentation()
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::documentation(),
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::documentation()
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::documentation()
             }
@@ -11690,6 +11738,8 @@ impl RuleEnum {
                 SvelteInfiniteReactiveLoop::config_schema(generator)
                     .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
             }
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::config_schema(generator)
+                .or_else(|| SvelteMaxLinesPerBlock::schema(generator)),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::config_schema(generator)
                 .or_else(|| SvelteNoAddEventListener::schema(generator)),
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::config_schema(generator)
@@ -11726,6 +11776,8 @@ impl RuleEnum {
                 SvelteNoExtraReactiveCurlies::config_schema(generator)
                     .or_else(|| SvelteNoExtraReactiveCurlies::schema(generator))
             }
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::config_schema(generator)
+                .or_else(|| SvelteNoGotoWithoutBase::schema(generator)),
             Self::SvelteNoIgnoredUnsubscribe(_) => {
                 SvelteNoIgnoredUnsubscribe::config_schema(generator)
                     .or_else(|| SvelteNoIgnoredUnsubscribe::schema(generator))
@@ -11742,6 +11794,10 @@ impl RuleEnum {
             }
             Self::SvelteNoInspect(_) => SvelteNoInspect::config_schema(generator)
                 .or_else(|| SvelteNoInspect::schema(generator)),
+            Self::SvelteNoNavigationWithoutBase(_) => {
+                SvelteNoNavigationWithoutBase::config_schema(generator)
+                    .or_else(|| SvelteNoNavigationWithoutBase::schema(generator))
+            }
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::config_schema(generator)
                     .or_else(|| SvelteNoNavigationWithoutResolve::schema(generator))
@@ -11794,6 +11850,8 @@ impl RuleEnum {
                 SvelteNoUnnecessaryStateWrap::config_schema(generator)
                     .or_else(|| SvelteNoUnnecessaryStateWrap::schema(generator))
             }
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::config_schema(generator)
+                .or_else(|| SvelteNoUnusedClassName::schema(generator)),
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::config_schema(generator)
                 .or_else(|| SvelteNoUnusedProps::schema(generator)),
             Self::SvelteNoUnusedSvelteIgnore(_) => {
@@ -11806,6 +11864,10 @@ impl RuleEnum {
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::config_schema(generator)
                 .or_else(|| SvelteNoUselessMustaches::schema(generator)),
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::config_schema(generator)
+                    .or_else(|| SveltePreferAttributeInterpolation::schema(generator))
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::config_schema(generator)
                     .or_else(|| SveltePreferDerivedOverDerivedBy::schema(generator))
@@ -12792,6 +12854,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(_) => "svelte",
             Self::SvelteExperimentalRequireStrictEvents(_) => "svelte",
             Self::SvelteInfiniteReactiveLoop(_) => "svelte",
+            Self::SvelteMaxLinesPerBlock(_) => "svelte",
             Self::SvelteNoAddEventListener(_) => "svelte",
             Self::SvelteNoAtConstTags(_) => "svelte",
             Self::SvelteNoAtDebugTags(_) => "svelte",
@@ -12805,11 +12868,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(_) => "svelte",
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => "svelte",
             Self::SvelteNoExtraReactiveCurlies(_) => "svelte",
+            Self::SvelteNoGotoWithoutBase(_) => "svelte",
             Self::SvelteNoIgnoredUnsubscribe(_) => "svelte",
             Self::SvelteNoImmutableReactiveStatements(_) => "svelte",
             Self::SvelteNoInlineStyles(_) => "svelte",
             Self::SvelteNoInnerDeclarations(_) => "svelte",
             Self::SvelteNoInspect(_) => "svelte",
+            Self::SvelteNoNavigationWithoutBase(_) => "svelte",
             Self::SvelteNoNavigationWithoutResolve(_) => "svelte",
             Self::SvelteNoNestedStyleTag(_) => "svelte",
             Self::SvelteNoNotFunctionHandler(_) => "svelte",
@@ -12826,10 +12891,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(_) => "svelte",
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => "svelte",
             Self::SvelteNoUnnecessaryStateWrap(_) => "svelte",
+            Self::SvelteNoUnusedClassName(_) => "svelte",
             Self::SvelteNoUnusedProps(_) => "svelte",
             Self::SvelteNoUnusedSvelteIgnore(_) => "svelte",
             Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
             Self::SvelteNoUselessMustaches(_) => "svelte",
+            Self::SveltePreferAttributeInterpolation(_) => "svelte",
             Self::SveltePreferDerivedOverDerivedBy(_) => "svelte",
             Self::SveltePreferStyleDirective(_) => "svelte",
             Self::SveltePreferSvelteReactivity(_) => "svelte",
@@ -14000,6 +14067,9 @@ impl RuleEnum {
             Self::SvelteButtonHasType(_) => {
                 Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
             }
+            Self::SvelteMaxLinesPerBlock(_) => {
+                Ok(Self::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::from_configuration(value)?))
+            }
             Self::SvelteNoInlineStyles(_) => {
                 Ok(Self::SvelteNoInlineStyles(SvelteNoInlineStyles::from_configuration(value)?))
             }
@@ -14027,6 +14097,9 @@ impl RuleEnum {
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => Ok(Self::SvelteNoUnnecessaryStateWrap(
                 SvelteNoUnnecessaryStateWrap::from_configuration(value)?,
+            )),
+            Self::SvelteNoUnusedClassName(_) => Ok(Self::SvelteNoUnusedClassName(
+                SvelteNoUnusedClassName::from_configuration(value)?,
             )),
             Self::SvelteSortAttributes(_) => {
                 Ok(Self::SvelteSortAttributes(SvelteSortAttributes::from_configuration(value)?))
@@ -15011,6 +15084,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run(node, ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run(node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.run(node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run(node, ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
@@ -15024,11 +15098,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(rule) => rule.run(node, ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run(node, ctx),
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.run(node, ctx),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.run(node, ctx),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run(node, ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run(node, ctx),
             Self::SvelteNoInlineStyles(rule) => rule.run(node, ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run(node, ctx),
             Self::SvelteNoInspect(rule) => rule.run(node, ctx),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.run(node, ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run(node, ctx),
             Self::SvelteNoNestedStyleTag(rule) => rule.run(node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run(node, ctx),
@@ -15045,10 +15121,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(rule) => rule.run(node, ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run(node, ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run(node, ctx),
+            Self::SvelteNoUnusedClassName(rule) => rule.run(node, ctx),
             Self::SvelteNoUnusedProps(rule) => rule.run(node, ctx),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.run(node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run(node, ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run(node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run(node, ctx),
@@ -16014,6 +16092,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_once(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_once(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.run_once(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_once(ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
@@ -16027,11 +16106,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(rule) => rule.run_once(ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_once(ctx),
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_once(ctx),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.run_once(ctx),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_once(ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_once(ctx),
             Self::SvelteNoInlineStyles(rule) => rule.run_once(ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_once(ctx),
             Self::SvelteNoInspect(rule) => rule.run_once(ctx),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.run_once(ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_once(ctx),
             Self::SvelteNoNestedStyleTag(rule) => rule.run_once(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_once(ctx),
@@ -16048,10 +16129,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(rule) => rule.run_once(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_once(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_once(ctx),
+            Self::SvelteNoUnusedClassName(rule) => rule.run_once(ctx),
             Self::SvelteNoUnusedProps(rule) => rule.run_once(ctx),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.run_once(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_once(ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run_once(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_once(ctx),
@@ -17138,6 +17221,7 @@ impl RuleEnum {
                 rule.run_on_jest_node(jest_node, ctx)
             }
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17153,6 +17237,7 @@ impl RuleEnum {
                 rule.run_on_jest_node(jest_node, ctx)
             }
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
@@ -17160,6 +17245,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoInspect(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNestedStyleTag(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17182,10 +17268,12 @@ impl RuleEnum {
                 rule.run_on_jest_node(jest_node, ctx)
             }
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUnusedClassName(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUnusedProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18156,6 +18244,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.should_run(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.should_run(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.should_run(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.should_run(ctx),
             Self::SvelteNoAtConstTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
@@ -18169,11 +18258,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(rule) => rule.should_run(ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.should_run(ctx),
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.should_run(ctx),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.should_run(ctx),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.should_run(ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.should_run(ctx),
             Self::SvelteNoInlineStyles(rule) => rule.should_run(ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.should_run(ctx),
             Self::SvelteNoInspect(rule) => rule.should_run(ctx),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.should_run(ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.should_run(ctx),
             Self::SvelteNoNestedStyleTag(rule) => rule.should_run(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.should_run(ctx),
@@ -18190,10 +18281,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(rule) => rule.should_run(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.should_run(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.should_run(ctx),
+            Self::SvelteNoUnusedClassName(rule) => rule.should_run(ctx),
             Self::SvelteNoUnusedProps(rule) => rule.should_run(ctx),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.should_run(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.should_run(ctx),
             Self::SveltePreferStyleDirective(rule) => rule.should_run(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.should_run(ctx),
@@ -19562,6 +19655,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::IS_TSGOLINT_RULE
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::IS_TSGOLINT_RULE,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::IS_TSGOLINT_RULE,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
@@ -19579,6 +19673,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::IS_TSGOLINT_RULE
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::IS_TSGOLINT_RULE,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::IS_TSGOLINT_RULE,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::IS_TSGOLINT_RULE,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::IS_TSGOLINT_RULE
@@ -19586,6 +19681,9 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::IS_TSGOLINT_RULE,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::IS_TSGOLINT_RULE,
             Self::SvelteNoInspect(_) => SvelteNoInspect::IS_TSGOLINT_RULE,
+            Self::SvelteNoNavigationWithoutBase(_) => {
+                SvelteNoNavigationWithoutBase::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::IS_TSGOLINT_RULE
             }
@@ -19614,12 +19712,16 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::IS_TSGOLINT_RULE
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::IS_TSGOLINT_RULE,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::IS_TSGOLINT_RULE,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::IS_TSGOLINT_RULE,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::IS_TSGOLINT_RULE,
             Self::SvelteNoUselessChildrenSnippet(_) => {
                 SvelteNoUselessChildrenSnippet::IS_TSGOLINT_RULE
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::IS_TSGOLINT_RULE,
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::IS_TSGOLINT_RULE
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::IS_TSGOLINT_RULE
             }
@@ -20776,6 +20878,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::VERSION
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::VERSION,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::VERSION,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::VERSION,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
@@ -20793,6 +20896,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::VERSION
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::VERSION,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::VERSION,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::VERSION,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::VERSION
@@ -20800,6 +20904,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::VERSION,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::VERSION,
             Self::SvelteNoInspect(_) => SvelteNoInspect::VERSION,
+            Self::SvelteNoNavigationWithoutBase(_) => SvelteNoNavigationWithoutBase::VERSION,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::VERSION,
             Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::VERSION,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::VERSION,
@@ -20822,10 +20927,14 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::VERSION
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::VERSION,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::VERSION,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::VERSION,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::VERSION,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::VERSION,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::VERSION,
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::VERSION
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::VERSION,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::VERSION,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::VERSION,
@@ -22021,6 +22130,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::HAS_CONFIG
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::HAS_CONFIG,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::HAS_CONFIG,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::HAS_CONFIG,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
@@ -22038,6 +22148,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::HAS_CONFIG
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::HAS_CONFIG,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::HAS_CONFIG,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::HAS_CONFIG,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::HAS_CONFIG
@@ -22045,6 +22156,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::HAS_CONFIG,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::HAS_CONFIG,
             Self::SvelteNoInspect(_) => SvelteNoInspect::HAS_CONFIG,
+            Self::SvelteNoNavigationWithoutBase(_) => SvelteNoNavigationWithoutBase::HAS_CONFIG,
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::HAS_CONFIG
             }
@@ -22069,10 +22181,14 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::HAS_CONFIG
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::HAS_CONFIG,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::HAS_CONFIG,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::HAS_CONFIG,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::HAS_CONFIG,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::HAS_CONFIG,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::HAS_CONFIG,
+            Self::SveltePreferAttributeInterpolation(_) => {
+                SveltePreferAttributeInterpolation::HAS_CONFIG
+            }
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::HAS_CONFIG
             }
@@ -23155,6 +23271,7 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::INFO
             }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
+            Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::INFO,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::INFO,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::INFO,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
@@ -23170,6 +23287,7 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::INFO
             }
             Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::INFO,
+            Self::SvelteNoGotoWithoutBase(_) => SvelteNoGotoWithoutBase::INFO,
             Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::INFO,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::INFO
@@ -23177,6 +23295,7 @@ impl RuleEnum {
             Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::INFO,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::INFO,
             Self::SvelteNoInspect(_) => SvelteNoInspect::INFO,
+            Self::SvelteNoNavigationWithoutBase(_) => SvelteNoNavigationWithoutBase::INFO,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::INFO,
             Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::INFO,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::INFO,
@@ -23199,10 +23318,12 @@ impl RuleEnum {
                 SvelteNoUnknownStyleDirectiveProperty::INFO
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::INFO,
+            Self::SvelteNoUnusedClassName(_) => SvelteNoUnusedClassName::INFO,
             Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::INFO,
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::INFO,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
+            Self::SveltePreferAttributeInterpolation(_) => SveltePreferAttributeInterpolation::INFO,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::INFO,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::INFO,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::INFO,
@@ -24164,6 +24285,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.types_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.types_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.types_info(),
             Self::SvelteNoAddEventListener(rule) => rule.types_info(),
             Self::SvelteNoAtConstTags(rule) => rule.types_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
@@ -24177,11 +24299,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(rule) => rule.types_info(),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.types_info(),
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.types_info(),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.types_info(),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.types_info(),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.types_info(),
             Self::SvelteNoInlineStyles(rule) => rule.types_info(),
             Self::SvelteNoInnerDeclarations(rule) => rule.types_info(),
             Self::SvelteNoInspect(rule) => rule.types_info(),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.types_info(),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.types_info(),
             Self::SvelteNoNestedStyleTag(rule) => rule.types_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.types_info(),
@@ -24198,10 +24322,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(rule) => rule.types_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.types_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.types_info(),
+            Self::SvelteNoUnusedClassName(rule) => rule.types_info(),
             Self::SvelteNoUnusedProps(rule) => rule.types_info(),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.types_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.types_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.types_info(),
             Self::SveltePreferStyleDirective(rule) => rule.types_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.types_info(),
@@ -25154,6 +25280,7 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
+            Self::SvelteMaxLinesPerBlock(rule) => rule.run_info(),
             Self::SvelteNoAddEventListener(rule) => rule.run_info(),
             Self::SvelteNoAtConstTags(rule) => rule.run_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
@@ -25167,11 +25294,13 @@ impl RuleEnum {
             Self::SvelteNoDynamicSlotName(rule) => rule.run_info(),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_info(),
             Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_info(),
+            Self::SvelteNoGotoWithoutBase(rule) => rule.run_info(),
             Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_info(),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_info(),
             Self::SvelteNoInlineStyles(rule) => rule.run_info(),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_info(),
             Self::SvelteNoInspect(rule) => rule.run_info(),
+            Self::SvelteNoNavigationWithoutBase(rule) => rule.run_info(),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_info(),
             Self::SvelteNoNestedStyleTag(rule) => rule.run_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_info(),
@@ -25188,10 +25317,12 @@ impl RuleEnum {
             Self::SvelteNoTargetBlank(rule) => rule.run_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_info(),
+            Self::SvelteNoUnusedClassName(rule) => rule.run_info(),
             Self::SvelteNoUnusedProps(rule) => rule.run_info(),
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
+            Self::SveltePreferAttributeInterpolation(rule) => rule.run_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_info(),
             Self::SveltePreferStyleDirective(rule) => rule.run_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_info(),
@@ -26284,6 +26415,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
             SvelteExperimentalRequireStrictEvents::default(),
         ),
         RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
+        RuleEnum::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::default()),
         RuleEnum::SvelteNoAddEventListener(SvelteNoAddEventListener::default()),
         RuleEnum::SvelteNoAtConstTags(SvelteNoAtConstTags::default()),
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
@@ -26299,6 +26431,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
             SvelteNoExportLoadInSvelteModuleInKitPages::default(),
         ),
         RuleEnum::SvelteNoExtraReactiveCurlies(SvelteNoExtraReactiveCurlies::default()),
+        RuleEnum::SvelteNoGotoWithoutBase(SvelteNoGotoWithoutBase::default()),
         RuleEnum::SvelteNoIgnoredUnsubscribe(SvelteNoIgnoredUnsubscribe::default()),
         RuleEnum::SvelteNoImmutableReactiveStatements(
             SvelteNoImmutableReactiveStatements::default(),
@@ -26306,6 +26439,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoInlineStyles(SvelteNoInlineStyles::default()),
         RuleEnum::SvelteNoInnerDeclarations(SvelteNoInnerDeclarations::default()),
         RuleEnum::SvelteNoInspect(SvelteNoInspect::default()),
+        RuleEnum::SvelteNoNavigationWithoutBase(SvelteNoNavigationWithoutBase::default()),
         RuleEnum::SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve::default()),
         RuleEnum::SvelteNoNestedStyleTag(SvelteNoNestedStyleTag::default()),
         RuleEnum::SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler::default()),
@@ -26328,10 +26462,12 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
             SvelteNoUnknownStyleDirectiveProperty::default(),
         ),
         RuleEnum::SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap::default()),
+        RuleEnum::SvelteNoUnusedClassName(SvelteNoUnusedClassName::default()),
         RuleEnum::SvelteNoUnusedProps(SvelteNoUnusedProps::default()),
         RuleEnum::SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore::default()),
         RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
         RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
+        RuleEnum::SveltePreferAttributeInterpolation(SveltePreferAttributeInterpolation::default()),
         RuleEnum::SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy::default()),
         RuleEnum::SveltePreferStyleDirective(SveltePreferStyleDirective::default()),
         RuleEnum::SveltePreferSvelteReactivity(SveltePreferSvelteReactivity::default()),

@@ -8,6 +8,11 @@
 
 use std::path::Path;
 
+use oxc_allocator::Allocator;
+use oxc_ast::ast::Expression;
+use oxc_parser::{ParseOptions, Parser};
+use oxc_span::SourceType;
+
 /// Svelte 5 runes. Members are reached through the same identifier
 /// (`$state.raw`, `$derived.by`, `$effect.pre`, `$props.id`), so matching the
 /// identifier covers those too.
@@ -40,4 +45,18 @@ pub fn is_svelte_path(path: &Path) -> bool {
 /// Whether `path` is a Vue single-file component.
 pub fn is_vue_path(path: &Path) -> bool {
     path.extension().is_some_and(|ext| ext == "vue")
+}
+
+/// Parse one Svelte markup expression (the text inside `{…}`) on its own.
+///
+/// Returns `None` when the text is not a valid expression, which the markup
+/// parser tolerates but a rule cannot analyse.
+pub fn parse_svelte_expression<'alloc>(
+    allocator: &'alloc Allocator,
+    text: &'alloc str,
+) -> Option<Expression<'alloc>> {
+    Parser::new(allocator, text, SourceType::ts())
+        .with_options(ParseOptions { preserve_parens: false, ..ParseOptions::default() })
+        .parse_expression()
+        .ok()
 }

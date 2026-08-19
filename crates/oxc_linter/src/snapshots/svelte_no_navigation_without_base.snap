@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-navigation-without-base): Found a goto() call with a url that isn't prefixed with the base path.
+   ╭─[no_navigation_without_base.tsx:3:7]
+ 2 │     import { goto } from '$app/navigation';
+ 3 │     goto('/foo');
+   ·          ──────
+ 4 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
+
+  ⚠ svelte(no-navigation-without-base): Found a link with a url that isn't prefixed with the base path.
+   ╭─[no_navigation_without_base.tsx:1:4]
+ 1 │ <a href="/foo">x</a>
+   ·    ───────────
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
+
+  ⚠ svelte(no-navigation-without-base): Found a pushState() call with a url that isn't prefixed with the base path.
+   ╭─[no_navigation_without_base.tsx:3:12]
+ 2 │     import { pushState } from '$app/navigation';
+ 3 │     pushState('/foo', {});
+   ·               ──────
+ 4 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
+
+  ⚠ svelte(no-navigation-without-base): Found a replaceState() call with a url that isn't prefixed with the base path.
+   ╭─[no_navigation_without_base.tsx:3:15]
+ 2 │     import { replaceState } from '$app/navigation';
+ 3 │     replaceState('/foo', {});
+   ·                  ──────
+ 4 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
+
+  ⚠ svelte(no-navigation-without-base): Found a goto() call with a url that isn't prefixed with the base path.
+   ╭─[no_navigation_without_base.tsx:4:7]
+ 3 │     import { goto } from '$app/navigation';
+ 4 │     goto(`${base}/foo`);
+   ·          ─────────────
+ 5 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.

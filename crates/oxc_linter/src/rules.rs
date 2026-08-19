@@ -1027,6 +1027,7 @@ pub(crate) mod svelte {
     pub mod experimental_require_slot_types;
     pub mod experimental_require_strict_events;
     pub mod infinite_reactive_loop;
+    pub mod max_lines_per_block;
     pub mod no_add_event_listener;
     pub mod no_at_const_tags;
     pub mod no_at_debug_tags;
@@ -1040,11 +1041,13 @@ pub(crate) mod svelte {
     pub mod no_dynamic_slot_name;
     pub mod no_export_load_in_svelte_module_in_kit_pages;
     pub mod no_extra_reactive_curlies;
+    pub mod no_goto_without_base;
     pub mod no_ignored_unsubscribe;
     pub mod no_immutable_reactive_statements;
     pub mod no_inline_styles;
     pub mod no_inner_declarations;
     pub mod no_inspect;
+    pub mod no_navigation_without_base;
     pub mod no_navigation_without_resolve;
     pub mod no_nested_style_tag;
     pub mod no_not_function_handler;
@@ -1061,10 +1064,12 @@ pub(crate) mod svelte {
     pub mod no_target_blank;
     pub mod no_unknown_style_directive_property;
     pub mod no_unnecessary_state_wrap;
+    pub mod no_unused_class_name;
     pub mod no_unused_props;
     pub mod no_unused_svelte_ignore;
     pub mod no_useless_children_snippet;
     pub mod no_useless_mustaches;
+    pub mod prefer_attribute_interpolation;
     pub mod prefer_derived_over_derived_by;
     pub mod prefer_style_directive;
     pub mod prefer_svelte_reactivity;

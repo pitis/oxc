@@ -1,0 +1,34 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-unused-class-name): Unused class "card".
+   ╭─[no_unused_class_name.tsx:1:1]
+ 1 │ <div class="card"></div>
+   · ──────────────────
+ 2 │ <style>
+   ╰────
+  help: Add a rule for it to the component's `<style>`, or remove the class.
+
+  ⚠ svelte(no-unused-class-name): Unused class "card".
+   ╭─[no_unused_class_name.tsx:1:1]
+ 1 │ <div class="card"></div>
+   · ──────────────────
+   ╰────
+  help: Add a rule for it to the component's `<style>`, or remove the class.
+
+  ⚠ svelte(no-unused-class-name): Unused class "active".
+   ╭─[no_unused_class_name.tsx:1:1]
+ 1 │ <div class:active></div>
+   · ──────────────────
+ 2 │ <style>
+   ╰────
+  help: Add a rule for it to the component's `<style>`, or remove the class.
+
+  ⚠ svelte(no-unused-class-name): Unused class "b".
+   ╭─[no_unused_class_name.tsx:1:1]
+ 1 │ <div class="a b"></div>
+   · ─────────────────
+ 2 │ <style>
+   ╰────
+  help: Add a rule for it to the component's `<style>`, or remove the class.

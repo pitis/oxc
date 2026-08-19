@@ -5888,6 +5888,11 @@ impl RuleRunner for crate::rules::svelte::infinite_reactive_loop::InfiniteReacti
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
 }
 
+impl RuleRunner for crate::rules::svelte::max_lines_per_block::MaxLinesPerBlock {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::svelte::no_add_event_listener::NoAddEventListener {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
@@ -5957,6 +5962,11 @@ impl RuleRunner for crate::rules::svelte::no_extra_reactive_curlies::NoExtraReac
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
+impl RuleRunner for crate::rules::svelte::no_goto_without_base::NoGotoWithoutBase {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::svelte::no_ignored_unsubscribe::NoIgnoredUnsubscribe {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::ExpressionStatement]));
@@ -5989,6 +5999,11 @@ impl RuleRunner for crate::rules::svelte::no_inspect::NoInspect {
         AstType::IdentifierReference,
     ]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::svelte::no_navigation_without_base::NoNavigationWithoutBase {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner
@@ -6083,6 +6098,11 @@ impl RuleRunner for crate::rules::svelte::no_unnecessary_state_wrap::NoUnnecessa
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Unknown;
 }
 
+impl RuleRunner for crate::rules::svelte::no_unused_class_name::NoUnusedClassName {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::svelte::no_unused_props::NoUnusedProps {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
@@ -6099,6 +6119,13 @@ impl RuleRunner for crate::rules::svelte::no_useless_children_snippet::NoUseless
 }
 
 impl RuleRunner for crate::rules::svelte::no_useless_mustaches::NoUselessMustaches {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner
+    for crate::rules::svelte::prefer_attribute_interpolation::PreferAttributeInterpolation
+{
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }

@@ -1,0 +1,35 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(max-lines-per-block): <script> block has too many lines (3). Maximum allowed is 2.
+   ╭─[max_lines_per_block.tsx:1:1]
+ 1 │ <script>
+   · ────────
+ 2 │     let a = 1;
+   ╰────
+  help: Split the block up, or raise the rule's limit.
+
+  ⚠ svelte(max-lines-per-block): <style> block has too many lines (3). Maximum allowed is 2.
+   ╭─[max_lines_per_block.tsx:1:1]
+ 1 │ <style>
+   · ───────
+ 2 │     a {}
+   ╰────
+  help: Split the block up, or raise the rule's limit.
+
+  ⚠ svelte(max-lines-per-block): template block has too many lines (3). Maximum allowed is 2.
+   ╭─[max_lines_per_block.tsx:1:1]
+ 1 │ <p>a</p>
+   · ▲
+ 2 │ <p>b</p>
+   ╰────
+  help: Split the block up, or raise the rule's limit.
+
+  ⚠ svelte(max-lines-per-block): <script> block has too many lines (3). Maximum allowed is 2.
+   ╭─[max_lines_per_block.tsx:1:1]
+ 1 │ <script>
+   · ────────
+ 2 │     let a = 1;
+   ╰────
+  help: Split the block up, or raise the rule's limit.

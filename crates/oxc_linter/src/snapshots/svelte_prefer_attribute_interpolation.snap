@@ -1,0 +1,24 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-attribute-interpolation): Use attribute interpolation instead of a template literal.
+   ╭─[prefer_attribute_interpolation.tsx:1:12]
+ 1 │ <div class={`a ${b} c`}></div>
+   ·            ────────────
+   ╰────
+  help: Write `attr="prefix{expr}suffix"` instead of `attr={`prefix${expr}suffix`}`.
+
+  ⚠ svelte(prefer-attribute-interpolation): Use attribute interpolation instead of a template literal.
+   ╭─[prefer_attribute_interpolation.tsx:1:12]
+ 1 │ <div title={`${a}`}></div>
+   ·            ────────
+   ╰────
+  help: Write `attr="prefix{expr}suffix"` instead of `attr={`prefix${expr}suffix`}`.
+
+  ⚠ svelte(prefer-attribute-interpolation): Use attribute interpolation instead of a template literal.
+   ╭─[prefer_attribute_interpolation.tsx:1:13]
+ 1 │ <div data-x={`${a}-${b}`}></div>
+   ·             ─────────────
+   ╰────
+  help: Write `attr="prefix{expr}suffix"` instead of `attr={`prefix${expr}suffix`}`.

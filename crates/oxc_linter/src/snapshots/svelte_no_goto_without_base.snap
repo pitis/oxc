@@ -1,0 +1,21 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-goto-without-base): Found a goto() call with a url that isn't prefixed with the base path.
+   ╭─[no_goto_without_base.tsx:3:7]
+ 2 │     import { goto } from '$app/navigation';
+ 3 │     goto('/foo');
+   ·          ──────
+ 4 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
+
+  ⚠ svelte(no-goto-without-base): Found a goto() call with a url that isn't prefixed with the base path.
+   ╭─[no_goto_without_base.tsx:3:7]
+ 2 │     import { goto } from '$app/navigation';
+ 3 │     goto(url);
+   ·          ───
+ 4 │ </script>
+   ╰────
+  help: Prefix the URL with `base` from `$app/paths`.
