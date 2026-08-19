@@ -1,0 +1,106 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment must include the code
+   ╭─[no_unused_svelte_ignore.tsx:1:1]
+ 1 │ <!-- svelte-ignore -->
+   · ──────────────────────
+ 2 │ <img src="foo" autofocus />
+   ╰────
+  help: Add the warning code(s) to suppress, e.g. `<!-- svelte-ignore a11y_autofocus -->`.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment must include the code
+   ╭─[no_unused_svelte_ignore.tsx:1:1]
+ 1 │ <!-- svelte-ignore (see notes) -->
+   · ──────────────────────────────────
+ 2 │ <input autofocus />
+   ╰────
+  help: Add the warning code(s) to suppress, e.g. `<!-- svelte-ignore a11y_autofocus -->`.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:1:20]
+ 1 │ <!-- svelte-ignore a11y_autofocs -->
+   ·                    ─────────────
+ 2 │ <input autofocus />
+   ╰────
+  help: 'a11y_autofocs' is not a recognized Svelte compiler warning code, so this comment suppresses nothing.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:1:36]
+ 1 │ <!-- svelte-ignore a11y_autofocus, foo_bar_baz -->
+   ·                                    ───────────
+ 2 │ <input autofocus />
+   ╰────
+  help: 'foo_bar_baz' is not a recognized Svelte compiler warning code, so this comment suppresses nothing.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:4:22]
+ 3 │         A
+ 4 │         <!-- svelte-ignore a11y_label_has_associated_control a11y_no_noninteractive_tabindex -->
+   ·                            ─────────────────────────────────
+ 5 │     {:else}
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:4:56]
+ 3 │         A
+ 4 │         <!-- svelte-ignore a11y_label_has_associated_control a11y_no_noninteractive_tabindex -->
+   ·                                                              ───────────────────────────────
+ 5 │     {:else}
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:4:22]
+ 3 │         A
+ 4 │         <!-- svelte-ignore a11y_label_has_associated_control a11y_no_noninteractive_tabindex -->
+   ·                            ─────────────────────────────────
+ 5 │     {:else}
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:4:56]
+ 3 │         A
+ 4 │         <!-- svelte-ignore a11y_label_has_associated_control a11y_no_noninteractive_tabindex -->
+   ·                                                              ───────────────────────────────
+ 5 │     {:else}
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:2:20]
+ 1 │ <div />
+ 2 │ <!-- svelte-ignore a11y_autofocus -->
+   ·                    ──────────────
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:2:21]
+ 1 │ <div>
+ 2 │     <!-- svelte-ignore block_empty -->
+   ·                        ───────────
+ 3 │ </div>
+   ╰────
+  help: No element, block, or tag follows this comment for it to apply to; a `svelte-ignore` comment suppresses warnings on the node after it.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment is used, but not warned
+   ╭─[no_unused_svelte_ignore.tsx:2:19]
+ 1 │ <script>
+ 2 │     // svelte-ignore not_a_real_code
+   ·                      ───────────────
+ 3 │     let a = 1;
+   ╰────
+  help: 'not_a_real_code' is not a recognized Svelte compiler warning code, so this comment suppresses nothing.
+
+  ⚠ svelte(no-unused-svelte-ignore): svelte-ignore comment must include the code
+   ╭─[no_unused_svelte_ignore.tsx:2:2]
+ 1 │ <script>
+ 2 │     /* svelte-ignore */
+   ·     ───────────────────
+ 3 │     let a = 1;
+   ╰────
+  help: Add the warning code(s) to suppress, e.g. `<!-- svelte-ignore a11y_autofocus -->`.

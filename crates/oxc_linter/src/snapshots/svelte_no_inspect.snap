@@ -1,0 +1,43 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-inspect): Do not use $inspect directive
+   ╭─[no_inspect.tsx:2:3]
+ 1 │ <script>
+ 2 │   $inspect(1);
+   ·   ────────
+ 3 │   $state(0);
+   ╰────
+
+  ⚠ svelte(no-inspect): Do not use $inspect directive
+   ╭─[no_inspect.tsx:5:13]
+ 4 │ 
+ 5 │   const a = $inspect(1);
+   ·             ────────
+ 6 │ 
+   ╰────
+
+  ⚠ svelte(no-inspect): Do not use $inspect directive
+   ╭─[no_inspect.tsx:8:5]
+ 7 │   const _ = () => {
+ 8 │     $inspect(1);
+   ·     ────────
+ 9 │   }
+   ╰────
+
+  ⚠ svelte(no-inspect): Do not use $inspect directive
+   ╭─[no_inspect.tsx:3:3]
+ 2 │   let count = $state(0);
+ 3 │   $inspect(count).with(console.trace);
+   ·   ────────
+ 4 │ </script>
+   ╰────
+
+  ⚠ svelte(no-inspect): Do not use $inspect directive
+   ╭─[no_inspect.tsx:2:3]
+ 1 │ <script>
+ 2 │   $inspect.trace();
+   ·   ────────
+ 3 │ </script>
+   ╰────

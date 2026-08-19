@@ -13717,9 +13717,28 @@ impl RuleEnum {
             Self::SvelteButtonHasType(_) => {
                 Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
             }
+            Self::SvelteNoInnerDeclarations(_) => Ok(Self::SvelteNoInnerDeclarations(
+                SvelteNoInnerDeclarations::from_configuration(value)?,
+            )),
+            Self::SvelteNoNavigationWithoutResolve(_) => {
+                Ok(Self::SvelteNoNavigationWithoutResolve(
+                    SvelteNoNavigationWithoutResolve::from_configuration(value)?,
+                ))
+            }
+            Self::SvelteNoReactiveReassign(_) => Ok(Self::SvelteNoReactiveReassign(
+                SvelteNoReactiveReassign::from_configuration(value)?,
+            )),
             Self::SvelteNoTargetBlank(_) => {
                 Ok(Self::SvelteNoTargetBlank(SvelteNoTargetBlank::from_configuration(value)?))
             }
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                Ok(Self::SvelteNoUnknownStyleDirectiveProperty(
+                    SvelteNoUnknownStyleDirectiveProperty::from_configuration(value)?,
+                ))
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => Ok(Self::SvelteNoUnnecessaryStateWrap(
+                SvelteNoUnnecessaryStateWrap::from_configuration(value)?,
+            )),
             _ => Ok(RULES[self.id()].clone()),
         }
     }

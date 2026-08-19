@@ -1,0 +1,115 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+    ╭─[no_store_async.tsx:10:25]
+  9 │     });
+ 10 │     const d2 = derived(a1, async ($a1) => {
+    ·                            ─────
+ 11 │         /** do nothing */
+    ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:7:29]
+ 6 │     });
+ 7 │     const r2 = readable(false, async () => {
+   ·                                ─────
+ 8 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:4:29]
+ 3 │ 
+ 4 │     const w2 = writable(false, async () => {
+   ·                                ─────
+ 5 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:4:36]
+ 3 │ 
+ 4 │     const w2 = stores.writable(false, async () => {
+   ·                                       ─────
+ 5 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:7:36]
+ 6 │     });
+ 7 │     const r2 = stores.readable(false, async () => {
+   ·                                       ─────
+ 8 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+    ╭─[no_store_async.tsx:10:32]
+  9 │     });
+ 10 │     const d2 = stores.derived(a1, async ($a1) => {
+    ·                                   ─────
+ 11 │         /** do nothing */
+    ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+    ╭─[no_store_async.tsx:10:19]
+  9 │     });
+ 10 │     const d2 = C(a1, async ($a1) => {
+    ·                      ─────
+ 11 │         /** do nothing */
+    ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:7:22]
+ 6 │     });
+ 7 │     const r2 = B(false, async () => {
+   ·                         ─────
+ 8 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:4:22]
+ 3 │ 
+ 4 │     const w2 = A(false, async () => {
+   ·                         ─────
+ 5 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+    ╭─[no_store_async.tsx:10:25]
+  9 │     });
+ 10 │     const d2 = derived(a1, async function ($a1) {
+    ·                            ─────
+ 11 │         /** do nothing */
+    ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:7:29]
+ 6 │     });
+ 7 │     const r2 = readable(false, async function () {
+   ·                                ─────
+ 8 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:4:29]
+ 3 │ 
+ 4 │     const w2 = writable(false, async function () {
+   ·                                ─────
+ 5 │         /** do nothing */
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:5:30]
+ 4 │     const myWritable = writable;
+ 5 │     const w = myWritable(false, async () => {});
+   ·                                 ─────
+ 6 │ </script>
+   ╰────
+
+  ⚠ svelte(no-store-async): Do not pass async functions to svelte stores.
+   ╭─[no_store_async.tsx:4:38]
+ 3 │ 
+ 4 │     const w = stores['writable'](false, async () => {});
+   ·                                         ─────
+ 5 │ </script>
+   ╰────

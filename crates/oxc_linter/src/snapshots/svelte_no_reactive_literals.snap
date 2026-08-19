@@ -1,0 +1,66 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:3:5]
+ 2 │ <script>
+ 3 │     $: foo = "foo";
+   ·     ───────────────
+ 4 │     $: bar = [];
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:4:5]
+ 3 │     $: foo = "foo";
+ 4 │     $: bar = [];
+   ·     ────────────
+ 5 │     $: baz = {};
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:5:5]
+ 4 │     $: bar = [];
+ 5 │     $: baz = {};
+   ·     ────────────
+ 6 │ </script>
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:2:5]
+ 1 │ <script>
+ 2 │     $: foo = 1;
+   ·     ───────────
+ 3 │     $: bar = true;
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:3:5]
+ 2 │     $: foo = 1;
+ 3 │     $: bar = true;
+   ·     ──────────────
+ 4 │     $: baz = null;
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:4:5]
+ 3 │     $: bar = true;
+ 4 │     $: baz = null;
+   ·     ──────────────
+ 5 │ </script>
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.
+
+  ⚠ svelte(no-reactive-literals): Do not assign literal values inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_literals.tsx:2:5]
+ 1 │ <script lang="ts">
+ 2 │     $: foo = "foo";
+   ·     ───────────────
+ 3 │ </script>
+   ╰────
+  help: Move the literal out of the reactive statement into an assignment.

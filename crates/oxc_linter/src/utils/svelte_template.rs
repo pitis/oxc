@@ -97,8 +97,6 @@ pub struct SvelteScript<'a> {
     pub offset: u32,
     /// `lang="ts"` (or `lang="tsx"`).
     pub typescript: bool,
-    /// `context="module"` (Svelte 4) / `module` attribute (Svelte 5).
-    pub module: bool,
 }
 
 /// The `<script>` blocks of a parsed `.svelte` file, in source order.
@@ -114,15 +112,10 @@ pub fn svelte_scripts<'a>(nodes: &[Node<'a>], source_text: &'a str) -> Vec<Svelt
             .is_some_and(|lang| {
                 lang.eq_ignore_ascii_case("ts") || lang.eq_ignore_ascii_case("tsx")
             });
-        let module = get_plain_attribute(element, "context")
-            .and_then(|(_, value)| value.and_then(AttributeValue::as_static_text))
-            .is_some_and(|context| context == "module")
-            || get_plain_attribute(element, "module").is_some();
         scripts.push(SvelteScript {
             content: &source_text[raw.start as usize..raw.end as usize],
             offset: raw.start,
             typescript,
-            module,
         });
     });
     scripts

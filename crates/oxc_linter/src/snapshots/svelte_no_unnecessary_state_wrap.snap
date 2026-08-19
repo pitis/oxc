@@ -1,0 +1,120 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteSet is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:11:36]
+ 10 │ 
+ 11 │                 const set = $state(new SvelteSet());
+    ·                                    ───────────────
+ 12 │                 const map = $state(new SvelteMap());
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteMap is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:12:36]
+ 11 │                 const set = $state(new SvelteSet());
+ 12 │                 const map = $state(new SvelteMap());
+    ·                                    ───────────────
+ 13 │                 const url = $state(new SvelteURL('https://example.com'));
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteURL is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:13:36]
+ 12 │                 const map = $state(new SvelteMap());
+ 13 │                 const url = $state(new SvelteURL('https://example.com'));
+    ·                                    ────────────────────────────────────
+ 14 │                 const params = $state(new SvelteURLSearchParams('key=value'));
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteURLSearchParams is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:14:39]
+ 13 │                 const url = $state(new SvelteURL('https://example.com'));
+ 14 │                 const params = $state(new SvelteURLSearchParams('key=value'));
+    ·                                       ──────────────────────────────────────
+ 15 │                 const date = $state(new SvelteDate());
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteDate is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:15:37]
+ 14 │                 const params = $state(new SvelteURLSearchParams('key=value'));
+ 15 │                 const date = $state(new SvelteDate());
+    ·                                     ────────────────
+ 16 │                 const mediaQuery = $state(new MediaQuery('(min-width: 800px)'));
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): MediaQuery is already reactive, $state wrapping is unnecessary.
+    ╭─[no_unnecessary_state_wrap.tsx:16:43]
+ 15 │                 const date = $state(new SvelteDate());
+ 16 │                 const mediaQuery = $state(new MediaQuery('(min-width: 800px)'));
+    ·                                           ────────────────────────────────────
+ 17 │ 
+    ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteSet is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:4:36]
+ 3 │ 
+ 4 │                 const set = $state(new CustomSet());
+   ·                                    ───────────────
+ 5 │                 const map = $state(new CustomMap());
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteMap is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:5:36]
+ 4 │                 const set = $state(new CustomSet());
+ 5 │                 const map = $state(new CustomMap());
+   ·                                    ───────────────
+ 6 │             </script>
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteMap is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:4:36]
+ 3 │ 
+ 4 │                 const map = $state(new reactivity.SvelteMap());
+   ·                                    ──────────────────────────
+ 5 │             </script>
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): CustomReactiveClass1 is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:4:40]
+ 3 │ 
+ 4 │                 const custom1 = $state(new CustomReactiveClass1());
+   ·                                        ──────────────────────────
+ 5 │                 const custom2 = $state(new CustomReactiveClass2());
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): CustomReactiveClass2 is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:5:40]
+ 4 │                 const custom1 = $state(new CustomReactiveClass1());
+ 5 │                 const custom2 = $state(new CustomReactiveClass2());
+   ·                                        ──────────────────────────
+ 6 │ 
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteSet is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:4:36]
+ 3 │ 
+ 4 │                 const set = $state(new SvelteSet());
+   ·                                    ───────────────
+ 5 │                 let map = $state(new SvelteMap());
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.
+
+  ⚠ svelte(no-unnecessary-state-wrap): SvelteMap is already reactive, $state wrapping is unnecessary.
+   ╭─[no_unnecessary_state_wrap.tsx:5:34]
+ 4 │                 const set = $state(new SvelteSet());
+ 5 │                 let map = $state(new SvelteMap());
+   ·                                  ───────────────
+ 6 │             </script>
+   ╰────
+  help: Remove the `$state(...)` wrapper and use the reactive class directly.

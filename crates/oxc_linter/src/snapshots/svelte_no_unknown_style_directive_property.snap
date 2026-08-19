@@ -1,0 +1,38 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-unknown-style-directive-property): Unexpected unknown style directive property 'unknown-color'.
+   ╭─[no_unknown_style_directive_property.tsx:1:12]
+ 1 │ <div style:unknown-color={red}>...</div>
+   ·            ─────────────
+   ╰────
+  help: Use a known CSS property name; custom properties must start with `--`.
+
+  ⚠ svelte(no-unknown-style-directive-property): Unexpected unknown style directive property 'unknown'.
+   ╭─[no_unknown_style_directive_property.tsx:1:12]
+ 1 │ <div style:unknown>...</div>
+   ·            ───────
+   ╰────
+  help: Use a known CSS property name; custom properties must start with `--`.
+
+  ⚠ svelte(no-unknown-style-directive-property): Unexpected unknown style directive property '-color'.
+   ╭─[no_unknown_style_directive_property.tsx:1:12]
+ 1 │ <div style:-color={red}>...</div>
+   ·            ──────
+   ╰────
+  help: Use a known CSS property name; custom properties must start with `--`.
+
+  ⚠ svelte(no-unknown-style-directive-property): Unexpected unknown style directive property 'unknown'.
+   ╭─[no_unknown_style_directive_property.tsx:1:19]
+ 1 │ {#if a}<div style:unknown>x</div>{/if}
+   ·                   ───────
+   ╰────
+  help: Use a known CSS property name; custom properties must start with `--`.
+
+  ⚠ svelte(no-unknown-style-directive-property): Unexpected unknown style directive property '-webkit-unknown'.
+   ╭─[no_unknown_style_directive_property.tsx:1:12]
+ 1 │ <div style:-webkit-unknown={x}>...</div>
+   ·            ───────────────
+   ╰────
+  help: Use a known CSS property name; custom properties must start with `--`.

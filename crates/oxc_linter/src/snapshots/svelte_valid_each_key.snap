@@ -1,0 +1,45 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:25]
+ 1 │ {#each things as thing (foo)}{thing.name}{/each}
+   ·                         ───
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:25]
+ 1 │ {#each things as thing (key)}{@const key = thing.id}{thing.name}{/each}
+   ·                         ───
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:25]
+ 1 │ {#each things as thing (1)}{thing.name}{/each}
+   ·                         ─
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:25]
+ 1 │ {#each things as thing ('x')}{thing.name}{/each}
+   ·                         ───
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:28]
+ 1 │ {#each things as thing, i (foo.bar)}{thing.name}{/each}
+   ·                            ───────
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.
+
+  ⚠ svelte(valid-each-key): Expected key to use the variables which are defined by the `{#each}` block.
+   ╭─[valid_each_key.tsx:1:55]
+ 1 │ {#each rows as row (row.id)}{#each row.cells as cell (row.id)}<td>{cell}</td>{/each}{/each}
+   ·                                                       ──────
+   ╰────
+  help: Key the block by its own item or index, e.g. `(item.id)`; a key built from outside state or a constant cannot distinguish the rows.

@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-event-dispatcher-types): Type parameters missing for the `createEventDispatcher` function call.
+   ╭─[require_event_dispatcher_types.tsx:4:34]
+ 3 │ 
+ 4 │                 const dispatch = createEventDispatcher();
+   ·                                  ───────────────────────
+ 5 │             </script>
+   ╰────
+  help: Add an event map type parameter, e.g. `createEventDispatcher<{ change: string }>()`.
+
+  ⚠ svelte(require-event-dispatcher-types): Type parameters missing for the `createEventDispatcher` function call.
+   ╭─[require_event_dispatcher_types.tsx:4:34]
+ 3 │ 
+ 4 │                 const dispatch = ced();
+   ·                                  ─────
+ 5 │             </script>
+   ╰────
+  help: Add an event map type parameter, e.g. `createEventDispatcher<{ change: string }>()`.
+
+  ⚠ svelte(require-event-dispatcher-types): Type parameters missing for the `createEventDispatcher` function call.
+   ╭─[require_event_dispatcher_types.tsx:4:34]
+ 3 │ 
+ 4 │                 const dispatch = svelte.createEventDispatcher();
+   ·                                  ──────────────────────────────
+ 5 │             </script>
+   ╰────
+  help: Add an event map type parameter, e.g. `createEventDispatcher<{ change: string }>()`.
+
+  ⚠ svelte(require-event-dispatcher-types): Type parameters missing for the `createEventDispatcher` function call.
+   ╭─[require_event_dispatcher_types.tsx:4:34]
+ 3 │ 
+ 4 │                 const dispatch = createEventDispatcher();
+   ·                                  ───────────────────────
+ 5 │             </script>
+   ╰────
+  help: Add an event map type parameter, e.g. `createEventDispatcher<{ change: string }>()`.

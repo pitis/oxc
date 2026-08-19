@@ -1,0 +1,91 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:45]
+ 1 │ <div style:background-repeat="repeat" style:background="green">...</div>
+   ·                                             ──────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:45]
+ 1 │ <div style:background-repeat="repeat" style:background={red}>...</div>
+   ·                                             ──────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:4:5]
+ 3 │     background-repeat: repeat;
+ 4 │     background: green;
+   ·     ──────────
+ 5 │   "
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:4:5]
+ 3 │     background-repeat: repeat;
+ 4 │     background: {red};
+   ·     ──────────
+ 5 │   "
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:46]
+ 1 │ <div style:background-repeat="repeat" style="background: green">...</div>
+   ·                                              ──────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'background' after 'background-repeat'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:46]
+ 1 │ <div style:background-repeat="repeat" style="background: {red}">...</div>
+   ·                                              ──────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'border-top' after 'border-top-color'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:36]
+ 1 │ <div style="border-top-color: red; border-top: 1px solid">...</div>
+   ·                                    ──────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'font' after 'font-size'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:36]
+ 1 │ <div style:font-size="12px" style="font: caption">...</div>
+   ·                                    ────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand '-webkit-mask' after '-webkit-mask-image'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:45]
+ 1 │ <div style="-webkit-mask-image: url(a.png); -webkit-mask: none">...</div>
+   ·                                             ────────────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'margin' after 'margin-top'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:48]
+ 1 │ <div style="margin-top: 1px; margin-left: 2px; margin: 0">...</div>
+   ·                                                ──────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'margin' after 'margin-left'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:48]
+ 1 │ <div style="margin-top: 1px; margin-left: 2px; margin: 0">...</div>
+   ·                                                ──────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.
+
+  ⚠ svelte(no-shorthand-style-property-overrides): Unexpected shorthand 'margin' after 'margin-top'.
+   ╭─[no_shorthand_style_property_overrides.tsx:1:37]
+ 1 │ {#if a}<div style="margin-top: 1px; margin: 0">x</div>{/if}
+   ·                                     ──────
+   ╰────
+  help: The shorthand resets every longhand it covers, silently discarding the earlier declaration; declare the shorthand first or remove one of the two.

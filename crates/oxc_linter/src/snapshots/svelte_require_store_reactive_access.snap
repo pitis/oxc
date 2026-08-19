@@ -1,0 +1,195 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:19]
+ 6 │ 
+ 7 │ <div prop="Hello {store}" />
+   ·                   ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:12]
+ 6 │ 
+ 7 │ <div prop={store} />
+   ·            ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:7]
+ 6 │ 
+ 7 │ <div {store} />
+   ·       ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:10]
+ 6 │ 
+ 7 │ <div {...store} />
+   ·          ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:17]
+ 6 │ 
+ 7 │ <div bind:this={store} />
+   ·                 ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:5]
+ 6 │ 
+ 7 │ <p>{store}</p>
+   ·     ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:30]
+ 6 │ 
+ 7 │ <MyComponent message="Hello {store}" />
+   ·                              ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:19]
+ 6 │ 
+ 7 │ <button on:click={store} />
+   ·                   ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:19]
+ 6 │ 
+ 7 │ <div style:color={store} />
+   ·                   ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:10]
+ 6 │ 
+ 7 │ <div use:store />
+   ·          ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:17]
+ 6 │ 
+ 7 │ <div transition:store />
+   ·                 ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:9]
+ 6 │ 
+ 7 │ <div in:store />
+   ·         ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:10]
+ 6 │ 
+ 7 │ <div out:store />
+   ·          ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:33]
+ 6 │ 
+ 7 │ {#each [] as e (e)}<div animate:store />{/each}
+   ·                                 ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:18]
+ 6 │ 
+ 7 │ <div class:name={constStore} />
+   ·                  ──────────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:12]
+ 6 │ 
+ 7 │ <div class:constStore />
+   ·            ──────────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:6]
+ 6 │ 
+ 7 │ {#if constStore}x{/if}
+   ·      ──────────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:9]
+ 6 │ 
+ 7 │ {#await constStore}x{/await}
+   ·         ──────────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:8]
+ 6 │ 
+ 7 │ {#each store as item}{item}{/each}
+   ·        ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:5]
+ 6 │ 
+ 7 │ <p>{store + 1}</p>
+   ·     ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:8]
+ 6 │ 
+ 7 │ <p>{`${store}`}</p>
+   ·        ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:12]
+ 6 │ 
+ 7 │ <p>{typeof constStore}</p>
+   ·            ──────────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:25]
+ 6 │ 
+ 7 │ <button on:click={() => store()}>x</button>
+   ·                         ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.
+
+  ⚠ svelte(require-store-reactive-access): Use the $ prefix or the get function to access reactive values instead of accessing the raw store.
+   ╭─[require_store_reactive_access.tsx:7:8]
+ 6 │ 
+ 7 │ {@html store}
+   ·        ─────
+   ╰────
+  help: Prefix the store with `$` (e.g. `{$store}`) to read its reactive value; the bare variable is the store object itself.

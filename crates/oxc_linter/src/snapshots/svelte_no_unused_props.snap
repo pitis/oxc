@@ -1,0 +1,75 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-unused-props): 'a' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { a } = $props();
+   ·           ─
+ 3 │ </script>
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'age' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:14]
+ 1 │ <script>
+ 2 │     let { name, age } = $props();
+   ·                 ───
+ 3 │     console.log(name);
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'value' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { value: local } = $props();
+   ·           ────────────
+ 3 │ </script>
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'aria-label' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { 'aria-label': foo } = $props();
+   ·           ─────────────────
+ 3 │ </script>
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'size' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { size = 10 } = $props();
+   ·           ─────────
+ 3 │ </script>
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'a' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { a } = $props();
+   ·           ─
+ 3 │     console.log('a');
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'one' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { one, two, three } = $props();
+   ·           ───
+ 3 │     console.log(two);
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.
+
+  ⚠ svelte(no-unused-props): 'three' is an unused Props property.
+   ╭─[no_unused_props.tsx:2:18]
+ 1 │ <script>
+ 2 │     let { one, two, three } = $props();
+   ·                     ─────
+ 3 │     console.log(two);
+   ╰────
+  help: Remove the property from the `$props()` destructuring, or use it.

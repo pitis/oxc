@@ -1,0 +1,48 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:3:3]
+ 2 │     if (test) {
+ 3 │         function doSomething() {}
+   ·         ────────
+ 4 │     }
+   ╰────
+  help: Move function declaration to program root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:3:3]
+ 2 │     $: {
+ 3 │         function doSomething() {}
+   ·         ────────
+ 4 │     }
+   ╰────
+  help: Move function declaration to program root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:4:4]
+ 3 │         do {
+ 4 │             function somethingElse() {}
+   ·             ────────
+ 5 │         } while (test);
+   ╰────
+  help: Move function declaration to function body root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:3:3]
+ 2 │     if (test) {
+ 3 │         function doSomething() {}
+   ·         ────────
+ 4 │     }
+   ╰────
+  help: Move function declaration to program root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:3:3]
+ 2 │     if (test) {
+ 3 │         function doSomething() {}
+   ·         ────────
+ 4 │     }
+   ╰────
+  help: Move function declaration to program root

@@ -66,6 +66,7 @@ struct StyleDecl<'a> {
 /// expression contents can never introduce a phantom `;` or `:`.
 /// Declarations are split on `;` outside quotes and parentheses, and the
 /// property is the trimmed text before the first `:`.
+#[expect(clippy::cast_possible_truncation)] // offsets into a source file, capped at `u32` by `Span`
 fn collect_style_decls<'a>(
     value: &AttributeValue<'a>,
     source: &'a str,

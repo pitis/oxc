@@ -1,0 +1,237 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:5:23]
+ 4 │     const toggle = () => (show = !show);
+ 5 │     const remove = () => div.remove();
+   ·                          ──────────
+ 6 │ </script>
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:4:3]
+ 3 │     const remove1 = () => {
+ 4 │         foo?.remove();
+   ·         ───────────
+ 5 │     };
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:7:4]
+ 6 │     const remove2 = () => {
+ 7 │         (foo?.remove)();
+   ·          ───────────
+ 8 │     };
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:6:3]
+ 5 │         const newNode = document.createElement('div');
+ 6 │         div.appendChild(newNode);
+   ·         ───────────────
+ 7 │         div.insertBefore(newNode, foo);
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:7:3]
+ 6 │         div.appendChild(newNode);
+ 7 │         div.insertBefore(newNode, foo);
+   ·         ────────────────
+ 8 │         div.normalize();
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:8:3]
+ 7 │         div.insertBefore(newNode, foo);
+ 8 │         div.normalize();
+   ·         ─────────────
+ 9 │         div.removeChild(foo);
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:9:3]
+  8 │         div.normalize();
+  9 │         div.removeChild(foo);
+    ·         ───────────────
+ 10 │         div.replaceChild(newNode, foo);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:10:3]
+  9 │         div.removeChild(foo);
+ 10 │         div.replaceChild(newNode, foo);
+    ·         ────────────────
+ 11 │         div.after(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:11:3]
+ 10 │         div.replaceChild(newNode, foo);
+ 11 │         div.after(newNode);
+    ·         ─────────
+ 12 │         div.append(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:12:3]
+ 11 │         div.after(newNode);
+ 12 │         div.append(newNode);
+    ·         ──────────
+ 13 │         div.before(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:13:3]
+ 12 │         div.append(newNode);
+ 13 │         div.before(newNode);
+    ·         ──────────
+ 14 │         div.insertAdjacentElement('beforebegin', newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:14:3]
+ 13 │         div.before(newNode);
+ 14 │         div.insertAdjacentElement('beforebegin', newNode);
+    ·         ─────────────────────────
+ 15 │         div.insertAdjacentHTML('beforebegin', '<b>x</b>');
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:15:3]
+ 14 │         div.insertAdjacentElement('beforebegin', newNode);
+ 15 │         div.insertAdjacentHTML('beforebegin', '<b>x</b>');
+    ·         ──────────────────────
+ 16 │         div.insertAdjacentText('beforebegin', 'Foo');
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:16:3]
+ 15 │         div.insertAdjacentHTML('beforebegin', '<b>x</b>');
+ 16 │         div.insertAdjacentText('beforebegin', 'Foo');
+    ·         ──────────────────────
+ 17 │         div.prepend(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:17:3]
+ 16 │         div.insertAdjacentText('beforebegin', 'Foo');
+ 17 │         div.prepend(newNode);
+    ·         ───────────
+ 18 │         div.remove();
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:18:3]
+ 17 │         div.prepend(newNode);
+ 18 │         div.remove();
+    ·         ──────────
+ 19 │         div.replaceChildren(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:19:3]
+ 18 │         div.remove();
+ 19 │         div.replaceChildren(newNode);
+    ·         ───────────────────
+ 20 │         div.replaceWith(newNode);
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+    ╭─[no_dom_manipulating.tsx:20:3]
+ 19 │         div.replaceChildren(newNode);
+ 20 │         div.replaceWith(newNode);
+    ·         ───────────────
+ 21 │     };
+    ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:4:3]
+ 3 │     const update = () => {
+ 4 │         div.textContent = '';
+   ·         ───────────────
+ 5 │         div.innerHTML = '';
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:5:3]
+ 4 │         div.textContent = '';
+ 5 │         div.innerHTML = '';
+   ·         ─────────────
+ 6 │         div.outerHTML = '';
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:6:3]
+ 5 │         div.innerHTML = '';
+ 6 │         div.outerHTML = '';
+   ·         ─────────────
+ 7 │         div.innerText = '';
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:7:3]
+ 6 │         div.outerHTML = '';
+ 7 │         div.innerText = '';
+   ·         ─────────────
+ 8 │         div.outerText = '';
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:8:3]
+ 7 │         div.innerText = '';
+ 8 │         div.outerText = '';
+   ·         ─────────────
+ 9 │     };
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:6:3]
+ 5 │     const remove = () => {
+ 6 │         foo.remove();
+   ·         ──────────
+ 7 │         bar.remove();
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:7:3]
+ 6 │         foo.remove();
+ 7 │         bar.remove();
+   ·         ──────────
+ 8 │     };
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.
+
+  ⚠ svelte(no-dom-manipulating): Don't manipulate the DOM directly. The Svelte runtime can get confused if there is a difference between the actual DOM and the DOM expected by the Svelte runtime.
+   ╭─[no_dom_manipulating.tsx:4:3]
+ 3 │     const update = () => {
+ 4 │         div['remove']();
+   ·         ─────────────
+ 5 │     };
+   ╰────
+  help: Update the state that renders this element and let Svelte reconcile the DOM instead of mutating the `bind:this` element directly.

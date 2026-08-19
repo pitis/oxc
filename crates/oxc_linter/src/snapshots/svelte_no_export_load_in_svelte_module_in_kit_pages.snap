@@ -1,0 +1,93 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:18]
+ 1 │ <script context="module">
+ 2 │     export function load() {}
+   ·                     ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:15]
+ 1 │ <script context="module">
+ 2 │     export const load = () => {};
+   ·                  ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:18]
+ 1 │ <script module>
+ 2 │     export function load() {}
+   ·                     ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:15]
+ 1 │ <script context="module" lang="ts">
+ 2 │     export const load = async () => {};
+   ·                  ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:24]
+ 1 │ <script context="module">
+ 2 │     export const foo = 1, load = () => {};
+   ·                           ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:18]
+ 1 │ <script context="module">
+ 2 │     export function load() {}
+   ·                     ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:18]
+ 1 │ <script context="module">
+ 2 │     export function load() {}
+   ·                     ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:18]
+ 1 │ <script>
+ 2 │     export function load() {}
+   ·                     ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:2:15]
+ 1 │ <script>
+ 2 │     export const load = () => {};
+   ·                  ────
+ 3 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).
+
+  ⚠ svelte(no-export-load-in-svelte-module-in-kit-pages): disallow exporting load functions in `*.svelte` module in SvelteKit page components.
+   ╭─[no_export_load_in_svelte_module_in_kit_pages.tsx:6:18]
+ 5 │ <script>
+ 6 │     export function load() {}
+   ·                     ────
+ 7 │ </script>
+   ╰────
+  help: Move the `load` function into the route's `+page.js` / `+page.server.js` (or the `+layout` / `+error` equivalent).

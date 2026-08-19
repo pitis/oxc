@@ -1,0 +1,66 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-raw-special-elements): Special head element is deprecated in v5, use svelte:head instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <head></head>
+   · ──────
+   ╰────
+  help: Rename `<head>` to `<svelte:head>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special body element is deprecated in v5, use svelte:body instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <body></body>
+   · ──────
+   ╰────
+  help: Rename `<body>` to `<svelte:body>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special window element is deprecated in v5, use svelte:window instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <window></window>
+   · ────────
+   ╰────
+  help: Rename `<window>` to `<svelte:window>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special document element is deprecated in v5, use svelte:document instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <document></document>
+   · ──────────
+   ╰────
+  help: Rename `<document>` to `<svelte:document>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special element element is deprecated in v5, use svelte:element instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <element this={{}}></element>
+   · ───────────────────
+   ╰────
+  help: Rename `<element>` to `<svelte:element>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special options element is deprecated in v5, use svelte:options instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <options></options>
+   · ─────────
+   ╰────
+  help: Rename `<options>` to `<svelte:options>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special body element is deprecated in v5, use svelte:body instead.
+   ╭─[no_raw_special_elements.tsx:1:1]
+ 1 │ <body />
+   · ────────
+   ╰────
+  help: Rename `<body>` to `<svelte:body>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special head element is deprecated in v5, use svelte:head instead.
+   ╭─[no_raw_special_elements.tsx:1:6]
+ 1 │ <div><head></head></div>
+   ·      ──────
+   ╰────
+  help: Rename `<head>` to `<svelte:head>`; Svelte 5 renders the raw element literally instead of treating it specially.
+
+  ⚠ svelte(no-raw-special-elements): Special head element is deprecated in v5, use svelte:head instead.
+   ╭─[no_raw_special_elements.tsx:1:8]
+ 1 │ {#if a}<head></head>{/if}
+   ·        ──────
+   ╰────
+  help: Rename `<head>` to `<svelte:head>`; Svelte 5 renders the raw element literally instead of treating it specially.

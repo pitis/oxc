@@ -173,10 +173,8 @@ impl SvelteTemplateRule for NoUselessMustaches {
                         // parses its `{…}` part as a shorthand attribute in
                         // this markup AST; upstream reports these mustaches
                         // too.
-                        AttributeKind::Shorthand { name, .. } => {
-                            if is_useless_mustache(name) {
-                                spans.push(attribute.span);
-                            }
+                        AttributeKind::Shorthand { name, .. } if is_useless_mustache(name) => {
+                            spans.push(attribute.span);
                         }
                         _ => {}
                     }

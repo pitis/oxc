@@ -1,0 +1,221 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:7:3]
+ 6 │         /* BAD */
+ 7 │         reactiveValue = value * 3;
+   ·         ─────────────────────────
+ 8 │         reactiveValue++;
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:8:3]
+ 7 │         reactiveValue = value * 3;
+ 8 │         reactiveValue++;
+   ·         ───────────────
+ 9 │     }
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array1'.
+    ╭─[no_reactive_reassign.tsx:14:3]
+ 13 │     function handleClick() {
+ 14 │         array1.push(42);
+    ·         ───────────────
+ 15 │         array2.pop();
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array2'.
+    ╭─[no_reactive_reassign.tsx:15:3]
+ 14 │         array1.push(42);
+ 15 │         array2.pop();
+    ·         ────────────
+ 16 │         array3.shift();
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array3'.
+    ╭─[no_reactive_reassign.tsx:16:3]
+ 15 │         array2.pop();
+ 16 │         array3.shift();
+    ·         ──────────────
+ 17 │         array4.unshift(42);
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array4'.
+    ╭─[no_reactive_reassign.tsx:17:3]
+ 16 │         array3.shift();
+ 17 │         array4.unshift(42);
+    ·         ──────────────────
+ 18 │         array5.reverse();
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array5'.
+    ╭─[no_reactive_reassign.tsx:18:3]
+ 17 │         array4.unshift(42);
+ 18 │         array5.reverse();
+    ·         ────────────────
+ 19 │         array6.splice(1, 1);
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array6'.
+    ╭─[no_reactive_reassign.tsx:19:3]
+ 18 │         array5.reverse();
+ 19 │         array6.splice(1, 1);
+    ·         ───────────────────
+ 20 │         array7.sort();
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array7'.
+    ╭─[no_reactive_reassign.tsx:20:3]
+ 19 │         array6.splice(1, 1);
+ 20 │         array7.sort();
+    ·         ─────────────
+ 21 │         array8.copyWithin(0, 3, 4);
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array8'.
+    ╭─[no_reactive_reassign.tsx:21:3]
+ 20 │         array7.sort();
+ 21 │         array8.copyWithin(0, 3, 4);
+    ·         ──────────────────────────
+ 22 │         array9.fill(42);
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'array9'.
+    ╭─[no_reactive_reassign.tsx:22:3]
+ 21 │         array8.copyWithin(0, 3, 4);
+ 22 │         array9.fill(42);
+    ·         ───────────────
+ 23 │     }
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:7:3]
+ 6 │         let a = {};
+ 7 │         (a ? reactiveValue : {}).value = 42;
+   ·         ───────────────────────────────────
+ 8 │     }
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:7:3]
+ 6 │         delete object.value;
+ 7 │         delete reactiveValue.value;
+   ·         ──────────────────────────
+ 8 │     }
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveValue'.
+    ╭─[no_reactive_reassign.tsx:9:4]
+  8 │         let o = { foo: 42 };
+  9 │         ({ foo: reactiveValue } = o);
+    ·          ──────────────────────────
+ 10 │         ({ ...reactiveObject } = o);
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveValue'.
+    ╭─[no_reactive_reassign.tsx:12:3]
+ 11 │         let a = [42];
+ 12 │         [reactiveValue] = a;
+    ·         ───────────────────
+ 13 │         [...reactiveArray] = a;
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveObject'.
+    ╭─[no_reactive_reassign.tsx:10:4]
+  9 │         ({ foo: reactiveValue } = o);
+ 10 │         ({ ...reactiveObject } = o);
+    ·          ─────────────────────────
+ 11 │         let a = [42];
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'reactiveArray'.
+    ╭─[no_reactive_reassign.tsx:13:3]
+ 12 │         [reactiveValue] = a;
+ 13 │         [...reactiveArray] = a;
+    ·         ──────────────────────
+ 14 │     }
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+    ╭─[no_reactive_reassign.tsx:7:3]
+  6 │         function handleClick() {
+  7 │ ╭─▶         for (reactiveValue.key in object) {
+  8 │ │               console.log(reactiveValue.key);
+  9 │ ╰─▶         }
+ 10 │         }
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+    ╭─[no_reactive_reassign.tsx:7:3]
+  6 │         function handleClick() {
+  7 │ ╭─▶         for (reactiveValue.key of object) {
+  8 │ │               console.log(reactiveValue.key);
+  9 │ ╰─▶         }
+ 10 │         }
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:6:3]
+ 5 │     function handleClick() {
+ 6 │         reactiveValue.value = 42;
+   ·         ────────────────────────
+ 7 │         (reactiveValue?.foo).bar = 42;
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+   ╭─[no_reactive_reassign.tsx:7:3]
+ 6 │         reactiveValue.value = 42;
+ 7 │         (reactiveValue?.foo).bar = 42;
+   ·         ─────────────────────────────
+ 8 │     }
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to property of reactive value 'reactiveValue'.
+    ╭─[no_reactive_reassign.tsx:9:3]
+  8 │         /* BAD */
+  9 │         reactiveValue.value++;
+    ·         ─────────────────────
+ 10 │     }
+    ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'a'.
+   ╭─[no_reactive_reassign.tsx:6:3]
+ 5 │     function handleClick() {
+ 6 │         a = 1;
+   ·         ─────
+ 7 │         b++;
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.
+
+  ⚠ svelte(no-reactive-reassign): Assignment to reactive value 'b'.
+   ╭─[no_reactive_reassign.tsx:7:3]
+ 6 │         a = 1;
+ 7 │         b++;
+   ·         ───
+ 8 │     }
+   ╰────
+  help: The value is computed by a reactive statement and will be overwritten whenever the statement re-runs; update its dependencies instead.

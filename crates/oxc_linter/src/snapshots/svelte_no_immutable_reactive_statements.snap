@@ -1,0 +1,93 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+   ╭─[no_immutable_reactive_statements.tsx:3:17]
+ 2 │     let immutableVar = 'hello';
+ 3 │     $: computed1 = `${immutableVar} ${immutableVar}`;
+   ·                    ─────────────────────────────────
+ 4 │     $: computed1 = fn1(immutableVar);
+   ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+   ╭─[no_immutable_reactive_statements.tsx:4:17]
+ 3 │     $: computed1 = `${immutableVar} ${immutableVar}`;
+ 4 │     $: computed1 = fn1(immutableVar);
+   ·                    ─────────────────
+ 5 │     $: console.log(immutableVar);
+   ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+   ╭─[no_immutable_reactive_statements.tsx:5:5]
+ 4 │     $: computed1 = fn1(immutableVar);
+ 5 │     $: console.log(immutableVar);
+   ·        ──────────────────────────
+ 6 │ 
+   ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+   ╭─[no_immutable_reactive_statements.tsx:7:17]
+ 6 │     /* BAD */
+ 7 │     $: computed3 = fn1(immutableVar);
+   ·                    ─────────────────
+ 8 │     $: computed4 = fn2();
+   ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+   ╭─[no_immutable_reactive_statements.tsx:8:17]
+ 7 │     $: computed3 = fn1(immutableVar);
+ 8 │     $: computed4 = fn2();
+   ·                    ─────
+ 9 │     $: console.log(immutableVar);
+   ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+    ╭─[no_immutable_reactive_statements.tsx:9:5]
+  8 │     $: computed4 = fn2();
+  9 │     $: console.log(immutableVar);
+    ·        ──────────────────────────
+ 10 │     $: console.log(myVar);
+    ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+    ╭─[no_immutable_reactive_statements.tsx:10:5]
+  9 │     $: console.log(immutableVar);
+ 10 │     $: console.log(myVar);
+    ·        ───────────────────
+ 11 │ 
+    ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+    ╭─[no_immutable_reactive_statements.tsx:12:16]
+ 11 │ 
+ 12 │     $: message1 = greet(immutableVar);
+    ·                   ───────────────────
+ 13 │     $: message2 = `this is${thisIs}`;
+    ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+    ╭─[no_immutable_reactive_statements.tsx:13:16]
+ 12 │     $: message1 = greet(immutableVar);
+ 13 │     $: message2 = `this is${thisIs}`;
+    ·                   ──────────────────
+ 14 │     $: instance = new Foo();
+    ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.
+
+  ⚠ svelte(no-immutable-reactive-statements): This statement is not reactive because all variables referenced in the reactive statement are immutable.
+    ╭─[no_immutable_reactive_statements.tsx:14:16]
+ 13 │     $: message2 = `this is${thisIs}`;
+ 14 │     $: instance = new Foo();
+    ·                   ─────────
+ 15 │ </script>
+    ╰────
+  help: If none of the referenced values ever change, use a regular statement instead of a reactive one.

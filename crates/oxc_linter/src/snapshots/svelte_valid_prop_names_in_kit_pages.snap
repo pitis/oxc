@@ -1,0 +1,120 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:28]
+ 1 │ <script>
+ 2 │                 export let foo;
+   ·                            ───
+ 3 │                 export let bar;
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:3:28]
+ 2 │                 export let foo;
+ 3 │                 export let bar;
+   ·                            ───
+ 4 │                 export let { baz, qux } = data;
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:4:30]
+ 3 │                 export let bar;
+ 4 │                 export let { baz, qux } = data;
+   ·                              ───
+ 5 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:4:35]
+ 3 │                 export let bar;
+ 4 │                 export let { baz, qux } = data;
+   ·                                   ───
+ 5 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:28]
+ 1 │ <script>
+ 2 │                 export let children;
+   ·                            ────────
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:28]
+ 1 │ <script>
+ 2 │                 export let children;
+   ·                            ────────
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:23]
+ 1 │ <script>
+ 2 │                 let { foo, bar } = $props();
+   ·                       ───
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:28]
+ 1 │ <script>
+ 2 │                 let { foo, bar } = $props();
+   ·                            ───
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:29]
+ 1 │ <script>
+ 2 │                 let { data, children } = $props();
+   ·                             ────────
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:30]
+ 1 │ <script>
+ 2 │                 let { error, children } = $props();
+   ·                              ────────
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `error` is available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:23]
+ 1 │ <script>
+ 2 │                 let { data } = $props();
+   ·                       ────
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `error` is available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:2:28]
+ 1 │ <script>
+ 2 │                 export var foo;
+   ·                            ───
+ 3 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.
+
+  ⚠ svelte(valid-prop-names-in-kit-pages): disallow invalid props in SvelteKit route components.
+   ╭─[valid_prop_names_in_kit_pages.tsx:3:28]
+ 2 │                 export let data;
+ 3 │                 export let foo;
+   ·                            ───
+ 4 │             </script>
+   ╰────
+  help: SvelteKit passes a fixed set of props to this route component; only `data`, `errors`, `form`, `params` and `snapshot` are available here.

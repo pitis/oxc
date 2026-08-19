@@ -1,0 +1,75 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import { get_current_component } from 'svelte/internal';
+   ·     ────────────────────────────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import { inspect } from 'svelte/internal/client';
+   ·     ─────────────────────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import * as svelteInternal from 'svelte/internal';
+   ·     ──────────────────────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     export * from 'svelte/internal';
+   ·     ────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     export * from 'svelte/internal/client';
+   ·     ───────────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     export { inspect } from 'svelte/internal/client';
+   ·     ─────────────────────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import('svelte/internal');
+   ·     ─────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import('svelte/internal/client').then(module => {});
+   ·     ────────────────────────────────
+ 3 │ </script>
+   ╰────
+
+  ⚠ svelte(no-svelte-internal): Using svelte/internal is prohibited. This will be removed in Svelte 6.
+   ╭─[no_svelte_internal.tsx:2:2]
+ 1 │ <script>
+ 2 │     import defaultExport from 'svelte/internal';
+   ·     ────────────────────────────────────────────
+ 3 │ </script>
+   ╰────

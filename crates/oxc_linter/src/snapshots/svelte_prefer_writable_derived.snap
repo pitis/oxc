@@ -1,0 +1,75 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect.pre(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect.pre(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(() => {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.
+
+  ⚠ svelte(prefer-writable-derived): Prefer using writable $derived instead of $state and $effect
+   ╭─[prefer_writable_derived.tsx:4:21]
+ 3 │ 
+ 4 │                 let newAlbumName = $state(albumName);
+   ·                     ────────────────────────────────
+ 5 │                 $effect(function () {
+   ╰────
+  help: Rewrite the `$state` declaration as a writable `$derived` and remove the `$effect`.

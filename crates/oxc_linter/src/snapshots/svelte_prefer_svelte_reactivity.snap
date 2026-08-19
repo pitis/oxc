@@ -1,0 +1,290 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setDate(24); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setFullYear(1968); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setFullYear(1968, 10, 3); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setHours(23); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setHours(23, 59, 59, 999); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setMilliseconds(999); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setMinutes(59); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setMonth(11); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setSeconds(59); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setTime(123456); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCDate(23); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCFullYear(1968); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCHours(23); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCMilliseconds(420); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCMinutes(59); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCMonth(10); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setUTCSeconds(59); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Date class. Use SvelteDate instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Date(8.64e15); variable.setYear(1968); </script> {variable}
+   ·                           ─────────────────
+   ╰────
+  help: Mutations of a plain `Date` are not tracked by Svelte's reactivity; import `SvelteDate` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Map class. Use SvelteMap instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Map([[1, 'one'], [2, 'two']]); variable.clear(); </script> {variable}
+   ·                           ─────────────────────────────────
+   ╰────
+  help: Mutations of a plain `Map` are not tracked by Svelte's reactivity; import `SvelteMap` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Map class. Use SvelteMap instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Map([[1, 'one'], [2, 'two']]); variable.delete(1); </script> {variable}
+   ·                           ─────────────────────────────────
+   ╰────
+  help: Mutations of a plain `Map` are not tracked by Svelte's reactivity; import `SvelteMap` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Map class. Use SvelteMap instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Map([[1, 'one'], [2, 'two']]); variable.set(1, 'two'); </script> {variable}
+   ·                           ─────────────────────────────────
+   ╰────
+  help: Mutations of a plain `Map` are not tracked by Svelte's reactivity; import `SvelteMap` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Set class. Use SvelteSet instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Set([1, 2, 1, 3, 3]); variable.add(42); </script> {variable}
+   ·                           ────────────────────────
+   ╰────
+  help: Mutations of a plain `Set` are not tracked by Svelte's reactivity; import `SvelteSet` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Set class. Use SvelteSet instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Set([1, 2, 1, 3, 3]); variable.clear(); </script> {variable}
+   ·                           ────────────────────────
+   ╰────
+  help: Mutations of a plain `Set` are not tracked by Svelte's reactivity; import `SvelteSet` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Set class. Use SvelteSet instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new Set([1, 2, 1, 3, 3]); variable.delete(42); </script> {variable}
+   ·                           ────────────────────────
+   ╰────
+  help: Mutations of a plain `Set` are not tracked by Svelte's reactivity; import `SvelteSet` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.hash = 'anchor'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.host = 'example.test'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.hostname = 'example.test'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.href = 'https://svelte.dev/'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.password = 'passwd'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.pathname = 'tutorial'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.port = '80'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.protocol = 'https'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.search = 'foo=bar'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URL('https://svelte.dev/'); variable.username = 'usr'; </script> {variable}
+   ·                           ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URLSearchParams class. Use SvelteURLSearchParams instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URLSearchParams('foo=1&bar=2'); variable.append('baz', '3'); </script> {variable}
+   ·                           ──────────────────────────────────
+   ╰────
+  help: Mutations of a plain `URLSearchParams` are not tracked by Svelte's reactivity; import `SvelteURLSearchParams` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URLSearchParams class. Use SvelteURLSearchParams instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URLSearchParams('foo=1&bar=2'); variable.delete('foo'); </script> {variable}
+   ·                           ──────────────────────────────────
+   ╰────
+  help: Mutations of a plain `URLSearchParams` are not tracked by Svelte's reactivity; import `SvelteURLSearchParams` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URLSearchParams class. Use SvelteURLSearchParams instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URLSearchParams('foo=1&bar=2'); variable.set('foo', '-1') </script> {variable}
+   ·                           ──────────────────────────────────
+   ╰────
+  help: Mutations of a plain `URLSearchParams` are not tracked by Svelte's reactivity; import `SvelteURLSearchParams` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URLSearchParams class. Use SvelteURLSearchParams instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:27]
+ 1 │ <script> const variable = new URLSearchParams('foo=1&bar=2'); variable.sort(); </script> {variable}
+   ·                           ──────────────────────────────────
+   ╰────
+  help: Mutations of a plain `URLSearchParams` are not tracked by Svelte's reactivity; import `SvelteURLSearchParams` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Map class. Use SvelteMap instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:10]
+ 1 │ <script> new Map([[1, 'one']]).set(2, 'two'); </script>
+   ·          ─────────────────────
+   ╰────
+  help: Mutations of a plain `Map` are not tracked by Svelte's reactivity; import `SvelteMap` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in URL class. Use SvelteURL instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:10]
+ 1 │ <script> new URL('https://svelte.dev/').hash = 'anchor'; </script>
+   ·          ──────────────────────────────
+   ╰────
+  help: Mutations of a plain `URL` are not tracked by Svelte's reactivity; import `SvelteURL` from `svelte/reactivity` instead.
+
+  ⚠ svelte(prefer-svelte-reactivity): Found a mutable instance of the built-in Set class. Use SvelteSet instead.
+   ╭─[prefer_svelte_reactivity.tsx:1:35]
+ 1 │ <script> let variable; variable = new Set([1]); variable.add(2); </script> {variable}
+   ·                                   ────────────
+   ╰────
+  help: Mutations of a plain `Set` are not tracked by Svelte's reactivity; import `SvelteSet` from `svelte/reactivity` instead.

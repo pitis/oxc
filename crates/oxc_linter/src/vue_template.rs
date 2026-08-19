@@ -336,7 +336,7 @@ impl Linter {
 /// `oxlint-disable-next-line` are accepted as synonyms of the `eslint-`
 /// spellings, matching oxlint's script-comment directives.
 #[derive(Debug, Default)]
-pub(crate) struct TemplateCommentDirectives {
+pub struct TemplateCommentDirectives {
     /// Half-open file-offset ranges in which *every* rule is suppressed.
     block_all: Vec<Span>,
     /// Per rule name (as written in the directive), the ranges in which it is
@@ -636,7 +636,7 @@ fn collect_comments<'a>(nodes: &[Node<'a>], out: &mut Vec<(Span, &'a str)>) {
 }
 
 /// Byte offsets at which each line of `text` starts (index 0 is always `0`).
-pub(crate) fn line_start_offsets(text: &str) -> Vec<u32> {
+pub fn line_start_offsets(text: &str) -> Vec<u32> {
     let mut starts = vec![0u32];
     for (index, byte) in text.bytes().enumerate() {
         if byte == b'\n' {
@@ -660,7 +660,7 @@ fn diagnostic_start(diagnostic: &OxcDiagnostic) -> Option<u32> {
 }
 
 /// Drop from `diagnostics` everything any of `directive_sets` suppresses.
-pub(crate) fn retain_unsuppressed(
+pub fn retain_unsuppressed(
     diagnostics: &mut Vec<OxcDiagnostic>,
     directive_sets: &[&TemplateCommentDirectives],
     rule: &RuleEnum,
@@ -740,7 +740,7 @@ fn line_of(offset: u32, line_starts: &[u32]) -> u32 {
 /// attribution), docs URL, and severity to every diagnostic, and push the
 /// resulting [`Message`]s onto `messages`. Spans are already file-absolute —
 /// both passes report against the full file source — so nothing is shifted here.
-pub(crate) fn push_messages(
+pub fn push_messages(
     messages: &mut Vec<Message>,
     diagnostics: Vec<OxcDiagnostic>,
     rule: &RuleEnum,

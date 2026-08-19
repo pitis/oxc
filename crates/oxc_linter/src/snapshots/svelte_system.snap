@@ -1,0 +1,66 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(system): Svelte parse error: `<div>` was left open
+   ╭─[system.tsx:1:9]
+ 1 │ {#if a}<div>never closed{/if}
+   ·         ───
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: `{#each}` block was never closed
+   ╭─[system.tsx:1:1]
+ 1 │ {#each items as item}<p>{item}</p>
+   · ─────────────────────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: `<p>` was left open
+   ╭─[system.tsx:1:2]
+ 1 │ <p>{ oops
+   ·  ─
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: unterminated `{` expression
+   ╭─[system.tsx:1:4]
+ 1 │ <p>{ oops
+   ·    ──────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: block marker matches no open block
+   ╭─[system.tsx:1:2]
+ 1 │ a{:else}b{/if}c</span>
+   ·  ───────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: block marker matches no open block
+   ╭─[system.tsx:1:10]
+ 1 │ a{:else}b{/if}c</span>
+   ·          ─────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: closing tag matches no open element
+   ╭─[system.tsx:1:16]
+ 1 │ a{:else}b{/if}c</span>
+   ·                ───────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: `<div>` was left open
+   ╭─[system.tsx:1:2]
+ 1 │ <div title="unclosed>x</div>
+   ·  ───
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.
+
+  ⚠ svelte(system): Svelte parse error: unterminated attribute value
+   ╭─[system.tsx:1:6]
+ 1 │ <div title="unclosed>x</div>
+   ·      ───────────────────────
+   ╰────
+  help: The Svelte compiler rejects this markup; fix it so the file compiles.

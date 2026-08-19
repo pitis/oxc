@@ -66,6 +66,7 @@ impl Rule for NoSpacesAroundEqualSignsInAttribute {}
 // with ASCII whitespace, so the scan does too (upstream matches Unicode
 // whitespace). No autofix is provided.
 impl SvelteTemplateRule for NoSpacesAroundEqualSignsInAttribute {
+    #[expect(clippy::cast_possible_truncation)] // offsets into a source file, capped at `u32` by `Span`
     fn run_on_markup<'a>(&self, nodes: &[Node<'a>], ctx: &mut SvelteTemplateContext<'a>) {
         let bytes = ctx.source_text().as_bytes();
         let mut spans = Vec::new();

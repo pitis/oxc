@@ -1,0 +1,57 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:3:5]
+ 2 │ <script>
+ 3 │     $: arrow = () => {}
+   ·     ───────────────────
+ 4 │     $: fn = function() {}
+   ╰────
+  help: Move the function out of the reactive statement.
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:4:5]
+ 3 │     $: arrow = () => {}
+ 4 │     $: fn = function() {}
+   ·     ─────────────────────
+ 5 │     $:nospace = () => {}
+   ╰────
+  help: Move the function out of the reactive statement.
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:5:5]
+ 4 │     $: fn = function() {}
+ 5 │     $:nospace = () => {}
+   ·     ────────────────────
+ 6 │ </script>
+   ╰────
+  help: Move the function out of the reactive statement.
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:3:5]
+ 2 │     let obj = {};
+ 3 │     $: obj.fn = () => {}
+   ·     ────────────────────
+ 4 │ </script>
+   ╰────
+  help: Move the function out of the reactive statement.
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:2:5]
+ 1 │ <script>
+ 2 │     $: fn = (() => {})
+   ·     ──────────────────
+ 3 │ </script>
+   ╰────
+  help: Move the function out of the reactive statement.
+
+  ⚠ svelte(no-reactive-functions): Do not create functions inside reactive statements unless absolutely necessary.
+   ╭─[no_reactive_functions.tsx:2:5]
+ 1 │ <script lang="ts">
+ 2 │     $: arrow = (): number => 1
+   ·     ──────────────────────────
+ 3 │ </script>
+   ╰────
+  help: Move the function out of the reactive statement.
