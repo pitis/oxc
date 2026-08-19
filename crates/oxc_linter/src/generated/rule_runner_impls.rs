@@ -5857,9 +5857,22 @@ impl RuleRunner for crate::rules::svelte::comment_directive::CommentDirective {
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner
+    for crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs
+{
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
 impl RuleRunner for crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
+impl RuleRunner for crate::rules::svelte::no_add_event_listener::NoAddEventListener {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
 impl RuleRunner for crate::rules::svelte::no_at_debug_tags::NoAtDebugTags {
@@ -5868,6 +5881,13 @@ impl RuleRunner for crate::rules::svelte::no_at_debug_tags::NoAtDebugTags {
 }
 
 impl RuleRunner for crate::rules::svelte::no_at_html_tags::NoAtHtmlTags {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner
+    for crate::rules::svelte::no_bind_value_on_checkable_inputs::NoBindValueOnCheckableInputs
+{
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
@@ -5907,12 +5927,29 @@ impl RuleRunner for crate::rules::svelte::no_export_load_in_svelte_module_in_kit
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
+impl RuleRunner for crate::rules::svelte::no_extra_reactive_curlies::NoExtraReactiveCurlies {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::LabeledStatement]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::svelte::no_ignored_unsubscribe::NoIgnoredUnsubscribe {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::ExpressionStatement]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
 impl RuleRunner
     for crate::rules::svelte::no_immutable_reactive_statements::NoImmutableReactiveStatements
 {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::LabeledStatement]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::svelte::no_inline_styles::NoInlineStyles {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::svelte::no_inner_declarations::NoInnerDeclarations {
@@ -5933,6 +5970,11 @@ impl RuleRunner for crate::rules::svelte::no_inspect::NoInspect {
 impl RuleRunner
     for crate::rules::svelte::no_navigation_without_resolve::NoNavigationWithoutResolve
 {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::no_nested_style_tag::NoNestedStyleTag {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
@@ -5968,6 +6010,11 @@ impl RuleRunner for crate::rules::svelte::no_reactive_reassign::NoReactiveReassi
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::LabeledStatement]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::svelte::no_restricted_html_elements::NoRestrictedHtmlElements {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::svelte::no_shorthand_style_property_overrides::NoShorthandStylePropertyOverrides {
@@ -6032,6 +6079,14 @@ impl RuleRunner for crate::rules::svelte::no_useless_mustaches::NoUselessMustach
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner
+    for crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy
+{
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
 impl RuleRunner for crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::NewExpression]));
@@ -6056,9 +6111,24 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
 }
 
+impl RuleRunner for crate::rules::svelte::require_store_callbacks_use_set_param::RequireStoreCallbacksUseSetParam {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
 impl RuleRunner
     for crate::rules::svelte::require_store_reactive_access::RequireStoreReactiveAccess
 {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::require_stores_init::RequireStoresInit {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
+impl RuleRunner for crate::rules::svelte::spaced_html_comment::SpacedHtmlComment {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }

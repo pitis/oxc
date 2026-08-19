@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-derived-over-derived-by): Unnecessary `$derived.by(...)`. Use `$derived(...)` instead.
+   ╭─[prefer_derived_over_derived_by.tsx:2:16]
+ 1 │ <script>
+ 2 │     let doubled = $derived.by(() => count * 2);
+   ·                   ────────────────────────────
+ 3 │ </script>
+   ╰────
+  help: The callback is a single expression, so `$derived(expression)` says the same thing.
+
+  ⚠ svelte(prefer-derived-over-derived-by): Unnecessary `$derived.by(...)`. Use `$derived(...)` instead.
+   ╭─[prefer_derived_over_derived_by.tsx:2:16]
+ 1 │     <script>
+ 2 │ ╭─▶     let tripled = $derived.by(() => {
+ 3 │ │           return count * 3;
+ 4 │ ╰─▶     });
+ 5 │     </script>
+   ╰────
+  help: The callback is a single expression, so `$derived(expression)` says the same thing.
+
+  ⚠ svelte(prefer-derived-over-derived-by): Unnecessary `$derived.by(...)`. Use `$derived(...)` instead.
+   ╭─[prefer_derived_over_derived_by.tsx:2:10]
+ 1 │ <script>
+ 2 │     let x = $derived.by(function () { return count; });
+   ·             ──────────────────────────────────────────
+ 3 │ </script>
+   ╰────
+  help: The callback is a single expression, so `$derived(expression)` says the same thing.

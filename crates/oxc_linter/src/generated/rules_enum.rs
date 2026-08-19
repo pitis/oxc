@@ -515,9 +515,12 @@ pub use crate::rules::react_perf::jsx_no_new_function_as_prop::JsxNoNewFunctionA
 pub use crate::rules::react_perf::jsx_no_new_object_as_prop::JsxNoNewObjectAsProp as ReactPerfJsxNoNewObjectAsProp;
 pub use crate::rules::svelte::button_has_type::ButtonHasType as SvelteButtonHasType;
 pub use crate::rules::svelte::comment_directive::CommentDirective as SvelteCommentDirective;
+pub use crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs as SvelteDerivedHasSameInputsOutputs;
 pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
+pub use crate::rules::svelte::no_add_event_listener::NoAddEventListener as SvelteNoAddEventListener;
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
 pub use crate::rules::svelte::no_at_html_tags::NoAtHtmlTags as SvelteNoAtHtmlTags;
+pub use crate::rules::svelte::no_bind_value_on_checkable_inputs::NoBindValueOnCheckableInputs as SvelteNoBindValueOnCheckableInputs;
 pub use crate::rules::svelte::no_dom_manipulating::NoDomManipulating as SvelteNoDomManipulating;
 pub use crate::rules::svelte::no_dupe_else_if_blocks::NoDupeElseIfBlocks as SvelteNoDupeElseIfBlocks;
 pub use crate::rules::svelte::no_dupe_on_directives::NoDupeOnDirectives as SvelteNoDupeOnDirectives;
@@ -525,16 +528,21 @@ pub use crate::rules::svelte::no_dupe_style_properties::NoDupeStyleProperties as
 pub use crate::rules::svelte::no_dupe_use_directives::NoDupeUseDirectives as SvelteNoDupeUseDirectives;
 pub use crate::rules::svelte::no_dynamic_slot_name::NoDynamicSlotName as SvelteNoDynamicSlotName;
 pub use crate::rules::svelte::no_export_load_in_svelte_module_in_kit_pages::NoExportLoadInSvelteModuleInKitPages as SvelteNoExportLoadInSvelteModuleInKitPages;
+pub use crate::rules::svelte::no_extra_reactive_curlies::NoExtraReactiveCurlies as SvelteNoExtraReactiveCurlies;
+pub use crate::rules::svelte::no_ignored_unsubscribe::NoIgnoredUnsubscribe as SvelteNoIgnoredUnsubscribe;
 pub use crate::rules::svelte::no_immutable_reactive_statements::NoImmutableReactiveStatements as SvelteNoImmutableReactiveStatements;
+pub use crate::rules::svelte::no_inline_styles::NoInlineStyles as SvelteNoInlineStyles;
 pub use crate::rules::svelte::no_inner_declarations::NoInnerDeclarations as SvelteNoInnerDeclarations;
 pub use crate::rules::svelte::no_inspect::NoInspect as SvelteNoInspect;
 pub use crate::rules::svelte::no_navigation_without_resolve::NoNavigationWithoutResolve as SvelteNoNavigationWithoutResolve;
+pub use crate::rules::svelte::no_nested_style_tag::NoNestedStyleTag as SvelteNoNestedStyleTag;
 pub use crate::rules::svelte::no_not_function_handler::NoNotFunctionHandler as SvelteNoNotFunctionHandler;
 pub use crate::rules::svelte::no_object_in_text_mustaches::NoObjectInTextMustaches as SvelteNoObjectInTextMustaches;
 pub use crate::rules::svelte::no_raw_special_elements::NoRawSpecialElements as SvelteNoRawSpecialElements;
 pub use crate::rules::svelte::no_reactive_functions::NoReactiveFunctions as SvelteNoReactiveFunctions;
 pub use crate::rules::svelte::no_reactive_literals::NoReactiveLiterals as SvelteNoReactiveLiterals;
 pub use crate::rules::svelte::no_reactive_reassign::NoReactiveReassign as SvelteNoReactiveReassign;
+pub use crate::rules::svelte::no_restricted_html_elements::NoRestrictedHtmlElements as SvelteNoRestrictedHtmlElements;
 pub use crate::rules::svelte::no_shorthand_style_property_overrides::NoShorthandStylePropertyOverrides as SvelteNoShorthandStylePropertyOverrides;
 pub use crate::rules::svelte::no_spaces_around_equal_signs_in_attribute::NoSpacesAroundEqualSignsInAttribute as SvelteNoSpacesAroundEqualSignsInAttribute;
 pub use crate::rules::svelte::no_store_async::NoStoreAsync as SvelteNoStoreAsync;
@@ -546,11 +554,15 @@ pub use crate::rules::svelte::no_unused_props::NoUnusedProps as SvelteNoUnusedPr
 pub use crate::rules::svelte::no_unused_svelte_ignore::NoUnusedSvelteIgnore as SvelteNoUnusedSvelteIgnore;
 pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
 pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
+pub use crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy as SveltePreferDerivedOverDerivedBy;
 pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity as SveltePreferSvelteReactivity;
 pub use crate::rules::svelte::prefer_writable_derived::PreferWritableDerived as SveltePreferWritableDerived;
 pub use crate::rules::svelte::require_each_key::RequireEachKey as SvelteRequireEachKey;
 pub use crate::rules::svelte::require_event_dispatcher_types::RequireEventDispatcherTypes as SvelteRequireEventDispatcherTypes;
+pub use crate::rules::svelte::require_store_callbacks_use_set_param::RequireStoreCallbacksUseSetParam as SvelteRequireStoreCallbacksUseSetParam;
 pub use crate::rules::svelte::require_store_reactive_access::RequireStoreReactiveAccess as SvelteRequireStoreReactiveAccess;
+pub use crate::rules::svelte::require_stores_init::RequireStoresInit as SvelteRequireStoresInit;
+pub use crate::rules::svelte::spaced_html_comment::SpacedHtmlComment as SvelteSpacedHtmlComment;
 pub use crate::rules::svelte::system::System as SvelteSystem;
 pub use crate::rules::svelte::valid_each_key::ValidEachKey as SvelteValidEachKey;
 pub use crate::rules::svelte::valid_prop_names_in_kit_pages::ValidPropNamesInKitPages as SvelteValidPropNamesInKitPages;
@@ -1923,9 +1935,12 @@ pub enum RuleEnum {
     VueValidVText(VueValidVText),
     SvelteButtonHasType(SvelteButtonHasType),
     SvelteCommentDirective(SvelteCommentDirective),
+    SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs),
     SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
+    SvelteNoAddEventListener(SvelteNoAddEventListener),
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
     SvelteNoAtHtmlTags(SvelteNoAtHtmlTags),
+    SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs),
     SvelteNoDomManipulating(SvelteNoDomManipulating),
     SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks),
     SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives),
@@ -1933,16 +1948,21 @@ pub enum RuleEnum {
     SvelteNoDupeUseDirectives(SvelteNoDupeUseDirectives),
     SvelteNoDynamicSlotName(SvelteNoDynamicSlotName),
     SvelteNoExportLoadInSvelteModuleInKitPages(SvelteNoExportLoadInSvelteModuleInKitPages),
+    SvelteNoExtraReactiveCurlies(SvelteNoExtraReactiveCurlies),
+    SvelteNoIgnoredUnsubscribe(SvelteNoIgnoredUnsubscribe),
     SvelteNoImmutableReactiveStatements(SvelteNoImmutableReactiveStatements),
+    SvelteNoInlineStyles(SvelteNoInlineStyles),
     SvelteNoInnerDeclarations(SvelteNoInnerDeclarations),
     SvelteNoInspect(SvelteNoInspect),
     SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve),
+    SvelteNoNestedStyleTag(SvelteNoNestedStyleTag),
     SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler),
     SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches),
     SvelteNoRawSpecialElements(SvelteNoRawSpecialElements),
     SvelteNoReactiveFunctions(SvelteNoReactiveFunctions),
     SvelteNoReactiveLiterals(SvelteNoReactiveLiterals),
     SvelteNoReactiveReassign(SvelteNoReactiveReassign),
+    SvelteNoRestrictedHtmlElements(SvelteNoRestrictedHtmlElements),
     SvelteNoShorthandStylePropertyOverrides(SvelteNoShorthandStylePropertyOverrides),
     SvelteNoSpacesAroundEqualSignsInAttribute(SvelteNoSpacesAroundEqualSignsInAttribute),
     SvelteNoStoreAsync(SvelteNoStoreAsync),
@@ -1954,11 +1974,15 @@ pub enum RuleEnum {
     SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore),
     SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
     SvelteNoUselessMustaches(SvelteNoUselessMustaches),
+    SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy),
     SveltePreferSvelteReactivity(SveltePreferSvelteReactivity),
     SveltePreferWritableDerived(SveltePreferWritableDerived),
     SvelteRequireEachKey(SvelteRequireEachKey),
     SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes),
+    SvelteRequireStoreCallbacksUseSetParam(SvelteRequireStoreCallbacksUseSetParam),
     SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess),
+    SvelteRequireStoresInit(SvelteRequireStoresInit),
+    SvelteSpacedHtmlComment(SvelteSpacedHtmlComment),
     SvelteSystem(SvelteSystem),
     SvelteValidEachKey(SvelteValidEachKey),
     SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages),
@@ -3005,10 +3029,13 @@ const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
 const SVELTE_BUTTON_HAS_TYPE_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
 const SVELTE_COMMENT_DIRECTIVE_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
-const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
-const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
+const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID + 1usize;
+const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
-const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
+const SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
+const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID + 1usize;
 const SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID: usize = SVELTE_NO_DOM_MANIPULATING_ID + 1usize;
 const SVELTE_NO_DUPE_ON_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID + 1usize;
 const SVELTE_NO_DUPE_STYLE_PROPERTIES_ID: usize = SVELTE_NO_DUPE_ON_DIRECTIVES_ID + 1usize;
@@ -3016,19 +3043,24 @@ const SVELTE_NO_DUPE_USE_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_STYLE_PROPERTIES_
 const SVELTE_NO_DYNAMIC_SLOT_NAME_ID: usize = SVELTE_NO_DUPE_USE_DIRECTIVES_ID + 1usize;
 const SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID: usize =
     SVELTE_NO_DYNAMIC_SLOT_NAME_ID + 1usize;
-const SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID: usize =
+const SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID: usize =
     SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID + 1usize;
-const SVELTE_NO_INNER_DECLARATIONS_ID: usize = SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID + 1usize;
+const SVELTE_NO_IGNORED_UNSUBSCRIBE_ID: usize = SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID + 1usize;
+const SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID: usize = SVELTE_NO_IGNORED_UNSUBSCRIBE_ID + 1usize;
+const SVELTE_NO_INLINE_STYLES_ID: usize = SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID + 1usize;
+const SVELTE_NO_INNER_DECLARATIONS_ID: usize = SVELTE_NO_INLINE_STYLES_ID + 1usize;
 const SVELTE_NO_INSPECT_ID: usize = SVELTE_NO_INNER_DECLARATIONS_ID + 1usize;
 const SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID: usize = SVELTE_NO_INSPECT_ID + 1usize;
-const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID + 1usize;
+const SVELTE_NO_NESTED_STYLE_TAG_ID: usize = SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID + 1usize;
+const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_NESTED_STYLE_TAG_ID + 1usize;
 const SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID: usize = SVELTE_NO_NOT_FUNCTION_HANDLER_ID + 1usize;
 const SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID: usize = SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID + 1usize;
 const SVELTE_NO_REACTIVE_FUNCTIONS_ID: usize = SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID + 1usize;
 const SVELTE_NO_REACTIVE_LITERALS_ID: usize = SVELTE_NO_REACTIVE_FUNCTIONS_ID + 1usize;
 const SVELTE_NO_REACTIVE_REASSIGN_ID: usize = SVELTE_NO_REACTIVE_LITERALS_ID + 1usize;
+const SVELTE_NO_RESTRICTED_HTML_ELEMENTS_ID: usize = SVELTE_NO_REACTIVE_REASSIGN_ID + 1usize;
 const SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID: usize =
-    SVELTE_NO_REACTIVE_REASSIGN_ID + 1usize;
+    SVELTE_NO_RESTRICTED_HTML_ELEMENTS_ID + 1usize;
 const SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID: usize =
     SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID + 1usize;
 const SVELTE_NO_STORE_ASYNC_ID: usize =
@@ -3042,16 +3074,21 @@ const SVELTE_NO_UNUSED_PROPS_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1
 const SVELTE_NO_UNUSED_SVELTE_IGNORE_ID: usize = SVELTE_NO_UNUSED_PROPS_ID + 1usize;
 const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_UNUSED_SVELTE_IGNORE_ID + 1usize;
 const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
-const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
 const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
 const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_PREFER_WRITABLE_DERIVED_ID + 1usize;
 const SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID: usize = SVELTE_REQUIRE_EACH_KEY_ID + 1usize;
-const SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID: usize =
+const SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID: usize =
     SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID + 1usize;
-const SVELTE_SYSTEM_ID: usize = SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID + 1usize;
+const SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID: usize =
+    SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID + 1usize;
+const SVELTE_REQUIRE_STORES_INIT_ID: usize = SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID + 1usize;
+const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_REQUIRE_STORES_INIT_ID + 1usize;
+const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
-static RULE_NAMES: [&str; 967usize] = [
+static RULE_NAMES: [&str; 979usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -3980,9 +4017,12 @@ static RULE_NAMES: [&str; 967usize] = [
     VueValidVText::NAME,
     SvelteButtonHasType::NAME,
     SvelteCommentDirective::NAME,
+    SvelteDerivedHasSameInputsOutputs::NAME,
     SvelteInfiniteReactiveLoop::NAME,
+    SvelteNoAddEventListener::NAME,
     SvelteNoAtDebugTags::NAME,
     SvelteNoAtHtmlTags::NAME,
+    SvelteNoBindValueOnCheckableInputs::NAME,
     SvelteNoDomManipulating::NAME,
     SvelteNoDupeElseIfBlocks::NAME,
     SvelteNoDupeOnDirectives::NAME,
@@ -3990,16 +4030,21 @@ static RULE_NAMES: [&str; 967usize] = [
     SvelteNoDupeUseDirectives::NAME,
     SvelteNoDynamicSlotName::NAME,
     SvelteNoExportLoadInSvelteModuleInKitPages::NAME,
+    SvelteNoExtraReactiveCurlies::NAME,
+    SvelteNoIgnoredUnsubscribe::NAME,
     SvelteNoImmutableReactiveStatements::NAME,
+    SvelteNoInlineStyles::NAME,
     SvelteNoInnerDeclarations::NAME,
     SvelteNoInspect::NAME,
     SvelteNoNavigationWithoutResolve::NAME,
+    SvelteNoNestedStyleTag::NAME,
     SvelteNoNotFunctionHandler::NAME,
     SvelteNoObjectInTextMustaches::NAME,
     SvelteNoRawSpecialElements::NAME,
     SvelteNoReactiveFunctions::NAME,
     SvelteNoReactiveLiterals::NAME,
     SvelteNoReactiveReassign::NAME,
+    SvelteNoRestrictedHtmlElements::NAME,
     SvelteNoShorthandStylePropertyOverrides::NAME,
     SvelteNoSpacesAroundEqualSignsInAttribute::NAME,
     SvelteNoStoreAsync::NAME,
@@ -4011,11 +4056,15 @@ static RULE_NAMES: [&str; 967usize] = [
     SvelteNoUnusedSvelteIgnore::NAME,
     SvelteNoUselessChildrenSnippet::NAME,
     SvelteNoUselessMustaches::NAME,
+    SveltePreferDerivedOverDerivedBy::NAME,
     SveltePreferSvelteReactivity::NAME,
     SveltePreferWritableDerived::NAME,
     SvelteRequireEachKey::NAME,
     SvelteRequireEventDispatcherTypes::NAME,
+    SvelteRequireStoreCallbacksUseSetParam::NAME,
     SvelteRequireStoreReactiveAccess::NAME,
+    SvelteRequireStoresInit::NAME,
+    SvelteSpacedHtmlComment::NAME,
     SvelteSystem::NAME,
     SvelteValidEachKey::NAME,
     SvelteValidPropNamesInKitPages::NAME,
@@ -5085,9 +5134,14 @@ impl RuleEnum {
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
             Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
             Self::SvelteCommentDirective(_) => SVELTE_COMMENT_DIRECTIVE_ID,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID,
             Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
+            Self::SvelteNoAddEventListener(_) => SVELTE_NO_ADD_EVENT_LISTENER_ID,
             Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
             Self::SvelteNoAtHtmlTags(_) => SVELTE_NO_AT_HTML_TAGS_ID,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID
+            }
             Self::SvelteNoDomManipulating(_) => SVELTE_NO_DOM_MANIPULATING_ID,
             Self::SvelteNoDupeElseIfBlocks(_) => SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID,
             Self::SvelteNoDupeOnDirectives(_) => SVELTE_NO_DUPE_ON_DIRECTIVES_ID,
@@ -5097,18 +5151,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SVELTE_NO_EXTRA_REACTIVE_CURLIES_ID,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SVELTE_NO_IGNORED_UNSUBSCRIBE_ID,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID
             }
+            Self::SvelteNoInlineStyles(_) => SVELTE_NO_INLINE_STYLES_ID,
             Self::SvelteNoInnerDeclarations(_) => SVELTE_NO_INNER_DECLARATIONS_ID,
             Self::SvelteNoInspect(_) => SVELTE_NO_INSPECT_ID,
             Self::SvelteNoNavigationWithoutResolve(_) => SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID,
+            Self::SvelteNoNestedStyleTag(_) => SVELTE_NO_NESTED_STYLE_TAG_ID,
             Self::SvelteNoNotFunctionHandler(_) => SVELTE_NO_NOT_FUNCTION_HANDLER_ID,
             Self::SvelteNoObjectInTextMustaches(_) => SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID,
             Self::SvelteNoRawSpecialElements(_) => SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID,
             Self::SvelteNoReactiveFunctions(_) => SVELTE_NO_REACTIVE_FUNCTIONS_ID,
             Self::SvelteNoReactiveLiterals(_) => SVELTE_NO_REACTIVE_LITERALS_ID,
             Self::SvelteNoReactiveReassign(_) => SVELTE_NO_REACTIVE_REASSIGN_ID,
+            Self::SvelteNoRestrictedHtmlElements(_) => SVELTE_NO_RESTRICTED_HTML_ELEMENTS_ID,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID
             }
@@ -5126,11 +5185,17 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SVELTE_NO_UNUSED_SVELTE_IGNORE_ID,
             Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
             Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
+            Self::SveltePreferDerivedOverDerivedBy(_) => SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID,
             Self::SveltePreferSvelteReactivity(_) => SVELTE_PREFER_SVELTE_REACTIVITY_ID,
             Self::SveltePreferWritableDerived(_) => SVELTE_PREFER_WRITABLE_DERIVED_ID,
             Self::SvelteRequireEachKey(_) => SVELTE_REQUIRE_EACH_KEY_ID,
             Self::SvelteRequireEventDispatcherTypes(_) => SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID,
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID,
+            Self::SvelteRequireStoresInit(_) => SVELTE_REQUIRE_STORES_INIT_ID,
+            Self::SvelteSpacedHtmlComment(_) => SVELTE_SPACED_HTML_COMMENT_ID,
             Self::SvelteSystem(_) => SVELTE_SYSTEM_ID,
             Self::SvelteValidEachKey(_) => SVELTE_VALID_EACH_KEY_ID,
             Self::SvelteValidPropNamesInKitPages(_) => SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID,
@@ -6253,9 +6318,16 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::CATEGORY,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::CATEGORY
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::CATEGORY,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::CATEGORY,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::CATEGORY
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::CATEGORY,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::CATEGORY,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::CATEGORY,
@@ -6265,18 +6337,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::CATEGORY
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::CATEGORY,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::CATEGORY,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::CATEGORY
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::CATEGORY,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::CATEGORY,
             Self::SvelteNoInspect(_) => SvelteNoInspect::CATEGORY,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::CATEGORY,
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::CATEGORY,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::CATEGORY,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::CATEGORY,
             Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::CATEGORY,
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::CATEGORY,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::CATEGORY,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::CATEGORY,
+            Self::SvelteNoRestrictedHtmlElements(_) => SvelteNoRestrictedHtmlElements::CATEGORY,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::CATEGORY
             }
@@ -6294,13 +6371,19 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::CATEGORY,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::CATEGORY,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::CATEGORY,
+            Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::CATEGORY,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::CATEGORY,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::CATEGORY,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::CATEGORY,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::CATEGORY
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::CATEGORY
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::CATEGORY,
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::CATEGORY,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::CATEGORY,
             Self::SvelteSystem(_) => SvelteSystem::CATEGORY,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::CATEGORY,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::CATEGORY,
@@ -7353,9 +7436,12 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::FIX,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::FIX,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::FIX,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::FIX,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::FIX,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::FIX,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::FIX,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::FIX,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::FIX,
@@ -7365,18 +7451,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::FIX
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::FIX,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::FIX,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::FIX
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::FIX,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::FIX,
             Self::SvelteNoInspect(_) => SvelteNoInspect::FIX,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::FIX,
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::FIX,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::FIX,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::FIX,
             Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::FIX,
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::FIX,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::FIX,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::FIX,
+            Self::SvelteNoRestrictedHtmlElements(_) => SvelteNoRestrictedHtmlElements::FIX,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::FIX
             }
@@ -7394,11 +7485,17 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::FIX,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
+            Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::FIX,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::FIX,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::FIX,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::FIX,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::FIX,
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::FIX
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::FIX,
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::FIX,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::FIX,
             Self::SvelteSystem(_) => SvelteSystem::FIX,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::FIX,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::FIX,
@@ -8745,9 +8842,16 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::documentation(),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::documentation(),
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::documentation()
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::documentation(),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::documentation(),
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::documentation()
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::documentation(),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::documentation(),
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::documentation(),
@@ -8757,14 +8861,18 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::documentation()
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::documentation(),
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::documentation(),
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::documentation()
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::documentation(),
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::documentation(),
             Self::SvelteNoInspect(_) => SvelteNoInspect::documentation(),
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::documentation()
             }
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::documentation(),
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::documentation(),
             Self::SvelteNoObjectInTextMustaches(_) => {
                 SvelteNoObjectInTextMustaches::documentation()
@@ -8773,6 +8881,9 @@ impl RuleEnum {
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::documentation(),
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::documentation(),
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::documentation(),
+            Self::SvelteNoRestrictedHtmlElements(_) => {
+                SvelteNoRestrictedHtmlElements::documentation()
+            }
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::documentation()
             }
@@ -8792,15 +8903,23 @@ impl RuleEnum {
                 SvelteNoUselessChildrenSnippet::documentation()
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::documentation(),
+            Self::SveltePreferDerivedOverDerivedBy(_) => {
+                SveltePreferDerivedOverDerivedBy::documentation()
+            }
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::documentation(),
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::documentation(),
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::documentation(),
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::documentation()
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::documentation()
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => {
                 SvelteRequireStoreReactiveAccess::documentation()
             }
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::documentation(),
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::documentation(),
             Self::SvelteSystem(_) => SvelteSystem::documentation(),
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::documentation(),
             Self::SvelteValidPropNamesInKitPages(_) => {
@@ -11471,14 +11590,24 @@ impl RuleEnum {
                 .or_else(|| SvelteButtonHasType::schema(generator)),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::config_schema(generator)
                 .or_else(|| SvelteCommentDirective::schema(generator)),
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::config_schema(generator)
+                    .or_else(|| SvelteDerivedHasSameInputsOutputs::schema(generator))
+            }
             Self::SvelteInfiniteReactiveLoop(_) => {
                 SvelteInfiniteReactiveLoop::config_schema(generator)
                     .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
             }
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::config_schema(generator)
+                .or_else(|| SvelteNoAddEventListener::schema(generator)),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::config_schema(generator)
                 .or_else(|| SvelteNoAtDebugTags::schema(generator)),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::config_schema(generator)
                 .or_else(|| SvelteNoAtHtmlTags::schema(generator)),
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::config_schema(generator)
+                    .or_else(|| SvelteNoBindValueOnCheckableInputs::schema(generator))
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::config_schema(generator)
                 .or_else(|| SvelteNoDomManipulating::schema(generator)),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::config_schema(generator)
@@ -11499,10 +11628,20 @@ impl RuleEnum {
                 SvelteNoExportLoadInSvelteModuleInKitPages::config_schema(generator)
                     .or_else(|| SvelteNoExportLoadInSvelteModuleInKitPages::schema(generator))
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => {
+                SvelteNoExtraReactiveCurlies::config_schema(generator)
+                    .or_else(|| SvelteNoExtraReactiveCurlies::schema(generator))
+            }
+            Self::SvelteNoIgnoredUnsubscribe(_) => {
+                SvelteNoIgnoredUnsubscribe::config_schema(generator)
+                    .or_else(|| SvelteNoIgnoredUnsubscribe::schema(generator))
+            }
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::config_schema(generator)
                     .or_else(|| SvelteNoImmutableReactiveStatements::schema(generator))
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::config_schema(generator)
+                .or_else(|| SvelteNoInlineStyles::schema(generator)),
             Self::SvelteNoInnerDeclarations(_) => {
                 SvelteNoInnerDeclarations::config_schema(generator)
                     .or_else(|| SvelteNoInnerDeclarations::schema(generator))
@@ -11513,6 +11652,8 @@ impl RuleEnum {
                 SvelteNoNavigationWithoutResolve::config_schema(generator)
                     .or_else(|| SvelteNoNavigationWithoutResolve::schema(generator))
             }
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::config_schema(generator)
+                .or_else(|| SvelteNoNestedStyleTag::schema(generator)),
             Self::SvelteNoNotFunctionHandler(_) => {
                 SvelteNoNotFunctionHandler::config_schema(generator)
                     .or_else(|| SvelteNoNotFunctionHandler::schema(generator))
@@ -11533,6 +11674,10 @@ impl RuleEnum {
                 .or_else(|| SvelteNoReactiveLiterals::schema(generator)),
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::config_schema(generator)
                 .or_else(|| SvelteNoReactiveReassign::schema(generator)),
+            Self::SvelteNoRestrictedHtmlElements(_) => {
+                SvelteNoRestrictedHtmlElements::config_schema(generator)
+                    .or_else(|| SvelteNoRestrictedHtmlElements::schema(generator))
+            }
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::config_schema(generator)
                     .or_else(|| SvelteNoShorthandStylePropertyOverrides::schema(generator))
@@ -11567,6 +11712,10 @@ impl RuleEnum {
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::config_schema(generator)
                 .or_else(|| SvelteNoUselessMustaches::schema(generator)),
+            Self::SveltePreferDerivedOverDerivedBy(_) => {
+                SveltePreferDerivedOverDerivedBy::config_schema(generator)
+                    .or_else(|| SveltePreferDerivedOverDerivedBy::schema(generator))
+            }
             Self::SveltePreferSvelteReactivity(_) => {
                 SveltePreferSvelteReactivity::config_schema(generator)
                     .or_else(|| SveltePreferSvelteReactivity::schema(generator))
@@ -11581,10 +11730,18 @@ impl RuleEnum {
                 SvelteRequireEventDispatcherTypes::config_schema(generator)
                     .or_else(|| SvelteRequireEventDispatcherTypes::schema(generator))
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::config_schema(generator)
+                    .or_else(|| SvelteRequireStoreCallbacksUseSetParam::schema(generator))
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => {
                 SvelteRequireStoreReactiveAccess::config_schema(generator)
                     .or_else(|| SvelteRequireStoreReactiveAccess::schema(generator))
             }
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::config_schema(generator)
+                .or_else(|| SvelteRequireStoresInit::schema(generator)),
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::config_schema(generator)
+                .or_else(|| SvelteSpacedHtmlComment::schema(generator)),
             Self::SvelteSystem(_) => {
                 SvelteSystem::config_schema(generator).or_else(|| SvelteSystem::schema(generator))
             }
@@ -12526,9 +12683,12 @@ impl RuleEnum {
             Self::VueValidVText(_) => "vue",
             Self::SvelteButtonHasType(_) => "svelte",
             Self::SvelteCommentDirective(_) => "svelte",
+            Self::SvelteDerivedHasSameInputsOutputs(_) => "svelte",
             Self::SvelteInfiniteReactiveLoop(_) => "svelte",
+            Self::SvelteNoAddEventListener(_) => "svelte",
             Self::SvelteNoAtDebugTags(_) => "svelte",
             Self::SvelteNoAtHtmlTags(_) => "svelte",
+            Self::SvelteNoBindValueOnCheckableInputs(_) => "svelte",
             Self::SvelteNoDomManipulating(_) => "svelte",
             Self::SvelteNoDupeElseIfBlocks(_) => "svelte",
             Self::SvelteNoDupeOnDirectives(_) => "svelte",
@@ -12536,16 +12696,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(_) => "svelte",
             Self::SvelteNoDynamicSlotName(_) => "svelte",
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => "svelte",
+            Self::SvelteNoExtraReactiveCurlies(_) => "svelte",
+            Self::SvelteNoIgnoredUnsubscribe(_) => "svelte",
             Self::SvelteNoImmutableReactiveStatements(_) => "svelte",
+            Self::SvelteNoInlineStyles(_) => "svelte",
             Self::SvelteNoInnerDeclarations(_) => "svelte",
             Self::SvelteNoInspect(_) => "svelte",
             Self::SvelteNoNavigationWithoutResolve(_) => "svelte",
+            Self::SvelteNoNestedStyleTag(_) => "svelte",
             Self::SvelteNoNotFunctionHandler(_) => "svelte",
             Self::SvelteNoObjectInTextMustaches(_) => "svelte",
             Self::SvelteNoRawSpecialElements(_) => "svelte",
             Self::SvelteNoReactiveFunctions(_) => "svelte",
             Self::SvelteNoReactiveLiterals(_) => "svelte",
             Self::SvelteNoReactiveReassign(_) => "svelte",
+            Self::SvelteNoRestrictedHtmlElements(_) => "svelte",
             Self::SvelteNoShorthandStylePropertyOverrides(_) => "svelte",
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => "svelte",
             Self::SvelteNoStoreAsync(_) => "svelte",
@@ -12557,11 +12722,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => "svelte",
             Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
             Self::SvelteNoUselessMustaches(_) => "svelte",
+            Self::SveltePreferDerivedOverDerivedBy(_) => "svelte",
             Self::SveltePreferSvelteReactivity(_) => "svelte",
             Self::SveltePreferWritableDerived(_) => "svelte",
             Self::SvelteRequireEachKey(_) => "svelte",
             Self::SvelteRequireEventDispatcherTypes(_) => "svelte",
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => "svelte",
             Self::SvelteRequireStoreReactiveAccess(_) => "svelte",
+            Self::SvelteRequireStoresInit(_) => "svelte",
+            Self::SvelteSpacedHtmlComment(_) => "svelte",
             Self::SvelteSystem(_) => "svelte",
             Self::SvelteValidEachKey(_) => "svelte",
             Self::SvelteValidPropNamesInKitPages(_) => "svelte",
@@ -13717,6 +13886,9 @@ impl RuleEnum {
             Self::SvelteButtonHasType(_) => {
                 Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
             }
+            Self::SvelteNoInlineStyles(_) => {
+                Ok(Self::SvelteNoInlineStyles(SvelteNoInlineStyles::from_configuration(value)?))
+            }
             Self::SvelteNoInnerDeclarations(_) => Ok(Self::SvelteNoInnerDeclarations(
                 SvelteNoInnerDeclarations::from_configuration(value)?,
             )),
@@ -13728,6 +13900,9 @@ impl RuleEnum {
             Self::SvelteNoReactiveReassign(_) => Ok(Self::SvelteNoReactiveReassign(
                 SvelteNoReactiveReassign::from_configuration(value)?,
             )),
+            Self::SvelteNoRestrictedHtmlElements(_) => Ok(Self::SvelteNoRestrictedHtmlElements(
+                SvelteNoRestrictedHtmlElements::from_configuration(value)?,
+            )),
             Self::SvelteNoTargetBlank(_) => {
                 Ok(Self::SvelteNoTargetBlank(SvelteNoTargetBlank::from_configuration(value)?))
             }
@@ -13738,6 +13913,9 @@ impl RuleEnum {
             }
             Self::SvelteNoUnnecessaryStateWrap(_) => Ok(Self::SvelteNoUnnecessaryStateWrap(
                 SvelteNoUnnecessaryStateWrap::from_configuration(value)?,
+            )),
+            Self::SvelteSpacedHtmlComment(_) => Ok(Self::SvelteSpacedHtmlComment(
+                SvelteSpacedHtmlComment::from_configuration(value)?,
             )),
             _ => Ok(RULES[self.id()].clone()),
         }
@@ -14711,9 +14889,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.run(node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run(node, ctx),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run(node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
+            Self::SvelteNoAddEventListener(rule) => rule.run(node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run(node, ctx),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run(node, ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run(node, ctx),
@@ -14721,16 +14902,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(rule) => rule.run(node, ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.run(node, ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run(node, ctx),
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.run(node, ctx),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run(node, ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run(node, ctx),
+            Self::SvelteNoInlineStyles(rule) => rule.run(node, ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run(node, ctx),
             Self::SvelteNoInspect(rule) => rule.run(node, ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run(node, ctx),
+            Self::SvelteNoNestedStyleTag(rule) => rule.run(node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run(node, ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run(node, ctx),
             Self::SvelteNoRawSpecialElements(rule) => rule.run(node, ctx),
             Self::SvelteNoReactiveFunctions(rule) => rule.run(node, ctx),
             Self::SvelteNoReactiveLiterals(rule) => rule.run(node, ctx),
             Self::SvelteNoReactiveReassign(rule) => rule.run(node, ctx),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.run(node, ctx),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run(node, ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run(node, ctx),
             Self::SvelteNoStoreAsync(rule) => rule.run(node, ctx),
@@ -14742,11 +14928,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run(node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run(node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run(node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run(node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run(node, ctx),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run(node, ctx),
+            Self::SvelteRequireStoresInit(rule) => rule.run(node, ctx),
+            Self::SvelteSpacedHtmlComment(rule) => rule.run(node, ctx),
             Self::SvelteSystem(rule) => rule.run(node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run(node, ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run(node, ctx),
@@ -15695,9 +15885,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.run_once(ctx),
             Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
             Self::SvelteCommentDirective(rule) => rule.run_once(ctx),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_once(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
+            Self::SvelteNoAddEventListener(rule) => rule.run_once(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_once(ctx),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_once(ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_once(ctx),
@@ -15705,16 +15898,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(rule) => rule.run_once(ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.run_once(ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_once(ctx),
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_once(ctx),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_once(ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_once(ctx),
+            Self::SvelteNoInlineStyles(rule) => rule.run_once(ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_once(ctx),
             Self::SvelteNoInspect(rule) => rule.run_once(ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_once(ctx),
+            Self::SvelteNoNestedStyleTag(rule) => rule.run_once(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_once(ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_once(ctx),
             Self::SvelteNoRawSpecialElements(rule) => rule.run_once(ctx),
             Self::SvelteNoReactiveFunctions(rule) => rule.run_once(ctx),
             Self::SvelteNoReactiveLiterals(rule) => rule.run_once(ctx),
             Self::SvelteNoReactiveReassign(rule) => rule.run_once(ctx),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.run_once(ctx),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run_once(ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_once(ctx),
             Self::SvelteNoStoreAsync(rule) => rule.run_once(ctx),
@@ -15726,11 +15924,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_once(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_once(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_once(ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_once(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_once(ctx),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_once(ctx),
+            Self::SvelteRequireStoresInit(rule) => rule.run_once(ctx),
+            Self::SvelteSpacedHtmlComment(rule) => rule.run_once(ctx),
             Self::SvelteSystem(rule) => rule.run_once(ctx),
             Self::SvelteValidEachKey(rule) => rule.run_once(ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_once(ctx),
@@ -16798,9 +17000,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoAddEventListener(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -16810,18 +17015,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
+            Self::SvelteNoInlineStyles(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoInspect(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoNestedStyleTag(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoRawSpecialElements(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoReactiveFunctions(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoReactiveLiterals(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoReactiveReassign(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
@@ -16839,11 +17049,17 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireStoresInit(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteSpacedHtmlComment(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteSystem(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17793,9 +18009,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.should_run(ctx),
             Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
             Self::SvelteCommentDirective(rule) => rule.should_run(ctx),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.should_run(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
+            Self::SvelteNoAddEventListener(rule) => rule.should_run(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.should_run(ctx),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.should_run(ctx),
             Self::SvelteNoDomManipulating(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.should_run(ctx),
@@ -17803,16 +18022,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(rule) => rule.should_run(ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.should_run(ctx),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.should_run(ctx),
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.should_run(ctx),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.should_run(ctx),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.should_run(ctx),
+            Self::SvelteNoInlineStyles(rule) => rule.should_run(ctx),
             Self::SvelteNoInnerDeclarations(rule) => rule.should_run(ctx),
             Self::SvelteNoInspect(rule) => rule.should_run(ctx),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.should_run(ctx),
+            Self::SvelteNoNestedStyleTag(rule) => rule.should_run(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.should_run(ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.should_run(ctx),
             Self::SvelteNoRawSpecialElements(rule) => rule.should_run(ctx),
             Self::SvelteNoReactiveFunctions(rule) => rule.should_run(ctx),
             Self::SvelteNoReactiveLiterals(rule) => rule.should_run(ctx),
             Self::SvelteNoReactiveReassign(rule) => rule.should_run(ctx),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.should_run(ctx),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.should_run(ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.should_run(ctx),
             Self::SvelteNoStoreAsync(rule) => rule.should_run(ctx),
@@ -17824,11 +18048,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.should_run(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.should_run(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.should_run(ctx),
             Self::SvelteRequireEachKey(rule) => rule.should_run(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.should_run(ctx),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.should_run(ctx),
+            Self::SvelteRequireStoresInit(rule) => rule.should_run(ctx),
+            Self::SvelteSpacedHtmlComment(rule) => rule.should_run(ctx),
             Self::SvelteSystem(rule) => rule.should_run(ctx),
             Self::SvelteValidEachKey(rule) => rule.should_run(ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.should_run(ctx),
@@ -19174,9 +19402,16 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::IS_TSGOLINT_RULE,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::IS_TSGOLINT_RULE
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::IS_TSGOLINT_RULE,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::IS_TSGOLINT_RULE,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::IS_TSGOLINT_RULE,
@@ -19186,14 +19421,18 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::IS_TSGOLINT_RULE,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::IS_TSGOLINT_RULE,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::IS_TSGOLINT_RULE,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::IS_TSGOLINT_RULE,
             Self::SvelteNoInspect(_) => SvelteNoInspect::IS_TSGOLINT_RULE,
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::IS_TSGOLINT_RULE,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::IS_TSGOLINT_RULE,
             Self::SvelteNoObjectInTextMustaches(_) => {
                 SvelteNoObjectInTextMustaches::IS_TSGOLINT_RULE
@@ -19202,6 +19441,9 @@ impl RuleEnum {
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::IS_TSGOLINT_RULE,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::IS_TSGOLINT_RULE,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::IS_TSGOLINT_RULE,
+            Self::SvelteNoRestrictedHtmlElements(_) => {
+                SvelteNoRestrictedHtmlElements::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::IS_TSGOLINT_RULE
             }
@@ -19221,15 +19463,23 @@ impl RuleEnum {
                 SvelteNoUselessChildrenSnippet::IS_TSGOLINT_RULE
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::IS_TSGOLINT_RULE,
+            Self::SveltePreferDerivedOverDerivedBy(_) => {
+                SveltePreferDerivedOverDerivedBy::IS_TSGOLINT_RULE
+            }
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::IS_TSGOLINT_RULE,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::IS_TSGOLINT_RULE,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::IS_TSGOLINT_RULE,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::IS_TSGOLINT_RULE
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::IS_TSGOLINT_RULE
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => {
                 SvelteRequireStoreReactiveAccess::IS_TSGOLINT_RULE
             }
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::IS_TSGOLINT_RULE,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::IS_TSGOLINT_RULE,
             Self::SvelteSystem(_) => SvelteSystem::IS_TSGOLINT_RULE,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::IS_TSGOLINT_RULE,
             Self::SvelteValidPropNamesInKitPages(_) => {
@@ -20353,9 +20603,16 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::VERSION,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::VERSION,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::VERSION
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::VERSION,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::VERSION,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::VERSION
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::VERSION,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::VERSION,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::VERSION,
@@ -20365,18 +20622,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::VERSION
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::VERSION,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::VERSION,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::VERSION
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::VERSION,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::VERSION,
             Self::SvelteNoInspect(_) => SvelteNoInspect::VERSION,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::VERSION,
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::VERSION,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::VERSION,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::VERSION,
             Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::VERSION,
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::VERSION,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::VERSION,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::VERSION,
+            Self::SvelteNoRestrictedHtmlElements(_) => SvelteNoRestrictedHtmlElements::VERSION,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::VERSION
             }
@@ -20394,13 +20656,19 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::VERSION,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::VERSION,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::VERSION,
+            Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::VERSION,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::VERSION,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::VERSION,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::VERSION,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::VERSION
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::VERSION
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::VERSION,
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::VERSION,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::VERSION,
             Self::SvelteSystem(_) => SvelteSystem::VERSION,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::VERSION,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::VERSION,
@@ -21567,9 +21835,16 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::HAS_CONFIG,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => {
+                SvelteDerivedHasSameInputsOutputs::HAS_CONFIG
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::HAS_CONFIG,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::HAS_CONFIG,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => {
+                SvelteNoBindValueOnCheckableInputs::HAS_CONFIG
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::HAS_CONFIG,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::HAS_CONFIG,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::HAS_CONFIG,
@@ -21579,20 +21854,25 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::HAS_CONFIG
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::HAS_CONFIG,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::HAS_CONFIG,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::HAS_CONFIG
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::HAS_CONFIG,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::HAS_CONFIG,
             Self::SvelteNoInspect(_) => SvelteNoInspect::HAS_CONFIG,
             Self::SvelteNoNavigationWithoutResolve(_) => {
                 SvelteNoNavigationWithoutResolve::HAS_CONFIG
             }
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::HAS_CONFIG,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::HAS_CONFIG,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::HAS_CONFIG,
             Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::HAS_CONFIG,
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::HAS_CONFIG,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::HAS_CONFIG,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::HAS_CONFIG,
+            Self::SvelteNoRestrictedHtmlElements(_) => SvelteNoRestrictedHtmlElements::HAS_CONFIG,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::HAS_CONFIG
             }
@@ -21610,15 +21890,23 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::HAS_CONFIG,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::HAS_CONFIG,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::HAS_CONFIG,
+            Self::SveltePreferDerivedOverDerivedBy(_) => {
+                SveltePreferDerivedOverDerivedBy::HAS_CONFIG
+            }
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::HAS_CONFIG,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::HAS_CONFIG,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::HAS_CONFIG,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::HAS_CONFIG
             }
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::HAS_CONFIG
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => {
                 SvelteRequireStoreReactiveAccess::HAS_CONFIG
             }
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::HAS_CONFIG,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::HAS_CONFIG,
             Self::SvelteSystem(_) => SvelteSystem::HAS_CONFIG,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::HAS_CONFIG,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::HAS_CONFIG,
@@ -22672,9 +22960,12 @@ impl RuleEnum {
             Self::VueValidVText(_) => VueValidVText::INFO,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::INFO,
+            Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::INFO,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
+            Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::INFO,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::INFO,
+            Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::INFO,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::INFO,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::INFO,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::INFO,
@@ -22684,18 +22975,23 @@ impl RuleEnum {
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
                 SvelteNoExportLoadInSvelteModuleInKitPages::INFO
             }
+            Self::SvelteNoExtraReactiveCurlies(_) => SvelteNoExtraReactiveCurlies::INFO,
+            Self::SvelteNoIgnoredUnsubscribe(_) => SvelteNoIgnoredUnsubscribe::INFO,
             Self::SvelteNoImmutableReactiveStatements(_) => {
                 SvelteNoImmutableReactiveStatements::INFO
             }
+            Self::SvelteNoInlineStyles(_) => SvelteNoInlineStyles::INFO,
             Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::INFO,
             Self::SvelteNoInspect(_) => SvelteNoInspect::INFO,
             Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::INFO,
+            Self::SvelteNoNestedStyleTag(_) => SvelteNoNestedStyleTag::INFO,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::INFO,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::INFO,
             Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::INFO,
             Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::INFO,
             Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::INFO,
             Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::INFO,
+            Self::SvelteNoRestrictedHtmlElements(_) => SvelteNoRestrictedHtmlElements::INFO,
             Self::SvelteNoShorthandStylePropertyOverrides(_) => {
                 SvelteNoShorthandStylePropertyOverrides::INFO
             }
@@ -22713,11 +23009,17 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::INFO,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
+            Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::INFO,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::INFO,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::INFO,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::INFO,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::INFO,
+            Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
+                SvelteRequireStoreCallbacksUseSetParam::INFO
+            }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::INFO,
+            Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::INFO,
+            Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::INFO,
             Self::SvelteSystem(_) => SvelteSystem::INFO,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::INFO,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::INFO,
@@ -23658,9 +23960,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.types_info(),
             Self::SvelteButtonHasType(rule) => rule.types_info(),
             Self::SvelteCommentDirective(rule) => rule.types_info(),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.types_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
+            Self::SvelteNoAddEventListener(rule) => rule.types_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.types_info(),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.types_info(),
             Self::SvelteNoDomManipulating(rule) => rule.types_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.types_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.types_info(),
@@ -23668,16 +23973,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(rule) => rule.types_info(),
             Self::SvelteNoDynamicSlotName(rule) => rule.types_info(),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.types_info(),
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.types_info(),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.types_info(),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.types_info(),
+            Self::SvelteNoInlineStyles(rule) => rule.types_info(),
             Self::SvelteNoInnerDeclarations(rule) => rule.types_info(),
             Self::SvelteNoInspect(rule) => rule.types_info(),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.types_info(),
+            Self::SvelteNoNestedStyleTag(rule) => rule.types_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.types_info(),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.types_info(),
             Self::SvelteNoRawSpecialElements(rule) => rule.types_info(),
             Self::SvelteNoReactiveFunctions(rule) => rule.types_info(),
             Self::SvelteNoReactiveLiterals(rule) => rule.types_info(),
             Self::SvelteNoReactiveReassign(rule) => rule.types_info(),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.types_info(),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.types_info(),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.types_info(),
             Self::SvelteNoStoreAsync(rule) => rule.types_info(),
@@ -23689,11 +23999,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.types_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.types_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.types_info(),
             Self::SveltePreferWritableDerived(rule) => rule.types_info(),
             Self::SvelteRequireEachKey(rule) => rule.types_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.types_info(),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.types_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.types_info(),
+            Self::SvelteRequireStoresInit(rule) => rule.types_info(),
+            Self::SvelteSpacedHtmlComment(rule) => rule.types_info(),
             Self::SvelteSystem(rule) => rule.types_info(),
             Self::SvelteValidEachKey(rule) => rule.types_info(),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.types_info(),
@@ -24629,9 +24943,12 @@ impl RuleEnum {
             Self::VueValidVText(rule) => rule.run_info(),
             Self::SvelteButtonHasType(rule) => rule.run_info(),
             Self::SvelteCommentDirective(rule) => rule.run_info(),
+            Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
+            Self::SvelteNoAddEventListener(rule) => rule.run_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_info(),
+            Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_info(),
             Self::SvelteNoDomManipulating(rule) => rule.run_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_info(),
@@ -24639,16 +24956,21 @@ impl RuleEnum {
             Self::SvelteNoDupeUseDirectives(rule) => rule.run_info(),
             Self::SvelteNoDynamicSlotName(rule) => rule.run_info(),
             Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_info(),
+            Self::SvelteNoExtraReactiveCurlies(rule) => rule.run_info(),
+            Self::SvelteNoIgnoredUnsubscribe(rule) => rule.run_info(),
             Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_info(),
+            Self::SvelteNoInlineStyles(rule) => rule.run_info(),
             Self::SvelteNoInnerDeclarations(rule) => rule.run_info(),
             Self::SvelteNoInspect(rule) => rule.run_info(),
             Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_info(),
+            Self::SvelteNoNestedStyleTag(rule) => rule.run_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_info(),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_info(),
             Self::SvelteNoRawSpecialElements(rule) => rule.run_info(),
             Self::SvelteNoReactiveFunctions(rule) => rule.run_info(),
             Self::SvelteNoReactiveLiterals(rule) => rule.run_info(),
             Self::SvelteNoReactiveReassign(rule) => rule.run_info(),
+            Self::SvelteNoRestrictedHtmlElements(rule) => rule.run_info(),
             Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run_info(),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_info(),
             Self::SvelteNoStoreAsync(rule) => rule.run_info(),
@@ -24660,11 +24982,15 @@ impl RuleEnum {
             Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
+            Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_info(),
             Self::SveltePreferWritableDerived(rule) => rule.run_info(),
             Self::SvelteRequireEachKey(rule) => rule.run_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_info(),
+            Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_info(),
+            Self::SvelteRequireStoresInit(rule) => rule.run_info(),
+            Self::SvelteSpacedHtmlComment(rule) => rule.run_info(),
             Self::SvelteSystem(rule) => rule.run_info(),
             Self::SvelteValidEachKey(rule) => rule.run_info(),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_info(),
@@ -25738,9 +26064,12 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVText(VueValidVText::default()),
         RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
         RuleEnum::SvelteCommentDirective(SvelteCommentDirective::default()),
+        RuleEnum::SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs::default()),
         RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
+        RuleEnum::SvelteNoAddEventListener(SvelteNoAddEventListener::default()),
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
         RuleEnum::SvelteNoAtHtmlTags(SvelteNoAtHtmlTags::default()),
+        RuleEnum::SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs::default()),
         RuleEnum::SvelteNoDomManipulating(SvelteNoDomManipulating::default()),
         RuleEnum::SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks::default()),
         RuleEnum::SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives::default()),
@@ -25750,18 +26079,23 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoExportLoadInSvelteModuleInKitPages(
             SvelteNoExportLoadInSvelteModuleInKitPages::default(),
         ),
+        RuleEnum::SvelteNoExtraReactiveCurlies(SvelteNoExtraReactiveCurlies::default()),
+        RuleEnum::SvelteNoIgnoredUnsubscribe(SvelteNoIgnoredUnsubscribe::default()),
         RuleEnum::SvelteNoImmutableReactiveStatements(
             SvelteNoImmutableReactiveStatements::default(),
         ),
+        RuleEnum::SvelteNoInlineStyles(SvelteNoInlineStyles::default()),
         RuleEnum::SvelteNoInnerDeclarations(SvelteNoInnerDeclarations::default()),
         RuleEnum::SvelteNoInspect(SvelteNoInspect::default()),
         RuleEnum::SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve::default()),
+        RuleEnum::SvelteNoNestedStyleTag(SvelteNoNestedStyleTag::default()),
         RuleEnum::SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler::default()),
         RuleEnum::SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches::default()),
         RuleEnum::SvelteNoRawSpecialElements(SvelteNoRawSpecialElements::default()),
         RuleEnum::SvelteNoReactiveFunctions(SvelteNoReactiveFunctions::default()),
         RuleEnum::SvelteNoReactiveLiterals(SvelteNoReactiveLiterals::default()),
         RuleEnum::SvelteNoReactiveReassign(SvelteNoReactiveReassign::default()),
+        RuleEnum::SvelteNoRestrictedHtmlElements(SvelteNoRestrictedHtmlElements::default()),
         RuleEnum::SvelteNoShorthandStylePropertyOverrides(
             SvelteNoShorthandStylePropertyOverrides::default(),
         ),
@@ -25779,11 +26113,17 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore::default()),
         RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
         RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
+        RuleEnum::SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy::default()),
         RuleEnum::SveltePreferSvelteReactivity(SveltePreferSvelteReactivity::default()),
         RuleEnum::SveltePreferWritableDerived(SveltePreferWritableDerived::default()),
         RuleEnum::SvelteRequireEachKey(SvelteRequireEachKey::default()),
         RuleEnum::SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes::default()),
+        RuleEnum::SvelteRequireStoreCallbacksUseSetParam(
+            SvelteRequireStoreCallbacksUseSetParam::default(),
+        ),
         RuleEnum::SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess::default()),
+        RuleEnum::SvelteRequireStoresInit(SvelteRequireStoresInit::default()),
+        RuleEnum::SvelteSpacedHtmlComment(SvelteSpacedHtmlComment::default()),
         RuleEnum::SvelteSystem(SvelteSystem::default()),
         RuleEnum::SvelteValidEachKey(SvelteValidEachKey::default()),
         RuleEnum::SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages::default()),

@@ -1,0 +1,52 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(spaced-html-comment): Expected space or tab after '<!--' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!--comment-->
+   · ──────────────
+   ╰────
+  help: Write `<!-- comment -->`.
+
+  ⚠ svelte(spaced-html-comment): Expected space or tab before '-->' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!--comment-->
+   · ──────────────
+   ╰────
+  help: Write `<!-- comment -->`.
+
+  ⚠ svelte(spaced-html-comment): Expected space or tab before '-->' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!-- comment-->
+   · ───────────────
+   ╰────
+  help: Write `<!-- comment -->`.
+
+  ⚠ svelte(spaced-html-comment): Expected space or tab after '<!--' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!--comment -->
+   · ───────────────
+   ╰────
+  help: Write `<!-- comment -->`.
+
+  ⚠ svelte(spaced-html-comment): Unexpected space or tab after '<!--' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!-- comment -->
+   · ────────────────
+   ╰────
+  help: Write `<!--comment-->`.
+
+  ⚠ svelte(spaced-html-comment): Unexpected space or tab before '-->' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!-- comment -->
+   · ────────────────
+   ╰────
+  help: Write `<!--comment-->`.
+
+  ⚠ svelte(spaced-html-comment): Unexpected space or tab after '<!--' in comment.
+   ╭─[spaced_html_comment.tsx:1:1]
+ 1 │ <!-- comment-->
+   · ───────────────
+   ╰────
+  help: Write `<!--comment-->`.

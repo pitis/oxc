@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-bind-value-on-checkable-inputs): `bind:value` does not work on checkbox inputs.
+   ╭─[no_bind_value_on_checkable_inputs.tsx:1:24]
+ 1 │ <input type="checkbox" bind:value={agreed} />
+   ·                        ───────────────────
+   ╰────
+  help: Use `bind:checked` for a single checkbox, or `bind:group` for a set of them.
+
+  ⚠ svelte(no-bind-value-on-checkable-inputs): `bind:value` does not work on radio inputs.
+   ╭─[no_bind_value_on_checkable_inputs.tsx:1:21]
+ 1 │ <input type="radio" bind:value={choice} />
+   ·                     ───────────────────
+   ╰────
+  help: Use `bind:group` to bind the selected radio of a group.
+
+  ⚠ svelte(no-bind-value-on-checkable-inputs): `bind:value` does not work on checkbox inputs.
+   ╭─[no_bind_value_on_checkable_inputs.tsx:1:24]
+ 1 │ <input TYPE="Checkbox" bind:value={agreed} />
+   ·                        ───────────────────
+   ╰────
+  help: Use `bind:checked` for a single checkbox, or `bind:group` for a set of them.
+
+  ⚠ svelte(no-bind-value-on-checkable-inputs): `bind:value` does not work on checkbox inputs.
+   ╭─[no_bind_value_on_checkable_inputs.tsx:1:24]
+ 1 │ <input type="checkbox" bind:value />
+   ·                        ──────────
+   ╰────
+  help: Use `bind:checked` for a single checkbox, or `bind:group` for a set of them.

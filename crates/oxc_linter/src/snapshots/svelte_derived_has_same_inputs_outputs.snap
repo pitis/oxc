@@ -1,0 +1,48 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(derived-has-same-inputs-outputs): The argument name should be `$count`.
+   ╭─[derived_has_same_inputs_outputs.tsx:3:49]
+ 2 │                 import { derived } from 'svelte/store';
+ 3 │                 const doubled = derived(count, (c) => c * 2, 0);
+   ·                                                 ─
+ 4 │             </script>
+   ╰────
+  help: Rename the parameter to `$count` so it matches its store.
+
+  ⚠ svelte(derived-has-same-inputs-outputs): The argument name should be `$a`.
+   ╭─[derived_has_same_inputs_outputs.tsx:3:47]
+ 2 │                 import { derived } from 'svelte/store';
+ 3 │                 const sum = derived([a, b], ([x, y]) => x + y, 0);
+   ·                                               ─
+ 4 │             </script>
+   ╰────
+  help: Rename the parameter to `$a` so it matches its store.
+
+  ⚠ svelte(derived-has-same-inputs-outputs): The argument name should be `$b`.
+   ╭─[derived_has_same_inputs_outputs.tsx:3:50]
+ 2 │                 import { derived } from 'svelte/store';
+ 3 │                 const sum = derived([a, b], ([x, y]) => x + y, 0);
+   ·                                                  ─
+ 4 │             </script>
+   ╰────
+  help: Rename the parameter to `$b` so it matches its store.
+
+  ⚠ svelte(derived-has-same-inputs-outputs): The argument name should be `$b`.
+   ╭─[derived_has_same_inputs_outputs.tsx:3:51]
+ 2 │                 import { derived } from 'svelte/store';
+ 3 │                 const sum = derived([a, b], ([$a, y]) => $a + y, 0);
+   ·                                                   ─
+ 4 │             </script>
+   ╰────
+  help: Rename the parameter to `$b` so it matches its store.
+
+  ⚠ svelte(derived-has-same-inputs-outputs): The argument name should be `$count`.
+   ╭─[derived_has_same_inputs_outputs.tsx:3:52]
+ 2 │                 import { derived } from 'svelte/store';
+ 3 │                 const d = derived(count, function (c) { return c; }, 0);
+   ·                                                    ─
+ 4 │             </script>
+   ╰────
+  help: Rename the parameter to `$count` so it matches its store.

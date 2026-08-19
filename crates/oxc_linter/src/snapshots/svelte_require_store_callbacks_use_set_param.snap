@@ -1,0 +1,30 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-store-callbacks-use-set-param): Store callbacks must use `set` param.
+   ╭─[require_store_callbacks_use_set_param.tsx:3:45]
+ 2 │                 import { readable } from 'svelte/store';
+ 3 │                 const time = readable(null, (update) => {});
+   ·                                             ──────────────
+ 4 │             </script>
+   ╰────
+  help: Name the callback's first parameter `set`.
+
+  ⚠ svelte(require-store-callbacks-use-set-param): Store callbacks must use `set` param.
+   ╭─[require_store_callbacks_use_set_param.tsx:3:45]
+ 2 │                 import { readable } from 'svelte/store';
+ 3 │                 const time = readable(null, () => {});
+   ·                                             ────────
+ 4 │             </script>
+   ╰────
+  help: Name the callback's first parameter `set`.
+
+  ⚠ svelte(require-store-callbacks-use-set-param): Store callbacks must use `set` param.
+   ╭─[require_store_callbacks_use_set_param.tsx:3:39]
+ 2 │                 import { writable } from 'svelte/store';
+ 3 │                 const w = writable(0, function (update) {});
+   ·                                       ────────────────────
+ 4 │             </script>
+   ╰────
+  help: Name the callback's first parameter `set`.

@@ -1,0 +1,22 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-extra-reactive-curlies): Do not wrap a single statement in curly braces.
+   ╭─[no_extra_reactive_curlies.tsx:2:5]
+ 1 │     <script>
+ 2 │ ╭─▶     $: {
+ 3 │ │           doubled = count * 2;
+ 4 │ ╰─▶     }
+ 5 │     </script>
+   ╰────
+  help: Write `$: statement;` without the braces.
+
+  ⚠ svelte(no-extra-reactive-curlies): Do not wrap a single statement in curly braces.
+   ╭─[no_extra_reactive_curlies.tsx:2:5]
+ 1 │ <script>
+ 2 │     $: { console.log(count); }
+   ·        ───────────────────────
+ 3 │ </script>
+   ╰────
+  help: Write `$: statement;` without the braces.

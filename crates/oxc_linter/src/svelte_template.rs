@@ -76,6 +76,11 @@ pub fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRul
         RuleEnum::SvelteNoUnusedSvelteIgnore(rule) => Some(rule),
         RuleEnum::SvelteRequireStoreReactiveAccess(rule) => Some(rule),
         RuleEnum::SvelteNoNavigationWithoutResolve(rule) => Some(rule),
+        RuleEnum::SvelteNoBindValueOnCheckableInputs(rule) => Some(rule),
+        RuleEnum::SvelteNoInlineStyles(rule) => Some(rule),
+        RuleEnum::SvelteNoNestedStyleTag(rule) => Some(rule),
+        RuleEnum::SvelteNoRestrictedHtmlElements(rule) => Some(rule),
+        RuleEnum::SvelteSpacedHtmlComment(rule) => Some(rule),
         _ => None,
     }
 }

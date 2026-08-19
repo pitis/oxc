@@ -1,0 +1,19 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-nested-style-tag): Nested `<style>` elements are not scoped and may lead to unintended styles being applied.
+   ╭─[no_nested_style_tag.tsx:2:2]
+ 1 │ <div>
+ 2 │     <style>p { color: red }</style>
+   ·     ───────────────────────────────
+ 3 │ </div>
+   ╰────
+  help: Move the rules into the component's top-level `<style>` element.
+
+  ⚠ svelte(no-nested-style-tag): Nested `<style>` elements are not scoped and may lead to unintended styles being applied.
+   ╭─[no_nested_style_tag.tsx:1:8]
+ 1 │ {#if a}<style>p { color: red }</style>{/if}
+   ·        ───────────────────────────────
+   ╰────
+  help: Move the rules into the component's top-level `<style>` element.

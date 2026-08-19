@@ -1,0 +1,48 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-stores-init): Store should have an initial value.
+   ╭─[require_stores_init.tsx:3:27]
+ 2 │                 import { writable } from 'svelte/store';
+ 3 │                 const w = writable();
+   ·                           ──────────
+ 4 │             </script>
+   ╰────
+  help: Pass the store's initial value as the first argument.
+
+  ⚠ svelte(require-stores-init): Store should have an initial value.
+   ╭─[require_stores_init.tsx:3:27]
+ 2 │                 import { readable } from 'svelte/store';
+ 3 │                 const r = readable();
+   ·                           ──────────
+ 4 │             </script>
+   ╰────
+  help: Pass the store's initial value as the first argument.
+
+  ⚠ svelte(require-stores-init): Store should have an initial value.
+   ╭─[require_stores_init.tsx:4:27]
+ 3 │                 const w = writable(0);
+ 4 │                 const d = derived(w, ($w) => $w * 2);
+   ·                           ──────────────────────────
+ 5 │             </script>
+   ╰────
+  help: Pass the store's initial value as the first argument.
+
+  ⚠ svelte(require-stores-init): Store should have an initial value.
+   ╭─[require_stores_init.tsx:3:27]
+ 2 │                 import * as store from 'svelte/store';
+ 3 │                 const w = store.writable();
+   ·                           ────────────────
+ 4 │             </script>
+   ╰────
+  help: Pass the store's initial value as the first argument.
+
+  ⚠ svelte(require-stores-init): Store should have an initial value.
+   ╭─[require_stores_init.tsx:4:27]
+ 3 │                 const alias = writable;
+ 4 │                 const w = alias();
+   ·                           ───────
+ 5 │             </script>
+   ╰────
+  help: Pass the store's initial value as the first argument.

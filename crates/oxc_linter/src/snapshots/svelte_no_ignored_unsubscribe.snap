@@ -1,0 +1,21 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-ignored-unsubscribe): Ignoring returned value of the subscribe method is forbidden.
+   ╭─[no_ignored_unsubscribe.tsx:2:8]
+ 1 │ <script>
+ 2 │     store.subscribe((value) => value);
+   ·           ─────────
+ 3 │ </script>
+   ╰────
+  help: Keep the returned unsubscribe function and call it on destroy, or use the `$store` auto-subscription.
+
+  ⚠ svelte(no-ignored-unsubscribe): Ignoring returned value of the subscribe method is forbidden.
+   ╭─[no_ignored_unsubscribe.tsx:3:27]
+ 2 │                 function f() {
+ 3 │                     store.subscribe((value) => value);
+   ·                           ─────────
+ 4 │                 }
+   ╰────
+  help: Keep the returned unsubscribe function and call it on destroy, or use the `$store` auto-subscription.

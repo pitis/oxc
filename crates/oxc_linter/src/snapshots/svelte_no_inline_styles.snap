@@ -1,0 +1,38 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-inline-styles): Found disallowed style attribute.
+   ╭─[no_inline_styles.tsx:1:6]
+ 1 │ <div style="color: red"></div>
+   ·      ──────────────────
+   ╰────
+  help: Move the declarations into the component's `<style>` element.
+
+  ⚠ svelte(no-inline-styles): Found disallowed style directive.
+   ╭─[no_inline_styles.tsx:1:6]
+ 1 │ <div style:color="red"></div>
+   ·      ─────────────────
+   ╰────
+  help: Move the declaration into the component's `<style>` element, e.g. with a `class:` directive.
+
+  ⚠ svelte(no-inline-styles): Found disallowed style attribute.
+   ╭─[no_inline_styles.tsx:1:6]
+ 1 │ <div style={css}></div>
+   ·      ───────────
+   ╰────
+  help: Move the declarations into the component's `<style>` element.
+
+  ⚠ svelte(no-inline-styles): Found disallowed transition.
+   ╭─[no_inline_styles.tsx:1:6]
+ 1 │ <div transition:fade></div>
+   ·      ───────────────
+   ╰────
+  help: Express the animation in CSS instead of a `transition:` / `in:` / `out:` directive.
+
+  ⚠ svelte(no-inline-styles): Found disallowed transition.
+   ╭─[no_inline_styles.tsx:1:6]
+ 1 │ <div in:fade></div>
+   ·      ───────
+   ╰────
+  help: Express the animation in CSS instead of a `transition:` / `in:` / `out:` directive.
