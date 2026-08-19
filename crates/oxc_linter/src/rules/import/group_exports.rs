@@ -149,6 +149,14 @@ impl Rule for GroupExports {
             }
         }
     }
+
+    fn should_run(&self, ctx: &crate::context::ContextHost) -> bool {
+        // `export let prop` / `export const x` in a Svelte `<script>` declares
+        // a component prop, not a module export: the component's real export
+        // is the compiler-generated default. Reasoning about the script's
+        // export shape therefore does not apply.
+        !crate::utils::is_svelte_path(ctx.file_path())
+    }
 }
 
 fn check_module_export(member_expr: &MemberExpression) -> bool {
@@ -369,4 +377,16 @@ fn test() {
     ];
 
     Tester::new(GroupExports::NAME, GroupExports::PLUGIN, pass, fail).test_and_snapshot();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    // Each `export let` is a separate prop, not an export to consolidate.
+    let pass = vec!["<script>\n\texport let label;\n\texport let count = 0;\n</script>"];
+
+    Tester::new(GroupExports::NAME, GroupExports::PLUGIN, pass, vec![])
+        .change_rule_path("Component.svelte")
+        .test();
 }

@@ -79,6 +79,14 @@ impl Rule for NoNamedExport {
             _ => {}
         }
     }
+
+    fn should_run(&self, ctx: &crate::context::ContextHost) -> bool {
+        // `export let prop` / `export const x` in a Svelte `<script>` declares
+        // a component prop, not a module export: the component's real export
+        // is the compiler-generated default. Reasoning about the script's
+        // export shape therefore does not apply.
+        !crate::utils::is_svelte_path(ctx.file_path())
+    }
 }
 
 #[test]
@@ -130,4 +138,17 @@ fn test() {
     ];
 
     Tester::new(NoNamedExport::NAME, NoNamedExport::PLUGIN, pass, fail).test_and_snapshot();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    // A Svelte component's export is the compiler-generated default; the
+    // script's named exports are props.
+    let pass = vec!["<script>\n\texport let label;\n</script>"];
+
+    Tester::new(NoNamedExport::NAME, NoNamedExport::PLUGIN, pass, vec![])
+        .change_rule_path("Component.svelte")
+        .test();
 }

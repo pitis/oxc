@@ -103,6 +103,14 @@ impl Rule for NoMutableExports {
             _ => {}
         }
     }
+
+    fn should_run(&self, ctx: &crate::context::ContextHost) -> bool {
+        // `export let prop` / `export const x` in a Svelte `<script>` declares
+        // a component prop, not a module export: the component's real export
+        // is the compiler-generated default. Reasoning about the script's
+        // export shape therefore does not apply.
+        !crate::utils::is_svelte_path(ctx.file_path())
+    }
 }
 
 // find "let a = 2;" in "let a = 2; export default a"
@@ -232,4 +240,16 @@ fn test() {
     ];
 
     Tester::new(NoMutableExports::NAME, NoMutableExports::PLUGIN, pass, fail).test_and_snapshot();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    // `export let` is Svelte's prop syntax and must stay `let`.
+    let pass = vec!["<script>\n\texport let label;\n\texport let count = 0;\n</script>"];
+
+    Tester::new(NoMutableExports::NAME, NoMutableExports::PLUGIN, pass, vec![])
+        .change_rule_path("Component.svelte")
+        .test();
 }

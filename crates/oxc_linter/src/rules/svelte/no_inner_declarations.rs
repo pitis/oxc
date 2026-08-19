@@ -32,8 +32,8 @@ enum NoInnerDeclarationsConfig {
 #[serde(rename_all = "camelCase", default, deny_unknown_fields)]
 struct NoInnerDeclarationsOptions {
     /// Controls whether function declarations in nested blocks are allowed in strict mode (ES6+ behavior).
-    #[schemars(with = "BlockScopedFunctions")]
-    block_scoped_functions: Option<BlockScopedFunctions>,
+    /// Defaults to `"allow"`, as in ESLint 9+.
+    block_scoped_functions: BlockScopedFunctions,
     /// Controls whether declarations directly inside TypeScript namespace or module bodies are allowed.
     #[schemars(with = "Namespaces")]
     namespaces: Option<Namespaces>,
@@ -147,16 +147,14 @@ impl Rule for NoInnerDeclarations {
         // here (unlike oxlint's core `eslint/no-inner-declarations`, which
         // still defaults to the pre-9 behaviour); Svelte scripts are always
         // modules, so this is what eslint-plugin-svelte reports in practice.
-        let block_scoped_functions = Some(
-            value
-                .get(1)
-                .and_then(|v| v.get("blockScopedFunctions"))
-                .and_then(serde_json::Value::as_str)
-                .map_or(BlockScopedFunctions::Allow, |value| match value {
-                    "disallow" => BlockScopedFunctions::Disallow,
-                    _ => BlockScopedFunctions::Allow,
-                }),
-        );
+        let block_scoped_functions = value
+            .get(1)
+            .and_then(|v| v.get("blockScopedFunctions"))
+            .and_then(serde_json::Value::as_str)
+            .map_or(BlockScopedFunctions::Allow, |value| match value {
+                "disallow" => BlockScopedFunctions::Disallow,
+                _ => BlockScopedFunctions::Allow,
+            });
 
         let namespaces =
             value.get(1).and_then(|v| v.get("namespaces")).and_then(serde_json::Value::as_str).map(
@@ -184,7 +182,7 @@ impl Rule for NoInnerDeclarations {
                 }
 
                 if self.0 == NoInnerDeclarationsConfig::Functions
-                    && self.1.block_scoped_functions == Some(BlockScopedFunctions::Allow)
+                    && self.1.block_scoped_functions == BlockScopedFunctions::Allow
                 {
                     // Modules are always strict mode.
                     // This check is redundant, because in modules, the scope will have strict mode flag set,

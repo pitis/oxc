@@ -10,6 +10,7 @@ use crate::{
     AstNode,
     context::LintContext,
     rule::{DefaultRuleConfig, Rule},
+    utils::{SVELTE_PSEUDO_GLOBALS, SVELTE_RUNES, VUE_SETUP_MACROS, is_svelte_path, is_vue_path},
 };
 
 fn no_undef_diagnostic(name: &str, span: Span) -> OxcDiagnostic {
@@ -64,6 +65,7 @@ impl Rule for NoUndef {
 
     fn run_once(&self, ctx: &LintContext) {
         let symbol_table = ctx.scoping();
+        let framework = FrameworkGlobals::of(ctx);
 
         for reference_id_list in ctx.scoping().root_unresolved_references_ids() {
             for reference_id in reference_id_list {
@@ -76,6 +78,10 @@ impl Rule for NoUndef {
                 let name = ctx.semantic().reference_name(reference);
 
                 if ctx.is_global_defined(name) {
+                    continue;
+                }
+
+                if framework.is_defined(name, ctx) {
                     continue;
                 }
 
@@ -98,6 +104,93 @@ impl Rule for NoUndef {
                 ctx.diagnostic(no_undef_diagnostic(name, node.kind().span()));
             }
         }
+    }
+}
+
+/// Names a single-file-component compiler makes available to a `<script>`
+/// block without a declaration.
+///
+/// oxlint lints only the script of a `.svelte` / `.vue` file, as plain
+/// JavaScript. The framework parsers ESLint uses (`svelte-eslint-parser`,
+/// `vue-eslint-parser`) declare these for the rule, so ESLint reports none of
+/// them; without this, `no-undef` fires on every runes component and every
+/// `<script setup>`.
+enum FrameworkGlobals {
+    None,
+    /// Runes, `$$props` & friends, `$store` auto-subscriptions, and bindings
+    /// that a top-level `$:` reactive statement declares by assigning to them.
+    Svelte {
+        /// Spans of the top-level `$:` statements, used to find the latter.
+        reactive_spans: Vec<Span>,
+    },
+    /// `<script setup>` compiler macros.
+    Vue,
+}
+
+impl FrameworkGlobals {
+    fn of(ctx: &LintContext<'_>) -> Self {
+        let path = ctx.file_path();
+        if is_svelte_path(path) {
+            let reactive_spans = ctx
+                .nodes()
+                .iter()
+                .filter_map(|node| {
+                    let AstKind::LabeledStatement(labeled) = node.kind() else {
+                        return None;
+                    };
+                    // Only a *top-level* `$:` is a reactive statement; a `$`
+                    // label inside a function is an ordinary label.
+                    (labeled.label.name == "$"
+                        && matches!(ctx.nodes().parent_kind(node.id()), AstKind::Program(_)))
+                    .then_some(labeled.span)
+                })
+                .collect();
+            Self::Svelte { reactive_spans }
+        } else if is_vue_path(path) {
+            Self::Vue
+        } else {
+            Self::None
+        }
+    }
+
+    fn is_defined(&self, name: &str, ctx: &LintContext<'_>) -> bool {
+        match self {
+            Self::None => false,
+            Self::Vue => VUE_SETUP_MACROS.binary_search(&name).is_ok(),
+            Self::Svelte { reactive_spans } => {
+                if SVELTE_RUNES.binary_search(&name).is_ok()
+                    || SVELTE_PSEUDO_GLOBALS.binary_search(&name).is_ok()
+                {
+                    return true;
+                }
+                // `$count` reads the store held by `count`, so it is defined
+                // exactly when `count` is.
+                if let Some(store) = name.strip_prefix('$')
+                    && ctx.scoping().get_root_binding(store.into()).is_some()
+                {
+                    return true;
+                }
+                // `$: doubled = a * 2` declares `doubled`. Assigning to an
+                // undeclared name inside a top-level `$:` is how Svelte 3/4
+                // introduces a reactive binding, so every such write declares
+                // the name for the whole component.
+                !reactive_spans.is_empty() && self.is_reactive_declaration(name, ctx)
+            }
+        }
+    }
+
+    fn is_reactive_declaration(&self, name: &str, ctx: &LintContext<'_>) -> bool {
+        let Self::Svelte { reactive_spans } = self else {
+            return false;
+        };
+        ctx.scoping().root_unresolved_references_ids().flatten().any(|reference_id| {
+            let reference = ctx.scoping().get_reference(reference_id);
+            if !reference.is_write() || ctx.semantic().reference_name(reference) != name {
+                return false;
+            }
+            let span = ctx.nodes().get_node(reference.node_id()).kind().span();
+            reactive_spans.iter().any(|reactive| reactive.contains_inclusive(span))
+        })
     }
 }
 
@@ -271,4 +364,122 @@ fn test() {
     let fail = vec![("foo", None, Some(serde_json::json!({ "globals": { "foo": "off" } })))];
 
     Tester::new(NoUndef::NAME, NoUndef::PLUGIN, pass, fail).test();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    let pass = vec![
+        // Svelte 5 runes, including their members.
+        "<script>
+            function log() {}
+            let { label } = $props();
+            let count = $state(0);
+            let frozen = $state.raw({});
+            let doubled = $derived(count * 2);
+            let tripled = $derived.by(() => count * 3);
+            $effect(() => log(doubled, tripled, frozen, label));
+            $effect.pre(() => {});
+            $inspect(count);
+         </script>",
+        "<script>
+            function log() {}
+            let done = $bindable(false);
+            const id = $props.id();
+            log(done, id, $host());
+         </script>",
+        // Svelte 3/4 component pseudo-globals.
+        "<script>
+            function log() {}
+            log($$props, $$restProps, $$slots);
+         </script>",
+        // `$store` auto-subscription: defined because `count` is.
+        "<script>
+            function log() {}
+            import { writable } from 'svelte/store';
+            const count = writable(0);
+            log($count);
+         </script>",
+        "<script>
+            function log() {}
+            import { page } from '$app/stores';
+            log($page.url);
+         </script>",
+        // A top-level `$:` assignment declares the binding.
+        "<script>
+            function log() {}
+            let a = 1;
+            $: doubled = a * 2;
+            $: log(doubled);
+         </script>",
+    ];
+
+    let fail = vec![
+        // A plain typo is still a typo.
+        "<script>
+            function log() {}
+            log(notDefinedAnywhere);
+         </script>",
+        // `$foo` is only defined when `foo` is a binding in the script.
+        "<script>
+            function log() {}
+            log($notAStore);
+         </script>",
+        // `$$` pseudo-globals are an exact list.
+        "<script>
+            function log() {}
+            log($$madeUp);
+         </script>",
+        // A `$` label inside a function is not a reactive statement, so it
+        // declares nothing.
+        "<script>
+            function log() {}
+            function f() {
+                $: nested = 1;
+            }
+            log(nested);
+         </script>",
+    ];
+
+    Tester::new(NoUndef::NAME, NoUndef::PLUGIN, pass, fail).change_rule_path("test.svelte").test();
+}
+
+#[test]
+fn test_svelte_module() {
+    use crate::tester::Tester;
+
+    // Runes are also available in `.svelte.js` / `.svelte.ts` modules.
+    let pass = vec!["export const counter = $state({ n: 0 });"];
+
+    Tester::new(NoUndef::NAME, NoUndef::PLUGIN, pass, vec![])
+        .change_rule_path("counter.svelte.ts")
+        .test();
+}
+
+#[test]
+fn test_vue() {
+    use crate::tester::Tester;
+
+    let pass = vec![
+        "<script setup>
+            function log() {}
+            const props = defineProps({ label: String });
+            const emit = defineEmits(['go']);
+            const model = defineModel();
+            defineExpose({ emit });
+            defineOptions({ name: 'X' });
+            defineSlots();
+            log(props, model, withDefaults);
+         </script>",
+    ];
+
+    let fail = vec![
+        "<script setup>
+            function log() {}
+            log(defineWhatever);
+         </script>",
+    ];
+
+    Tester::new(NoUndef::NAME, NoUndef::PLUGIN, pass, fail).change_rule_path("test.vue").test();
 }

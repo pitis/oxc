@@ -13,7 +13,22 @@ use crate::{
     AstNode,
     context::LintContext,
     rule::{DefaultRuleConfig, Rule},
+    utils::is_svelte_path,
 };
+
+/// A top-level `$:` in a Svelte `<script>` is a reactive statement, not a
+/// label — `svelte-eslint-parser` gives it its own node type, so ESLint's
+/// `no-labels` never sees one. oxlint parses the script as plain JavaScript,
+/// so it has to recognize the shape here. Labels anywhere else in the script
+/// (and any other label name) are still reported.
+fn is_svelte_reactive_statement(node: &AstNode<'_>, ctx: &LintContext<'_>) -> bool {
+    let AstKind::LabeledStatement(labeled) = node.kind() else {
+        return false;
+    };
+    labeled.label.name == "$"
+        && matches!(ctx.nodes().parent_kind(node.id()), AstKind::Program(_))
+        && is_svelte_path(ctx.file_path())
+}
 
 fn no_labels_diagnostic(message: &'static str, label_span: Span) -> OxcDiagnostic {
     OxcDiagnostic::warn(message)
@@ -130,6 +145,9 @@ impl Rule for NoLabels {
     fn run<'a>(&self, node: &AstNode<'a>, ctx: &LintContext<'a>) {
         match node.kind() {
             AstKind::LabeledStatement(labeled_stmt) if !self.is_allowed(&labeled_stmt.body) => {
+                if is_svelte_reactive_statement(node, ctx) {
+                    return;
+                }
                 ctx.diagnostic(no_labels_diagnostic(
                     "Labeled statement is not allowed",
                     labeled_stmt.label.span,
@@ -254,4 +272,22 @@ fn test() {
     ];
 
     Tester::new(NoLabels::NAME, NoLabels::PLUGIN, pass, fail).test_and_snapshot();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    // A top-level `$:` is Svelte's reactive statement, not a label.
+    let pass = vec![("<script>\n\tlet a = 1;\n\t$: doubled = a * 2;\n</script>", None)];
+    // Real labels in a Svelte script are still reported, including a `$`
+    // label that is not top-level.
+    let fail = vec![
+        ("<script>\n\touter: for (const r of rows) { break outer; }\n</script>", None),
+        ("<script>\n\tfunction f() {\n\t\t$: nested = 1;\n\t}\n</script>", None),
+    ];
+
+    Tester::new(NoLabels::NAME, NoLabels::PLUGIN, pass, fail)
+        .change_rule_path("test.svelte")
+        .test();
 }

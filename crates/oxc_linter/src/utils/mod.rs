@@ -18,6 +18,7 @@ mod comment;
 mod config;
 mod control_flow;
 mod express;
+mod framework;
 mod jest;
 mod jsdoc;
 mod nextjs;
@@ -40,10 +41,10 @@ pub mod vue_casing;
 mod vue_template;
 
 pub use self::{
-    comment::*, config::*, control_flow::*, express::*, jest::*, jsdoc::*, nextjs::*, node::*,
-    promise::*, react::*, react_compiler::*, react_perf::*, regex::*, schemars::*, static_value::*,
-    svelte_template::*, this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*,
-    vue_template::*,
+    comment::*, config::*, control_flow::*, express::*, framework::*, jest::*, jsdoc::*, nextjs::*,
+    node::*, promise::*, react::*, react_compiler::*, react_perf::*, regex::*, schemars::*,
+    static_value::*, svelte_template::*, this_expression::*, typescript::*, unicorn::*, url::*,
+    vitest::*, vue::*, vue_template::*,
 };
 
 /// List of Eslint rules that have TypeScript equivalents.

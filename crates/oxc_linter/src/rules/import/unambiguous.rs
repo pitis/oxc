@@ -56,6 +56,13 @@ impl Rule for Unambiguous {
             ctx.diagnostic(unambiguous_diagnostic(Span::default()));
         }
     }
+
+    fn should_run(&self, ctx: &crate::context::ContextHost) -> bool {
+        // A `.svelte` / `.vue` `<script>` block is always a module, whether or
+        // not it happens to contain an `import` or `export`.
+        let path = ctx.file_path();
+        !crate::utils::is_svelte_path(path) && !crate::utils::is_vue_path(path)
+    }
 }
 
 #[test]
@@ -83,4 +90,22 @@ fn test() {
         .change_rule_path("index.ts")
         .with_import_plugin(true)
         .test_and_snapshot();
+}
+
+#[test]
+fn test_sfc() {
+    use crate::tester::Tester;
+
+    // An SFC `<script>` block is a module even with no import or export.
+    let pass = vec!["<script>\n\tlet a = 1;\n</script>"];
+
+    Tester::new(Unambiguous::NAME, Unambiguous::PLUGIN, pass.clone(), vec![])
+        .change_rule_path("Component.svelte")
+        .with_import_plugin(true)
+        .test();
+
+    Tester::new(Unambiguous::NAME, Unambiguous::PLUGIN, pass, vec![])
+        .change_rule_path("Component.vue")
+        .with_import_plugin(true)
+        .test();
 }
