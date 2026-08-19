@@ -5888,6 +5888,16 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::first_attribute_linebreak::FirstAttributeLinebreak {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::html_closing_bracket_new_line::HtmlClosingBracketNewLine {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::svelte::html_closing_bracket_spacing::HtmlClosingBracketSpacing {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
@@ -5906,6 +5916,11 @@ impl RuleRunner for crate::rules::svelte::html_self_closing::HtmlSelfClosing {
 impl RuleRunner for crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
+impl RuleRunner for crate::rules::svelte::max_attributes_per_line::MaxAttributesPerLine {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::svelte::max_lines_per_block::MaxLinesPerBlock {

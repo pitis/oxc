@@ -1,0 +1,34 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(first-attribute-linebreak): Expected a linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:1:6]
+ 1 │ <div id="a"
+   ·      ──────
+ 2 │     class="b"></div>
+   ╰────
+  help: Move the first attribute onto its own line.
+
+  ⚠ svelte(first-attribute-linebreak): Expected no linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:2:2]
+ 1 │ <div
+ 2 │     id="a" class="b"></div>
+   ·     ──────
+   ╰────
+  help: Keep the first attribute on the same line as the tag name.
+
+  ⚠ svelte(first-attribute-linebreak): Expected no linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:2:2]
+ 1 │ <div
+ 2 │     id="a"></div>
+   ·     ──────
+   ╰────
+  help: Keep the first attribute on the same line as the tag name.
+
+  ⚠ svelte(first-attribute-linebreak): Expected a linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:1:6]
+ 1 │ <div id="a"></div>
+   ·      ──────
+   ╰────
+  help: Move the first attribute onto its own line.

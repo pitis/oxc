@@ -1,0 +1,51 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected 1 line break before closing bracket, but no line breaks found.
+   ╭─[html_closing_bracket_new_line.tsx:3:11]
+ 2 │     id="a"
+ 3 │     class="b"></div>
+   ·              ▲
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected 1 line break before closing bracket, but no line breaks found.
+   ╭─[html_closing_bracket_new_line.tsx:2:8]
+ 1 │ <input
+ 2 │     id="a" />
+   ·           ─
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected no line breaks before closing bracket, but 1 line break found.
+   ╭─[html_closing_bracket_new_line.tsx:1:5]
+ 1 │ <div
+   ·     ─
+ 2 │ >a</div>
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected no line breaks before closing bracket, but 1 line break found.
+   ╭─[html_closing_bracket_new_line.tsx:1:12]
+ 1 │ <div id="a"
+   ·            ─
+ 2 │ ></div>
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected 1 line break before closing bracket, but no line breaks found.
+   ╭─[html_closing_bracket_new_line.tsx:1:12]
+ 1 │ <div id="a"></div>
+   ·            ▲
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.
+
+  ⚠ svelte(html-closing-bracket-new-line): Expected no line breaks before closing bracket, but 1 line break found.
+   ╭─[html_closing_bracket_new_line.tsx:2:8]
+ 1 │ <input
+ 2 │     id="a"
+   ·           ─
+ 3 │ />
+   ╰────
+  help: Match the line breaks before the closing bracket to the configured style.

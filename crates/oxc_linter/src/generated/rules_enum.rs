@@ -520,10 +520,13 @@ pub use crate::rules::svelte::consistent_selector_style::ConsistentSelectorStyle
 pub use crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs as SvelteDerivedHasSameInputsOutputs;
 pub use crate::rules::svelte::experimental_require_slot_types::ExperimentalRequireSlotTypes as SvelteExperimentalRequireSlotTypes;
 pub use crate::rules::svelte::experimental_require_strict_events::ExperimentalRequireStrictEvents as SvelteExperimentalRequireStrictEvents;
+pub use crate::rules::svelte::first_attribute_linebreak::FirstAttributeLinebreak as SvelteFirstAttributeLinebreak;
+pub use crate::rules::svelte::html_closing_bracket_new_line::HtmlClosingBracketNewLine as SvelteHtmlClosingBracketNewLine;
 pub use crate::rules::svelte::html_closing_bracket_spacing::HtmlClosingBracketSpacing as SvelteHtmlClosingBracketSpacing;
 pub use crate::rules::svelte::html_quotes::HtmlQuotes as SvelteHtmlQuotes;
 pub use crate::rules::svelte::html_self_closing::HtmlSelfClosing as SvelteHtmlSelfClosing;
 pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
+pub use crate::rules::svelte::max_attributes_per_line::MaxAttributesPerLine as SvelteMaxAttributesPerLine;
 pub use crate::rules::svelte::max_lines_per_block::MaxLinesPerBlock as SvelteMaxLinesPerBlock;
 pub use crate::rules::svelte::mustache_spacing::MustacheSpacing as SvelteMustacheSpacing;
 pub use crate::rules::svelte::no_add_event_listener::NoAddEventListener as SvelteNoAddEventListener;
@@ -1966,10 +1969,13 @@ pub enum RuleEnum {
     SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs),
     SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes),
     SvelteExperimentalRequireStrictEvents(SvelteExperimentalRequireStrictEvents),
+    SvelteFirstAttributeLinebreak(SvelteFirstAttributeLinebreak),
+    SvelteHtmlClosingBracketNewLine(SvelteHtmlClosingBracketNewLine),
     SvelteHtmlClosingBracketSpacing(SvelteHtmlClosingBracketSpacing),
     SvelteHtmlQuotes(SvelteHtmlQuotes),
     SvelteHtmlSelfClosing(SvelteHtmlSelfClosing),
     SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
+    SvelteMaxAttributesPerLine(SvelteMaxAttributesPerLine),
     SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock),
     SvelteMustacheSpacing(SvelteMustacheSpacing),
     SvelteNoAddEventListener(SvelteNoAddEventListener),
@@ -3089,12 +3095,16 @@ const SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID: usize =
     SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID + 1usize;
 const SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID: usize =
     SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID + 1usize;
-const SVELTE_HTML_CLOSING_BRACKET_SPACING_ID: usize =
+const SVELTE_FIRST_ATTRIBUTE_LINEBREAK_ID: usize =
     SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID + 1usize;
+const SVELTE_HTML_CLOSING_BRACKET_NEW_LINE_ID: usize = SVELTE_FIRST_ATTRIBUTE_LINEBREAK_ID + 1usize;
+const SVELTE_HTML_CLOSING_BRACKET_SPACING_ID: usize =
+    SVELTE_HTML_CLOSING_BRACKET_NEW_LINE_ID + 1usize;
 const SVELTE_HTML_QUOTES_ID: usize = SVELTE_HTML_CLOSING_BRACKET_SPACING_ID + 1usize;
 const SVELTE_HTML_SELF_CLOSING_ID: usize = SVELTE_HTML_QUOTES_ID + 1usize;
 const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_HTML_SELF_CLOSING_ID + 1usize;
-const SVELTE_MAX_LINES_PER_BLOCK_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_MAX_ATTRIBUTES_PER_LINE_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
+const SVELTE_MAX_LINES_PER_BLOCK_ID: usize = SVELTE_MAX_ATTRIBUTES_PER_LINE_ID + 1usize;
 const SVELTE_MUSTACHE_SPACING_ID: usize = SVELTE_MAX_LINES_PER_BLOCK_ID + 1usize;
 const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_MUSTACHE_SPACING_ID + 1usize;
 const SVELTE_NO_AT_CONST_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
@@ -3174,7 +3184,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1005usize] = [
+static RULE_NAMES: [&str; 1008usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4108,10 +4118,13 @@ static RULE_NAMES: [&str; 1005usize] = [
     SvelteDerivedHasSameInputsOutputs::NAME,
     SvelteExperimentalRequireSlotTypes::NAME,
     SvelteExperimentalRequireStrictEvents::NAME,
+    SvelteFirstAttributeLinebreak::NAME,
+    SvelteHtmlClosingBracketNewLine::NAME,
     SvelteHtmlClosingBracketSpacing::NAME,
     SvelteHtmlQuotes::NAME,
     SvelteHtmlSelfClosing::NAME,
     SvelteInfiniteReactiveLoop::NAME,
+    SvelteMaxAttributesPerLine::NAME,
     SvelteMaxLinesPerBlock::NAME,
     SvelteMustacheSpacing::NAME,
     SvelteNoAddEventListener::NAME,
@@ -5255,10 +5268,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SVELTE_FIRST_ATTRIBUTE_LINEBREAK_ID,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SVELTE_HTML_CLOSING_BRACKET_NEW_LINE_ID,
             Self::SvelteHtmlClosingBracketSpacing(_) => SVELTE_HTML_CLOSING_BRACKET_SPACING_ID,
             Self::SvelteHtmlQuotes(_) => SVELTE_HTML_QUOTES_ID,
             Self::SvelteHtmlSelfClosing(_) => SVELTE_HTML_SELF_CLOSING_ID,
             Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
+            Self::SvelteMaxAttributesPerLine(_) => SVELTE_MAX_ATTRIBUTES_PER_LINE_ID,
             Self::SvelteMaxLinesPerBlock(_) => SVELTE_MAX_LINES_PER_BLOCK_ID,
             Self::SvelteMustacheSpacing(_) => SVELTE_MUSTACHE_SPACING_ID,
             Self::SvelteNoAddEventListener(_) => SVELTE_NO_ADD_EVENT_LISTENER_ID,
@@ -6475,10 +6491,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::CATEGORY
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SvelteFirstAttributeLinebreak::CATEGORY,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SvelteHtmlClosingBracketNewLine::CATEGORY,
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::CATEGORY,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::CATEGORY,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::CATEGORY,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::CATEGORY,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::CATEGORY,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::CATEGORY,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::CATEGORY,
@@ -7625,10 +7644,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::FIX
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SvelteFirstAttributeLinebreak::FIX,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SvelteHtmlClosingBracketNewLine::FIX,
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::FIX,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::FIX,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::FIX,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::FIX,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::FIX,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::FIX,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::FIX,
@@ -9067,12 +9089,19 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::documentation()
             }
+            Self::SvelteFirstAttributeLinebreak(_) => {
+                SvelteFirstAttributeLinebreak::documentation()
+            }
+            Self::SvelteHtmlClosingBracketNewLine(_) => {
+                SvelteHtmlClosingBracketNewLine::documentation()
+            }
             Self::SvelteHtmlClosingBracketSpacing(_) => {
                 SvelteHtmlClosingBracketSpacing::documentation()
             }
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::documentation(),
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::documentation(),
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::documentation(),
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::documentation(),
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::documentation(),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::documentation(),
@@ -11866,6 +11895,14 @@ impl RuleEnum {
                 SvelteExperimentalRequireStrictEvents::config_schema(generator)
                     .or_else(|| SvelteExperimentalRequireStrictEvents::schema(generator))
             }
+            Self::SvelteFirstAttributeLinebreak(_) => {
+                SvelteFirstAttributeLinebreak::config_schema(generator)
+                    .or_else(|| SvelteFirstAttributeLinebreak::schema(generator))
+            }
+            Self::SvelteHtmlClosingBracketNewLine(_) => {
+                SvelteHtmlClosingBracketNewLine::config_schema(generator)
+                    .or_else(|| SvelteHtmlClosingBracketNewLine::schema(generator))
+            }
             Self::SvelteHtmlClosingBracketSpacing(_) => {
                 SvelteHtmlClosingBracketSpacing::config_schema(generator)
                     .or_else(|| SvelteHtmlClosingBracketSpacing::schema(generator))
@@ -11877,6 +11914,10 @@ impl RuleEnum {
             Self::SvelteInfiniteReactiveLoop(_) => {
                 SvelteInfiniteReactiveLoop::config_schema(generator)
                     .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
+            }
+            Self::SvelteMaxAttributesPerLine(_) => {
+                SvelteMaxAttributesPerLine::config_schema(generator)
+                    .or_else(|| SvelteMaxAttributesPerLine::schema(generator))
             }
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::config_schema(generator)
                 .or_else(|| SvelteMaxLinesPerBlock::schema(generator)),
@@ -13022,10 +13063,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(_) => "svelte",
             Self::SvelteExperimentalRequireSlotTypes(_) => "svelte",
             Self::SvelteExperimentalRequireStrictEvents(_) => "svelte",
+            Self::SvelteFirstAttributeLinebreak(_) => "svelte",
+            Self::SvelteHtmlClosingBracketNewLine(_) => "svelte",
             Self::SvelteHtmlClosingBracketSpacing(_) => "svelte",
             Self::SvelteHtmlQuotes(_) => "svelte",
             Self::SvelteHtmlSelfClosing(_) => "svelte",
             Self::SvelteInfiniteReactiveLoop(_) => "svelte",
+            Self::SvelteMaxAttributesPerLine(_) => "svelte",
             Self::SvelteMaxLinesPerBlock(_) => "svelte",
             Self::SvelteMustacheSpacing(_) => "svelte",
             Self::SvelteNoAddEventListener(_) => "svelte",
@@ -14252,6 +14296,12 @@ impl RuleEnum {
             Self::SvelteConsistentSelectorStyle(_) => Ok(Self::SvelteConsistentSelectorStyle(
                 SvelteConsistentSelectorStyle::from_configuration(value)?,
             )),
+            Self::SvelteFirstAttributeLinebreak(_) => Ok(Self::SvelteFirstAttributeLinebreak(
+                SvelteFirstAttributeLinebreak::from_configuration(value)?,
+            )),
+            Self::SvelteHtmlClosingBracketNewLine(_) => Ok(Self::SvelteHtmlClosingBracketNewLine(
+                SvelteHtmlClosingBracketNewLine::from_configuration(value)?,
+            )),
             Self::SvelteHtmlClosingBracketSpacing(_) => Ok(Self::SvelteHtmlClosingBracketSpacing(
                 SvelteHtmlClosingBracketSpacing::from_configuration(value)?,
             )),
@@ -14261,6 +14311,9 @@ impl RuleEnum {
             Self::SvelteHtmlSelfClosing(_) => {
                 Ok(Self::SvelteHtmlSelfClosing(SvelteHtmlSelfClosing::from_configuration(value)?))
             }
+            Self::SvelteMaxAttributesPerLine(_) => Ok(Self::SvelteMaxAttributesPerLine(
+                SvelteMaxAttributesPerLine::from_configuration(value)?,
+            )),
             Self::SvelteMaxLinesPerBlock(_) => {
                 Ok(Self::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::from_configuration(value)?))
             }
@@ -15296,10 +15349,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run(node, ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run(node, ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run(node, ctx),
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.run(node, ctx),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.run(node, ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run(node, ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run(node, ctx),
             Self::SvelteHtmlSelfClosing(rule) => rule.run(node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.run(node, ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run(node, ctx),
             Self::SvelteMustacheSpacing(rule) => rule.run(node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run(node, ctx),
@@ -16318,10 +16374,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_once(ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_once(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_once(ctx),
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.run_once(ctx),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.run_once(ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_once(ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run_once(ctx),
             Self::SvelteHtmlSelfClosing(rule) => rule.run_once(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.run_once(ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_once(ctx),
             Self::SvelteMustacheSpacing(rule) => rule.run_once(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_once(ctx),
@@ -17461,10 +17520,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteHtmlSelfClosing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteMustacheSpacing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18498,10 +18560,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.should_run(ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.should_run(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.should_run(ctx),
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.should_run(ctx),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.should_run(ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.should_run(ctx),
             Self::SvelteHtmlQuotes(rule) => rule.should_run(ctx),
             Self::SvelteHtmlSelfClosing(rule) => rule.should_run(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.should_run(ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.should_run(ctx),
             Self::SvelteMustacheSpacing(rule) => rule.should_run(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.should_run(ctx),
@@ -19925,12 +19990,19 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::IS_TSGOLINT_RULE
             }
+            Self::SvelteFirstAttributeLinebreak(_) => {
+                SvelteFirstAttributeLinebreak::IS_TSGOLINT_RULE
+            }
+            Self::SvelteHtmlClosingBracketNewLine(_) => {
+                SvelteHtmlClosingBracketNewLine::IS_TSGOLINT_RULE
+            }
             Self::SvelteHtmlClosingBracketSpacing(_) => {
                 SvelteHtmlClosingBracketSpacing::IS_TSGOLINT_RULE
             }
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::IS_TSGOLINT_RULE,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::IS_TSGOLINT_RULE,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::IS_TSGOLINT_RULE,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::IS_TSGOLINT_RULE,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::IS_TSGOLINT_RULE,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::IS_TSGOLINT_RULE,
@@ -21170,10 +21242,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::VERSION
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SvelteFirstAttributeLinebreak::VERSION,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SvelteHtmlClosingBracketNewLine::VERSION,
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::VERSION,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::VERSION,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::VERSION,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::VERSION,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::VERSION,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::VERSION,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::VERSION,
@@ -22438,10 +22513,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::HAS_CONFIG
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SvelteFirstAttributeLinebreak::HAS_CONFIG,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SvelteHtmlClosingBracketNewLine::HAS_CONFIG,
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::HAS_CONFIG,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::HAS_CONFIG,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::HAS_CONFIG,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::HAS_CONFIG,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::HAS_CONFIG,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::HAS_CONFIG,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::HAS_CONFIG,
@@ -23595,10 +23673,13 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => {
                 SvelteExperimentalRequireStrictEvents::INFO
             }
+            Self::SvelteFirstAttributeLinebreak(_) => SvelteFirstAttributeLinebreak::INFO,
+            Self::SvelteHtmlClosingBracketNewLine(_) => SvelteHtmlClosingBracketNewLine::INFO,
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::INFO,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::INFO,
             Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::INFO,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
+            Self::SvelteMaxAttributesPerLine(_) => SvelteMaxAttributesPerLine::INFO,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::INFO,
             Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::INFO,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::INFO,
@@ -24623,10 +24704,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.types_info(),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.types_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.types_info(),
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.types_info(),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.types_info(),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.types_info(),
             Self::SvelteHtmlQuotes(rule) => rule.types_info(),
             Self::SvelteHtmlSelfClosing(rule) => rule.types_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.types_info(),
             Self::SvelteMaxLinesPerBlock(rule) => rule.types_info(),
             Self::SvelteMustacheSpacing(rule) => rule.types_info(),
             Self::SvelteNoAddEventListener(rule) => rule.types_info(),
@@ -25632,10 +25716,13 @@ impl RuleEnum {
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_info(),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_info(),
+            Self::SvelteFirstAttributeLinebreak(rule) => rule.run_info(),
+            Self::SvelteHtmlClosingBracketNewLine(rule) => rule.run_info(),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_info(),
             Self::SvelteHtmlQuotes(rule) => rule.run_info(),
             Self::SvelteHtmlSelfClosing(rule) => rule.run_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
+            Self::SvelteMaxAttributesPerLine(rule) => rule.run_info(),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_info(),
             Self::SvelteMustacheSpacing(rule) => rule.run_info(),
             Self::SvelteNoAddEventListener(rule) => rule.run_info(),
@@ -26781,10 +26868,13 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteExperimentalRequireStrictEvents(
             SvelteExperimentalRequireStrictEvents::default(),
         ),
+        RuleEnum::SvelteFirstAttributeLinebreak(SvelteFirstAttributeLinebreak::default()),
+        RuleEnum::SvelteHtmlClosingBracketNewLine(SvelteHtmlClosingBracketNewLine::default()),
         RuleEnum::SvelteHtmlClosingBracketSpacing(SvelteHtmlClosingBracketSpacing::default()),
         RuleEnum::SvelteHtmlQuotes(SvelteHtmlQuotes::default()),
         RuleEnum::SvelteHtmlSelfClosing(SvelteHtmlSelfClosing::default()),
         RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
+        RuleEnum::SvelteMaxAttributesPerLine(SvelteMaxAttributesPerLine::default()),
         RuleEnum::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::default()),
         RuleEnum::SvelteMustacheSpacing(SvelteMustacheSpacing::default()),
         RuleEnum::SvelteNoAddEventListener(SvelteNoAddEventListener::default()),

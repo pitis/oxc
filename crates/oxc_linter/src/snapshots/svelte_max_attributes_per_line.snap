@@ -1,0 +1,40 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(max-attributes-per-line): 'class' should be on a new line.
+   ╭─[max_attributes_per_line.tsx:1:13]
+ 1 │ <div id="a" class="b"></div>
+   ·             ─────────
+   ╰────
+  help: Put the attribute on a line of its own.
+
+  ⚠ svelte(max-attributes-per-line): 'class' should be on a new line.
+   ╭─[max_attributes_per_line.tsx:2:9]
+ 1 │ <div
+ 2 │     id="a" class="b"
+   ·            ─────────
+ 3 │ ></div>
+   ╰────
+  help: Put the attribute on a line of its own.
+
+  ⚠ svelte(max-attributes-per-line): 'role' should be on a new line.
+   ╭─[max_attributes_per_line.tsx:1:23]
+ 1 │ <div id="a" class="b" role="c"></div>
+   ·                       ────────
+   ╰────
+  help: Put the attribute on a line of its own.
+
+  ⚠ svelte(max-attributes-per-line): 'id' should be on a new line.
+   ╭─[max_attributes_per_line.tsx:1:17]
+ 1 │ <div {...props} id="a"></div>
+   ·                 ──────
+   ╰────
+  help: Put the attribute on a line of its own.
+
+  ⚠ svelte(max-attributes-per-line): 'type' should be on a new line.
+   ╭─[max_attributes_per_line.tsx:1:19]
+ 1 │ <input bind:value type="text" />
+   ·                   ───────────
+   ╰────
+  help: Put the attribute on a line of its own.

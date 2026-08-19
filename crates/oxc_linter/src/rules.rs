@@ -1027,10 +1027,13 @@ pub(crate) mod svelte {
     pub mod derived_has_same_inputs_outputs;
     pub mod experimental_require_slot_types;
     pub mod experimental_require_strict_events;
+    pub mod first_attribute_linebreak;
+    pub mod html_closing_bracket_new_line;
     pub mod html_closing_bracket_spacing;
     pub mod html_quotes;
     pub mod html_self_closing;
     pub mod infinite_reactive_loop;
+    pub mod max_attributes_per_line;
     pub mod max_lines_per_block;
     pub mod mustache_spacing;
     pub mod no_add_event_listener;
