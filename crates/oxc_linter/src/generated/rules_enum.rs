@@ -516,6 +516,7 @@ pub use crate::rules::react_perf::jsx_no_new_object_as_prop::JsxNoNewObjectAsPro
 pub use crate::rules::svelte::block_lang::BlockLang as SvelteBlockLang;
 pub use crate::rules::svelte::button_has_type::ButtonHasType as SvelteButtonHasType;
 pub use crate::rules::svelte::comment_directive::CommentDirective as SvelteCommentDirective;
+pub use crate::rules::svelte::consistent_selector_style::ConsistentSelectorStyle as SvelteConsistentSelectorStyle;
 pub use crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs as SvelteDerivedHasSameInputsOutputs;
 pub use crate::rules::svelte::experimental_require_slot_types::ExperimentalRequireSlotTypes as SvelteExperimentalRequireSlotTypes;
 pub use crate::rules::svelte::experimental_require_strict_events::ExperimentalRequireStrictEvents as SvelteExperimentalRequireStrictEvents;
@@ -1954,6 +1955,7 @@ pub enum RuleEnum {
     SvelteBlockLang(SvelteBlockLang),
     SvelteButtonHasType(SvelteButtonHasType),
     SvelteCommentDirective(SvelteCommentDirective),
+    SvelteConsistentSelectorStyle(SvelteConsistentSelectorStyle),
     SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs),
     SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes),
     SvelteExperimentalRequireStrictEvents(SvelteExperimentalRequireStrictEvents),
@@ -3066,7 +3068,9 @@ const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
 const SVELTE_BLOCK_LANG_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
 const SVELTE_BUTTON_HAS_TYPE_ID: usize = SVELTE_BLOCK_LANG_ID + 1usize;
 const SVELTE_COMMENT_DIRECTIVE_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
-const SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
+const SVELTE_CONSISTENT_SELECTOR_STYLE_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
+const SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID: usize =
+    SVELTE_CONSISTENT_SELECTOR_STYLE_ID + 1usize;
 const SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID: usize =
     SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID + 1usize;
 const SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID: usize =
@@ -3150,7 +3154,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 997usize] = [
+static RULE_NAMES: [&str; 998usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4080,6 +4084,7 @@ static RULE_NAMES: [&str; 997usize] = [
     SvelteBlockLang::NAME,
     SvelteButtonHasType::NAME,
     SvelteCommentDirective::NAME,
+    SvelteConsistentSelectorStyle::NAME,
     SvelteDerivedHasSameInputsOutputs::NAME,
     SvelteExperimentalRequireSlotTypes::NAME,
     SvelteExperimentalRequireStrictEvents::NAME,
@@ -5215,6 +5220,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SVELTE_BLOCK_LANG_ID,
             Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
             Self::SvelteCommentDirective(_) => SVELTE_COMMENT_DIRECTIVE_ID,
+            Self::SvelteConsistentSelectorStyle(_) => SVELTE_CONSISTENT_SELECTOR_STYLE_ID,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID,
             Self::SvelteExperimentalRequireSlotTypes(_) => {
                 SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID
@@ -6425,6 +6431,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::CATEGORY,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::CATEGORY,
+            Self::SvelteConsistentSelectorStyle(_) => SvelteConsistentSelectorStyle::CATEGORY,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::CATEGORY
             }
@@ -7571,6 +7578,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::FIX,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::FIX,
+            Self::SvelteConsistentSelectorStyle(_) => SvelteConsistentSelectorStyle::FIX,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::FIX,
             Self::SvelteExperimentalRequireSlotTypes(_) => SvelteExperimentalRequireSlotTypes::FIX,
             Self::SvelteExperimentalRequireStrictEvents(_) => {
@@ -8999,6 +9007,9 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::documentation(),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::documentation(),
+            Self::SvelteConsistentSelectorStyle(_) => {
+                SvelteConsistentSelectorStyle::documentation()
+            }
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::documentation()
             }
@@ -11782,6 +11793,10 @@ impl RuleEnum {
                 .or_else(|| SvelteButtonHasType::schema(generator)),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::config_schema(generator)
                 .or_else(|| SvelteCommentDirective::schema(generator)),
+            Self::SvelteConsistentSelectorStyle(_) => {
+                SvelteConsistentSelectorStyle::config_schema(generator)
+                    .or_else(|| SvelteConsistentSelectorStyle::schema(generator))
+            }
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::config_schema(generator)
                     .or_else(|| SvelteDerivedHasSameInputsOutputs::schema(generator))
@@ -12930,6 +12945,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => "svelte",
             Self::SvelteButtonHasType(_) => "svelte",
             Self::SvelteCommentDirective(_) => "svelte",
+            Self::SvelteConsistentSelectorStyle(_) => "svelte",
             Self::SvelteDerivedHasSameInputsOutputs(_) => "svelte",
             Self::SvelteExperimentalRequireSlotTypes(_) => "svelte",
             Self::SvelteExperimentalRequireStrictEvents(_) => "svelte",
@@ -14153,6 +14169,9 @@ impl RuleEnum {
             Self::SvelteButtonHasType(_) => {
                 Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
             }
+            Self::SvelteConsistentSelectorStyle(_) => Ok(Self::SvelteConsistentSelectorStyle(
+                SvelteConsistentSelectorStyle::from_configuration(value)?,
+            )),
             Self::SvelteMaxLinesPerBlock(_) => {
                 Ok(Self::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::from_configuration(value)?))
             }
@@ -15172,6 +15191,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.run(node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run(node, ctx),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.run(node, ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run(node, ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run(node, ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run(node, ctx),
@@ -16186,6 +16206,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.run_once(ctx),
             Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
             Self::SvelteCommentDirective(rule) => rule.run_once(ctx),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.run_once(ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_once(ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_once(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_once(ctx),
@@ -17319,6 +17340,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => {
@@ -18350,6 +18372,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.should_run(ctx),
             Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
             Self::SvelteCommentDirective(rule) => rule.should_run(ctx),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.should_run(ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.should_run(ctx),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.should_run(ctx),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.should_run(ctx),
@@ -19761,6 +19784,9 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::IS_TSGOLINT_RULE,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::IS_TSGOLINT_RULE,
+            Self::SvelteConsistentSelectorStyle(_) => {
+                SvelteConsistentSelectorStyle::IS_TSGOLINT_RULE
+            }
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::IS_TSGOLINT_RULE
             }
@@ -20996,6 +21022,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::VERSION,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::VERSION,
+            Self::SvelteConsistentSelectorStyle(_) => SvelteConsistentSelectorStyle::VERSION,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::VERSION
             }
@@ -22256,6 +22283,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::HAS_CONFIG,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::HAS_CONFIG,
+            Self::SvelteConsistentSelectorStyle(_) => SvelteConsistentSelectorStyle::HAS_CONFIG,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::HAS_CONFIG
             }
@@ -23409,6 +23437,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(_) => SvelteBlockLang::INFO,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::INFO,
+            Self::SvelteConsistentSelectorStyle(_) => SvelteConsistentSelectorStyle::INFO,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::INFO,
             Self::SvelteExperimentalRequireSlotTypes(_) => SvelteExperimentalRequireSlotTypes::INFO,
             Self::SvelteExperimentalRequireStrictEvents(_) => {
@@ -24431,6 +24460,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.types_info(),
             Self::SvelteButtonHasType(rule) => rule.types_info(),
             Self::SvelteCommentDirective(rule) => rule.types_info(),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.types_info(),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.types_info(),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.types_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.types_info(),
@@ -25432,6 +25462,7 @@ impl RuleEnum {
             Self::SvelteBlockLang(rule) => rule.run_info(),
             Self::SvelteButtonHasType(rule) => rule.run_info(),
             Self::SvelteCommentDirective(rule) => rule.run_info(),
+            Self::SvelteConsistentSelectorStyle(rule) => rule.run_info(),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_info(),
             Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_info(),
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_info(),
@@ -26571,6 +26602,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteBlockLang(SvelteBlockLang::default()),
         RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
         RuleEnum::SvelteCommentDirective(SvelteCommentDirective::default()),
+        RuleEnum::SvelteConsistentSelectorStyle(SvelteConsistentSelectorStyle::default()),
         RuleEnum::SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs::default()),
         RuleEnum::SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes::default()),
         RuleEnum::SvelteExperimentalRequireStrictEvents(

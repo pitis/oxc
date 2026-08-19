@@ -5862,6 +5862,11 @@ impl RuleRunner for crate::rules::svelte::comment_directive::CommentDirective {
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::consistent_selector_style::ConsistentSelectorStyle {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner
     for crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs
 {

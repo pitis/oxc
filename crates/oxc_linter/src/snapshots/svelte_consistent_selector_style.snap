@@ -1,0 +1,75 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of class
+   ╭─[consistent_selector_style.tsx:3:2]
+ 2 │ <style>
+ 3 │     .a {}
+   ·     ──
+ 4 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of ID
+   ╭─[consistent_selector_style.tsx:3:2]
+ 2 │ <style>
+ 3 │     #a {}
+   ·     ──
+ 4 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by ID instead of class
+   ╭─[consistent_selector_style.tsx:4:2]
+ 3 │ <style>
+ 4 │     .a {}
+   ·     ──
+ 5 │ </style>
+   ╰────
+  help: Rewrite the selector to match by ID.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of class
+   ╭─[consistent_selector_style.tsx:4:2]
+ 3 │ <style>
+ 4 │     .a {}
+   ·     ──
+ 5 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by class instead of element type
+   ╭─[consistent_selector_style.tsx:3:2]
+ 2 │ <style>
+ 3 │     div {}
+   ·     ───
+ 4 │ </style>
+   ╰────
+  help: Rewrite the selector to match by class.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of class
+   ╭─[consistent_selector_style.tsx:3:10]
+ 2 │ <style>
+ 3 │     :global(.a) {}
+   ·             ──
+ 4 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of class
+   ╭─[consistent_selector_style.tsx:4:2]
+ 3 │ <style>
+ 4 │     .other {}
+   ·     ──────
+ 5 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.
+
+  ⚠ svelte(consistent-selector-style): Selector should select by element type instead of class
+   ╭─[consistent_selector_style.tsx:3:17]
+ 2 │ <style>
+ 3 │     @media print { .a {} }
+   ·                    ──
+ 4 │ </style>
+   ╰────
+  help: Rewrite the selector to match by element type.

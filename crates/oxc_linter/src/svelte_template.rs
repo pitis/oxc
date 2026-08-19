@@ -82,6 +82,7 @@ pub fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRul
         RuleEnum::SveltePreferConst(rule) => Some(rule),
         RuleEnum::SvelteNoConflictingModuleNames(rule) => Some(rule),
         RuleEnum::SvelteNoUnusedClassName(rule) => Some(rule),
+        RuleEnum::SvelteConsistentSelectorStyle(rule) => Some(rule),
         RuleEnum::SvelteMaxLinesPerBlock(rule) => Some(rule),
         RuleEnum::SveltePreferAttributeInterpolation(rule) => Some(rule),
         RuleEnum::SvelteNoGotoWithoutBase(rule) => Some(rule),

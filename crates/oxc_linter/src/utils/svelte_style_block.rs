@@ -103,7 +103,8 @@ fn style_lang<'a>(element: &Element<'a>) -> Option<&'a str> {
 /// Descends into at-rule blocks and into the selector-list arguments of
 /// functional pseudo-classes, so `:global(.a)`, `:is(.a, .b)`, `:where(.a)`
 /// and `:has(> .a)` all yield their inner selectors. `in_global` tracks
-/// whether the selector sits inside a `:global(…)`.
+/// whether the selector sits inside a `:global(…)` argument or nested
+/// inside a bare `:global { … }` block.
 pub fn for_each_selector<'a>(
     stylesheet: &Stylesheet<'a>,
     visit: &mut impl FnMut(&SimpleSelector<'a>, bool),
@@ -120,7 +121,10 @@ fn visit_statements<'a>(
         match statement {
             Statement::QualifiedRule(rule) => {
                 visit_selector_list(&rule.selector, in_global, visit);
-                visit_statements(&rule.block.statements, in_global, visit);
+                // Everything nested inside a bare `:global { … }` is global
+                // too. `:global(.a) { … }` is not: only its argument is.
+                let nested_global = in_global || is_bare_global(&rule.selector);
+                visit_statements(&rule.block.statements, nested_global, visit);
             }
             Statement::AtRule(rule) => {
                 if let Some(block) = &rule.block {
@@ -178,6 +182,18 @@ fn visit_selector_list<'a>(
             }
         }
     }
+}
+
+/// Whether a rule's selector is exactly `:global`, the block form that makes
+/// everything inside it global — as opposed to the `:global(…)` argument
+/// form, which scopes only what it wraps.
+fn is_bare_global(list: &SelectorList<'_>) -> bool {
+    let [complex] = list.selectors.as_slice() else { return false };
+    let [ComplexSelectorChild::CompoundSelector(compound)] = complex.children.as_slice() else {
+        return false;
+    };
+    let [SimpleSelector::PseudoClass(pseudo)] = compound.children.as_slice() else { return false };
+    pseudo.arg.is_none() && pseudo_name_is(pseudo, "global")
 }
 
 fn pseudo_name_is(pseudo: &PseudoClassSelector<'_>, name: &str) -> bool {

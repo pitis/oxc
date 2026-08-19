@@ -1023,6 +1023,7 @@ pub(crate) mod svelte {
     pub mod block_lang;
     pub mod button_has_type;
     pub mod comment_directive;
+    pub mod consistent_selector_style;
     pub mod derived_has_same_inputs_outputs;
     pub mod experimental_require_slot_types;
     pub mod experimental_require_strict_events;

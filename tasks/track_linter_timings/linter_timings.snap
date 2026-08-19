@@ -499,6 +499,7 @@ react_perf/jsx-no-new-object-as-prop                       |    804
 svelte/block-lang                                          |      0
 svelte/button-has-type                                     |      0
 svelte/comment-directive                                   |      0
+svelte/consistent-selector-style                           |      0
 svelte/experimental-require-slot-types                     |      0
 svelte/experimental-require-strict-events                  |      0
 svelte/max-lines-per-block                                 |      0
