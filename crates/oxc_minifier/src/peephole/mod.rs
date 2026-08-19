@@ -23,7 +23,7 @@ use oxc_allocator::ArenaVec;
 use oxc_ast::ast::*;
 use oxc_ecmascript::constant_evaluation::IsLiteralValue;
 
-use crate::{Traverse, TraverseCtx, state::BodyFrame};
+use crate::{Traverse, TraverseCtx, generated::ancestor::Ancestor, state::BodyFrame};
 
 pub use self::normalize::{Normalize, NormalizeOptions};
 
@@ -69,14 +69,14 @@ impl<'a> PeepholeOptimizations {
         match stmt {
             Statement::EmptyStatement(_)
             | Statement::ImportDeclaration(_)
-            | Statement::ExportAllDeclaration(_) => true,
+            | Statement::ExportAllDeclaration(_)
+            | Statement::ExportNamedDeclaration(_)
+            | Statement::ExportFromDeclaration(_) => true,
             // `export { foo }`, `export { foo } from './x'`, `export type T = …` —
             // no executable code at the statement itself. The cyclic-eval hazard
             // from a `from` source is gated separately at program scope (see
             // `enter_program`).
-            Statement::ExportNamedDeclaration(e) => {
-                e.declaration.as_ref().is_none_or(Self::is_declarative_declaration)
-            }
+            Statement::ExportDeclaration(e) => Self::is_declarative_declaration(&e.declaration),
             // `export default function() {}` is hoisted; `export default <expr>`
             // or `export default class C extends … {}` runs user code.
             Statement::ExportDefaultDeclaration(e) => {
@@ -326,6 +326,9 @@ impl<'a> Traverse<'a> for PeepholeOptimizations {
     }
 
     fn enter_function_body(&mut self, body: &mut FunctionBody<'a>, ctx: &mut TraverseCtx<'a>) {
+        if matches!(ctx.parent(), Ancestor::ArrowFunctionExpressionBody(_)) {
+            return;
+        }
         let initialized_at = if Self::derived_constructor_this_scope(ctx).is_some() {
             body.statements.iter().find_map(|stmt| match stmt {
                 Statement::ExpressionStatement(stmt) => {
@@ -344,6 +347,42 @@ impl<'a> Traverse<'a> for PeepholeOptimizations {
     }
 
     fn exit_function_body(&mut self, _body: &mut FunctionBody<'a>, ctx: &mut TraverseCtx<'a>) {
+        if !matches!(ctx.parent(), Ancestor::ArrowFunctionExpressionBody(_)) {
+            ctx.state.body_frames.pop();
+        }
+    }
+
+    fn enter_arrow_function_body(
+        &mut self,
+        body: &mut ArrowFunctionBody<'a>,
+        ctx: &mut TraverseCtx<'a>,
+    ) {
+        let initialized_at = if Self::derived_constructor_this_scope(ctx).is_some() {
+            if let Some(body) = body.as_function_body() {
+                body.statements.iter().find_map(|stmt| match stmt {
+                    Statement::ExpressionStatement(stmt) => {
+                        Self::unconditional_super_call_end(&stmt.expression)
+                    }
+                    _ => None,
+                })
+            } else {
+                body.as_expression().and_then(Self::unconditional_super_call_end)
+            }
+        } else {
+            None
+        };
+        ctx.state.body_frames.push(BodyFrame {
+            scope_id: ctx.current_scope_id(),
+            hoisted_var_inlining_unsafe: false,
+            this_initialized_at: initialized_at,
+        });
+    }
+
+    fn exit_arrow_function_body(
+        &mut self,
+        _body: &mut ArrowFunctionBody<'a>,
+        ctx: &mut TraverseCtx<'a>,
+    ) {
         ctx.state.body_frames.pop();
     }
 

@@ -24,6 +24,7 @@ mod nextjs;
 mod node;
 mod promise;
 mod react;
+mod react_compiler;
 mod react_perf;
 mod regex;
 mod schemars;
@@ -39,7 +40,7 @@ mod vue_template;
 
 pub use self::{
     comment::*, config::*, control_flow::*, express::*, jest::*, jsdoc::*, nextjs::*, node::*,
-    promise::*, react::*, react_perf::*, regex::*, schemars::*, static_value::*,
+    promise::*, react::*, react_compiler::*, react_perf::*, regex::*, schemars::*, static_value::*,
     this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*, vue_template::*,
 };
 

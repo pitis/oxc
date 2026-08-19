@@ -606,15 +606,54 @@ fn test_fold_math_functions_min() {
 }
 
 #[test]
-#[ignore = "TODO: Math.pow optimization not yet implemented"]
 fn test_fold_math_functions_pow() {
-    test("Math.pow(1, 2)", "1");
-    test("Math.pow(2, 0)", "1");
-    test("Math.pow(2, 2)", "4");
-    test("Math.pow(2, 32)", "4294967296");
-    test("Math.pow(Infinity, 0)", "1");
-    test("Math.pow(Infinity, 1)", "Infinity");
-    test("Math.pow('a', 33)", "NaN");
+    test_value("Math.pow(1, 2)", "1");
+    test_value("Math.pow(2, 0)", "1");
+    test_value("Math.pow(2, 2)", "4");
+    test_value("Math.pow(2, 32)", "2 ** 32");
+    test_value("Math.pow(Infinity, 0)", "1");
+    test_value("Math.pow(Infinity, 1)", "Infinity");
+    test_value("Math.pow('a', 33)", "NaN");
+    test_value("Math.pow(2, 3)", "8");
+    test_value("Math.pow(a, 3)", "a ** 3");
+    test_value("Math.pow(2, b)", "2 ** b");
+    test_value("Math.pow(a, b)", "a ** +b");
+    test_value("Math.pow(2n, 3n)", "2n ** +3n"); // errors both before and after
+    test_value("Math.pow(a + b, c)", "(a + b) ** +c");
+    test_same_value("Math.pow()");
+    test_same_value("Math.pow(1)");
+    test_same_value("Math.pow(...a, 1)");
+    test_same_value("Math.pow(1, ...a)");
+    test_same_value("Math.pow(1, 2, 3)");
+    test_target("v = Math.pow(2, 3)", "v = Math.pow(2, 3)", "chrome51");
+    test_same_value(" Unknown.pow(1, 2)");
+}
+
+#[test]
+fn test_fold_math_functions_sqrt() {
+    test_same_value("Math.sqrt()");
+    test_same_value("Math.sqrt(1, 2)");
+    test_same_value("Math.sqrt(...a)");
+    test_same_value("Math.sqrt(a)"); // a maybe -0
+    test_same_value("Math.sqrt(2n)");
+    test_value("Math.sqrt(Infinity)", "Infinity");
+    test_value("Math.sqrt(NaN)", "NaN");
+    test_value("Math.sqrt(0)", "0");
+    test_value("Math.sqrt(-0)", "-0");
+    test_value("Math.sqrt(-1)", "NaN");
+    test_value("Math.sqrt(-Infinity)", "NaN");
+    test_value("Math.sqrt(1)", "1");
+    test_value("Math.sqrt(4)", "2");
+    test_same_value("Math.sqrt(2)");
+    test_same_value("Unknown.sqrt(1)");
+}
+
+#[test]
+fn test_fold_math_functions_cbrt() {
+    test_value("Math.cbrt(1)", "1");
+    test_value("Math.cbrt(8)", "2");
+    test_same_value("Math.cbrt(2)");
+    test_same_value("Unknown.cbrt(1)");
 }
 
 #[test]
@@ -986,46 +1025,6 @@ fn test_to_string() {
 }
 
 #[test]
-fn test_fold_pow() {
-    test("v = Math.pow(2, 3)", "v = 2 ** 3");
-    test("v = Math.pow(a, 3)", "v = a ** 3");
-    test("v = Math.pow(2, b)", "v = 2 ** b");
-    test("v = Math.pow(a, b)", "v = a ** +b");
-    test("v = Math.pow(2n, 3n)", "v = 2n ** +3n"); // errors both before and after
-    test("v = Math.pow(a + b, c)", "v = (a + b) ** +c");
-    test_same("v = Math.pow()");
-    test_same("v = Math.pow(1)");
-    test_same("v = Math.pow(...a, 1)");
-    test_same("v = Math.pow(1, ...a)");
-    test_same("v = Math.pow(1, 2, 3)");
-    test_target("v = Math.pow(2, 3)", "v = Math.pow(2, 3)", "chrome51");
-    test_same("v = Unknown.pow(1, 2)");
-}
-
-#[test]
-fn test_fold_roots() {
-    test_same("v = Math.sqrt()");
-    test_same("v = Math.sqrt(1, 2)");
-    test_same("v = Math.sqrt(...a)");
-    test_same("v = Math.sqrt(a)"); // a maybe -0
-    test_same("v = Math.sqrt(2n)");
-    test("v = Math.sqrt(Infinity)", "v = Infinity");
-    test("v = Math.sqrt(NaN)", "v = NaN");
-    test("v = Math.sqrt(0)", "v = 0");
-    test("v = Math.sqrt(-0)", "v = -0");
-    test("v = Math.sqrt(-1)", "v = NaN");
-    test("v = Math.sqrt(-Infinity)", "v = NaN");
-    test("v = Math.sqrt(1)", "v = 1");
-    test("v = Math.sqrt(4)", "v = 2");
-    test_same("v = Math.sqrt(2)");
-    test("v = Math.cbrt(1)", "v = 1");
-    test("v = Math.cbrt(8)", "v = 2");
-    test_same("v = Math.cbrt(2)");
-    test_same("Unknown.sqrt(1)");
-    test_same("Unknown.cbrt(1)");
-}
-
-#[test]
 fn test_number_constants() {
     test("v = Number.POSITIVE_INFINITY", "v = Infinity");
     test("v = Number.NEGATIVE_INFINITY", "v = -Infinity");
@@ -1246,4 +1245,22 @@ fn test_fold_regex_source() {
     test_same_value("/(/.source"); // this regex is invalid
     test_value("/\\u{}/.source", "'\\\\u{}'");
     test_same_value("/\\u{}/u.source"); // this regex is invalid, also u flag is not supported by ES2015
+
+    // Preserve newer RegExp syntax unless every configured target supports it.
+    test_same_value("/a/u.source");
+    for (source, expected, unsupported_target, supported_target) in [
+        ("x = /a/y.source", "x = 'a'", "chrome48", "es2015"),
+        ("x = /a/u.source", "x = 'a'", "chrome49", "es2015"),
+        ("x = /a/s.source", "x = 'a'", "es2017", "es2018"),
+        ("x = /a/d.source", "x = 'a'", "es2021", "es2022"),
+        ("x = /a/v.source", "x = 'a'", "es2023", "es2024"),
+        ("x = /(?<name>a)/.source", "x = '(?<name>a)'", "es2017", "es2018"),
+        (r"x = /\p{Ll}/u.source", r"x = '\\p{Ll}'", "es2017", "es2018"),
+        ("x = /(?<=a)b/.source", "x = '(?<=a)b'", "es2017", "es2018"),
+        ("x = /(?<name>a)|(?<name>b)/.source", "x = '(?<name>a)|(?<name>b)'", "es2024", "es2025"),
+        ("x = /(?i:a)/.source", "x = '(?i:a)'", "es2024", "es2025"),
+    ] {
+        test_target(source, source, unsupported_target);
+        test_target(source, expected, supported_target);
+    }
 }

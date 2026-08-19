@@ -1,7 +1,7 @@
 //! AST builder.
 //!
 //! AST nodes are created by builder methods defined on the AST types themselves,
-//! which are passed a `&B where B: GetAstBuilder` or `&A where A: GetAllocator`:
+//! which are passed an `&impl GetAstBuilder` or an `&impl GetAllocator`:
 //!
 //! * `Statement::new_expression_statement(span, expr, &builder)`
 //! * `Vec::new_in(&builder)`, `Ident::from_str_in(str, &builder)`
@@ -70,12 +70,12 @@
 //! (e.g. `builder.statement_expression(span, expr)`) and primitives (e.g. `builder.vec()`,`builder.ident(str)`).
 //! Those methods have now been removed. Use the AST type builder methods described above instead.
 //!
-//! [`AstBuilder`] and [`NONE`] are no longer re-exported from the crate root either -
-//! import them from this module instead.
+//! [`AstBuilder`] is no longer re-exported from the crate root either -
+//! import it from this module instead.
 //!
 //! Explanation of the motivation for this change here: <https://github.com/oxc-project/oxc/issues/23043>.
 
-use oxc_allocator::{Allocator, ArenaBox, ArenaVec, FromIn, GetAllocator};
+use oxc_allocator::{Allocator, GetAllocator};
 use oxc_syntax::node::NodeId;
 
 mod custom;
@@ -100,7 +100,7 @@ mod custom;
 /// * [`GetAllocator`]
 ///
 /// These bounds mean that any type returned by [`GetAstBuilder::builder`] can be passed to
-/// any other method which accepts any `&B where B: GetAstBuilder<'a>` or `&A where A: GetAllocator<'a>`
+/// any other method which accepts any `&impl GetAstBuilder<'a>` or `&impl GetAllocator<'a>`
 /// (i.e. other AST builder methods).
 pub trait AstBuild<'a>: GetAstBuilder<'a, Builder = Self> + GetAllocator<'a> {
     /// Get [`NodeId`] to assign to an AST node.
@@ -110,7 +110,7 @@ pub trait AstBuild<'a>: GetAstBuilder<'a, Builder = Self> + GetAllocator<'a> {
 /// Trait for types which provide access to an [`AstBuild`]er.
 ///
 /// Implemented by the [`AstBuild`]ers themselves (returning `self`), and by types which hold one
-/// (e.g. parser or traverse context). AST node builder methods are generic over `B: GetAstBuilder<'a>`,
+/// (e.g. parser or traverse context). AST node builder methods take any `&impl GetAstBuilder<'a>`,
 /// so they can be called with a builder directly, or with a type which holds one.
 pub trait GetAstBuilder<'a> {
     /// The [`AstBuild`]er type that this provides access to.
@@ -161,26 +161,5 @@ impl<'a> GetAllocator<'a> for AstBuilder<'a> {
     #[inline]
     fn allocator(&self) -> &'a Allocator {
         self.allocator
-    }
-}
-
-/// Type that can be used in any AST builder method call which requires either:
-///
-/// * `IntoIn<'a, Option<Box<'a, T>>`.
-/// * `IntoIn<'a, Option<Vec<'a, T>>`.
-///
-/// Pass `NONE` instead of `None::<Box<'a, T>>`.
-#[expect(clippy::upper_case_acronyms)]
-pub struct NONE;
-
-impl<'a, T> FromIn<'a, NONE> for Option<ArenaBox<'a, T>> {
-    fn from_in(_: NONE, _: &'a Allocator) -> Self {
-        None
-    }
-}
-
-impl<'a, T> FromIn<'a, NONE> for Option<ArenaVec<'a, T>> {
-    fn from_in(_: NONE, _: &'a Allocator) -> Self {
-        None
     }
 }

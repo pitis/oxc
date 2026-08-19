@@ -1,15 +1,19 @@
 use oxc_formatter_core::{
-    Buffer, MemoizeFormat, best_fitting,
-    builders::{align, expand_parent, group, hard_line_break, line_suffix, space},
+    Buffer, Format, GroupId, MemoizeFormat, best_fitting,
+    builders::{
+        align, expand_parent, group, hard_line_break, if_group_breaks, if_group_fits_on_line,
+        line_suffix, space,
+    },
     format_args, write,
 };
 use oxc_yaml_parser::ast::{Content, MappingItem, Node};
 
 use crate::{
     comments::{
-        Gap, classify_gap, flush_leading_comments, is_own_line, pending_same_line_comment,
-        write_single_comment, write_trailing_same_line_comment,
+        Gap, classify_gap, flush_leading_comments, pending_same_line_comment, write_single_comment,
+        write_trailing_same_line_comment,
     },
+    context::YamlFormatContext,
     options::ProseWrap,
     print::{YamlFormatter, column_of, format_with, to_span, write_node, write_node_or_suppressed},
 };
@@ -41,8 +45,7 @@ pub fn write_mapping_item<'a>(
 
     if is_empty_key && is_empty_value {
         // The `: `'s own space is the separation for what follows:
-        // a same-line comment
-        // (`: # c`, Prettier suppresses the line-suffix space for an empty mappingValue)
+        // a same-line comment (`: # c`, Prettier suppresses the line-suffix space for an empty mappingValue)
         // or the rest of a flow collection (`{ : }`).
         // In a block mapping with no comment nothing follows, don't leave it at the line end.
         let same_line_comment = pending_same_line_comment(item.span.end, f);
@@ -51,12 +54,12 @@ pub fn write_mapping_item<'a>(
         } else {
             write!(f, ":");
         }
-        if let Some(span) = same_line_comment {
-            f.context().comments().take_before(span.end);
-            let comment = format_with(move |f: &mut YamlFormatter<'_, 'a>| {
-                write_single_comment(span, f);
+        if let Some(comment) = same_line_comment {
+            f.context().comments().take_before(comment.span.end);
+            let content = format_with(move |f: &mut YamlFormatter<'_, 'a>| {
+                write_single_comment(comment.span, f);
             });
-            write!(f, [line_suffix(&comment), expand_parent()]);
+            write!(f, [line_suffix(&content), expand_parent()]);
         }
         return;
     }
@@ -99,7 +102,7 @@ pub fn write_mapping_item<'a>(
         return;
     }
 
-    // Past the empty-key/empty-value returns, both wrappers and their content exist.
+    // Past the empty-key/empty-value returns, both wrappers and their content exist
     let key = item.key.as_ref().expect("empty key handled above");
     let value = item.value.as_ref().expect("empty value handled above");
     let key_node = key_content.expect("empty key handled above");
@@ -107,27 +110,30 @@ pub fn write_mapping_item<'a>(
     let value_start = value_node.span.start;
 
     // Force explicit key:
-    // the key isn't an inline node, or the source was already explicit with a comment between `?` and the key, or between the key and `:`
-    // (an implicit `key:` with a comment above the value keeps the implicit form,
+    // the key isn't an inline node, or the source was already explicit with a comment between `?` and the key,
+    // or between the key and `:` (an implicit `key:` with a comment above the value keeps the implicit form,
     // the comment becomes the value's leading comment instead).
-    let explicit_comment_before_key =
-        key.explicit && f.context().comments().peek().is_some_and(|c| c.end <= key_node.span.start);
+    let explicit_comment_before_key = key.explicit
+        && f.context().comments().peek().is_some_and(|c| c.span.end <= key_node.span.start);
     if !is_inline(key_content)
         || explicit_comment_before_key
-        || (key.explicit && has_own_line_comment_before_value(key.span.end, value_node, f))
+        || (key.explicit && has_own_line_comment_before_value(value_node, f))
     {
         write!(f, "? ");
-        // Comments between the key and `:` that are indented DEEPER than the item are the key's end comments (inside the key's align);
-        // comments at the item's own column lead the value (before the `: ` line).
-        // Comments AFTER the `:` are the value's middle comments and stay pending, `write_node` prints them right after the `: `.
+        // Comments between the key and `:` that are indented DEEPER than the item are the key's end comments
+        // (inside the key's align); comments at the item's own column lead the value (before the `: ` line).
+        // Comments AFTER the `:` are the value's middle comments and stay pending,
+        // `write_node` prints them right after the `: `.
         let item_column = column_of(&f.context().source_text(), item.span.start);
         // The `:` position: the value span starts at its indicator
         let colon = value.span.start;
         let key_and_comments = format_with(move |f: &mut YamlFormatter<'_, 'a>| {
             write_key(item, f);
-            let source = f.context().source_text();
-            while let Some(span) = f.context().comments().peek() {
-                if span.end > colon || column_of(&source, span.start) <= item_column {
+            while let Some(comment) = f.context().comments().peek() {
+                let span = comment.span;
+                if span.end > colon
+                    || comment.own_line_column.is_none_or(|column| column <= item_column)
+                {
                     break;
                 }
                 f.context().comments().take_before(span.end);
@@ -138,8 +144,8 @@ pub fn write_mapping_item<'a>(
         write!(f, align(2, &key_and_comments));
         write!(f, hard_line_break());
         let comments = f.context().comments().take_before(colon);
-        for &span in comments {
-            write_single_comment(span, f);
+        for comment in comments {
+            write_single_comment(comment.span, f);
             write!(f, hard_line_break());
         }
         write!(f, ": ");
@@ -196,54 +202,83 @@ pub fn write_mapping_item<'a>(
     if key_is_multiline_scalar {
         write!(f, "? ");
         write!(f, align(2, &format_with(|f| write_key(item, f))));
+        // `? key # c` keeps the comment on the key's last line, not past the `:`
+        // (the source is explicit here, so the gap holds no punctuation)
+        write_trailing_same_line_comment(key_span_end, &[], f);
         write!(f, hard_line_break());
         write!(f, ": ");
         write!(f, align(2, &format_with(|f| write_value(item, f))));
         return;
     }
 
-    // Separator between `:` and the value
+    // Separator between `:` and the value.
+    // A props-carrying block collection is NOT pinned:
+    // like a block scalar it takes the width-based routing below
+    // (Prettier hangs `key:\n  !!tag &a` under an overflowing key too).
     let block_collection_without_props =
         matches!(value_node.content, Content::Mapping(_) | Content::Sequence(_))
             && value_node.props.anchor.is_none()
             && value_node.props.tag.is_none();
-    let hardline_separator = block_collection_without_props
-        || has_pending_comment_before(value_start, f)
-        || (in_flow == FlowParent::No && key_trailing_same_line && is_inline(Some(value_node)));
+    let colon = if space_before_colon { " :" } else { ":" };
+    let hardline_separator =
+        block_collection_without_props || has_pending_comment_before(value_start, f);
 
-    if hardline_separator || !is_inline(Some(value_node)) {
-        // The separator is pinned:
-        // hardline (block collection / comments), or a space (block scalar & friends,
-        // whose hardlines Prettier's `conditionalGroup` keeps from re-flowing the key line).
-        write_key(item, f);
-        let implicit_value = format_with(move |f: &mut YamlFormatter<'_, 'a>| {
-            if space_before_colon {
-                write!(f, space());
-            }
-            write!(f, ":");
-            if hardline_separator {
-                // Key's same-line comment must be emitted before the line break
-                write_trailing_same_line_comment(key_span_end, b":", f);
-                write!(f, hard_line_break());
-            } else {
-                write!(f, space());
-            }
+    if hardline_separator {
+        // The separator is pinned to a hardline (block collection / comments).
+        // A trailing comment drops the implicit guarantee like everywhere else
+        // (Prettier's `!hasTrailingComment(key.content)` beside its `isAbsolutelyPrintedAsSingleLineNode`).
+        if key_absolutely_single_line && !key_trailing_same_line {
+            write_key(item, f);
+            write!(f, colon);
+            let value = format_with(|f| {
+                write_node_or_suppressed(value_node, f);
+            });
+            write!(f, align(tab_width, &format_args!(hard_line_break(), value)));
+            return;
+        }
+        // A key that may break must not stay implicit: a multi-line implicit key is invalid YAML
+        let group_id = write_grouped_key(&format_with(|f| write_key(item, f)), f);
+        // The key's same-line comment:
+        // the line suffix lands at the end of whichever line the printer is on (`key: # c` flat, `? key # c` broken),
+        // so one write serves both forms;
+        // its `expand_parent` reaches an enclosing flow collection, not the closed key group.
+        write_trailing_same_line_comment(key_span_end, b":", f);
+        // The value sits in both conditional bodies
+        let value = format_with(|f: &mut YamlFormatter<'_, 'a>| {
             write_node_or_suppressed(value_node, f);
-        });
-        write!(f, align(tab_width, &implicit_value));
+        })
+        .memoized();
+        // This item is multi-line by definition: expand the enclosing groups explicitly
+        // (the item's own group; also an enclosing flow collection,
+        // which only reaches this path for a key trailing comment and must break for it anyway).
+        // The separators inside the conditionals then don't propagate (see `if_group_breaks` docs).
+        write!(f, expand_parent());
+        write_explicit_value(group_id, &value, f);
+        write!(
+            f,
+            if_group_fits_on_line(&format_args!(
+                colon,
+                align(tab_width, &format_args!(hard_line_break().without_expand_parent(), value))
+            ))
+            .with_group_id(Some(group_id))
+        );
         return;
     }
 
-    // Width-dependent layout via `best_fitting!`.
-    // Variants are measured flat with early-exit at hardlines, so:
-    // - variant 1 fits = the key + `: ` + the value's FIRST line fit
-    //   (a multiline value's own hardlines don't re-flow the key line, Prettier's `conditionalGroup` boundary)
-    // - variant 2 fits = the key fits (Prettier's groupedKey break check)
-    // Content is memoized so the comment cursor advances only once.
+    // Width-dependent layout: two decisions, two mechanisms
+    // (Prettier's `conditionalGroup([[groupedKey, ifBreak(explicit, implicit, {groupId})]])`):
+    // - implicit vs explicit (`? key`) follows the KEY group via `if_group_breaks`:
+    //   width overflow or a forced break inside the key flips the item to the explicit form
+    // - the implicit separator (value on the key's line or hanging under it) is a `best_fitting` trial,
+    //   measured flat with early-exit at hardlines:
+    //   variant 1 fits = `: ` + the value's FIRST line fit after the key
+    //   (a multiline value's own hardlines don't re-flow the key line, Prettier's `conditionalGroup` boundary;
+    //   for a block scalar that first line is just the `| ` / `>` header, sans any line-suffix trailing comment)
     let key = format_with(|f: &mut YamlFormatter<'_, 'a>| write_key(item, f)).memoized();
     // The group wrapper mirrors Prettier's `genericPrint` (`group(printNode())`)
     // and is what decides variant 1 for a multi-paragraph value:
-    // the paragraph hardline expands the group, fits then measures its content in expanded mode and exits `Yes` at the FIRST fill separator,
+    // the paragraph hardline expands the group,
+    // fits then measures its content in expanded mode and exits `Yes` at the FIRST fill separator,
     // so only `key: ` plus the first word must fit and the fill wraps from the key line.
     // A value with no forced break keeps the group flat and is measured in full.
     let value_content_fmt = format_with(move |f: &mut YamlFormatter<'_, 'a>| {
@@ -251,10 +286,8 @@ pub fn write_mapping_item<'a>(
         write!(f, group(&format_with(|f| write_node(value_node, f))));
     })
     .memoized();
-    let colon = if space_before_colon { " :" } else { ":" };
 
-    // A definitely-single-line key never flips to the explicit form,
-    // no matter how long (Prettier's `conditionalGroup([[printedKey, implicit]])` short-circuit).
+    // A definitely-single-line key never flips to the explicit form, no matter how long
     if key_absolutely_single_line && !key_trailing_same_line {
         write!(
             f,
@@ -270,26 +303,59 @@ pub fn write_mapping_item<'a>(
         return;
     }
 
+    let group_id = write_grouped_key(&key, f);
+    write_explicit_value(group_id, &value_content_fmt, f);
     write!(
         f,
-        best_fitting![
+        if_group_fits_on_line(&best_fitting![
             // Everything starting on one line
-            format_args!(key, colon, space(), align(tab_width, &value_content_fmt)),
-            // Key line + value on the next line (fits when the key fits)
+            format_args!(colon, space(), align(tab_width, &value_content_fmt)),
+            // Value on the next line
             format_args!(
-                key,
                 colon,
                 align(tab_width, &format_args!(hard_line_break(), value_content_fmt))
             ),
-            // Explicit form (key itself doesn't fit)
-            format_args!(
-                "? ",
-                align(2, &key),
-                hard_line_break(),
-                ": ",
-                align(2, &value_content_fmt)
-            ),
-        ]
+        ])
+        .with_group_id(Some(group_id))
+    );
+}
+
+/// Prettier's `groupedKey` (`group([ifBreak("? "), group(align(2, key), {id})])`):
+/// the returned id is what the value side's conditionals watch,
+/// the key group breaks on width overflow AND on a forced break inside the key (a comment-pinned flow collection),
+/// flipping the item to the explicit form.
+/// A `best_fitting` trial could not see the latter: its measurement early-exits `Yes` at the first line break.
+fn write_grouped_key<'a>(
+    key: &impl Format<'a, YamlFormatContext<'a>>,
+    f: &mut YamlFormatter<'_, 'a>,
+) -> GroupId {
+    let group_id = f.state().group_id("mappingKey");
+    write!(
+        f,
+        group(&format_args!(
+            if_group_breaks(&"? "),
+            group(&align(2, key)).with_group_id(Some(group_id))
+        ))
+    );
+    group_id
+}
+
+/// [write_grouped_key]'s companion: the explicit form's value side (line break + `: value`),
+/// printed only when the key group broke (Prettier's `ifBreak(explicitMappingValue, ..., {groupId})`).
+/// The separator must not expand anything around it (see the `if_group_breaks` docs).
+fn write_explicit_value<'a>(
+    group_id: GroupId,
+    value: &impl Format<'a, YamlFormatContext<'a>>,
+    f: &mut YamlFormatter<'_, 'a>,
+) {
+    write!(
+        f,
+        if_group_breaks(&format_args!(
+            hard_line_break().without_expand_parent(),
+            ": ",
+            align(2, value)
+        ))
+        .with_group_id(Some(group_id))
     );
 }
 
@@ -390,7 +456,8 @@ fn has_forced_break_when_folded(node: Option<&Node<'_>>, f: &YamlFormatter<'_, '
 /// (`key: # comment` with the value on the next line,
 /// a comment after the value like `key: value # comment` is the value's trailing comment instead.)
 fn key_has_trailing_comment(key_end: u32, value_start: u32, f: &YamlFormatter<'_, '_>) -> bool {
-    let Some(span) = f.context().comments().peek() else { return false };
+    let Some(comment) = f.context().comments().peek() else { return false };
+    let span = comment.span;
     let source = f.context().source_text();
     span.start >= key_end
         && span.end <= value_start
@@ -399,22 +466,15 @@ fn key_has_trailing_comment(key_end: u32, value_start: u32, f: &YamlFormatter<'_
 
 /// Is there any pending comment before `bound` (a leading comment of the value)?
 fn has_pending_comment_before(bound: u32, f: &YamlFormatter<'_, '_>) -> bool {
-    f.context().comments().peek().is_some_and(|c| c.end <= bound)
+    f.context().comments().peek().is_some_and(|c| c.span.end <= bound)
 }
 
 /// Own-line comment between the key and the value forces the explicit form.
-/// A comment trailing the `:` (`key: # comment`) does NOT — it leads the value.
-fn has_own_line_comment_before_value(
-    key_end: u32,
-    value: &Node<'_>,
-    f: &YamlFormatter<'_, '_>,
-) -> bool {
-    let Some(span) = f.context().comments().peek() else { return false };
-    if span.end > value.span.start {
-        return false;
-    }
-    let source = f.context().source_text();
-    // Same-line-after-key comments are trailing, not leading-of-value
-    classify_gap(source.bytes_range(key_end, span.start)) != Gap::None
-        && is_own_line(&source, span.start)
+/// A comment trailing the key's line (`? key # comment`) does NOT.
+/// It is a trailing comment (`own_line_column: None`), not leading-of-value.
+fn has_own_line_comment_before_value(value: &Node<'_>, f: &YamlFormatter<'_, '_>) -> bool {
+    f.context()
+        .comments()
+        .peek()
+        .is_some_and(|c| c.span.end <= value.span.start && c.own_line_column.is_some())
 }

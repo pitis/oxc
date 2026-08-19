@@ -521,6 +521,11 @@ pub trait VisitJsMut<'a>: Sized {
     }
 
     #[inline]
+    fn visit_arrow_function_body(&mut self, it: &mut ArrowFunctionBody<'a>) {
+        walk_arrow_function_body(self, it);
+    }
+
+    #[inline]
     fn visit_arrow_function_expression(&mut self, it: &mut ArrowFunctionExpression<'a>) {
         walk_arrow_function_expression(self, it);
     }
@@ -533,6 +538,11 @@ pub trait VisitJsMut<'a>: Sized {
     #[inline]
     fn visit_class(&mut self, it: &mut Class<'a>) {
         walk_class(self, it);
+    }
+
+    #[inline]
+    fn visit_class_heritage(&mut self, it: &mut ClassHeritage<'a>) {
+        walk_class_heritage(self, it);
     }
 
     #[inline]
@@ -621,8 +631,18 @@ pub trait VisitJsMut<'a>: Sized {
     }
 
     #[inline]
+    fn visit_export_declaration(&mut self, it: &mut ExportDeclaration<'a>) {
+        walk_export_declaration(self, it);
+    }
+
+    #[inline]
     fn visit_export_named_declaration(&mut self, it: &mut ExportNamedDeclaration<'a>) {
         walk_export_named_declaration(self, it);
+    }
+
+    #[inline]
+    fn visit_export_from_declaration(&mut self, it: &mut ExportFromDeclaration<'a>) {
+        walk_export_from_declaration(self, it);
     }
 
     #[inline]
@@ -826,18 +846,18 @@ pub trait VisitJsMut<'a>: Sized {
     }
 
     #[inline]
-    fn visit_ts_module_declaration(&mut self, it: &mut TSModuleDeclaration<'a>) {
-        walk_ts_module_declaration(self, it);
+    fn visit_ts_external_module_declaration(&mut self, it: &mut TSExternalModuleDeclaration<'a>) {
+        walk_ts_external_module_declaration(self, it);
     }
 
     #[inline]
-    fn visit_ts_module_declaration_name(&mut self, it: &mut TSModuleDeclarationName<'a>) {
-        walk_ts_module_declaration_name(self, it);
+    fn visit_ts_namespace_declaration(&mut self, it: &mut TSNamespaceDeclaration<'a>) {
+        walk_ts_namespace_declaration(self, it);
     }
 
     #[inline]
-    fn visit_ts_module_declaration_body(&mut self, it: &mut TSModuleDeclarationBody<'a>) {
-        walk_ts_module_declaration_body(self, it);
+    fn visit_ts_namespace_declaration_body(&mut self, it: &mut TSNamespaceDeclarationBody<'a>) {
+        walk_ts_namespace_declaration_body(self, it);
     }
 
     #[inline]
@@ -1789,7 +1809,10 @@ pub mod walk_js_mut {
             }
             Declaration::ClassDeclaration(it) => visitor.visit_class(it),
             Declaration::TSEnumDeclaration(it) => visitor.visit_ts_enum_declaration(it),
-            Declaration::TSModuleDeclaration(it) => visitor.visit_ts_module_declaration(it),
+            Declaration::TSExternalModuleDeclaration(it) => {
+                visitor.visit_ts_external_module_declaration(it)
+            }
+            Declaration::TSNamespaceDeclaration(it) => visitor.visit_ts_namespace_declaration(it),
             Declaration::TSGlobalDeclaration(it) => visitor.visit_ts_global_declaration(it),
             Declaration::TSImportEqualsDeclaration(it) => {
                 visitor.visit_ts_import_equals_declaration(it)
@@ -2283,6 +2306,20 @@ pub mod walk_js_mut {
     }
 
     #[inline]
+    pub fn walk_arrow_function_body<'a, V: VisitJsMut<'a>>(
+        visitor: &mut V,
+        it: &mut ArrowFunctionBody<'a>,
+    ) {
+        // No `AstType` for this type
+        match it {
+            ArrowFunctionBody::FunctionBody(it) => visitor.visit_function_body(it),
+            match_expression!(ArrowFunctionBody) => {
+                visitor.visit_expression(it.to_expression_mut())
+            }
+        }
+    }
+
+    #[inline]
     pub fn walk_arrow_function_expression<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
         it: &mut ArrowFunctionExpression<'a>,
@@ -2301,7 +2338,7 @@ pub mod walk_js_mut {
         );
         visitor.visit_span(&mut it.span);
         visitor.visit_formal_parameters(&mut it.params);
-        visitor.visit_function_body(&mut it.body);
+        visitor.visit_arrow_function_body(&mut it.body);
         visitor.leave_scope();
         visitor.leave_node(kind);
     }
@@ -2330,12 +2367,18 @@ pub mod walk_js_mut {
             visitor.visit_binding_identifier(id);
         }
         visitor.enter_scope(ScopeFlags::StrictMode, &it.scope_id);
-        if let Some(super_class) = &mut it.super_class {
-            visitor.visit_expression(super_class);
+        if let Some(heritage) = &mut it.heritage {
+            visitor.visit_class_heritage(heritage);
         }
         visitor.visit_class_body(&mut it.body);
         visitor.leave_scope();
         visitor.leave_node(kind);
+    }
+
+    #[inline]
+    pub fn walk_class_heritage<'a, V: VisitJsMut<'a>>(visitor: &mut V, it: &mut ClassHeritage<'a>) {
+        // No `AstType` for this type
+        visitor.visit_expression(&mut it.expression);
     }
 
     #[inline]
@@ -2419,7 +2462,6 @@ pub mod walk_js_mut {
         visitor.leave_node(kind);
     }
 
-    #[inline]
     pub fn walk_module_declaration<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
         it: &mut ModuleDeclaration<'a>,
@@ -2431,8 +2473,12 @@ pub mod walk_js_mut {
             ModuleDeclaration::ExportDefaultDeclaration(it) => {
                 visitor.visit_export_default_declaration(it)
             }
+            ModuleDeclaration::ExportDeclaration(it) => visitor.visit_export_declaration(it),
             ModuleDeclaration::ExportNamedDeclaration(it) => {
                 visitor.visit_export_named_declaration(it)
+            }
+            ModuleDeclaration::ExportFromDeclaration(it) => {
+                visitor.visit_export_from_declaration(it)
             }
             ModuleDeclaration::TSExportAssignment(it) => visitor.visit_ts_export_assignment(it),
             _ => {}
@@ -2577,6 +2623,18 @@ pub mod walk_js_mut {
     }
 
     #[inline]
+    pub fn walk_export_declaration<'a, V: VisitJsMut<'a>>(
+        visitor: &mut V,
+        it: &mut ExportDeclaration<'a>,
+    ) {
+        let kind = AstType::ExportDeclaration;
+        visitor.enter_node(kind);
+        visitor.visit_span(&mut it.span);
+        visitor.visit_declaration(&mut it.declaration);
+        visitor.leave_node(kind);
+    }
+
+    #[inline]
     pub fn walk_export_named_declaration<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
         it: &mut ExportNamedDeclaration<'a>,
@@ -2584,13 +2642,20 @@ pub mod walk_js_mut {
         let kind = AstType::ExportNamedDeclaration;
         visitor.enter_node(kind);
         visitor.visit_span(&mut it.span);
-        if let Some(declaration) = &mut it.declaration {
-            visitor.visit_declaration(declaration);
-        }
         visitor.visit_export_specifiers(&mut it.specifiers);
-        if let Some(source) = &mut it.source {
-            visitor.visit_string_literal(source);
-        }
+        visitor.leave_node(kind);
+    }
+
+    #[inline]
+    pub fn walk_export_from_declaration<'a, V: VisitJsMut<'a>>(
+        visitor: &mut V,
+        it: &mut ExportFromDeclaration<'a>,
+    ) {
+        let kind = AstType::ExportFromDeclaration;
+        visitor.enter_node(kind);
+        visitor.visit_span(&mut it.span);
+        visitor.visit_export_specifiers(&mut it.specifiers);
+        visitor.visit_string_literal(&mut it.source);
         if let Some(with_clause) = &mut it.with_clause {
             visitor.visit_with_clause(with_clause);
         }
@@ -3081,18 +3146,18 @@ pub mod walk_js_mut {
     }
 
     #[inline]
-    pub fn walk_ts_module_declaration<'a, V: VisitJsMut<'a>>(
+    pub fn walk_ts_external_module_declaration<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
-        it: &mut TSModuleDeclaration<'a>,
+        it: &mut TSExternalModuleDeclaration<'a>,
     ) {
-        let kind = AstType::TSModuleDeclaration;
+        let kind = AstType::TSExternalModuleDeclaration;
         visitor.enter_node(kind);
         visitor.visit_span(&mut it.span);
-        visitor.visit_ts_module_declaration_name(&mut it.id);
+        visitor.visit_string_literal(&mut it.id);
         visitor.enter_scope(
             {
                 let mut flags = ScopeFlags::TsModuleBlock;
-                if it.body.as_ref().is_some_and(TSModuleDeclarationBody::has_use_strict_directive) {
+                if it.body.as_ref().is_some_and(|body| body.has_use_strict_directive()) {
                     flags |= ScopeFlags::StrictMode;
                 }
                 flags
@@ -3100,35 +3165,47 @@ pub mod walk_js_mut {
             &it.scope_id,
         );
         if let Some(body) = &mut it.body {
-            visitor.visit_ts_module_declaration_body(body);
+            visitor.visit_ts_module_block(body);
         }
         visitor.leave_scope();
         visitor.leave_node(kind);
     }
 
     #[inline]
-    pub fn walk_ts_module_declaration_name<'a, V: VisitJsMut<'a>>(
+    pub fn walk_ts_namespace_declaration<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
-        it: &mut TSModuleDeclarationName<'a>,
+        it: &mut TSNamespaceDeclaration<'a>,
     ) {
-        // No `AstType` for this type
-        match it {
-            TSModuleDeclarationName::Identifier(it) => visitor.visit_binding_identifier(it),
-            TSModuleDeclarationName::StringLiteral(it) => visitor.visit_string_literal(it),
-        }
+        let kind = AstType::TSNamespaceDeclaration;
+        visitor.enter_node(kind);
+        visitor.visit_span(&mut it.span);
+        visitor.visit_binding_identifier(&mut it.id);
+        visitor.enter_scope(
+            {
+                let mut flags = ScopeFlags::TsModuleBlock;
+                if it.body.has_use_strict_directive() {
+                    flags |= ScopeFlags::StrictMode;
+                }
+                flags
+            },
+            &it.scope_id,
+        );
+        visitor.visit_ts_namespace_declaration_body(&mut it.body);
+        visitor.leave_scope();
+        visitor.leave_node(kind);
     }
 
     #[inline]
-    pub fn walk_ts_module_declaration_body<'a, V: VisitJsMut<'a>>(
+    pub fn walk_ts_namespace_declaration_body<'a, V: VisitJsMut<'a>>(
         visitor: &mut V,
-        it: &mut TSModuleDeclarationBody<'a>,
+        it: &mut TSNamespaceDeclarationBody<'a>,
     ) {
         // No `AstType` for this type
         match it {
-            TSModuleDeclarationBody::TSModuleDeclaration(it) => {
-                visitor.visit_ts_module_declaration(it)
+            TSNamespaceDeclarationBody::TSNamespaceDeclaration(it) => {
+                visitor.visit_ts_namespace_declaration(it)
             }
-            TSModuleDeclarationBody::TSModuleBlock(it) => visitor.visit_ts_module_block(it),
+            TSNamespaceDeclarationBody::TSModuleBlock(it) => visitor.visit_ts_module_block(it),
         }
     }
 

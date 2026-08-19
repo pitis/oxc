@@ -6,17 +6,14 @@ use tracing::{instrument, warn};
 
 use oxc_allocator::Allocator;
 use oxc_formatter::FragmentContext;
-use oxc_formatter_css::CssVariant;
+use oxc_formatter_core::{FormatSession, InputKind};
 use oxc_span::SourceType;
 
 use crate::{
     core::{
-        ExternalFormatter, JsFormatEmbeddedCb, JsFormatEmbeddedDocCb, JsFormatFileCb,
-        JsSortTailwindClassesCb,
-        options::{
-            inject_filepath, inject_tailwind_plugin_payload, to_oxc_formatter_css,
-            to_oxc_formatter_graphql, to_prettier,
-        },
+        EmbeddedCallbackResolved, ExternalServices, JsFormatEmbeddedCb, JsFormatEmbeddedDocCb,
+        JsFormatFileCb, JsSortTailwindClassesCb,
+        embed::{self, dispatcher::ResolvedDispatchConfig},
         oxfmtrc::FormatConfig,
         resolve_for_embedded_js,
     },
@@ -118,6 +115,24 @@ pub fn run(
     format_embedded_doc_cb: JsFormatEmbeddedDocCb,
     sort_tailwind_classes_cb: JsSortTailwindClassesCb,
 ) -> Option<String> {
+    // Embedded text belongs to the host file (`.vue`, `.md`, ...),
+    // so the `SourceType` carries no file extension of its own.
+    // `source_ext` selects the parse grammar only,
+    // and extension-keyed formatter rules (e.g. the `.mts`/`.cts` trailing comma reservation) must not fire from it.
+    //
+    // The JS side owns the grammar resolution (including the `lang="tsx"` scan for Vue, see `hasTsxScriptBlock` in `apis.ts`),
+    // so there is no parse retry here: a block
+    // that fails to parse under its declared grammar is left unformatted
+    // (`textToDoc()` error → Prettier keeps the original text).
+    let source_type = match source_ext {
+        "jsx" => SourceType::unambiguous().with_jsx(true),
+        "ts" => SourceType::ts(),
+        "tsx" => SourceType::tsx(),
+        _ => {
+            unreachable!("text-to-doc.ts should pass `source_ext` as one of 'jsx', 'ts', or 'tsx'")
+        }
+    };
+
     let fragment_kind = match parent_context {
         "vue-for-binding-left" => Some(FragmentKind::VueForBindingLeft),
         "vue-bindings" => Some(FragmentKind::VueBindings),
@@ -143,19 +158,11 @@ pub fn run(
         _ => None,
     };
 
-    // Only the markdown/mdx embeds format under a synthetic JS/TS `filepath`
-    // (Prettier overrides it to `dummy.ts(x)`); every other host (vue, svelte,
-    // html) passes its own non-JS/TS filepath through, which drives the tsx
-    // generic trailing-comma rule (see `embedded_source_type`). Fragments only
-    // occur in vue/html hosts, so they never format under a JS/TS filepath.
-    let host_is_js_ts_file = matches!(parent_context, "markdown" | "mdx");
-
     let result = if let Some(kind) = fragment_kind {
-        run_fragment(source_ext, source_text, oxfmt_plugin_options_json, kind)
+        run_fragment(source_type, source_text, oxfmt_plugin_options_json, kind)
     } else {
         run_full(
-            source_ext,
-            host_is_js_ts_file,
+            source_type,
             source_text,
             oxfmt_plugin_options_json,
             format_file_cb,
@@ -228,35 +235,6 @@ fn failure_payload(
 
 // ---
 
-/// [`SourceType`] for an embedded JS/TS block or fragment.
-///
-/// When the *host* file is not itself a JS/TS file (`.vue`, `.svelte`,
-/// `.html`), the source type keeps the language/variant of the requested
-/// extension but drops the extension itself: Prettier's tsx generic
-/// trailing-comma rule keys on the formatted file's path
-/// (`/\.ts$/.test(options.filepath)` in `shouldForceTrailingComma`,
-/// language-js/print/type-parameters.js), and the host's path is not `.ts` —
-/// so `<T = any,>() => ...` keeps its comma inside a `.vue` file.
-/// Markdown/mdx embeds are the exception: Prettier overrides their `filepath`
-/// to a synthetic `dummy.ts(x)`, so they behave like real `.ts(x)` files.
-fn embedded_source_type(
-    source_ext: &str,
-    host_is_js_ts_file: bool,
-) -> Result<SourceType, EmbedFailure> {
-    let source_type = SourceType::from_extension(source_ext).map_err(|_| {
-        EmbedFailure::internal(format!("`{source_ext}` is not a valid JS/TS extension"))
-    })?;
-    if host_is_js_ts_file {
-        return Ok(source_type);
-    }
-    // Same language / variant / module kind as `from_extension`, extension-less.
-    Ok(match source_ext {
-        "ts" => SourceType::ts(),
-        "tsx" => SourceType::tsx(),
-        _ => SourceType::unambiguous().with_jsx(true),
-    })
-}
-
 /// Full mode:
 /// - Format entire source as IR
 /// - Convert IR to Prettier Doc
@@ -268,10 +246,9 @@ fn embedded_source_type(
 /// This is critical for `vueIndentScriptAndStyle: true`, (Prettier wraps the `<script>` content with `indent()`)
 /// `literalline` (used for template literal content) is not affected by `indent()`,
 /// while `hardline` (used for normal code) is.
-#[instrument(level = "debug", name = "oxfmt::text_to_doc::full", skip_all, fields(%source_ext))]
+#[instrument(level = "debug", name = "oxfmt::text_to_doc::full", skip_all, fields(?source_type))]
 fn run_full(
-    source_ext: &str,
-    host_is_js_ts_file: bool,
+    source_type: SourceType,
     source_text: &str,
     oxfmt_plugin_options_json: &str,
     format_file_cb: JsFormatFileCb,
@@ -279,7 +256,7 @@ fn run_full(
     format_embedded_doc_cb: JsFormatEmbeddedDocCb,
     sort_tailwind_classes_cb: JsSortTailwindClassesCb,
 ) -> Result<Value, EmbedFailure> {
-    let external_formatter = ExternalFormatter::new(
+    let external_services = ExternalServices::new(
         format_file_cb,
         format_embedded_cb,
         format_embedded_doc_cb,
@@ -287,21 +264,15 @@ fn run_full(
     );
 
     // The TSFNs must be released on every exit path, including the failure ones.
-    let result = format_full(
-        &external_formatter,
-        source_ext,
-        host_is_js_ts_file,
-        source_text,
-        oxfmt_plugin_options_json,
-    );
-    external_formatter.cleanup();
+    let result =
+        format_full(&external_services, source_type, source_text, oxfmt_plugin_options_json);
+    external_services.cleanup();
     result
 }
 
 fn format_full(
-    external_formatter: &ExternalFormatter,
-    source_ext: &str,
-    host_is_js_ts_file: bool,
+    external_services: &ExternalServices,
+    source_type: SourceType,
     source_text: &str,
     oxfmt_plugin_options_json: &str,
 ) -> Result<Value, EmbedFailure> {
@@ -309,47 +280,29 @@ fn format_full(
     // so no `cwd` is threaded through here.
     let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json)?;
 
-    let source_type = embedded_source_type(source_ext, host_is_js_ts_file)?;
+    let EmbeddedCallbackResolved { format_options, config, core, parent_filepath } =
+        resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
+            EmbedFailure::internal(format!(
+                "`_oxfmtPluginOptionsJson` carries invalid config: {err}"
+            ))
+        })?;
 
-    let resolved = resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
-        EmbedFailure::internal(format!("`_oxfmtPluginOptionsJson` carries invalid config: {err}"))
-    })?;
+    // Per-language options (and the Prettier options JSON with the Tailwind payload)
+    // are mapped lazily at dispatch time; `core` was validated during resolution.
+    let dispatch_config = ResolvedDispatchConfig::for_root(&config, core, &parent_filepath);
 
-    // Prettier options for callbacks that `oxc_formatter` may dispatch (e.g., CSS-in-JS).
-    // The embedded JS context is treated as always Tailwind-capable, so the inject is unconditional.
-    // The helper no-ops when user config has Tailwind disabled.
-    let mut external_options = to_prettier(&resolved.config);
-    inject_filepath(&mut external_options, &resolved.parent_filepath);
-    inject_tailwind_plugin_payload(&mut external_options, &resolved.config);
-
-    // Dual mapping of the same resolved config for the dispatcher's Rust branches.
-    // Cannot fail here: `resolve_for_embedded_js()` already built `JsFormatOptions`
-    // from this config, and both share the same `to_core_options()` validation.
-    let graphql_options = to_oxc_formatter_graphql(&resolved.config).map_err(|err| {
-        EmbedFailure::internal(format!("GraphQL options mapping failed unexpectedly: {err}"))
-    })?;
-    // CSS-in-JS is always parsed as SCSS, mirroring Prettier's embed.
-    let css_options = to_oxc_formatter_css(&resolved.config, CssVariant::Scss).map_err(|err| {
-        EmbedFailure::internal(format!("CSS options mapping failed unexpectedly: {err}"))
-    })?;
-
-    let external_callbacks = external_formatter.to_external_callbacks(
-        &resolved.format_options,
-        external_options,
-        graphql_options,
-        css_options,
-    );
-    let format_options = resolved.format_options;
+    let services = embed::services::for_root(external_services, &dispatch_config);
 
     let allocator = Allocator::default();
+    let session = FormatSession::with_services(
+        &allocator,
+        // A Vue/Svelte `<script>` block is a complete document the host passes as embedded input,
+        // never the owner of file envelopes (BOM / front matter).
+        InputKind::VirtualDocument,
+        services,
+    );
     let formatted = match tokio::task::block_in_place(|| {
-        oxc_formatter::format(
-            &allocator,
-            source_text,
-            source_type,
-            *format_options,
-            Some(external_callbacks),
-        )
+        oxc_formatter::format_with_session(&session, source_text, source_type, *format_options)
     }) {
         Ok(formatted) => formatted,
         // `oxc_formatter::format()` only fails when the source does not parse.
@@ -357,7 +310,7 @@ fn format_full(
     };
 
     let (elements, sorted_tailwind_classes) =
-        formatted.into_document().into_elements_and_tailwind_classes();
+        formatted.into_final_document().into_elements_and_tailwind_classes();
 
     to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes).map_err(
         |err| {
@@ -376,19 +329,16 @@ fn format_full(
 /// - Extract target node
 /// - Format as IR
 /// - Convert to Prettier Doc JSON
-#[instrument(level = "debug", name = "oxfmt::text_to_doc::fragment", skip_all, fields(%source_ext, ?kind))]
+#[instrument(level = "debug", name = "oxfmt::text_to_doc::fragment", skip_all, fields(?source_type, ?kind))]
 fn run_fragment(
-    source_ext: &str,
+    source_type: SourceType,
     source_text: &str,
     oxfmt_plugin_options_json: &str,
     kind: FragmentKind,
 ) -> Result<Value, EmbedFailure> {
-    // Fragments only occur in vue/html hosts, never under a JS/TS filepath.
-    let source_type = embedded_source_type(source_ext, false)?;
-
     let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json)?;
     // Reuses the same config resolver as `run_full()`, but only `format_options` is needed here,
-    // since `run_fragment()` does not dispatch external formatter callbacks.
+    // since `run_fragment()` does not dispatch external services callbacks.
     let resolved = resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
         EmbedFailure::internal(format!("`_oxfmtPluginOptionsJson` carries invalid config: {err}"))
     })?;
@@ -433,7 +383,7 @@ fn run_fragment(
 
     let expression_root = fragment.expression_root;
     let (elements, sorted_tailwind_classes) =
-        fragment.formatted.into_document().into_elements_and_tailwind_classes();
+        fragment.formatted.into_final_document().into_elements_and_tailwind_classes();
     let mut doc_json =
         to_prettier_doc::format_elements_to_prettier_doc(elements, &sorted_tailwind_classes)
             .map_err(|err| {

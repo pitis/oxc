@@ -3,18 +3,17 @@ use std::ops::Deref;
 use oxc_allocator::ArenaVec;
 use oxc_ast::ast::*;
 use oxc_span::GetSpan;
-use oxc_syntax::identifier::ZWNBSP;
 
 use crate::{
     Buffer, Format,
     ast_nodes::AstNode,
-    formatter::{
-        prelude::*,
-        trivia::{FormatTrailingComments, should_nestle_adjacent_doc_comments},
-    },
+    formatter::{prelude::*, trivia::FormatTrailingComments},
     ir_transform::sort_imports_chunk,
     print::semicolon::OptionalSemicolon,
-    utils::string::{FormatLiteralStringToken, StringLiteralParentKind},
+    utils::{
+        is_dropped_statement,
+        string::{FormatLiteralStringToken, StringLiteralParentKind},
+    },
     write,
 };
 
@@ -22,35 +21,6 @@ use super::FormatWrite;
 
 impl<'a> FormatWrite<'a> for AstNode<'a, Program<'a>> {
     fn write(&self, f: &mut JsFormatter<'_, 'a>) {
-        // A comments-only program has no node for its comments to trail, so the
-        // trailing-comments path must not run: its separator would emit a
-        // leading space before the first comment (` /** … `). Oxc's own printer
-        // trims the stray space at the start of the line, but embedding hosts
-        // (js-in-xxx through the Prettier doc bridge, e.g. a comments-only
-        // `<script>` block in a `.vue` file) render it verbatim.
-        if self.hashbang().is_none() && self.directives().is_empty() && self.body().is_empty() {
-            let comments = f.context().comments().unprinted_comments();
-            let mut previous: Option<&Comment> = None;
-            for comment in comments {
-                f.context_mut().comments_mut().increment_printed_count();
-                match previous {
-                    Some(previous) if should_nestle_adjacent_doc_comments(previous, comment) => {}
-                    Some(_) => match f.lines_before(comment.span) {
-                        0 => write!(f, [space()]),
-                        1 => write!(f, [hard_line_break()]),
-                        _ => write!(f, [empty_line()]),
-                    },
-                    None => {}
-                }
-                write!(f, [comment]);
-                previous = Some(comment);
-            }
-            if previous.is_some() {
-                write!(f, [hard_line_break()]);
-            }
-            return;
-        }
-
         let format_trailing_comments = format_with(|f| {
             write!(
                 f,
@@ -58,15 +28,15 @@ impl<'a> FormatWrite<'a> for AstNode<'a, Program<'a>> {
             );
         });
 
+        // BOM: JS is the exception to the entries-own-the-strip rule — `format_program`
+        // is AST-in (the formatter never owns pre-parse text) and oxc_parser lexes
+        // U+FEFF as whitespace itself. Detect at print time, re-emit once at byte 0.
+        let has_bom = oxc_formatter_core::spec::split_bom(f.source_text().as_str()).0;
+
         write!(
             f,
             [
-                // BOM
-                f.source_text()
-                    .chars()
-                    .next()
-                    .is_some_and(|c| c == ZWNBSP)
-                    .then_some(text("\u{feff}")),
+                has_bom.then_some(text("\u{feff}")),
                 self.hashbang(),
                 self.directives(),
                 FormatStatementsWithImports(self.body()),
@@ -94,8 +64,7 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatStatementsWithImports<'a, '_>
 
         let mut join = f.join_nodes_with_hardline();
 
-        let mut stmts_iter =
-            self.iter().filter(|stmt| !matches!(stmt.as_ref(), Statement::EmptyStatement(_)));
+        let mut stmts_iter = self.iter().filter(|stmt| !is_dropped_statement(stmt.as_ref()));
         while let Some(mut stmt) = stmts_iter.next() {
             // Suppressed imports are emitted verbatim and act as partition boundaries,
             // so they are excluded from the sortable run.
@@ -113,8 +82,8 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatStatementsWithImports<'a, '_>
             let span = match stmt.as_ref() {
                 // `@decorator export class A {}`
                 // Get the span of the decorator.
-                Statement::ExportNamedDeclaration(export) => {
-                    if let Some(Declaration::ClassDeclaration(decl)) = &export.declaration
+                Statement::ExportDeclaration(export) => {
+                    if let Declaration::ClassDeclaration(decl) = &export.declaration
                         && let Some(decorator) = decl.decorators.first()
                         && decorator.span().start < export.span.start
                     {

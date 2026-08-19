@@ -1,5 +1,6 @@
 use oxc_allocator::ArenaVec;
 use oxc_ast::ast::*;
+use oxc_formatter_core::{FormatElement, RemoveSoftLinesBuffer, SourceText, format_element};
 use oxc_span::GetSpan;
 
 use crate::{
@@ -7,10 +8,7 @@ use crate::{
     ast_nodes::{AstNode, AstNodes},
     format_args,
     formatter::{
-        Comments, FormatElement, JoinBuilderJsExt as _, JsFormatContext, JsFormatter,
-        JsFormatterExt as _, SourceText,
-        buffer::RemoveSoftLinesBuffer,
-        format_element,
+        Comments, JoinBuilderJsExt as _, JsFormatContext, JsFormatter, JsFormatterExt as _,
         prelude::{
             FormatElements, best_fitting_variant, empty_line, expand_parent, format_once,
             format_with, group, soft_block_indent, soft_line_break_or_space, space,
@@ -323,7 +321,7 @@ fn should_group_first_argument(
         // fit entirely on the line or break fully. Only a single arrow
         // with a block body can be grouped to collapse the braces.
         Expression::ArrowFunctionExpression(arrow) => {
-            if arrow.expression {
+            if arrow.is_expression() {
                 return false;
             }
         }
@@ -573,10 +571,6 @@ fn can_group_arrow_function_expression_argument(
     is_arrow_recursion: bool,
     f: &JsFormatter<'_, '_>,
 ) -> bool {
-    // NOTE: Prettier's `couldExpandArg` has no return-type condition: an arrow
-    // with a type-reference return annotation and a groupable body still hugs,
-    // e.g. `computed((): Filters => ({ ... }))`. An earlier Prettier version
-    // restricted this (prettier#7542); the restriction is gone.
     arrow_function.get_expression().is_none_or(|expr| match expr {
         Expression::ObjectExpression(_)
         | Expression::ArrayExpression(_)
@@ -1014,6 +1008,11 @@ fn is_commonjs_or_amd_call(
             }
         }
         "define" => {
+            // The AMD layout only applies in statement position, matching Prettier's
+            // `parent.type === "ExpressionStatement"` check. A concise arrow body is not statement
+            // position: its parent is the `ArrowFunctionExpression`, so `() => define(...)` formats
+            // as a normal call. (oxc used to accept it, because concise bodies were wrapped in a
+            // synthetic `ExpressionStatement` before `ArrowFunctionBody` existed.)
             let in_statement = matches!(call.parent(), AstNodes::ExpressionStatement(_));
             if in_statement {
                 match arguments.len() {
@@ -1106,7 +1105,7 @@ fn is_react_hook_with_deps_array(
                 return false;
             }
 
-            if callback.expression {
+            if callback.is_expression() {
                 return false;
             }
 
@@ -1138,7 +1137,7 @@ fn is_decorated_function(argument: &AstNode<'_, Argument<'_>>) -> bool {
         return false;
     };
 
-    if arrow.expression {
+    if arrow.is_expression() {
         return false;
     }
 

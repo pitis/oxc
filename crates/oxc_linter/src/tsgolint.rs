@@ -13,14 +13,14 @@ use oxc_allocator::Allocator;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
-use oxc_diagnostics::{DiagnosticSender, DiagnosticService, Error, OxcDiagnostic, Severity};
+use oxc_diagnostics::{DiagnosticSender, DiagnosticService, OxcDiagnostic, Severity};
 use oxc_span::{SourceType, Span};
 
 use super::{AllowWarnDeny, ConfigStore, DisableDirectives, ResolvedLinterState, read_to_string};
 
 use crate::{
-    CompositeFix, FixKind, Fixer, Message, MessageRule, PossibleFixes, RuleTimingRecord,
-    RuleTimingSource, RuleTimingStore, WEBSITE_BASE_RULES_URL, suppression::DiffManager,
+    CompositeFix, FixKind, Fixer, Message, PossibleFixes, RuleTimingRecord, RuleTimingSource,
+    RuleTimingStore, WEBSITE_BASE_RULES_URL, suppression::DiffManager,
 };
 
 /// State required to initialize the `tsgolint` linter.
@@ -43,6 +43,8 @@ pub struct TsGoLintState {
     type_check: bool,
     /// If `true`, request that per-rule debug timings be returned from `tsgolint`.
     timings: bool,
+    /// If `true`, the linter will create "ignore this section / line" fixes for all diagnostics
+    with_ignore_fixes: bool,
 }
 
 impl TsGoLintState {
@@ -59,6 +61,7 @@ impl TsGoLintState {
             fix_suggestions: fix_kind.contains(FixKind::Suggestion),
             type_check: false,
             timings: false,
+            with_ignore_fixes: false,
         }
     }
 
@@ -82,6 +85,7 @@ impl TsGoLintState {
             fix_suggestions: fix_kind.contains(FixKind::Suggestion),
             type_check: false,
             timings: false,
+            with_ignore_fixes: false,
         })
     }
 
@@ -110,6 +114,12 @@ impl TsGoLintState {
     #[must_use]
     pub fn with_timings(mut self, yes: bool) -> Self {
         self.timings = yes;
+        self
+    }
+
+    #[must_use]
+    pub fn with_ignore_fixes(mut self, yes: bool) -> Self {
+        self.with_ignore_fixes = yes;
         self
     }
 
@@ -287,10 +297,13 @@ impl TsGoLintState {
                         && let Err(error) = file_system.write_file(&path, &fix_result.fixed_code)
                     {
                         sender_for_fixes
-                            .send(vec![Error::new(OxcDiagnostic::error(format!(
-                                "Failed to write file {} with error \"{error}\"",
-                                path.display()
-                            )))])
+                            .send(vec![
+                                OxcDiagnostic::error(format!(
+                                    "Failed to write file {} with error \"{error}\"",
+                                    path.display()
+                                ))
+                                .into(),
+                            ])
                             .expect("Failed to send diagnostics");
                     }
 
@@ -483,6 +496,10 @@ impl TsGoLintState {
                                     tsgolint_diagnostic,
                                     &source_text_owned,
                                 );
+
+                                if self.with_ignore_fixes {
+                                    message.add_ignore_fix(0, &source_text_owned);
+                                }
 
                                 message.error.severity = if severity == AllowWarnDeny::Deny {
                                     Severity::Error
@@ -809,7 +826,6 @@ impl From<TsGoLintInternalDiagnostic> for OxcDiagnostic {
 impl Message {
     /// Converts a `TsGoLintDiagnostic` into a `Message` with possible fixes.
     fn from_tsgo_lint_diagnostic(mut val: TsGoLintRuleDiagnostic, source_text: &str) -> Self {
-        let rule_name = val.rule.clone();
         let fix = if val.fixes.is_empty() {
             None
         } else {
@@ -845,10 +861,7 @@ impl Message {
         #[expect(clippy::from_iter_instead_of_collect)]
         let possible_fixes = PossibleFixes::from_iter(iter::chain(fix, suggestions));
 
-        Self::new(val.into(), possible_fixes).with_rule(MessageRule {
-            plugin_name: Cow::Borrowed("typescript"),
-            rule_name: Cow::Owned(rule_name),
-        })
+        Self::new(val.into(), possible_fixes)
     }
 }
 

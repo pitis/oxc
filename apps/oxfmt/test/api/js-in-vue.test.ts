@@ -284,10 +284,11 @@ export default {
     expect(result.errors).toStrictEqual([]);
   });
 
-  it("should keep the trailing comma of a single generic param in .vue scripts", async () => {
-    // Prettier's tsx disambiguation rule keys on the formatted file's path:
-    // a .vue file is not a .ts file, so `<T = any,>` keeps its comma
-    // (removing it would be invalid if the script were treated as tsx).
+  it("should drop the trailing comma of a single generic param in ts .vue scripts", async () => {
+    // A `lang="ts"` block formats like plain `.ts`, where the lone generic
+    // comma is not required, so it is removed. Intentional divergence from
+    // Prettier (which keeps it in ts-in-vue); the comma is only required for
+    // `.tsx` and `.mts|cts` (see the conformance note on api-component.vue).
     const input = `
 <script setup lang="ts">
 const getOptions = <T = any,>(list: T[]) => list;
@@ -296,7 +297,7 @@ const constrained = <T extends object>(list: T[]) => list;
 `;
     const result = await format("a.vue", input);
 
-    expect(result.code).toContain(`<T = any,>(list: T[]) => list`);
+    expect(result.code).toContain(`<T = any>(list: T[]) => list`);
     expect(result.code).toContain(`<T extends object>(list: T[]) => list`);
     expect(result.errors).toStrictEqual([]);
   });
@@ -346,5 +347,167 @@ const q = graphql\`
     expect(result.errors).toStrictEqual([]);
     expect(result2.code).toBe(result.code);
     expect(result2.errors).toStrictEqual([]);
+  });
+
+  it('should format <script lang="tsx"> blocks', async () => {
+    const input = `
+<script lang="tsx">
+export default {
+  render( h ): VNode {return <div>{ this.foo   }</div>    },
+}
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("return <div>{this.foo}</div>;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it('should format generic arrows in <script lang="ts"> blocks', async () => {
+    const input = `
+<script lang="ts">
+export const identity=<T>(x:T):T=>x;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("export const identity = <T>(x: T): T => x;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  // NOTE: Trailing comma of a lone generic arrow param is grammar-keyed, not path-keyed:
+  // plain-TS blocks behave like plain .ts files (comma removable).
+  // Unlike Prettier, which keeps the comma for any non-.ts `opts.filepath`. (ts-in-vue)
+  it('should drop the lone generic param comma in <script lang="ts"> blocks', async () => {
+    const input = `
+<script setup lang="ts">
+const getOptions = <T = any,>(list: T[]) => list;
+const identity = <T,>(x: T) => x;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("const getOptions = <T = any>(list: T[]) => list;");
+    expect(result.code).toContain("const identity = <T>(x: T) => x;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it('should keep the lone generic param comma in <script lang="tsx"> blocks', async () => {
+    const input = `
+<script lang="tsx">
+const identity = <T,>(x: T) => x;
+const el = <div>hi</div>;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("const identity = <T,>(x: T) => x;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it('should keep the comma in a JSX-free lang="tsx" block', async () => {
+    const input = `
+<script setup lang="tsx">
+const getOptions = <T = any,>(list: T[]) => list;
+const identity = <T,>(x: T) => x;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("const getOptions = <T = any,>(list: T[]) => list;");
+    expect(result.code).toContain("const identity = <T,>(x: T) => x;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it('should detect lang="tsx" after a generic attribute containing `>`', async () => {
+    const input = `
+<script setup generic="T extends Record<string, string>" lang="tsx">
+const pick = <U = T,>(x: U) => x;
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toContain("const pick = <U = T,>(x: U) => x;");
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  // https://github.com/oxc-project/oxc/issues/25568
+  it("should not add a blank line after a dangling comment in an empty object", async () => {
+    // The IR's hardline (comment terminator) + softline (before `}`) must print as a single break,
+    // like the Rust printer's newline suppression at a line start.
+    const input = `
+<script setup>
+const a = {
+  // x
+}
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toBe(`<script setup>
+const a = {
+  // x
+};
+</script>
+`);
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  // https://github.com/oxc-project/oxc/issues/25569
+  it("should dedent template literal interpolation to root inside a function", async () => {
+    // The IR's dedent-to-root must survive the Doc conversion
+    // (JSON cannot represent the `-Infinity` Prettier expects; it is restored JS-side).
+    const input = `
+<script setup>
+const f = () => {
+  s.value = \`
+\${items ? Object.entries(items).map(([k, v]) => k + v).join("") : ""}
+\`
+}
+</script>
+`;
+    const result = await format("a.vue", input, { printWidth: 80 });
+
+    // Format again to verify idempotency
+    const result2 = await format("a.vue", result.code, { printWidth: 80 });
+
+    expect(result.code).toBe(`<script setup>
+const f = () => {
+  s.value = \`
+\${
+  items
+    ? Object.entries(items)
+        .map(([k, v]) => k + v)
+        .join("")
+    : ""
+}
+\`;
+};
+</script>
+`);
+    expect(result.errors).toStrictEqual([]);
+    expect(result2.code).toBe(result.code);
+    expect(result2.errors).toStrictEqual([]);
+  });
+
+  it("should not indent a comment-only script block", async () => {
+    // The comment's leading IR `Space` must be dropped at the line start,
+    // like the Rust printer does, or `/**` gains a spurious leading space.
+    const input = `
+<script lang="ts">
+/**
+ * Docs.
+ */
+</script>
+`;
+    const result = await format("a.vue", input);
+
+    expect(result.code).toBe(`<script lang="ts">
+/**
+ * Docs.
+ */
+</script>
+`);
+    expect(result.errors).toStrictEqual([]);
   });
 });

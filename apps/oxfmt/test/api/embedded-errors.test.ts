@@ -30,8 +30,8 @@ const realNapi: NapiImpl = (...args) => jsTextToDoc(...args);
 const { textToDoc } = await import("../../src-js/libs/prettier-plugin-oxfmt/text-to-doc");
 const { withEmbeddedWarnings } = await import("../../src-js/libs/embedded-warnings");
 
-/** `__ts_expression` + a non-JS/TS filepath means two attempts (`ts`, then `tsx`). */
-const TWO_ATTEMPT_OPTIONS = {
+/** A TS expression fragment in a `.vue` host (single `ts` grammar attempt). */
+const EXPRESSION_OPTIONS = {
   parser: "__ts_expression",
   parentParser: "vue",
   filepath: "a.vue",
@@ -45,7 +45,7 @@ const internalPayload = (message: string) =>
   JSON.stringify({ error: { kind: "internal", message } });
 const successPayload = () => JSON.stringify({ doc: "ok", refs: [] });
 
-async function runTextToDoc(sourceText: string, options = TWO_ATTEMPT_OPTIONS) {
+async function runTextToDoc(sourceText: string, options = EXPRESSION_OPTIONS) {
   return withEmbeddedWarnings(async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(textToDoc(sourceText, options as any)).rejects.toThrow();
@@ -173,24 +173,13 @@ describe("textToDoc failure precedence", () => {
 
     const { warnings } = await withEmbeddedWarnings(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await expect(textToDoc("a &&& b", TWO_ATTEMPT_OPTIONS as any)).rejects.toMatchObject({
+      await expect(textToDoc("a &&& b", EXPRESSION_OPTIONS as any)).rejects.toMatchObject({
         cause: { code: "BABEL_PARSER_SYNTAX_ERROR" },
       });
     });
 
-    // Both attempts failed on the same text: one warning, not two.
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toMatch(/^syntax error in embedded script: Unexpected token/);
-  });
-
-  it("does not resurrect the first attempt's syntax error when the second fails internally", async () => {
-    napi.impl = async () => (napi.calls === 1 ? syntaxPayload("Unexpected token") : null);
-
-    const { warnings } = await runTextToDoc("a &&& b");
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toMatch(/^internal error:/);
-    expect(warnings[0]).not.toContain("Unexpected token");
   });
 
   it("classifies an explicit internal payload as internal", async () => {
@@ -218,7 +207,7 @@ describe("textToDoc failure precedence", () => {
 
     await withEmbeddedWarnings(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const thrown = await textToDoc("a &&& b", TWO_ATTEMPT_OPTIONS as any).catch(
+      const thrown = await textToDoc("a &&& b", EXPRESSION_OPTIONS as any).catch(
         (error: Error) => error,
       );
       expect((thrown as { cause?: unknown }).cause).toBeUndefined();
@@ -233,10 +222,10 @@ describe("textToDoc failure precedence", () => {
 
     const { warnings } = await withEmbeddedWarnings(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await expect(textToDoc("a++; b++", TWO_ATTEMPT_OPTIONS as any)).rejects.toThrow();
+      await expect(textToDoc("a++; b++", EXPRESSION_OPTIONS as any)).rejects.toThrow();
       napi.impl = async () => successPayload();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await textToDoc("a++; b++", { ...TWO_ATTEMPT_OPTIONS, parser: "__vue_ts_event_binding" } as any);
+      await textToDoc("a++; b++", { ...EXPRESSION_OPTIONS, parser: "__vue_ts_event_binding" } as any);
     });
 
     expect(warnings).toStrictEqual([]);

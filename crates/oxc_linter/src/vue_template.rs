@@ -36,7 +36,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     AllowWarnDeny, Linter,
     context::ContextSubHost,
-    fixer::{Message, MessageRule, PossibleFixes},
+    fixer::{Message, PossibleFixes},
     rules::RuleEnum,
 };
 
@@ -714,7 +714,9 @@ pub(crate) fn filter_by_script_directives(
         return;
     }
     messages.retain(|message| {
-        let Some(rule) = &message.rule else { return true };
+        // The rule attribution rides on the diagnostic's `OxcCode`
+        // (`with_error_code(plugin, rule)` in `push_messages`).
+        let Some(rule_name) = &message.error.code.number else { return true };
         !sub_hosts.iter().any(|sub_host| {
             let offset = sub_host.source_text_offset();
             let Some(start) = message.span.start.checked_sub(offset) else { return false };
@@ -723,7 +725,7 @@ pub(crate) fn filter_by_script_directives(
             if end > len {
                 return false;
             }
-            sub_host.disable_directives().contains(&rule.rule_name, Span::new(start, end))
+            sub_host.disable_directives().contains(rule_name, Span::new(start, end))
         })
     });
 }
@@ -734,10 +736,10 @@ fn line_of(offset: u32, line_starts: &[u32]) -> u32 {
     u32::try_from(index).unwrap_or(0)
 }
 
-/// Mirror `LintContext::add_diagnostic`: attach error code, docs URL,
-/// severity, and rule attribution to every diagnostic, and push the resulting
-/// [`Message`]s onto `messages`. Spans are already file-absolute — both
-/// passes report against the full file source — so nothing is shifted here.
+/// Mirror `LintContext::add_diagnostic`: attach error code (the rule
+/// attribution), docs URL, and severity to every diagnostic, and push the
+/// resulting [`Message`]s onto `messages`. Spans are already file-absolute —
+/// both passes report against the full file source — so nothing is shifted here.
 fn push_messages(
     messages: &mut Vec<Message>,
     diagnostics: Vec<OxcDiagnostic>,
@@ -756,11 +758,7 @@ fn push_messages(
                 rule_name
             ))
             .with_severity(severity.into());
-        let message = Message::new(error, PossibleFixes::None).with_rule(MessageRule {
-            plugin_name: std::borrow::Cow::Borrowed(plugin_name),
-            rule_name: std::borrow::Cow::Borrowed(rule_name),
-        });
-        messages.push(message);
+        messages.push(Message::new(error, PossibleFixes::None));
     }
 }
 

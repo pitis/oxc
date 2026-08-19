@@ -95,7 +95,7 @@ declare_oxc_lint!(
 
 impl Rule for RequireDirectExport {
     fn from_configuration(value: serde_json::Value) -> Result<Self, serde_json::error::Error> {
-        serde_json::from_value::<DefaultRuleConfig<Self>>(value).map(DefaultRuleConfig::into_inner)
+        DefaultRuleConfig::<Self>::from_value(value).map(DefaultRuleConfig::into_inner)
     }
 
     fn run<'a>(&self, node: &AstNode<'a>, ctx: &LintContext<'a>) {
@@ -196,10 +196,10 @@ fn has_function_return_value(func: &Function) -> bool {
 
 fn has_arrow_function_return_value(arrow_func: &ArrowFunctionExpression) -> bool {
     // If expression is true, it's an expression body (() => expr), which always returns a value
-    if arrow_func.expression {
+    if arrow_func.is_expression() {
         return true;
     }
-    find_return_value(&arrow_func.body)
+    find_return_value(arrow_func.get_function_body().unwrap())
 }
 
 fn find_return_value(body: &FunctionBody) -> bool {

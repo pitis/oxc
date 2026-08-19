@@ -4,14 +4,14 @@ use oxc_formatter_core::{
     Buffer,
     builders::{
         align, dedent, dedent_to_root, exact_line_breaks, hard_line_break, literal_line_break,
-        mark_as_root, soft_line_break_or_space, space, text,
+        mark_as_root, soft_line_break_or_space, text,
     },
     write,
 };
 use oxc_yaml_parser::ast::{BlockScalar, Chomping, Content, MappingItem, Node, Root};
 
 use crate::{
-    comments::{Gap, classify_gap, write_single_comment},
+    comments::write_comment_line_suffix,
     options::ProseWrap,
     print::{
         YamlFormatter, format_with,
@@ -80,19 +80,19 @@ pub fn write_block_scalar<'a>(
         Chomping::Strip => write!(f, "-"),
         Chomping::Clip => {}
     }
-    // Indicator comment: same line as the header (`| # comment`)
-    if let Some(span) = f.context().comments().peek()
-        && span.end <= block.content_start
-        && classify_gap(f.context().source_text().bytes_range(block.span.start, span.start))
-            == Gap::None
+    // Indicator comment: same line as the header (`| # comment`).
+    // The parser guarantees it is the ONLY comment within the scalar's span
+    // (see the guarantee on `BlockScalar`), so nothing else needs draining here;
+    // trailing-ness (`own_line_column: None`) pins it to the header line.
+    // No `expand_parent()`: the scalar's leading hardline already breaks the container,
+    // and expansion must not leak into the enclosing `best_fitting` measurement.
+    if let Some(comment) = f.context().comments().peek()
+        && comment.span.end <= block.content_start
+        && comment.own_line_column.is_none()
     {
-        f.context().comments().take_before(span.end);
-        write!(f, space());
-        write_single_comment(span, f);
+        f.context().comments().take_before(comment.span.end);
+        write_comment_line_suffix(comment.span, f);
     }
-    // Any other comments inside the header region are consumed silently
-    // (they cannot be represented in a block scalar).
-    let _ = f.context().comments().take_before(block.content_start);
 
     // Words fold to the arena lifetime: borrowed words already slice the arena-backed source,
     // only owned (merged) words need an arena copy.
@@ -143,6 +143,7 @@ pub fn write_block_scalar<'a>(
             // Raw text keeps them exempt from EVERY layout normalization,
             // including the state effects a line element would have on the following separator.
             // NOT `exact_line_breaks`: the tail may hold space-only lines, which are part of the value too.
+            // `ends_with_keep_chomped_block` mirrors this guard for the root's final newline.
             if blanks > 0 || (is_last_descendant && wrote_any) {
                 write!(f, dedent_to_root(&text(arena_newlines(blanks + 1, f))));
             }
@@ -159,9 +160,6 @@ pub fn write_block_scalar<'a>(
         let tab_width = f.options().indent_width.value();
         write!(f, dedent(&align(tab_width, &contents)));
     }
-
-    // Claim any comments the scanner collected inside the scalar's range
-    let _ = f.context().comments().take_before(block.span.end);
 }
 
 /// Ports Prettier's `getBlockValueLineContents`.
@@ -201,7 +199,8 @@ fn block_value_line_contents<'s>(
         raw_lines.iter().map(|l| l.get(leading_space_count.min(l.len())..).unwrap_or("")).collect();
 
     let prose_wrap = f.options().prose_wrap;
-    // Literal blocks (`|`) are never re-flowed; folded blocks only under `proseWrap` always/never.
+    // Literal blocks (`|`) are never re-flowed;
+    // folded blocks only under `proseWrap` always/never.
     let no_reflow = prose_wrap == ProseWrap::Preserve || !is_folded;
 
     let lines: Vec<Vec<Cow<'s, str>>> = if no_reflow {
@@ -213,7 +212,7 @@ fn block_value_line_contents<'s>(
         fold_lines(&stripped, prose_wrap)
     };
 
-    let mut lines = remove_unnecessary_trailing_newlines(block, content, is_last_descendant, lines);
+    let mut lines = remove_unnecessary_trailing_newlines(block, is_last_descendant, lines);
     // Trailing spaces on the LAST content line are dropped (Prettier does the same);
     // intermediate lines keep theirs, they are part of the value under every chomping mode.
     // The core printer never trims, so drop them here.
@@ -301,12 +300,14 @@ fn fold_lines<'s>(stripped: &[&'s str], prose_wrap: ProseWrap) -> Vec<Vec<Cow<'s
 /// Mirrors Prettier's `removeUnnecessaryTrailingNewlines`.
 fn remove_unnecessary_trailing_newlines<'s>(
     block: &BlockScalar,
-    content: &str,
     is_last_descendant: bool,
     mut lines: Vec<Vec<Cow<'s, str>>>,
 ) -> Vec<Vec<Cow<'s, str>>> {
     if block.chomping == Chomping::Keep {
-        if content.ends_with('\n') && lines.last().is_some_and(Vec::is_empty) {
+        // NOTE: The fragment after the last break holds no line break, so it is not a kept line:
+        // either the empty artifact `split('\n')` yields after a final break,
+        // or a break-less space-only EOF line (a known divergence: Prettier counts it).
+        if lines.last().is_some_and(|words| is_blank_line(words)) {
             lines.pop();
         }
         return lines;
@@ -319,7 +320,7 @@ fn remove_unnecessary_trailing_newlines<'s>(
         return lines;
     }
     let keep = if trailing_newline_count >= 2 && !is_last_descendant {
-        // Preserve one blank line.
+        // Preserve one blank line
         lines.len() - (trailing_newline_count - 1)
     } else {
         lines.len() - trailing_newline_count
@@ -328,16 +329,29 @@ fn remove_unnecessary_trailing_newlines<'s>(
     lines
 }
 
-/// Returns `true` when the stream's last descendant is a keep-chomped (`+`) block scalar.
-/// Its verbatim content already ends with the kept newlines,
+/// Returns `true` when the stream's last descendant is a keep-chomped (`+`) block scalar
+/// whose verbatim content ends with the kept newlines,
 /// so the caller must not append the usual final `hard_line_break()`
 /// (mirrors Prettier's `shouldPrintHardline` gate).
-pub fn ends_with_keep_chomped_block(root: &Root<'_>) -> bool {
+///
+/// Returns `false` when the scalar emits no tail of its own,
+/// no content characters and no kept line break (empty, or one break-less space-only EOF line);
+/// the caller's final newline stands.
+pub fn ends_with_keep_chomped_block(root: &Root<'_>, f: &YamlFormatter<'_, '_>) -> bool {
     root.children
         .last()
         .and_then(|document| document.body.content.as_deref())
         .and_then(last_descendant_block_scalar)
-        .is_some_and(|block| block.chomping == Chomping::Keep)
+        .is_some_and(|block| {
+            // Content characters guarantee a tail;
+            // an empty content region emits one exactly when its trailing run holds a line break.
+            block.chomping == Chomping::Keep
+                && (block.content_end > block.content_start
+                    || f.context()
+                        .source_text()
+                        .bytes_range(block.content_end, block.span.end)
+                        .contains(&b'\n'))
+        })
 }
 
 /// The block scalar the node's last descendant resolves to, if any.
@@ -356,17 +370,17 @@ pub fn last_descendant_block_scalar<'b>(node: &'b Node<'_>) -> Option<&'b BlockS
             .last()
             .and_then(|item| item.content.as_deref())
             .and_then(last_descendant_block_scalar),
-        // Block scalars cannot appear inside flow collections.
+        // Block scalars cannot appear inside flow collections
         _ => None,
     }
 }
 
-/// Walks to the end offset of the stream's last descendant node
-/// (Prettier's `getLastDescendantNode` on root, used by block scalars).
+/// Walks to the end offset of the stream's last descendant node.
+///
+/// Spans nest and every wrapper ends at its last descendant
+/// (the parser's `container_span` / `MappingItem` / `Node` span construction),
+/// so the last document body's span end IS the last descendant's end.
 pub fn last_descendant_end(root: &Root<'_>) -> u32 {
-    // Spans nest and every wrapper ends at its last descendant
-    // (the parser's `container_span` / `MappingItem` / `Node` span construction),
-    // so the last document body's span end IS the last descendant's end.
     root.children
         .last()
         .and_then(|document| document.body.content.as_deref())
@@ -377,8 +391,11 @@ pub fn last_descendant_end(root: &Root<'_>) -> u32 {
 /// a block scalar's span consumes its trailing line breaks (they are part of its VALUE under keep chomping),
 /// so blank-line detection must start after the last content character,
 /// otherwise the blank line separating it from the next item is invisible.
-pub fn item_gap_anchor(content: Option<&Node<'_>>, end: u32, f: &YamlFormatter<'_, '_>) -> u32 {
-    let Some(block) = content.and_then(last_descendant_block_scalar) else {
+///
+/// `block` is the item's resolved [`last_descendant_block_scalar`];
+/// callers that need the walk's result themselves pass it in instead of paying for it twice.
+pub fn item_gap_anchor(block: Option<&BlockScalar>, end: u32, f: &YamlFormatter<'_, '_>) -> u32 {
+    let Some(block) = block else {
         return end;
     };
     // Under keep chomping every trailing newline IS the value; the span end is the correct anchor

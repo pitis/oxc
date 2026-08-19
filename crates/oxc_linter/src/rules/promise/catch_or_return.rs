@@ -173,7 +173,7 @@ declare_oxc_lint!(
 
 impl Rule for CatchOrReturn {
     fn from_configuration(value: serde_json::Value) -> Result<Self, serde_json::error::Error> {
-        serde_json::from_value::<DefaultRuleConfig<Self>>(value).map(DefaultRuleConfig::into_inner)
+        DefaultRuleConfig::<Self>::from_value(value).map(DefaultRuleConfig::into_inner)
     }
 
     fn run<'a>(&self, node: &AstNode<'a>, ctx: &LintContext<'a>) {
@@ -293,7 +293,7 @@ fn is_arrow_function_expression_return(node: &AstNode, ctx: &LintContext) -> boo
     }
 
     if let AstKind::ArrowFunctionExpression(arrow_func) = ctx.nodes().parent_kind(parent.id()) {
-        return arrow_func.expression;
+        return arrow_func.is_expression();
     }
 
     false
