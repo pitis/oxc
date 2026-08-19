@@ -1,0 +1,73 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(html-self-closing): Disallow self-closing on HTML elements.
+   ╭─[html_self_closing.tsx:1:6]
+ 1 │ <div />
+   ·      ──
+   ╰────
+  help: Write the element with a closing tag instead.
+
+  ⚠ svelte(html-self-closing): Require self-closing on HTML void elements.
+   ╭─[html_self_closing.tsx:1:7]
+ 1 │ <input>
+   ·       ─
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Require self-closing on Svelte custom components.
+   ╭─[html_self_closing.tsx:1:8]
+ 1 │ <Widget></Widget>
+   ·        ──────────
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Require self-closing on Svelte special elements.
+   ╭─[html_self_closing.tsx:1:13]
+ 1 │ <svelte:self></svelte:self>
+   ·             ───────────────
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Require self-closing on SVG elements.
+   ╭─[html_self_closing.tsx:1:8]
+ 1 │ <circle></circle>
+   ·        ──────────
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Disallow self-closing on MathML elements.
+   ╭─[html_self_closing.tsx:1:5]
+ 1 │ <mi />
+   ·     ──
+   ╰────
+  help: Write the element with a closing tag instead.
+
+  ⚠ svelte(html-self-closing): Require self-closing on HTML elements.
+   ╭─[html_self_closing.tsx:1:5]
+ 1 │ <div></div>
+   ·     ───────
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Require self-closing on HTML elements.
+   ╭─[html_self_closing.tsx:1:5]
+ 1 │ <div></div>
+   ·     ───────
+   ╰────
+  help: Write the empty element as `<name />`.
+
+  ⚠ svelte(html-self-closing): Disallow self-closing on Svelte custom components.
+   ╭─[html_self_closing.tsx:1:9]
+ 1 │ <Widget />
+   ·         ──
+   ╰────
+  help: Write the element with a closing tag instead.
+
+  ⚠ svelte(html-self-closing): Require self-closing on Svelte custom components.
+   ╭─[html_self_closing.tsx:1:8]
+ 1 │ ╭─▶ <Widget>
+ 2 │ ╰─▶ </Widget>
+   ╰────
+  help: Write the empty element as `<name />`.

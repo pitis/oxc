@@ -1,0 +1,54 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:1:17]
+ 1 │ <div>hello</div>   
+   ·                 ───
+   ╰────
+  help: Remove the whitespace at the end of the line.
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:2:1]
+ 1 │ <div>a</div>
+ 2 │    
+   · ───
+ 3 │ <div>b</div>
+   ╰────
+  help: Remove the whitespace at the end of the line.
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:2:14]
+ 1 │ <script>
+ 2 │     const a = 1;   
+   ·                 ───
+ 3 │ </script>
+   ╰────
+  help: Remove the whitespace at the end of the line.
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:2:7]
+ 1 │ <style>
+ 2 │     .a {}   
+   ·          ───
+ 3 │ </style>
+   ╰────
+  help: Remove the whitespace at the end of the line.
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:1:7]
+ 1 │ <!-- a   
+   ·       ───
+ 2 │  b -->
+   ╰────
+  help: Remove the whitespace at the end of the line.
+
+  ⚠ svelte(no-trailing-spaces): Trailing spaces not allowed.
+   ╭─[no_trailing_spaces.tsx:3:5]
+ 2 │     const a = `x
+ 3 │     y`;   
+   ·        ───
+ 4 │ </script>
+   ╰────
+  help: Remove the whitespace at the end of the line.

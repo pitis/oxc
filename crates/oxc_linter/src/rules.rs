@@ -1029,8 +1029,10 @@ pub(crate) mod svelte {
     pub mod experimental_require_strict_events;
     pub mod html_closing_bracket_spacing;
     pub mod html_quotes;
+    pub mod html_self_closing;
     pub mod infinite_reactive_loop;
     pub mod max_lines_per_block;
+    pub mod mustache_spacing;
     pub mod no_add_event_listener;
     pub mod no_at_const_tags;
     pub mod no_at_debug_tags;
@@ -1067,6 +1069,7 @@ pub(crate) mod svelte {
     pub mod no_svelte_internal;
     pub mod no_target_blank;
     pub mod no_top_level_browser_globals;
+    pub mod no_trailing_spaces;
     pub mod no_unknown_style_directive_property;
     pub mod no_unnecessary_state_wrap;
     pub mod no_unused_class_name;

@@ -522,8 +522,10 @@ pub use crate::rules::svelte::experimental_require_slot_types::ExperimentalRequi
 pub use crate::rules::svelte::experimental_require_strict_events::ExperimentalRequireStrictEvents as SvelteExperimentalRequireStrictEvents;
 pub use crate::rules::svelte::html_closing_bracket_spacing::HtmlClosingBracketSpacing as SvelteHtmlClosingBracketSpacing;
 pub use crate::rules::svelte::html_quotes::HtmlQuotes as SvelteHtmlQuotes;
+pub use crate::rules::svelte::html_self_closing::HtmlSelfClosing as SvelteHtmlSelfClosing;
 pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
 pub use crate::rules::svelte::max_lines_per_block::MaxLinesPerBlock as SvelteMaxLinesPerBlock;
+pub use crate::rules::svelte::mustache_spacing::MustacheSpacing as SvelteMustacheSpacing;
 pub use crate::rules::svelte::no_add_event_listener::NoAddEventListener as SvelteNoAddEventListener;
 pub use crate::rules::svelte::no_at_const_tags::NoAtConstTags as SvelteNoAtConstTags;
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
@@ -560,6 +562,7 @@ pub use crate::rules::svelte::no_store_async::NoStoreAsync as SvelteNoStoreAsync
 pub use crate::rules::svelte::no_svelte_internal::NoSvelteInternal as SvelteNoSvelteInternal;
 pub use crate::rules::svelte::no_target_blank::NoTargetBlank as SvelteNoTargetBlank;
 pub use crate::rules::svelte::no_top_level_browser_globals::NoTopLevelBrowserGlobals as SvelteNoTopLevelBrowserGlobals;
+pub use crate::rules::svelte::no_trailing_spaces::NoTrailingSpaces as SvelteNoTrailingSpaces;
 pub use crate::rules::svelte::no_unknown_style_directive_property::NoUnknownStyleDirectiveProperty as SvelteNoUnknownStyleDirectiveProperty;
 pub use crate::rules::svelte::no_unnecessary_state_wrap::NoUnnecessaryStateWrap as SvelteNoUnnecessaryStateWrap;
 pub use crate::rules::svelte::no_unused_class_name::NoUnusedClassName as SvelteNoUnusedClassName;
@@ -1965,8 +1968,10 @@ pub enum RuleEnum {
     SvelteExperimentalRequireStrictEvents(SvelteExperimentalRequireStrictEvents),
     SvelteHtmlClosingBracketSpacing(SvelteHtmlClosingBracketSpacing),
     SvelteHtmlQuotes(SvelteHtmlQuotes),
+    SvelteHtmlSelfClosing(SvelteHtmlSelfClosing),
     SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
     SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock),
+    SvelteMustacheSpacing(SvelteMustacheSpacing),
     SvelteNoAddEventListener(SvelteNoAddEventListener),
     SvelteNoAtConstTags(SvelteNoAtConstTags),
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
@@ -2003,6 +2008,7 @@ pub enum RuleEnum {
     SvelteNoSvelteInternal(SvelteNoSvelteInternal),
     SvelteNoTargetBlank(SvelteNoTargetBlank),
     SvelteNoTopLevelBrowserGlobals(SvelteNoTopLevelBrowserGlobals),
+    SvelteNoTrailingSpaces(SvelteNoTrailingSpaces),
     SvelteNoUnknownStyleDirectiveProperty(SvelteNoUnknownStyleDirectiveProperty),
     SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap),
     SvelteNoUnusedClassName(SvelteNoUnusedClassName),
@@ -3086,9 +3092,11 @@ const SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID: usize =
 const SVELTE_HTML_CLOSING_BRACKET_SPACING_ID: usize =
     SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID + 1usize;
 const SVELTE_HTML_QUOTES_ID: usize = SVELTE_HTML_CLOSING_BRACKET_SPACING_ID + 1usize;
-const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_HTML_QUOTES_ID + 1usize;
+const SVELTE_HTML_SELF_CLOSING_ID: usize = SVELTE_HTML_QUOTES_ID + 1usize;
+const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_HTML_SELF_CLOSING_ID + 1usize;
 const SVELTE_MAX_LINES_PER_BLOCK_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
-const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_MAX_LINES_PER_BLOCK_ID + 1usize;
+const SVELTE_MUSTACHE_SPACING_ID: usize = SVELTE_MAX_LINES_PER_BLOCK_ID + 1usize;
+const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_MUSTACHE_SPACING_ID + 1usize;
 const SVELTE_NO_AT_CONST_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
 const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_AT_CONST_TAGS_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
@@ -3131,8 +3139,8 @@ const SVELTE_NO_STORE_ASYNC_ID: usize =
 const SVELTE_NO_SVELTE_INTERNAL_ID: usize = SVELTE_NO_STORE_ASYNC_ID + 1usize;
 const SVELTE_NO_TARGET_BLANK_ID: usize = SVELTE_NO_SVELTE_INTERNAL_ID + 1usize;
 const SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
-const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize =
-    SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID + 1usize;
+const SVELTE_NO_TRAILING_SPACES_ID: usize = SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID + 1usize;
+const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize = SVELTE_NO_TRAILING_SPACES_ID + 1usize;
 const SVELTE_NO_UNNECESSARY_STATE_WRAP_ID: usize =
     SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID + 1usize;
 const SVELTE_NO_UNUSED_CLASS_NAME_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1usize;
@@ -3166,7 +3174,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1002usize] = [
+static RULE_NAMES: [&str; 1005usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4102,8 +4110,10 @@ static RULE_NAMES: [&str; 1002usize] = [
     SvelteExperimentalRequireStrictEvents::NAME,
     SvelteHtmlClosingBracketSpacing::NAME,
     SvelteHtmlQuotes::NAME,
+    SvelteHtmlSelfClosing::NAME,
     SvelteInfiniteReactiveLoop::NAME,
     SvelteMaxLinesPerBlock::NAME,
+    SvelteMustacheSpacing::NAME,
     SvelteNoAddEventListener::NAME,
     SvelteNoAtConstTags::NAME,
     SvelteNoAtDebugTags::NAME,
@@ -4140,6 +4150,7 @@ static RULE_NAMES: [&str; 1002usize] = [
     SvelteNoSvelteInternal::NAME,
     SvelteNoTargetBlank::NAME,
     SvelteNoTopLevelBrowserGlobals::NAME,
+    SvelteNoTrailingSpaces::NAME,
     SvelteNoUnknownStyleDirectiveProperty::NAME,
     SvelteNoUnnecessaryStateWrap::NAME,
     SvelteNoUnusedClassName::NAME,
@@ -5246,8 +5257,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SVELTE_HTML_CLOSING_BRACKET_SPACING_ID,
             Self::SvelteHtmlQuotes(_) => SVELTE_HTML_QUOTES_ID,
+            Self::SvelteHtmlSelfClosing(_) => SVELTE_HTML_SELF_CLOSING_ID,
             Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
             Self::SvelteMaxLinesPerBlock(_) => SVELTE_MAX_LINES_PER_BLOCK_ID,
+            Self::SvelteMustacheSpacing(_) => SVELTE_MUSTACHE_SPACING_ID,
             Self::SvelteNoAddEventListener(_) => SVELTE_NO_ADD_EVENT_LISTENER_ID,
             Self::SvelteNoAtConstTags(_) => SVELTE_NO_AT_CONST_TAGS_ID,
             Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
@@ -5294,6 +5307,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SVELTE_NO_SVELTE_INTERNAL_ID,
             Self::SvelteNoTargetBlank(_) => SVELTE_NO_TARGET_BLANK_ID,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID,
+            Self::SvelteNoTrailingSpaces(_) => SVELTE_NO_TRAILING_SPACES_ID,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID
             }
@@ -6463,8 +6477,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::CATEGORY,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::CATEGORY,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::CATEGORY,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::CATEGORY,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::CATEGORY,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::CATEGORY,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::CATEGORY,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
@@ -6511,6 +6527,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::CATEGORY,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::CATEGORY,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::CATEGORY,
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::CATEGORY,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::CATEGORY
             }
@@ -7610,8 +7627,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::FIX,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::FIX,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::FIX,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::FIX,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::FIX,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::FIX,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::FIX,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
@@ -7656,6 +7675,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::FIX,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::FIX,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::FIX,
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::FIX,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::FIX
             }
@@ -9051,8 +9071,10 @@ impl RuleEnum {
                 SvelteHtmlClosingBracketSpacing::documentation()
             }
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::documentation(),
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::documentation(),
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::documentation(),
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::documentation(),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::documentation(),
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::documentation(),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
@@ -9111,6 +9133,7 @@ impl RuleEnum {
             Self::SvelteNoTopLevelBrowserGlobals(_) => {
                 SvelteNoTopLevelBrowserGlobals::documentation()
             }
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::documentation(),
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::documentation()
             }
@@ -11849,12 +11872,16 @@ impl RuleEnum {
             }
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::config_schema(generator)
                 .or_else(|| SvelteHtmlQuotes::schema(generator)),
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::config_schema(generator)
+                .or_else(|| SvelteHtmlSelfClosing::schema(generator)),
             Self::SvelteInfiniteReactiveLoop(_) => {
                 SvelteInfiniteReactiveLoop::config_schema(generator)
                     .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
             }
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::config_schema(generator)
                 .or_else(|| SvelteMaxLinesPerBlock::schema(generator)),
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::config_schema(generator)
+                .or_else(|| SvelteMustacheSpacing::schema(generator)),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::config_schema(generator)
                 .or_else(|| SvelteNoAddEventListener::schema(generator)),
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::config_schema(generator)
@@ -11965,6 +11992,8 @@ impl RuleEnum {
                 SvelteNoTopLevelBrowserGlobals::config_schema(generator)
                     .or_else(|| SvelteNoTopLevelBrowserGlobals::schema(generator))
             }
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::config_schema(generator)
+                .or_else(|| SvelteNoTrailingSpaces::schema(generator)),
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::config_schema(generator)
                     .or_else(|| SvelteNoUnknownStyleDirectiveProperty::schema(generator))
@@ -12995,8 +13024,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(_) => "svelte",
             Self::SvelteHtmlClosingBracketSpacing(_) => "svelte",
             Self::SvelteHtmlQuotes(_) => "svelte",
+            Self::SvelteHtmlSelfClosing(_) => "svelte",
             Self::SvelteInfiniteReactiveLoop(_) => "svelte",
             Self::SvelteMaxLinesPerBlock(_) => "svelte",
+            Self::SvelteMustacheSpacing(_) => "svelte",
             Self::SvelteNoAddEventListener(_) => "svelte",
             Self::SvelteNoAtConstTags(_) => "svelte",
             Self::SvelteNoAtDebugTags(_) => "svelte",
@@ -13033,6 +13064,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => "svelte",
             Self::SvelteNoTargetBlank(_) => "svelte",
             Self::SvelteNoTopLevelBrowserGlobals(_) => "svelte",
+            Self::SvelteNoTrailingSpaces(_) => "svelte",
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => "svelte",
             Self::SvelteNoUnnecessaryStateWrap(_) => "svelte",
             Self::SvelteNoUnusedClassName(_) => "svelte",
@@ -14226,8 +14258,14 @@ impl RuleEnum {
             Self::SvelteHtmlQuotes(_) => {
                 Ok(Self::SvelteHtmlQuotes(SvelteHtmlQuotes::from_configuration(value)?))
             }
+            Self::SvelteHtmlSelfClosing(_) => {
+                Ok(Self::SvelteHtmlSelfClosing(SvelteHtmlSelfClosing::from_configuration(value)?))
+            }
             Self::SvelteMaxLinesPerBlock(_) => {
                 Ok(Self::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::from_configuration(value)?))
+            }
+            Self::SvelteMustacheSpacing(_) => {
+                Ok(Self::SvelteMustacheSpacing(SvelteMustacheSpacing::from_configuration(value)?))
             }
             Self::SvelteNoInlineStyles(_) => {
                 Ok(Self::SvelteNoInlineStyles(SvelteNoInlineStyles::from_configuration(value)?))
@@ -14248,6 +14286,9 @@ impl RuleEnum {
             )),
             Self::SvelteNoTargetBlank(_) => {
                 Ok(Self::SvelteNoTargetBlank(SvelteNoTargetBlank::from_configuration(value)?))
+            }
+            Self::SvelteNoTrailingSpaces(_) => {
+                Ok(Self::SvelteNoTrailingSpaces(SvelteNoTrailingSpaces::from_configuration(value)?))
             }
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 Ok(Self::SvelteNoUnknownStyleDirectiveProperty(
@@ -15257,8 +15298,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run(node, ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run(node, ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run(node, ctx),
+            Self::SvelteHtmlSelfClosing(rule) => rule.run(node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run(node, ctx),
+            Self::SvelteMustacheSpacing(rule) => rule.run(node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run(node, ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
@@ -15295,6 +15338,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.run(node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run(node, ctx),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run(node, ctx),
+            Self::SvelteNoTrailingSpaces(rule) => rule.run(node, ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run(node, ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run(node, ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.run(node, ctx),
@@ -16276,8 +16320,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_once(ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_once(ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run_once(ctx),
+            Self::SvelteHtmlSelfClosing(rule) => rule.run_once(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_once(ctx),
+            Self::SvelteMustacheSpacing(rule) => rule.run_once(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_once(ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
@@ -16314,6 +16360,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.run_once(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_once(ctx),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_once(ctx),
+            Self::SvelteNoTrailingSpaces(rule) => rule.run_once(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_once(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_once(ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.run_once(ctx),
@@ -17416,8 +17463,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteHtmlQuotes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteHtmlSelfClosing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteMustacheSpacing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtConstTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17462,6 +17511,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoTrailingSpaces(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
@@ -18450,8 +18500,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.should_run(ctx),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.should_run(ctx),
             Self::SvelteHtmlQuotes(rule) => rule.should_run(ctx),
+            Self::SvelteHtmlSelfClosing(rule) => rule.should_run(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
             Self::SvelteMaxLinesPerBlock(rule) => rule.should_run(ctx),
+            Self::SvelteMustacheSpacing(rule) => rule.should_run(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.should_run(ctx),
             Self::SvelteNoAtConstTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
@@ -18488,6 +18540,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.should_run(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.should_run(ctx),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.should_run(ctx),
+            Self::SvelteNoTrailingSpaces(rule) => rule.should_run(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.should_run(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.should_run(ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.should_run(ctx),
@@ -19876,8 +19929,10 @@ impl RuleEnum {
                 SvelteHtmlClosingBracketSpacing::IS_TSGOLINT_RULE
             }
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::IS_TSGOLINT_RULE,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::IS_TSGOLINT_RULE,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::IS_TSGOLINT_RULE,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::IS_TSGOLINT_RULE,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::IS_TSGOLINT_RULE,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
@@ -19936,6 +19991,7 @@ impl RuleEnum {
             Self::SvelteNoTopLevelBrowserGlobals(_) => {
                 SvelteNoTopLevelBrowserGlobals::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::IS_TSGOLINT_RULE,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::IS_TSGOLINT_RULE
             }
@@ -21116,8 +21172,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::VERSION,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::VERSION,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::VERSION,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::VERSION,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::VERSION,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::VERSION,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::VERSION,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
@@ -21164,6 +21222,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::VERSION,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::VERSION,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::VERSION,
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::VERSION,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::VERSION
             }
@@ -22381,8 +22440,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::HAS_CONFIG,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::HAS_CONFIG,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::HAS_CONFIG,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::HAS_CONFIG,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::HAS_CONFIG,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::HAS_CONFIG,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::HAS_CONFIG,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
@@ -22431,6 +22492,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::HAS_CONFIG,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::HAS_CONFIG,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::HAS_CONFIG,
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::HAS_CONFIG,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::HAS_CONFIG
             }
@@ -23535,8 +23597,10 @@ impl RuleEnum {
             }
             Self::SvelteHtmlClosingBracketSpacing(_) => SvelteHtmlClosingBracketSpacing::INFO,
             Self::SvelteHtmlQuotes(_) => SvelteHtmlQuotes::INFO,
+            Self::SvelteHtmlSelfClosing(_) => SvelteHtmlSelfClosing::INFO,
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
             Self::SvelteMaxLinesPerBlock(_) => SvelteMaxLinesPerBlock::INFO,
+            Self::SvelteMustacheSpacing(_) => SvelteMustacheSpacing::INFO,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::INFO,
             Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::INFO,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
@@ -23581,6 +23645,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::INFO,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::INFO,
             Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::INFO,
+            Self::SvelteNoTrailingSpaces(_) => SvelteNoTrailingSpaces::INFO,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::INFO
             }
@@ -24560,8 +24625,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.types_info(),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.types_info(),
             Self::SvelteHtmlQuotes(rule) => rule.types_info(),
+            Self::SvelteHtmlSelfClosing(rule) => rule.types_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
             Self::SvelteMaxLinesPerBlock(rule) => rule.types_info(),
+            Self::SvelteMustacheSpacing(rule) => rule.types_info(),
             Self::SvelteNoAddEventListener(rule) => rule.types_info(),
             Self::SvelteNoAtConstTags(rule) => rule.types_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
@@ -24598,6 +24665,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.types_info(),
             Self::SvelteNoTargetBlank(rule) => rule.types_info(),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.types_info(),
+            Self::SvelteNoTrailingSpaces(rule) => rule.types_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.types_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.types_info(),
             Self::SvelteNoUnusedClassName(rule) => rule.types_info(),
@@ -25566,8 +25634,10 @@ impl RuleEnum {
             Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_info(),
             Self::SvelteHtmlClosingBracketSpacing(rule) => rule.run_info(),
             Self::SvelteHtmlQuotes(rule) => rule.run_info(),
+            Self::SvelteHtmlSelfClosing(rule) => rule.run_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
             Self::SvelteMaxLinesPerBlock(rule) => rule.run_info(),
+            Self::SvelteMustacheSpacing(rule) => rule.run_info(),
             Self::SvelteNoAddEventListener(rule) => rule.run_info(),
             Self::SvelteNoAtConstTags(rule) => rule.run_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
@@ -25604,6 +25674,7 @@ impl RuleEnum {
             Self::SvelteNoSvelteInternal(rule) => rule.run_info(),
             Self::SvelteNoTargetBlank(rule) => rule.run_info(),
             Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_info(),
+            Self::SvelteNoTrailingSpaces(rule) => rule.run_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_info(),
             Self::SvelteNoUnusedClassName(rule) => rule.run_info(),
@@ -26712,8 +26783,10 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         ),
         RuleEnum::SvelteHtmlClosingBracketSpacing(SvelteHtmlClosingBracketSpacing::default()),
         RuleEnum::SvelteHtmlQuotes(SvelteHtmlQuotes::default()),
+        RuleEnum::SvelteHtmlSelfClosing(SvelteHtmlSelfClosing::default()),
         RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
         RuleEnum::SvelteMaxLinesPerBlock(SvelteMaxLinesPerBlock::default()),
+        RuleEnum::SvelteMustacheSpacing(SvelteMustacheSpacing::default()),
         RuleEnum::SvelteNoAddEventListener(SvelteNoAddEventListener::default()),
         RuleEnum::SvelteNoAtConstTags(SvelteNoAtConstTags::default()),
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
@@ -26758,6 +26831,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoSvelteInternal(SvelteNoSvelteInternal::default()),
         RuleEnum::SvelteNoTargetBlank(SvelteNoTargetBlank::default()),
         RuleEnum::SvelteNoTopLevelBrowserGlobals(SvelteNoTopLevelBrowserGlobals::default()),
+        RuleEnum::SvelteNoTrailingSpaces(SvelteNoTrailingSpaces::default()),
         RuleEnum::SvelteNoUnknownStyleDirectiveProperty(
             SvelteNoUnknownStyleDirectiveProperty::default(),
         ),

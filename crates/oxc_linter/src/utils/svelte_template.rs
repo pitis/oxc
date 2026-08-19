@@ -2,8 +2,92 @@
 
 use oxc_span::Span;
 use svelte_markup_parser::ast::{
-    Attribute, AttributeKind, AttributeValue, BlockKind, Element, Node,
+    Attribute, AttributeKind, AttributeValue, BlockKind, Element, Node, ValuePart,
 };
+
+/// Visit every slice of JavaScript the markup contains, in source order, as
+/// `(text, span)` with `span` in file coordinates.
+///
+/// That is: mustaches, `{@…}` tags, spread attributes, every expression part
+/// of an attribute or directive value, and every expression slot of a block
+/// header. It does not descend into `<script>` bodies — those are their own
+/// programs, reachable through [`svelte_scripts`].
+pub fn for_each_svelte_expression<'a>(nodes: &[Node<'a>], visit: &mut impl FnMut(&'a str, Span)) {
+    walk_svelte_nodes(nodes, &mut |node| match node {
+        Node::Mustache(tag) => visit(tag.expression, tag.expression_span),
+        Node::Tag(tag) => visit(tag.expression, tag.expression_span),
+        Node::Element(element) => {
+            for attribute in &element.attributes {
+                match &attribute.kind {
+                    AttributeKind::Plain { value: Some(value), .. } => {
+                        visit_value_parts(value, visit);
+                    }
+                    AttributeKind::Spread { expression, expression_span } => {
+                        visit(expression, *expression_span);
+                    }
+                    AttributeKind::Directive(directive) => {
+                        if let Some(value) = &directive.value {
+                            visit_value_parts(value, visit);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Node::Block(block) => match &block.kind {
+            BlockKind::If(if_block) => {
+                for branch in &if_block.branches {
+                    if let Some(slot) = &branch.expression {
+                        visit(slot.text, slot.span);
+                    }
+                }
+            }
+            BlockKind::Each(each) => {
+                for slot in [
+                    Some(&each.expression),
+                    each.context.as_ref(),
+                    each.index.as_ref(),
+                    each.key.as_ref(),
+                ]
+                .into_iter()
+                .flatten()
+                {
+                    visit(slot.text, slot.span);
+                }
+            }
+            BlockKind::Await(await_block) => {
+                for slot in [
+                    Some(&await_block.expression),
+                    await_block.then_pattern.as_ref(),
+                    await_block.catch_pattern.as_ref(),
+                ]
+                .into_iter()
+                .flatten()
+                {
+                    visit(slot.text, slot.span);
+                }
+            }
+            BlockKind::Key(key) => visit(key.expression.text, key.expression.span),
+            BlockKind::Snippet(snippet) => {
+                if let Some(params) = &snippet.params {
+                    visit(params.text, params.span);
+                }
+            }
+            BlockKind::Unknown(unknown) => {
+                visit(unknown.header_rest.text, unknown.header_rest.span);
+            }
+        },
+        _ => {}
+    });
+}
+
+fn visit_value_parts<'a>(value: &AttributeValue<'a>, visit: &mut impl FnMut(&'a str, Span)) {
+    for part in &value.parts {
+        if let ValuePart::Expression(tag) = part {
+            visit(tag.expression, tag.expression_span);
+        }
+    }
+}
 
 /// Depth-first, source-order walk over every node in the tree, descending
 /// into element children and every block branch. `visit` sees each node

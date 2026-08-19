@@ -504,7 +504,9 @@ svelte/experimental-require-slot-types                     |      0
 svelte/experimental-require-strict-events                  |      0
 svelte/html-closing-bracket-spacing                        |      0
 svelte/html-quotes                                         |      0
+svelte/html-self-closing                                   |      0
 svelte/max-lines-per-block                                 |      0
+svelte/mustache-spacing                                    |      0
 svelte/no-at-const-tags                                    |      0
 svelte/no-at-debug-tags                                    |      0
 svelte/no-at-html-tags                                     |      0
@@ -528,6 +530,7 @@ svelte/no-restricted-html-elements                         |      0
 svelte/no-shorthand-style-property-overrides               |      0
 svelte/no-spaces-around-equal-signs-in-attribute           |      0
 svelte/no-target-blank                                     |      0
+svelte/no-trailing-spaces                                  |      0
 svelte/no-unknown-style-directive-property                 |      0
 svelte/no-unused-class-name                                |      0
 svelte/no-unused-props                                     |      0

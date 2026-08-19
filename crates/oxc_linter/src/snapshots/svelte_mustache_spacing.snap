@@ -1,0 +1,164 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:1]
+ 1 │ { count }
+   · ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:8]
+ 1 │ { count }
+   ·        ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:7]
+ 1 │ {count }
+   ·       ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:1]
+ 1 │ { count}
+   · ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:10]
+ 1 │ <div foo={ bar }></div>
+   ·          ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:15]
+ 1 │ <div foo={ bar }></div>
+   ·               ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:16]
+ 1 │ <div {... props }></div>
+   ·                ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:18]
+ 1 │ <button on:click={ handler }></button>
+   ·                  ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:27]
+ 1 │ <button on:click={ handler }></button>
+   ·                           ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:11]
+ 1 │ {@html raw }
+   ·           ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:7]
+ 1 │ {#if a }x{/if }
+   ·       ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:14]
+ 1 │ {#if a }x{/if }
+   ·              ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:20]
+ 1 │ {#if a}x{:else if b }y{ :else}z{/if}
+   ·                    ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:23]
+ 1 │ {#if a}x{:else if b }y{ :else}z{/if}
+   ·                       ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space after '{', but found.
+   ╭─[mustache_spacing.tsx:1:19]
+ 1 │ {#each xs as x}{x}{ :else}none{/each}
+   ·                   ──
+   ╰────
+  help: Remove the space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected no space before '}', but found.
+   ╭─[mustache_spacing.tsx:1:20]
+ 1 │ {#await p}a{:then v }{v}{/await}
+   ·                    ──
+   ╰────
+  help: Remove the space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space after '{', but not found.
+   ╭─[mustache_spacing.tsx:1:1]
+ 1 │ {count}
+   · ─
+   ╰────
+  help: Put a space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space before '}', but not found.
+   ╭─[mustache_spacing.tsx:1:7]
+ 1 │ {count}
+   ·       ─
+   ╰────
+  help: Put a space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space after '{', but not found.
+   ╭─[mustache_spacing.tsx:1:1]
+ 1 │ {#if a}x{/if}
+   · ─
+   ╰────
+  help: Put a space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space before '}', but not found.
+   ╭─[mustache_spacing.tsx:1:7]
+ 1 │ {#if a}x{/if}
+   ·       ─
+   ╰────
+  help: Put a space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space after '{', but not found.
+   ╭─[mustache_spacing.tsx:1:9]
+ 1 │ {#if a}x{/if}
+   ·         ─
+   ╰────
+  help: Put a space after the opening brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space before '}', but not found.
+   ╭─[mustache_spacing.tsx:1:13]
+ 1 │ {#if a}x{/if}
+   ·             ─
+   ╰────
+  help: Put a space before the closing brace.
+
+  ⚠ svelte(mustache-spacing): Expected 1 space before '}', but not found.
+   ╭─[mustache_spacing.tsx:1:7]
+ 1 │ {#if a}x{/if}
+   ·       ─
+   ╰────
+  help: Put a space before the closing brace.
