@@ -56,7 +56,8 @@ export type LintPluginOptionsSchema =
   | "react-perf"
   | "promise"
   | "node"
-  | "vue";
+  | "vue"
+  | "svelte";
 export type LintPlugins = LintPluginOptionsSchema[];
 export type RuleNoConfig = AllowWarnDeny | [AllowWarnDeny];
 export type Mode2 = "as-needed" | "always" | "never";
@@ -406,12 +407,30 @@ export type RelativeUrlStyleConfig = "never" | "always";
 export type SwitchCaseBracesConfig = "always" | "avoid";
 export type MemberNames = "for" | "each";
 export type VitestFnName = "vi" | "vitest";
+/**
+ * One entry of the `order` option: either a single selector, or a group of
+ * selectors that share the same rank (no relative order is enforced
+ * between members of the same group — mirrors upstream's default
+ * `[["script", "template"], "style"]`).
+ */
+export type OrderEntry = string | string[];
 export type CaseType = "PascalCase" | "kebab-case";
 export type DeclarationStyle = "type-based" | "type-literal" | "runtime";
 export type DeclarationStyle2 = "type-based" | "runtime";
 export type Destructure = "only-when-assigned" | "always" | "never";
 export type NextTickOption = "promise" | "callback";
 export type CaseType2 = "camelCase" | "snake_case";
+export type ThisInTemplateOption = "never" | "always";
+export type BindStyle = "shorthand" | "longform";
+export type SameNameShorthand = "always" | "never" | "ignore";
+export type VOnStyleValue = "shorthand" | "longform";
+/**
+ * eslint-plugin-vue `v-slot-style`'s single positional option, which is
+ * either a bare style string (applied to all three slot kinds) or a
+ * per-slot-kind object.
+ */
+export type VSlotStyleConfig = SlotStyle | VSlotStyleOptions;
+export type SlotStyle = "shorthand" | "longform" | "v-slot";
 export type AllowYoda = "never" | "always";
 export type OxlintOverrides = OxlintOverride[];
 export type JestVersionSchema = number | string;
@@ -1431,6 +1450,21 @@ export interface DummyRuleMap {
   "sort-imports"?: RuleNoConfig | [AllowWarnDeny, SortImportsOptions];
   "sort-keys"?: RuleNoConfig | [AllowWarnDeny, SortOrder] | [AllowWarnDeny, SortOrder, SortKeysOptions];
   "sort-vars"?: RuleNoConfig | [AllowWarnDeny, SortVars];
+  "svelte/button-has-type"?: RuleNoConfig | [AllowWarnDeny, ButtonHasType2];
+  "svelte/no-at-debug-tags"?: RuleNoConfig;
+  "svelte/no-at-html-tags"?: RuleNoConfig;
+  "svelte/no-dupe-else-if-blocks"?: RuleNoConfig;
+  "svelte/no-dupe-on-directives"?: RuleNoConfig;
+  "svelte/no-dupe-style-properties"?: RuleNoConfig;
+  "svelte/no-dupe-use-directives"?: RuleNoConfig;
+  "svelte/no-dynamic-slot-name"?: RuleNoConfig;
+  "svelte/no-not-function-handler"?: RuleNoConfig;
+  "svelte/no-object-in-text-mustaches"?: RuleNoConfig;
+  "svelte/no-spaces-around-equal-signs-in-attribute"?: RuleNoConfig;
+  "svelte/no-target-blank"?: RuleNoConfig | [AllowWarnDeny, NoTargetBlank];
+  "svelte/no-useless-children-snippet"?: RuleNoConfig;
+  "svelte/no-useless-mustaches"?: RuleNoConfig;
+  "svelte/require-each-key"?: RuleNoConfig;
   "symbol-description"?: RuleNoConfig;
   "typescript/adjacent-overload-signatures"?: RuleNoConfig;
   "typescript/array-type"?: RuleNoConfig | [AllowWarnDeny, ArrayTypeConfig];
@@ -1758,38 +1792,69 @@ export interface DummyRuleMap {
   "vitest/valid-expect-in-promise"?: RuleNoConfig;
   "vitest/valid-title"?: DummyRule;
   "vitest/warn-todo"?: RuleNoConfig;
+  "vue/attribute-hyphenation"?:
+    RuleNoConfig | [AllowWarnDeny, AlwaysNever] | [AllowWarnDeny, AlwaysNever, AttributeHyphenationOptions];
+  "vue/block-order"?: RuleNoConfig | [AllowWarnDeny, BlockOrderConfig];
   "vue/component-definition-name-casing"?: RuleNoConfig | [AllowWarnDeny, CaseType];
   "vue/define-emits-declaration"?: RuleNoConfig | [AllowWarnDeny, DeclarationStyle];
   "vue/define-props-declaration"?: RuleNoConfig | [AllowWarnDeny, DeclarationStyle2];
   "vue/define-props-destructuring"?: RuleNoConfig | [AllowWarnDeny, DefinePropsDestructuring];
   "vue/max-props"?: RuleNoConfig | [AllowWarnDeny, MaxProps];
+  "vue/multi-word-component-names"?: RuleNoConfig | [AllowWarnDeny, MultiWordComponentNamesConfig];
   "vue/next-tick-style"?: RuleNoConfig | [AllowWarnDeny, NextTickOption];
   "vue/no-arrow-functions-in-watch"?: RuleNoConfig;
   "vue/no-async-in-computed-properties"?: RuleNoConfig | [AllowWarnDeny, NoAsyncInComputedPropertiesConfig];
+  "vue/no-child-content"?: RuleNoConfig | [AllowWarnDeny, NoChildContentConfig];
   "vue/no-computed-properties-in-data"?: RuleNoConfig;
   "vue/no-deprecated-data-object-declaration"?: RuleNoConfig;
   "vue/no-deprecated-delete-set"?: RuleNoConfig;
   "vue/no-deprecated-destroyed-lifecycle"?: RuleNoConfig;
+  "vue/no-deprecated-dollar-listeners-api"?: RuleNoConfig;
+  "vue/no-deprecated-dollar-scopedslots-api"?: RuleNoConfig;
   "vue/no-deprecated-events-api"?: RuleNoConfig;
+  "vue/no-deprecated-filter"?: RuleNoConfig;
+  "vue/no-deprecated-functional-template"?: RuleNoConfig;
+  "vue/no-deprecated-html-element-is"?: RuleNoConfig;
+  "vue/no-deprecated-inline-template"?: RuleNoConfig;
   "vue/no-deprecated-model-definition"?: RuleNoConfig | [AllowWarnDeny, NoDeprecatedModelDefinitionConfig];
   "vue/no-deprecated-props-default-this"?: RuleNoConfig;
+  "vue/no-deprecated-router-link-tag-prop"?: RuleNoConfig | [AllowWarnDeny, NoDeprecatedRouterLinkTagPropConfig];
+  "vue/no-deprecated-scope-attribute"?: RuleNoConfig;
+  "vue/no-deprecated-slot-attribute"?: RuleNoConfig | [AllowWarnDeny, NoDeprecatedSlotAttributeConfig];
+  "vue/no-deprecated-slot-scope-attribute"?: RuleNoConfig;
+  "vue/no-deprecated-v-bind-sync"?: RuleNoConfig;
+  "vue/no-deprecated-v-is"?: RuleNoConfig;
+  "vue/no-deprecated-v-on-native-modifier"?: RuleNoConfig;
+  "vue/no-deprecated-v-on-number-modifiers"?: RuleNoConfig;
   "vue/no-deprecated-vue-config-keycodes"?: RuleNoConfig;
   "vue/no-dupe-keys"?: RuleNoConfig | [AllowWarnDeny, NoDupeKeysConfig];
+  "vue/no-dupe-v-else-if"?: RuleNoConfig;
+  "vue/no-duplicate-attributes"?: RuleNoConfig | [AllowWarnDeny, NoDuplicateAttributes];
   "vue/no-export-in-script-setup"?: RuleNoConfig;
   "vue/no-expose-after-await"?: RuleNoConfig;
   "vue/no-import-compiler-macros"?: RuleNoConfig;
   "vue/no-lifecycle-after-await"?: RuleNoConfig;
+  "vue/no-lone-template"?: RuleNoConfig | [AllowWarnDeny, NoLoneTemplate];
   "vue/no-multiple-slot-args"?: RuleNoConfig;
+  "vue/no-parsing-error"?: RuleNoConfig;
   "vue/no-required-prop-with-default"?: RuleNoConfig;
   "vue/no-reserved-component-names"?: RuleNoConfig | [AllowWarnDeny, NoReservedComponentNames];
   "vue/no-reserved-keys"?: RuleNoConfig | [AllowWarnDeny, NoReservedKeysConfig];
   "vue/no-reserved-props"?: RuleNoConfig | [AllowWarnDeny, NoReservedPropsConfig];
   "vue/no-shared-component-data"?: RuleNoConfig;
   "vue/no-side-effects-in-computed-properties"?: RuleNoConfig;
+  "vue/no-template-key"?: RuleNoConfig;
+  "vue/no-textarea-mustache"?: RuleNoConfig;
   "vue/no-this-in-before-route-enter"?: RuleNoConfig;
+  "vue/no-use-v-if-with-v-for"?: RuleNoConfig | [AllowWarnDeny, NoUseVIfWithVFor];
+  "vue/no-useless-template-attributes"?: RuleNoConfig;
+  "vue/no-v-for-template-key-on-child"?: RuleNoConfig;
+  "vue/no-v-html"?: RuleNoConfig | [AllowWarnDeny, NoVHtmlConfig];
+  "vue/no-v-text-v-html-on-component"?: RuleNoConfig | [AllowWarnDeny, NoVTextVHtmlOnComponentConfig];
   "vue/no-watch-after-await"?: RuleNoConfig;
   "vue/prefer-import-from-vue"?: RuleNoConfig;
   "vue/prop-name-casing"?: RuleNoConfig | [AllowWarnDeny, CaseType2] | [AllowWarnDeny, CaseType2, Options];
+  "vue/require-component-is"?: RuleNoConfig;
   "vue/require-default-export"?: RuleNoConfig;
   "vue/require-default-prop"?: RuleNoConfig;
   "vue/require-direct-export"?: RuleNoConfig | [AllowWarnDeny, RequireDirectExport];
@@ -1797,13 +1862,40 @@ export interface DummyRuleMap {
   "vue/require-prop-types"?: RuleNoConfig;
   "vue/require-render-return"?: RuleNoConfig;
   "vue/require-slots-as-functions"?: RuleNoConfig;
+  "vue/require-toggle-inside-transition"?: RuleNoConfig | [AllowWarnDeny, RequireToggleInsideTransitionConfig];
   "vue/require-typed-ref"?: RuleNoConfig;
+  "vue/require-v-for-key"?: RuleNoConfig;
   "vue/return-in-computed-property"?: RuleNoConfig | [AllowWarnDeny, ReturnInComputedPropertyConfig];
   "vue/return-in-emits-validator"?: RuleNoConfig;
+  "vue/this-in-template"?: RuleNoConfig | [AllowWarnDeny, ThisInTemplateOption];
+  "vue/use-v-on-exact"?: RuleNoConfig;
+  "vue/v-bind-style"?: RuleNoConfig | [AllowWarnDeny, BindStyle] | [AllowWarnDeny, BindStyle, VBindStyleOptions];
+  "vue/v-on-event-hyphenation"?:
+    RuleNoConfig | [AllowWarnDeny, AlwaysNever] | [AllowWarnDeny, AlwaysNever, VOnEventHyphenationOptions];
+  "vue/v-on-style"?: RuleNoConfig | [AllowWarnDeny, VOnStyleValue];
+  "vue/v-slot-style"?: RuleNoConfig | [AllowWarnDeny, VSlotStyleConfig];
+  "vue/valid-attribute-name"?: RuleNoConfig;
   "vue/valid-define-emits"?: RuleNoConfig;
   "vue/valid-define-options"?: RuleNoConfig;
   "vue/valid-define-props"?: RuleNoConfig;
   "vue/valid-next-tick"?: RuleNoConfig;
+  "vue/valid-template-root"?: RuleNoConfig;
+  "vue/valid-v-bind"?: RuleNoConfig;
+  "vue/valid-v-cloak"?: RuleNoConfig;
+  "vue/valid-v-else"?: RuleNoConfig;
+  "vue/valid-v-else-if"?: RuleNoConfig;
+  "vue/valid-v-for"?: RuleNoConfig | [AllowWarnDeny, ValidVFor];
+  "vue/valid-v-html"?: RuleNoConfig;
+  "vue/valid-v-if"?: RuleNoConfig;
+  "vue/valid-v-is"?: RuleNoConfig;
+  "vue/valid-v-memo"?: RuleNoConfig;
+  "vue/valid-v-model"?: RuleNoConfig;
+  "vue/valid-v-on"?: RuleNoConfig | [AllowWarnDeny, ValidVOnConfig];
+  "vue/valid-v-once"?: RuleNoConfig;
+  "vue/valid-v-pre"?: RuleNoConfig;
+  "vue/valid-v-show"?: RuleNoConfig;
+  "vue/valid-v-slot"?: RuleNoConfig | [AllowWarnDeny, ValidVSlot];
+  "vue/valid-v-text"?: RuleNoConfig;
   yoda?: RuleNoConfig | [AllowWarnDeny, AllowYoda] | [AllowWarnDeny, AllowYoda, YodaOptions];
   [k: string]: DummyRule | undefined;
 }
@@ -5235,6 +5327,31 @@ export interface SortVars {
    */
   ignoreCase?: boolean;
 }
+export interface ButtonHasType2 {
+  /**
+   * Whether `type="button"` is allowed.
+   */
+  button?: boolean;
+  /**
+   * Whether `type="reset"` is allowed.
+   */
+  reset?: boolean;
+  /**
+   * Whether `type="submit"` is allowed.
+   */
+  submit?: boolean;
+}
+export interface NoTargetBlank {
+  /**
+   * Whether `rel="noopener"` alone (without `noreferrer`) is enough.
+   */
+  allowReferrer?: boolean;
+  /**
+   * Whether links with a dynamic `href` are checked. `"always"` (the
+   * default) checks them; `"never"` only checks static external links.
+   */
+  enforceDynamicLinks?: AlwaysNever;
+}
 export interface ArrayTypeConfig {
   /**
    * The array type expected for mutable cases.
@@ -6700,6 +6817,34 @@ export interface RequireMockTypeParametersConfig {
    */
   checkImportFunctions?: boolean;
 }
+export interface AttributeHyphenationOptions {
+  /**
+   * Attribute names (matched as a substring) that are never reported,
+   * in addition to the built-in `data-`/`aria-`/`slot-scope`/SVG-weird-case
+   * list.
+   */
+  ignore?: string[];
+  /**
+   * Tag-name patterns; a custom element whose raw tag name matches any of
+   * them is skipped entirely. Each entry is either a bare tag name
+   * (matched as an exact, case-sensitive string — not a substring) or a
+   * `"/pattern/flags"` regex literal, mirroring eslint-plugin-vue's
+   * `toRegExpGroupMatcher`.
+   */
+  ignoreTags?: string[];
+}
+export interface BlockOrderConfig {
+  /**
+   * The required top-level block order. Each entry is either a single
+   * block-name selector or an array of selectors that rank equally
+   * (their relative order isn't checked against each other). A selector
+   * is a block name (`"script"`, `"template"`, `"style"`, or a custom
+   * block name), optionally followed by `[attr]` / `[attr=value]`
+   * attribute constraints (e.g. `"script[setup]"`). Default:
+   * `[["script", "template"], "style"]`.
+   */
+  order?: OrderEntry[];
+}
 export interface DefinePropsDestructuring {
   /**
    * Require or prohibit destructuring.
@@ -6712,6 +6857,14 @@ export interface MaxProps {
    */
   maxProps?: number;
 }
+export interface MultiWordComponentNamesConfig {
+  /**
+   * Component names to exempt from the multi-word check, in addition to
+   * the built-in `App`/`app`. A `PascalCase` entry also exempts its
+   * kebab-case form (e.g. `"TodoItem"` also allows `"todo-item"`).
+   */
+  ignores?: string[];
+}
 export interface NoAsyncInComputedPropertiesConfig {
   /**
    * Names of identifiers whose member-call chains (`.then` / `.catch` / `.finally`)
@@ -6719,6 +6872,13 @@ export interface NoAsyncInComputedPropertiesConfig {
    * a builder API, not a Promise method.
    */
   ignoredObjectNames?: string[];
+}
+export interface NoChildContentConfig {
+  /**
+   * Additional directive names (without the `v-` prefix) that, like
+   * `v-html`/`v-text`, overwrite an element's child content. Default: none.
+   */
+  additionalDirectives?: string[];
 }
 export interface NoDeprecatedModelDefinitionConfig {
   /**
@@ -6728,12 +6888,52 @@ export interface NoDeprecatedModelDefinitionConfig {
    */
   allowVue3Compat?: boolean;
 }
+export interface NoDeprecatedRouterLinkTagPropConfig {
+  /**
+   * Component names this rule checks the `tag` prop on, in place of the
+   * default `["RouterLink"]`. Each entry is matched (case-sensitively)
+   * against a tag's exact kebab-case and PascalCase forms.
+   */
+  components?: string[];
+}
+export interface NoDeprecatedSlotAttributeConfig {
+  /**
+   * Tag-name patterns; a `slot`/`:slot` attribute on a matching element is
+   * not reported. Each entry is matched (case-sensitively) against the
+   * element's raw name, its PascalCase form, and its kebab-case form —
+   * either as a bare tag name (an exact, anchored match) or a
+   * `"/pattern/flags"` regex literal. Default: none.
+   */
+  ignore?: string[];
+  /**
+   * Like `ignore`, but matched against the raw name of the element's
+   * *parent* instead (no PascalCase/kebab-case variants). Default: none.
+   */
+  ignoreParents?: string[];
+}
 export interface NoDupeKeysConfig {
   /**
    * Additional group names to search for duplicate keys in, on top of the
    * built-in `props`, `computed`, `data`, `methods` and `setup` groups.
    */
   groups?: string[];
+}
+export interface NoDuplicateAttributes {
+  /**
+   * Whether a plain `class` and a `:class` binding may coexist. Default `true`.
+   */
+  allowCoexistClass?: boolean;
+  /**
+   * Whether a plain `style` and a `:style` binding may coexist. Default `true`.
+   */
+  allowCoexistStyle?: boolean;
+}
+export interface NoLoneTemplate {
+  /**
+   * When `true`, a `<template>` that only carries `id`/`ref` (and no
+   * structural directive) is also allowed. Default `false`.
+   */
+  ignoreAccessible?: boolean;
 }
 export interface NoReservedComponentNames {
   /**
@@ -6769,6 +6969,33 @@ export interface NoReservedPropsConfig {
    */
   vueVersion?: number;
 }
+export interface NoUseVIfWithVFor {
+  /**
+   * Whether a `v-if` that references one of the `v-for`'s own iteration
+   * variables (e.g. `v-for="item in items" v-if="item.active"`) is
+   * allowed without a report (still reported, with a different message,
+   * when this is `false`, the default). Default `false`.
+   */
+  allowUsingIterationVar?: boolean;
+}
+export interface NoVHtmlConfig {
+  /**
+   * A regex pattern; when the `v-html` value's expression text matches
+   * it, the report is suppressed (e.g. an identifier or member expression
+   * known to already hold sanitized HTML). Default: none (every `v-html`
+   * is reported).
+   */
+  ignorePattern?: string;
+}
+export interface NoVTextVHtmlOnComponentConfig {
+  /**
+   * Component names allowed to carry `v-text`/`v-html` despite being
+   * custom components. Matched against the element's name as written, its
+   * `PascalCase` form, and its `kebab-case` form (mirrors
+   * eslint-plugin-vue's `allow` option). Default: none.
+   */
+  allow?: string[];
+}
 export interface Options {
   /**
    * Prop names to ignore, as regular expression patterns.
@@ -6781,12 +7008,72 @@ export interface RequireDirectExport {
    */
   disallowFunctionalComponentFunction?: boolean;
 }
+export interface RequireToggleInsideTransitionConfig {
+  /**
+   * Additional directive names (without the `v-` prefix) that, like
+   * `v-if`/`v-show`, count as toggling the transitioned element. Default:
+   * none.
+   */
+  additionalDirectives?: string[];
+}
 export interface ReturnInComputedPropertyConfig {
   /**
    * When `true` (default), `return;` (without a value) is treated as a missing return.
    * Set to `false` to allow bare `return;` as if it returned a value.
    */
   treatUndefinedAsUnspecified?: boolean;
+}
+export interface VBindStyleOptions {
+  sameNameShorthand?: SameNameShorthand;
+}
+export interface VOnEventHyphenationOptions {
+  /**
+   * Accepted for compatibility with upstream's `autofix` option key; this
+   * rule never applies fixes (oxlint doesn't fix Vue template rules), so
+   * the value itself has no effect. Present only so a real-world
+   * `v-on-event-hyphenation` config (which upstream defaults to
+   * `{ autofix: true }` for Vue 3) still deserializes without error.
+   */
+  autofix?: boolean;
+  /**
+   * Event names (matched as a substring) that are never reported.
+   */
+  ignore?: string[];
+  /**
+   * Tag-name patterns; a custom element whose raw tag name matches any of
+   * them is skipped entirely. Each entry is either a bare tag name
+   * (matched as an exact, case-sensitive string — not a substring) or a
+   * `"/pattern/flags"` regex literal, mirroring eslint-plugin-vue's
+   * `toRegExpGroupMatcher`.
+   */
+  ignoreTags?: string[];
+}
+export interface VSlotStyleOptions {
+  atComponent?: SlotStyle;
+  default?: SlotStyle;
+  named?: SlotStyle;
+}
+export interface ValidVFor {
+  /**
+   * Whether an omitted alias slot (e.g. `(, key) in items`) is allowed.
+   * Default `false`.
+   */
+  allowEmptyAlias?: boolean;
+}
+export interface ValidVOnConfig {
+  /**
+   * Additional modifier names to accept beyond the built-in ones (e.g.
+   * project-specific custom directives layered on `v-on`).
+   */
+  modifiers?: string[];
+}
+export interface ValidVSlot {
+  /**
+   * Whether a modifier is allowed on a *named* (has an argument) `v-slot`
+   * directive (e.g. `v-slot:foo.bar`). A modifier on a default slot
+   * (no argument) is always rejected. Default `false`.
+   */
+  allowModifiers?: boolean;
 }
 export interface YodaOptions {
   /**

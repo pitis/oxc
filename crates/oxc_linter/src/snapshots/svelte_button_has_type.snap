@@ -1,0 +1,66 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(button-has-type): Missing an explicit type attribute for button.
+   ╭─[button_has_type.tsx:1:1]
+ 1 │ <button>Hello</button>
+   · ────────
+   ╰────
+  help: An untyped `<button>` defaults to `type="submit"` and can submit an enclosing form unexpectedly; write `type="button"`, `type="submit"`, or `type="reset"`.
+
+  ⚠ svelte(button-has-type): Missing an explicit type attribute for button.
+   ╭─[button_has_type.tsx:1:1]
+ 1 │ <button />
+   · ──────────
+   ╰────
+  help: An untyped `<button>` defaults to `type="submit"` and can submit an enclosing form unexpectedly; write `type="button"`, `type="submit"`, or `type="reset"`.
+
+  ⚠ svelte(button-has-type): A value must be set for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type>Hello</button>
+   ·         ────
+   ╰────
+  help: Give the `type` attribute one of the values `button`, `submit`, or `reset`.
+
+  ⚠ svelte(button-has-type): A value must be set for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type="">Hello</button>
+   ·         ───────
+   ╰────
+  help: Give the `type` attribute one of the values `button`, `submit`, or `reset`.
+
+  ⚠ svelte(button-has-type): foo is an invalid value for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type="foo">Hello</button>
+   ·         ──────────
+   ╰────
+  help: Valid button types are `button`, `submit`, and `reset`.
+
+  ⚠ svelte(button-has-type): button is a forbidden value for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type="button">Hello</button>
+   ·         ─────────────
+   ╰────
+  help: This button type is disallowed by the rule's options.
+
+  ⚠ svelte(button-has-type): submit is a forbidden value for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type="submit">Hello</button>
+   ·         ─────────────
+   ╰────
+  help: This button type is disallowed by the rule's options.
+
+  ⚠ svelte(button-has-type): reset is a forbidden value for button type attribute.
+   ╭─[button_has_type.tsx:1:9]
+ 1 │ <button type="reset">Hello</button>
+   ·         ────────────
+   ╰────
+  help: This button type is disallowed by the rule's options.
+
+  ⚠ svelte(button-has-type): Missing an explicit type attribute for button.
+   ╭─[button_has_type.tsx:1:8]
+ 1 │ {#if a}<button>Hello</button>{/if}
+   ·        ────────
+   ╰────
+  help: An untyped `<button>` defaults to `type="submit"` and can submit an enclosing form unexpectedly; write `type="button"`, `type="submit"`, or `type="reset"`.

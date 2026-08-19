@@ -1,0 +1,94 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ <p class = "h"></p>
+   ·         ───
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ <p class ="e"></p>
+   ·         ──
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ <p class=   "l"></p>
+   ·         ────
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ ╭─▶ <p class=
+ 2 │ ╰─▶        "l"></p>
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ ╭─▶ <p class
+ 2 │ ╰─▶        = "o"></p>
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ <p class= "="></p>
+   ·         ──
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:9]
+ 1 │ <p class= a></p>
+   ·         ──
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:13]
+ 1 │ <p bind:test= {value} bind:test2  = {value} />
+   ·             ──
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:33]
+ 1 │ <p bind:test= {value} bind:test2  = {value} />
+   ·                                 ────
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:15]
+ 1 │ <p style:width ="10px" />
+   ·               ──
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:17]
+ 1 │ <p on:click|once = {handler} />
+   ·                 ───
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:8]
+ 1 │ <p this = {expression} />
+   ·        ───
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.
+
+  ⚠ svelte(no-spaces-around-equal-signs-in-attribute): Unexpected spaces found around equal signs.
+   ╭─[no_spaces_around_equal_signs_in_attribute.tsx:1:28]
+ 1 │ {#each items as item}<div a =   "b"></div>{/each}
+   ·                            ─────
+   ╰────
+  help: Remove the spaces so the attribute reads `name=value`.

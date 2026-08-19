@@ -13348,6 +13348,12 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => {
                 Ok(Self::VueValidVSlot(VueValidVSlot::from_configuration(value)?))
             }
+            Self::SvelteButtonHasType(_) => {
+                Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
+            }
+            Self::SvelteNoTargetBlank(_) => {
+                Ok(Self::SvelteNoTargetBlank(SvelteNoTargetBlank::from_configuration(value)?))
+            }
             _ => Ok(RULES[self.id()].clone()),
         }
     }

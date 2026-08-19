@@ -1,0 +1,94 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-not-function-handler): Unexpected object in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={{ fn }} />
+   ·                   ──────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected array in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={[a]} />
+   ·                   ───
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected class in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={class B {}} />
+   ·                   ──────────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected string value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={'str'} />
+   ·                   ─────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected string value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={`str`} />
+   ·                   ─────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected number value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={100} />
+   ·                   ───
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected boolean value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={true} />
+   ·                   ────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected bigint value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={42n} />
+   ·                   ───
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected regex value in event handler.
+   ╭─[no_not_function_handler.tsx:1:19]
+ 1 │ <button on:click={/reg/} />
+   ·                   ─────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected object in event handler.
+   ╭─[no_not_function_handler.tsx:1:24]
+ 1 │ <button on:click|once={{ a }} />
+   ·                        ─────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected object in event handler.
+   ╭─[no_not_function_handler.tsx:1:18]
+ 1 │ <button onclick={{ fn }} />
+   ·                  ──────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected string value in event handler.
+   ╭─[no_not_function_handler.tsx:1:25]
+ 1 │ <button onclickcapture={'s'} />
+   ·                         ───
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.
+
+  ⚠ svelte(no-not-function-handler): Unexpected object in event handler.
+   ╭─[no_not_function_handler.tsx:1:26]
+ 1 │ {#if x}<button on:click={{ a }} />{/if}
+   ·                          ─────
+   ╰────
+  help: Event handlers must be functions; pass a function reference or an arrow function like `on:click={() => …}`.

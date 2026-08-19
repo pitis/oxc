@@ -802,7 +802,8 @@ mod test {
             assert!(
                 rule.is_tsgolint_rule()
                     || super::as_vue_template_rule(rule).is_some()
-                    || super::as_vue_sfc_rule(rule).is_some(),
+                    || super::as_vue_sfc_rule(rule).is_some()
+                    || crate::svelte_template::as_svelte_template_rule(rule).is_some(),
                 "rule {}/{} implements no run function and is dispatched by nothing, so it can never report",
                 rule.plugin_name(),
                 rule.name()

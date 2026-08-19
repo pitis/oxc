@@ -48,7 +48,7 @@ pub trait SvelteTemplateRule {
 }
 
 /// The subset of the resolved rule set that participates in the markup pass.
-fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRule> {
+pub(crate) fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRule> {
     match rule {
         RuleEnum::SvelteNoAtHtmlTags(rule) => Some(rule),
         RuleEnum::SvelteNoAtDebugTags(rule) => Some(rule),

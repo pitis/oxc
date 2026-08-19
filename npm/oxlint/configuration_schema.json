@@ -971,6 +971,42 @@
         }
       ]
     },
+    "AttributeHyphenationConfig": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "#/definitions/AlwaysNever"
+        },
+        {
+          "$ref": "#/definitions/AttributeHyphenationOptions"
+        }
+      ],
+      "maxItems": 2,
+      "minItems": 2
+    },
+    "AttributeHyphenationOptions": {
+      "type": "object",
+      "properties": {
+        "ignore": {
+          "description": "Attribute names (matched as a substring) that are never reported,\nin addition to the built-in `data-`/`aria-`/`slot-scope`/SVG-weird-case\nlist.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Attribute names (matched as a substring) that are never reported,\nin addition to the built-in `data-`/`aria-`/`slot-scope`/SVG-weird-case\nlist."
+        },
+        "ignoreTags": {
+          "description": "Tag-name patterns; a custom element whose raw tag name matches any of\nthem is skipped entirely. Each entry is either a bare tag name\n(matched as an exact, case-sensitive string — not a substring) or a\n`\"/pattern/flags\"` regex literal, mirroring eslint-plugin-vue's\n`toRegExpGroupMatcher`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Tag-name patterns; a custom element whose raw tag name matches any of\nthem is skipped entirely. Each entry is either a bare tag name\n(matched as an exact, case-sensitive string — not a substring) or a\n`\"/pattern/flags\"` regex literal, mirroring eslint-plugin-vue's\n`toRegExpGroupMatcher`."
+        }
+      },
+      "additionalProperties": false
+    },
     "AutocompleteValidConfig": {
       "type": "object",
       "properties": {
@@ -1089,6 +1125,30 @@
       "additionalProperties": false,
       "markdownDescription": "This rule allows you to specify how different TypeScript directive comments\nshould be handled.\n\nFor each directive (`@ts-expect-error`, `@ts-ignore`, `@ts-nocheck`, `@ts-check`), you can choose one of the following options:\n- `true`: Disallow the directive entirely, preventing its use in the entire codebase.\n- `false`: Allow the directive without any restrictions.\n- `\"allow-with-description\"`: Allow the directive only if it is followed by a description explaining its use. The description must meet the minimum length specified by `minimumDescriptionLength`.\n- `{ \"descriptionFormat\": \"<regex>\" }`: Allow the directive only if the description matches the specified regex pattern.\n\nFor example:\n```json\n{\n\"ts-expect-error\": \"allow-with-description\",\n\"ts-ignore\": true,\n\"ts-nocheck\": { \"descriptionFormat\": \"^: TS\\\\d+ because .+$\" },\n\"ts-check\": false,\n\"minimumDescriptionLength\": 3\n}\n```"
     },
+    "BindStyle": {
+      "type": "string",
+      "enum": [
+        "shorthand",
+        "longform"
+      ]
+    },
+    "BlockOrder": {
+      "$ref": "#/definitions/BlockOrderConfig"
+    },
+    "BlockOrderConfig": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "description": "The required top-level block order. Each entry is either a single\nblock-name selector or an array of selectors that rank equally\n(their relative order isn't checked against each other). A selector\nis a block name (`\"script\"`, `\"template\"`, `\"style\"`, or a custom\nblock name), optionally followed by `[attr]` / `[attr=value]`\nattribute constraints (e.g. `\"script[setup]\"`). Default:\n`[[\"script\", \"template\"], \"style\"]`.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OrderEntry"
+          },
+          "markdownDescription": "The required top-level block order. Each entry is either a single\nblock-name selector or an array of selectors that rank equally\n(their relative order isn't checked against each other). A selector\nis a block name (`\"script\"`, `\"template\"`, `\"style\"`, or a custom\nblock name), optionally followed by `[attr]` / `[attr=value]`\nattribute constraints (e.g. `\"script[setup]\"`). Default:\n`[[\"script\", \"template\"], \"style\"]`."
+        }
+      },
+      "additionalProperties": false
+    },
     "BlockScopedFunctions": {
       "oneOf": [
         {
@@ -1149,6 +1209,30 @@
           "default": true,
           "type": "boolean",
           "markdownDescription": "If true, allow `type=\"submit\"`."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ButtonHasType2": {
+      "type": "object",
+      "properties": {
+        "button": {
+          "description": "Whether `type=\"button\"` is allowed.",
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Whether `type=\"button\"` is allowed."
+        },
+        "reset": {
+          "description": "Whether `type=\"reset\"` is allowed.",
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Whether `type=\"reset\"` is allowed."
+        },
+        "submit": {
+          "description": "Whether `type=\"submit\"` is allowed.",
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Whether `type=\"submit\"` is allowed."
         }
       },
       "additionalProperties": false
@@ -7512,6 +7596,85 @@
             }
           ]
         },
+        "svelte/button-has-type": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/ButtonHasType2"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "svelte/no-at-debug-tags": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-at-html-tags": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-dupe-else-if-blocks": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-dupe-on-directives": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-dupe-style-properties": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-dupe-use-directives": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-dynamic-slot-name": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-not-function-handler": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-object-in-text-mustaches": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-spaces-around-equal-signs-in-attribute": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-target-blank": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoTargetBlank"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "svelte/no-useless-children-snippet": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/no-useless-mustaches": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "svelte/require-each-key": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
         "symbol-description": {
           "$ref": "#/definitions/RuleNoConfig"
         },
@@ -10275,6 +10438,49 @@
         "vitest/warn-todo": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/attribute-hyphenation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/AlwaysNever"
+                },
+                {
+                  "$ref": "#/definitions/AttributeHyphenationOptions"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/block-order": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/BlockOrder"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/component-definition-name-casing": {
           "anyOf": [
             {
@@ -10375,6 +10581,26 @@
             }
           ]
         },
+        "vue/multi-word-component-names": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/MultiWordComponentNames"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/next-tick-style": {
           "anyOf": [
             {
@@ -10418,6 +10644,26 @@
             }
           ]
         },
+        "vue/no-child-content": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoChildContent"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/no-computed-properties-in-data": {
           "$ref": "#/definitions/RuleNoConfig"
         },
@@ -10430,7 +10676,25 @@
         "vue/no-deprecated-destroyed-lifecycle": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/no-deprecated-dollar-listeners-api": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-dollar-scopedslots-api": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
         "vue/no-deprecated-events-api": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-filter": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-functional-template": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-html-element-is": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-inline-template": {
           "$ref": "#/definitions/RuleNoConfig"
         },
         "vue/no-deprecated-model-definition": {
@@ -10456,6 +10720,64 @@
         "vue/no-deprecated-props-default-this": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/no-deprecated-router-link-tag-prop": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoDeprecatedRouterLinkTagProp"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/no-deprecated-scope-attribute": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-slot-attribute": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoDeprecatedSlotAttribute"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/no-deprecated-slot-scope-attribute": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-v-bind-sync": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-v-is": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-v-on-native-modifier": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-deprecated-v-on-number-modifiers": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
         "vue/no-deprecated-vue-config-keycodes": {
           "$ref": "#/definitions/RuleNoConfig"
         },
@@ -10479,6 +10801,29 @@
             }
           ]
         },
+        "vue/no-dupe-v-else-if": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-duplicate-attributes": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoDuplicateAttributes"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/no-export-in-script-setup": {
           "$ref": "#/definitions/RuleNoConfig"
         },
@@ -10491,7 +10836,30 @@
         "vue/no-lifecycle-after-await": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/no-lone-template": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoLoneTemplate"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/no-multiple-slot-args": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-parsing-error": {
           "$ref": "#/definitions/RuleNoConfig"
         },
         "vue/no-required-prop-with-default": {
@@ -10563,8 +10931,80 @@
         "vue/no-side-effects-in-computed-properties": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/no-template-key": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-textarea-mustache": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
         "vue/no-this-in-before-route-enter": {
           "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-use-v-if-with-v-for": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoUseVIfWithVFor"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/no-useless-template-attributes": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-v-for-template-key-on-child": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/no-v-html": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoVHtml"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/no-v-text-v-html-on-component": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/NoVTextVHtmlOnComponent"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
         },
         "vue/no-watch-after-await": {
           "$ref": "#/definitions/RuleNoConfig"
@@ -10594,6 +11034,9 @@
               "minItems": 2
             }
           ]
+        },
+        "vue/require-component-is": {
+          "$ref": "#/definitions/RuleNoConfig"
         },
         "vue/require-default-export": {
           "$ref": "#/definitions/RuleNoConfig"
@@ -10633,7 +11076,30 @@
         "vue/require-slots-as-functions": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/require-toggle-inside-transition": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/RequireToggleInsideTransition"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
         "vue/require-typed-ref": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/require-v-for-key": {
           "$ref": "#/definitions/RuleNoConfig"
         },
         "vue/return-in-computed-property": {
@@ -10659,6 +11125,118 @@
         "vue/return-in-emits-validator": {
           "$ref": "#/definitions/RuleNoConfig"
         },
+        "vue/this-in-template": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/ThisInTemplateOption"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/use-v-on-exact": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/v-bind-style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/BindStyle"
+                },
+                {
+                  "$ref": "#/definitions/VBindStyleOptions"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/v-on-event-hyphenation": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/AlwaysNever"
+                },
+                {
+                  "$ref": "#/definitions/VOnEventHyphenationOptions"
+                }
+              ],
+              "maxItems": 3,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/v-on-style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/VOnStyleValue"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/v-slot-style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/VSlotStyleConfig"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/valid-attribute-name": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
         "vue/valid-define-emits": {
           "$ref": "#/definitions/RuleNoConfig"
         },
@@ -10669,6 +11247,108 @@
           "$ref": "#/definitions/RuleNoConfig"
         },
         "vue/valid-next-tick": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-template-root": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-bind": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-cloak": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-else": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-else-if": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-for": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/ValidVFor"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/valid-v-html": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-if": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-is": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-memo": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-model": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-on": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/ValidVOn"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/valid-v-once": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-pre": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-show": {
+          "$ref": "#/definitions/RuleNoConfig"
+        },
+        "vue/valid-v-slot": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RuleNoConfig"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/AllowWarnDeny"
+                },
+                {
+                  "$ref": "#/definitions/ValidVSlot"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          ]
+        },
+        "vue/valid-v-text": {
           "$ref": "#/definitions/RuleNoConfig"
         },
         "yoda": {
@@ -12773,7 +13453,8 @@
         "react-perf",
         "promise",
         "node",
-        "vue"
+        "vue",
+        "svelte"
       ]
     },
     "LintPlugins": {
@@ -13383,6 +14064,24 @@
       },
       "additionalProperties": false
     },
+    "MultiWordComponentNames": {
+      "$ref": "#/definitions/MultiWordComponentNamesConfig"
+    },
+    "MultiWordComponentNamesConfig": {
+      "type": "object",
+      "properties": {
+        "ignores": {
+          "description": "Component names to exempt from the multi-word check, in addition to\nthe built-in `App`/`app`. A `PascalCase` entry also exempts its\nkebab-case form (e.g. `\"TodoItem\"` also allows `\"todo-item\"`).",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Component names to exempt from the multi-word check, in addition to\nthe built-in `App`/`app`. A `PascalCase` entry also exempts its\nkebab-case form (e.g. `\"TodoItem\"` also allows `\"todo-item\"`)."
+        }
+      },
+      "additionalProperties": false
+    },
     "NameSpecifier": {
       "description": "Name specifier that can be a single string or array of strings",
       "anyOf": [
@@ -13857,6 +14556,24 @@
       },
       "additionalProperties": false
     },
+    "NoChildContent": {
+      "$ref": "#/definitions/NoChildContentConfig"
+    },
+    "NoChildContentConfig": {
+      "type": "object",
+      "properties": {
+        "additionalDirectives": {
+          "description": "Additional directive names (without the `v-` prefix) that, like\n`v-html`/`v-text`, overwrite an element's child content. Default: none.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Additional directive names (without the `v-` prefix) that, like\n`v-html`/`v-text`, overwrite an element's child content. Default: none."
+        }
+      },
+      "additionalProperties": false
+    },
     "NoCommonjs": {
       "type": "object",
       "properties": {
@@ -14055,6 +14772,51 @@
       },
       "additionalProperties": false
     },
+    "NoDeprecatedRouterLinkTagProp": {
+      "$ref": "#/definitions/NoDeprecatedRouterLinkTagPropConfig"
+    },
+    "NoDeprecatedRouterLinkTagPropConfig": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "description": "Component names this rule checks the `tag` prop on, in place of the\ndefault `[\"RouterLink\"]`. Each entry is matched (case-sensitively)\nagainst a tag's exact kebab-case and PascalCase forms.",
+          "default": [
+            "RouterLink"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Component names this rule checks the `tag` prop on, in place of the\ndefault `[\"RouterLink\"]`. Each entry is matched (case-sensitively)\nagainst a tag's exact kebab-case and PascalCase forms."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoDeprecatedSlotAttribute": {
+      "$ref": "#/definitions/NoDeprecatedSlotAttributeConfig"
+    },
+    "NoDeprecatedSlotAttributeConfig": {
+      "type": "object",
+      "properties": {
+        "ignore": {
+          "description": "Tag-name patterns; a `slot`/`:slot` attribute on a matching element is\nnot reported. Each entry is matched (case-sensitively) against the\nelement's raw name, its PascalCase form, and its kebab-case form —\neither as a bare tag name (an exact, anchored match) or a\n`\"/pattern/flags\"` regex literal. Default: none.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Tag-name patterns; a `slot`/`:slot` attribute on a matching element is\nnot reported. Each entry is matched (case-sensitively) against the\nelement's raw name, its PascalCase form, and its kebab-case form —\neither as a bare tag name (an exact, anchored match) or a\n`\"/pattern/flags\"` regex literal. Default: none."
+        },
+        "ignoreParents": {
+          "description": "Like `ignore`, but matched against the raw name of the element's\n*parent* instead (no PascalCase/kebab-case variants). Default: none.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Like `ignore`, but matched against the raw name of the element's\n*parent* instead (no PascalCase/kebab-case variants). Default: none."
+        }
+      },
+      "additionalProperties": false
+    },
     "NoDistractingElementsConfig": {
       "type": "object",
       "properties": {
@@ -14083,6 +14845,24 @@
             "type": "string"
           },
           "markdownDescription": "Additional group names to search for duplicate keys in, on top of the\nbuilt-in `props`, `computed`, `data`, `methods` and `setup` groups."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoDuplicateAttributes": {
+      "type": "object",
+      "properties": {
+        "allowCoexistClass": {
+          "description": "Whether a plain `class` and a `:class` binding may coexist. Default `true`.",
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Whether a plain `class` and a `:class` binding may coexist. Default `true`."
+        },
+        "allowCoexistStyle": {
+          "description": "Whether a plain `style` and a `:style` binding may coexist. Default `true`.",
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Whether a plain `style` and a `:style` binding may coexist. Default `true`."
         }
       },
       "additionalProperties": false
@@ -14761,6 +15541,18 @@
           "format": "uint32",
           "minimum": 0.0,
           "markdownDescription": "Maximum number of lines allowed for external snapshot files."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoLoneTemplate": {
+      "type": "object",
+      "properties": {
+        "ignoreAccessible": {
+          "description": "When `true`, a `<template>` that only carries `id`/`ref` (and no\nstructural directive) is also allowed. Default `false`.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "When `true`, a `<template>` that only carries `id`/`ref` (and no\nstructural directive) is also allowed. Default `false`."
         }
       },
       "additionalProperties": false
@@ -15708,6 +16500,28 @@
       },
       "additionalProperties": false
     },
+    "NoTargetBlank": {
+      "type": "object",
+      "properties": {
+        "allowReferrer": {
+          "description": "Whether `rel=\"noopener\"` alone (without `noreferrer`) is enough.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "Whether `rel=\"noopener\"` alone (without `noreferrer`) is enough."
+        },
+        "enforceDynamicLinks": {
+          "description": "Whether links with a dynamic `href` are checked. `\"always\"` (the\ndefault) checks them; `\"never\"` only checks static external links.",
+          "default": "always",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AlwaysNever"
+            }
+          ],
+          "markdownDescription": "Whether links with a dynamic `href` are checked. `\"always\"` (the\ndefault) checks them; `\"never\"` only checks static external links."
+        }
+      },
+      "additionalProperties": false
+    },
     "NoThisAliasConfig": {
       "type": "object",
       "properties": {
@@ -16320,6 +17134,18 @@
         }
       ]
     },
+    "NoUseVIfWithVFor": {
+      "type": "object",
+      "properties": {
+        "allowUsingIterationVar": {
+          "description": "Whether a `v-if` that references one of the `v-for`'s own iteration\nvariables (e.g. `v-for=\"item in items\" v-if=\"item.active\"`) is\nallowed without a report (still reported, with a different message,\nwhen this is `false`, the default). Default `false`.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "Whether a `v-if` that references one of the `v-for`'s own iteration\nvariables (e.g. `v-for=\"item in items\" v-if=\"item.active\"`) is\nallowed without a report (still reported, with a different message,\nwhen this is `false`, the default). Default `false`."
+        }
+      },
+      "additionalProperties": false
+    },
     "NoUselessComputedKey": {
       "type": "object",
       "properties": {
@@ -16399,6 +17225,38 @@
           "default": true,
           "type": "boolean",
           "markdownDescription": "Whether to check for useless `undefined` in arrow function bodies."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoVHtml": {
+      "$ref": "#/definitions/NoVHtmlConfig"
+    },
+    "NoVHtmlConfig": {
+      "type": "object",
+      "properties": {
+        "ignorePattern": {
+          "description": "A regex pattern; when the `v-html` value's expression text matches\nit, the report is suppressed (e.g. an identifier or member expression\nknown to already hold sanitized HTML). Default: none (every `v-html`\nis reported).",
+          "type": "string",
+          "markdownDescription": "A regex pattern; when the `v-html` value's expression text matches\nit, the report is suppressed (e.g. an identifier or member expression\nknown to already hold sanitized HTML). Default: none (every `v-html`\nis reported)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoVTextVHtmlOnComponent": {
+      "$ref": "#/definitions/NoVTextVHtmlOnComponentConfig"
+    },
+    "NoVTextVHtmlOnComponentConfig": {
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Component names allowed to carry `v-text`/`v-html` despite being\ncustom components. Matched against the element's name as written, its\n`PascalCase` form, and its `kebab-case` form (mirrors\neslint-plugin-vue's `allow` option). Default: none.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Component names allowed to carry `v-text`/`v-html` despite being\ncustom components. Matched against the element's name as written, its\n`PascalCase` form, and its `kebab-case` form (mirrors\neslint-plugin-vue's `allow` option). Default: none."
         }
       },
       "additionalProperties": false
@@ -16954,6 +17812,21 @@
           "additionalProperties": false
         }
       ]
+    },
+    "OrderEntry": {
+      "description": "One entry of the `order` option: either a single selector, or a group of\nselectors that share the same rank (no relative order is enforced\nbetween members of the same group — mirrors upstream's default\n`[[\"script\", \"template\"], \"style\"]`).",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "markdownDescription": "One entry of the `order` option: either a single selector, or a group of\nselectors that share the same rank (no relative order is enforced\nbetween members of the same group — mirrors upstream's default\n`[[\"script\", \"template\"], \"style\"]`)."
     },
     "Override": {
       "type": "object",
@@ -18580,6 +19453,24 @@
       },
       "additionalProperties": false
     },
+    "RequireToggleInsideTransition": {
+      "$ref": "#/definitions/RequireToggleInsideTransitionConfig"
+    },
+    "RequireToggleInsideTransitionConfig": {
+      "type": "object",
+      "properties": {
+        "additionalDirectives": {
+          "description": "Additional directive names (without the `v-` prefix) that, like\n`v-if`/`v-show`, count as toggling the transitioned element. Default:\nnone.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Additional directive names (without the `v-` prefix) that, like\n`v-if`/`v-show`, count as toggling the transitioned element. Default:\nnone."
+        }
+      },
+      "additionalProperties": false
+    },
     "RequireTopLevelDescribeConfig": {
       "type": "object",
       "properties": {
@@ -18948,6 +19839,14 @@
         }
       ]
     },
+    "SameNameShorthand": {
+      "type": "string",
+      "enum": [
+        "always",
+        "never",
+        "ignore"
+      ]
+    },
     "SelfClosingComp": {
       "type": "object",
       "properties": {
@@ -18975,6 +19874,14 @@
         "consistent",
         "consistent-as-needed",
         "never"
+      ]
+    },
+    "SlotStyle": {
+      "type": "string",
+      "enum": [
+        "shorthand",
+        "longform",
+        "v-slot"
       ]
     },
     "SnapshotHintMode": {
@@ -19348,6 +20255,26 @@
       },
       "additionalProperties": false
     },
+    "ThisInTemplateOption": {
+      "oneOf": [
+        {
+          "description": "Disallow `this.<prop>` in template expressions (the default).",
+          "type": "string",
+          "enum": [
+            "never"
+          ],
+          "markdownDescription": "Disallow `this.<prop>` in template expressions (the default)."
+        },
+        {
+          "description": "Require every component-property reference in template expressions\nto be prefixed with `this.`.",
+          "type": "string",
+          "enum": [
+            "always"
+          ],
+          "markdownDescription": "Require every component-property reference in template expressions\nto be prefixed with `this.`."
+        }
+      ]
+    },
     "TripleSlashReferenceConfig": {
       "type": "object",
       "properties": {
@@ -19524,6 +20451,104 @@
       },
       "additionalProperties": false
     },
+    "VBindStyleConfig": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "#/definitions/BindStyle"
+        },
+        {
+          "$ref": "#/definitions/VBindStyleOptions"
+        }
+      ],
+      "maxItems": 2,
+      "minItems": 2
+    },
+    "VBindStyleOptions": {
+      "type": "object",
+      "properties": {
+        "sameNameShorthand": {
+          "$ref": "#/definitions/SameNameShorthand"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VOnEventHyphenationConfig": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "#/definitions/AlwaysNever"
+        },
+        {
+          "$ref": "#/definitions/VOnEventHyphenationOptions"
+        }
+      ],
+      "maxItems": 2,
+      "minItems": 2
+    },
+    "VOnEventHyphenationOptions": {
+      "type": "object",
+      "properties": {
+        "autofix": {
+          "description": "Accepted for compatibility with upstream's `autofix` option key; this\nrule never applies fixes (oxlint doesn't fix Vue template rules), so\nthe value itself has no effect. Present only so a real-world\n`v-on-event-hyphenation` config (which upstream defaults to\n`{ autofix: true }` for Vue 3) still deserializes without error.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "Accepted for compatibility with upstream's `autofix` option key; this\nrule never applies fixes (oxlint doesn't fix Vue template rules), so\nthe value itself has no effect. Present only so a real-world\n`v-on-event-hyphenation` config (which upstream defaults to\n`{ autofix: true }` for Vue 3) still deserializes without error."
+        },
+        "ignore": {
+          "description": "Event names (matched as a substring) that are never reported.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Event names (matched as a substring) that are never reported."
+        },
+        "ignoreTags": {
+          "description": "Tag-name patterns; a custom element whose raw tag name matches any of\nthem is skipped entirely. Each entry is either a bare tag name\n(matched as an exact, case-sensitive string — not a substring) or a\n`\"/pattern/flags\"` regex literal, mirroring eslint-plugin-vue's\n`toRegExpGroupMatcher`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Tag-name patterns; a custom element whose raw tag name matches any of\nthem is skipped entirely. Each entry is either a bare tag name\n(matched as an exact, case-sensitive string — not a substring) or a\n`\"/pattern/flags\"` regex literal, mirroring eslint-plugin-vue's\n`toRegExpGroupMatcher`."
+        }
+      },
+      "additionalProperties": false
+    },
+    "VOnStyleValue": {
+      "type": "string",
+      "enum": [
+        "shorthand",
+        "longform"
+      ]
+    },
+    "VSlotStyleConfig": {
+      "description": "eslint-plugin-vue `v-slot-style`'s single positional option, which is\neither a bare style string (applied to all three slot kinds) or a\nper-slot-kind object.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SlotStyle"
+        },
+        {
+          "$ref": "#/definitions/VSlotStyleOptions"
+        }
+      ],
+      "markdownDescription": "eslint-plugin-vue `v-slot-style`'s single positional option, which is\neither a bare style string (applied to all three slot kinds) or a\nper-slot-kind object."
+    },
+    "VSlotStyleOptions": {
+      "type": "object",
+      "properties": {
+        "atComponent": {
+          "$ref": "#/definitions/SlotStyle"
+        },
+        "default": {
+          "$ref": "#/definitions/SlotStyle"
+        },
+        "named": {
+          "$ref": "#/definitions/SlotStyle"
+        }
+      },
+      "additionalProperties": false
+    },
     "ValidExpectConfig": {
       "type": "object",
       "properties": {
@@ -19572,6 +20597,48 @@
           "default": false,
           "type": "boolean",
           "markdownDescription": "The `requireStringLiterals` option when set to `true`, allows the comparison of `typeof`\nexpressions with only string literals or other `typeof` expressions, and disallows\ncomparisons to any other value. Default is `false`.\n\nWith `requireStringLiterals` set to `true`, the following are examples of **incorrect** code:\n```js\ntypeof foo === undefined\ntypeof bar == Object\ntypeof baz === \"strnig\"\ntypeof qux === \"some invalid type\"\ntypeof baz === anotherVariable\ntypeof foo == 5\n```\n\nWith `requireStringLiterals` set to `true`, the following are examples of **correct** code:\n```js\ntypeof foo === \"undefined\"\ntypeof bar == \"object\"\ntypeof baz === \"string\"\ntypeof bar === typeof qux\n```"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ValidVFor": {
+      "type": "object",
+      "properties": {
+        "allowEmptyAlias": {
+          "description": "Whether an omitted alias slot (e.g. `(, key) in items`) is allowed.\nDefault `false`.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "Whether an omitted alias slot (e.g. `(, key) in items`) is allowed.\nDefault `false`."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ValidVOn": {
+      "$ref": "#/definitions/ValidVOnConfig"
+    },
+    "ValidVOnConfig": {
+      "type": "object",
+      "properties": {
+        "modifiers": {
+          "description": "Additional modifier names to accept beyond the built-in ones (e.g.\nproject-specific custom directives layered on `v-on`).",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Additional modifier names to accept beyond the built-in ones (e.g.\nproject-specific custom directives layered on `v-on`)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ValidVSlot": {
+      "type": "object",
+      "properties": {
+        "allowModifiers": {
+          "description": "Whether a modifier is allowed on a *named* (has an argument) `v-slot`\ndirective (e.g. `v-slot:foo.bar`). A modifier on a default slot\n(no argument) is always rejected. Default `false`.",
+          "default": false,
+          "type": "boolean",
+          "markdownDescription": "Whether a modifier is allowed on a *named* (has an argument) `v-slot`\ndirective (e.g. `v-slot:foo.bar`). A modifier on a default slot\n(no argument) is always rejected. Default `false`."
         }
       },
       "additionalProperties": false

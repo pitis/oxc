@@ -83,6 +83,8 @@ Arguments:
   Enable the node plugin and detect node usage problems
 - **`    --vue-plugin`** &mdash; 
   Enable the vue plugin and detect vue usage problems
+- **`    --svelte-plugin`** &mdash; 
+  Enable the svelte plugin and detect svelte usage problems
 
 
 

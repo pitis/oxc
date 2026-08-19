@@ -1,0 +1,89 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name requires a value.
+   ╭─[no_dynamic_slot_name.tsx:1:7]
+ 1 │ <slot name />
+   ·       ────
+   ╰────
+  help: Give the `name` attribute a static value, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name requires a value.
+   ╭─[no_dynamic_slot_name.tsx:1:7]
+ 1 │ <slot name="" />
+   ·       ───────
+   ╰────
+  help: Give the `name` attribute a static value, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:12]
+ 1 │ <slot name={'name'} />
+   ·            ────────
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:12]
+ 1 │ <slot name={SLOT_NAME} />
+   ·            ───────────
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:13]
+ 1 │ <slot name="{SLOT_NAME}" />
+   ·             ───────────
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:14]
+ 1 │ <slot name="a{b}c{d}" />
+   ·              ───
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:18]
+ 1 │ <slot name="a{b}c{d}" />
+   ·                  ───
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:19]
+ 1 │ {#if a}<slot name={a} />{:else}<slot name={b} />{/if}
+   ·                   ───
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:43]
+ 1 │ {#if a}<slot name={a} />{:else}<slot name={b} />{/if}
+   ·                                           ───
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:33]
+ 1 │ {#each items as item}<slot name={item} />{/each}
+   ·                                 ──────
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:1:12]
+ 1 │ <slot name={SLOT_NAME} />
+   ·            ───────────
+ 2 │ <slot name={SLOT_NAME} />
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.
+
+  ⚠ svelte(no-dynamic-slot-name): `<slot>` name cannot be dynamic.
+   ╭─[no_dynamic_slot_name.tsx:2:12]
+ 1 │ <slot name={SLOT_NAME} />
+ 2 │ <slot name={SLOT_NAME} />
+   ·            ───────────
+   ╰────
+  help: Use a static string for the slot name, e.g. `<slot name="header" />`.

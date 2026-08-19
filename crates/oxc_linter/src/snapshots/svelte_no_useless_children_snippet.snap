@@ -1,0 +1,33 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-useless-children-snippet): Found an unnecessary children snippet.
+   ╭─[no_useless_children_snippet.tsx:2:3]
+ 1 │ <Foo>
+ 2 │   {#snippet children()}
+   ·   ─────────────────────
+ 3 │     Hello
+   ╰────
+  help: Remove the `{#snippet children()}` wrapper and place its content directly inside the element.
+
+  ⚠ svelte(no-useless-children-snippet): Found an unnecessary children snippet.
+   ╭─[no_useless_children_snippet.tsx:1:6]
+ 1 │ <div>{#snippet children()}Hello{/snippet}</div>
+   ·      ─────────────────────
+   ╰────
+  help: Remove the `{#snippet children()}` wrapper and place its content directly inside the element.
+
+  ⚠ svelte(no-useless-children-snippet): Found an unnecessary children snippet.
+   ╭─[no_useless_children_snippet.tsx:1:6]
+ 1 │ <Foo>{#snippet children(  )}Hello{/snippet}</Foo>
+   ·      ───────────────────────
+   ╰────
+  help: Remove the `{#snippet children()}` wrapper and place its content directly inside the element.
+
+  ⚠ svelte(no-useless-children-snippet): Found an unnecessary children snippet.
+   ╭─[no_useless_children_snippet.tsx:1:27]
+ 1 │ {#each items as item}<Foo>{#snippet children()}{item}{/snippet}</Foo>{/each}
+   ·                           ─────────────────────
+   ╰────
+  help: Remove the `{#snippet children()}` wrapper and place its content directly inside the element.

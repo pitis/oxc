@@ -1,0 +1,73 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:31]
+ 1 │ <a href="https://example.com" target="_blank">link</a>
+   ·                               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:25]
+ 1 │ <a href="//example.com" target="_blank">link</a>
+   ·                         ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:15]
+ 1 │ <a href={url} target="_blank">link</a>
+   ·               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:11]
+ 1 │ <a {href} target="_blank">link</a>
+   ·           ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:20]
+ 1 │ <a bind:href={url} target="_blank">link</a>
+   ·                    ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:31]
+ 1 │ <a href="https://example.com" target="_blank" rel="noopener">link</a>
+   ·                               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:31]
+ 1 │ <a href="https://example.com" target="_blank" rel={rel}>link</a>
+   ·                               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:31]
+ 1 │ <a href="https://example.com" target="_blank">link</a>
+   ·                               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:31]
+ 1 │ <a href="https://example.com" target="_blank">link</a>
+   ·                               ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.
+
+  ⚠ svelte(no-target-blank): Using target="_blank" without rel="noopener noreferrer" is a security risk.
+   ╭─[no_target_blank.tsx:1:38]
+ 1 │ {#if a}<a href="https://example.com" target="_blank">link</a>{/if}
+   ·                                      ───────────────
+   ╰────
+  help: Add `rel="noopener noreferrer"` so the opened page cannot reach back through `window.opener` or learn the referrer.

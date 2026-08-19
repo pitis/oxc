@@ -1,0 +1,108 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:13]
+ 1 │ <div style="background: green; background: {red};">...</div>
+   ·             ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:32]
+ 1 │ <div style="background: green; background: {red};">...</div>
+   ·                                ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:12]
+ 1 │ <div style:background="green" style="background: {red}">...</div>
+   ·            ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:38]
+ 1 │ <div style:background="green" style="background: {red}">...</div>
+   ·                                      ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'width'.
+   ╭─[no_dupe_style_properties.tsx:1:12]
+ 1 │ <div style:width="10px" style:width="20px">...</div>
+   ·            ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'width'.
+   ╭─[no_dupe_style_properties.tsx:1:31]
+ 1 │ <div style:width="10px" style:width="20px">...</div>
+   ·                               ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'color'.
+   ╭─[no_dupe_style_properties.tsx:1:13]
+ 1 │ <div style="color: red; color: blue; color: green">...</div>
+   ·             ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'color'.
+   ╭─[no_dupe_style_properties.tsx:1:25]
+ 1 │ <div style="color: red; color: blue; color: green">...</div>
+   ·                         ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'color'.
+   ╭─[no_dupe_style_properties.tsx:1:38]
+ 1 │ <div style="color: red; color: blue; color: green">...</div>
+   ·                                      ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:13]
+ 1 │ <div style="background: green; {expr}; background: red">...</div>
+   ·             ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:40]
+ 1 │ <div style="background: green; {expr}; background: red">...</div>
+   ·                                        ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:13]
+ 1 │ <div style="background: url(a;b); background: red">...</div>
+   ·             ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'background'.
+   ╭─[no_dupe_style_properties.tsx:1:35]
+ 1 │ <div style="background: url(a;b); background: red">...</div>
+   ·                                   ──────────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'color'.
+   ╭─[no_dupe_style_properties.tsx:1:20]
+ 1 │ {#if a}<div style="color: red; color: blue">x</div>{/if}
+   ·                    ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.
+
+  ⚠ svelte(no-dupe-style-properties): Duplicate property 'color'.
+   ╭─[no_dupe_style_properties.tsx:1:32]
+ 1 │ {#if a}<div style="color: red; color: blue">x</div>{/if}
+   ·                                ─────
+   ╰────
+  help: Remove the duplicate declaration; the later value overrides the earlier one.

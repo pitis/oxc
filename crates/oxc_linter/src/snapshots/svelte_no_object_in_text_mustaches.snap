@@ -1,0 +1,67 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected object in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ {{ a }}
+   · ───────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected array in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ {[a]}
+   · ─────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected function in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ {() => a}
+   · ─────────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected function in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ ╭─▶ {function () {
+ 2 │ │       return a;
+ 3 │ ╰─▶ }}
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected class in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ {class A {}}
+   · ────────────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected object in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:15]
+ 1 │ <input class="{{ a }} a" />
+   ·               ───────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected object in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:8]
+ 1 │ {#if x}{{ a }}{/if}
+   ·        ───────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected object in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:18]
+ 1 │ <div style:color={{ a }} />
+   ·                  ───────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.
+
+  ⚠ svelte(no-object-in-text-mustaches): Unexpected object in text mustache interpolation.
+   ╭─[no_object_in_text_mustaches.tsx:1:1]
+ 1 │ {@html { a }}
+   · ─────────────
+   ╰────
+  help: The mustache renders this value as text (e.g. `[object Object]`); interpolate an expression that produces a primitive value instead.

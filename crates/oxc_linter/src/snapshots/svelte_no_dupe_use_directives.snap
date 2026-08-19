@@ -1,0 +1,61 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:17]
+ 1 │ <div use:action use:action></div>
+   ·                 ──────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:23]
+ 1 │ <div use:action={foo} use:action={foo}></div>
+   ·                       ────────────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:23]
+ 1 │ <div use:action={foo} use:action={ foo }></div>
+   ·                       ──────────────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:lib.action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:25]
+ 1 │ <div use:lib.action={x} use:lib.action={x}></div>
+   ·                         ──────────────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L2.
+   ╭─[no_dupe_use_directives.tsx:3:3]
+ 2 │   use:action={foo}
+ 3 │   use:action={foo}
+   ·   ────────────────
+ 4 │ ></div>
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:17]
+ 1 │ <div use:action use:action use:action></div>
+   ·                 ──────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:28]
+ 1 │ <div use:action use:action use:action></div>
+   ·                            ──────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
+
+  ⚠ svelte(no-dupe-use-directives): This `use:action` directive is the same and duplicate directives in L1.
+   ╭─[no_dupe_use_directives.tsx:1:24]
+ 1 │ {#if a}<div use:action use:action></div>{/if}
+   ·                        ──────────
+   ╰────
+  help: The duplicate directive runs the same action again; remove it.
