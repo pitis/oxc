@@ -1090,6 +1090,7 @@ pub(crate) mod svelte {
     pub mod system;
     pub mod valid_each_key;
     pub mod valid_prop_names_in_kit_pages;
+    pub mod valid_style_parse;
 }
 
 pub(crate) mod shared;

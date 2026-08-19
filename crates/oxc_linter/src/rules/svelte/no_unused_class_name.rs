@@ -1,3 +1,5 @@
+use oxc_allocator::Allocator;
+use oxc_css_parser::ast::SimpleSelector;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
@@ -9,7 +11,10 @@ use svelte_markup_parser::ast::{AttributeKind, DirectiveKind, Node, ValuePart};
 use crate::{
     rule::{DefaultRuleConfig, Rule},
     svelte_template::{SvelteTemplateContext, SvelteTemplateRule},
-    utils::{deserialize_to_regexp_group_vec, svelte_start_tag_span, walk_svelte_elements},
+    utils::{
+        css_ident_name, deserialize_to_regexp_group_vec, for_each_selector, svelte_start_tag_span,
+        svelte_style_blocks, walk_svelte_elements,
+    },
 };
 
 fn no_unused_class_name_diagnostic(class_name: &str, span: Span) -> OxcDiagnostic {
@@ -75,13 +80,6 @@ declare_oxc_lint!(
     /// }
     /// ```
     ///
-    /// ### Deviations from `eslint-plugin-svelte`
-    ///
-    /// Class names are read out of the `<style>` block with a selector
-    /// scanner rather than a PostCSS parse: every `.name` token that appears
-    /// in selector position counts as styled. The practical difference is
-    /// that a `.name` written inside an unusual at-rule prelude also counts,
-    /// which can only ever suppress a report.
     NoUnusedClassName,
     svelte,
     correctness,
@@ -100,15 +98,23 @@ impl SvelteTemplateRule for NoUnusedClassName {
     fn run_on_markup<'a>(&self, nodes: &[Node<'a>], ctx: &mut SvelteTemplateContext<'a>) {
         let source = ctx.source_text();
 
-        // Classes any `<style>` block styles.
+        // Classes any `<style>` block styles, read off a real selector AST.
         let mut styled: FxHashSet<&str> = FxHashSet::default();
-        walk_svelte_elements(nodes, &mut |element| {
-            if !element.name.eq_ignore_ascii_case("style") {
-                return;
-            }
-            let Some(raw) = element.raw_text else { return };
-            collect_selector_classes(&source[raw.start as usize..raw.end as usize], &mut styled);
-        });
+        let allocator = Allocator::new();
+        for block in svelte_style_blocks(nodes, source) {
+            let Ok((stylesheet, _)) = block.parse(&allocator) else {
+                // A block that does not parse tells us nothing about which
+                // classes are styled; `svelte/valid-style-parse` reports it.
+                continue;
+            };
+            for_each_selector(&stylesheet, &mut |selector, _in_global| {
+                if let SimpleSelector::Class(class) = selector
+                    && let Some(name) = css_ident_name(&class.name)
+                {
+                    styled.insert(name);
+                }
+            });
+        }
 
         // Classes the markup uses, in source order.
         let mut used: Vec<(&str, Span)> = Vec::new();
@@ -150,84 +156,6 @@ impl SvelteTemplateRule for NoUnusedClassName {
             ctx.diagnostic(no_unused_class_name_diagnostic(class, span));
         }
     }
-}
-
-/// Collect every `.name` written in selector position of a stylesheet.
-///
-/// Scans the text outside strings and comments, tracking brace depth so only
-/// selectors — the text before a `{` — are considered, and skipping
-/// `[attr=".x"]` contents.
-fn collect_selector_classes<'a>(style: &'a str, out: &mut FxHashSet<&'a str>) {
-    let bytes = style.as_bytes();
-    let mut index = 0;
-    // Text since the last `{`, `}` or `;`, i.e. the pending selector.
-    let mut selector_start = 0;
-    let mut quote: Option<u8> = None;
-    let mut bracket_depth = 0u32;
-
-    while index < bytes.len() {
-        let byte = bytes[index];
-        if let Some(open) = quote {
-            if byte == open {
-                quote = None;
-            }
-            index += 1;
-            continue;
-        }
-        if byte == b'/' && bytes.get(index + 1) == Some(&b'*') {
-            let mut end = index + 2;
-            while end + 1 < bytes.len() && !(bytes[end] == b'*' && bytes[end + 1] == b'/') {
-                end += 1;
-            }
-            index = (end + 2).min(bytes.len());
-            continue;
-        }
-        match byte {
-            b'"' | b'\'' => quote = Some(byte),
-            b'[' => bracket_depth += 1,
-            b']' => bracket_depth = bracket_depth.saturating_sub(1),
-            b'{' => {
-                extract_classes(&style[selector_start..index], out);
-                selector_start = index + 1;
-            }
-            b'}' | b';' => selector_start = index + 1,
-            _ => {}
-        }
-        index += 1;
-    }
-    let _ = bracket_depth;
-}
-
-/// Pull `.name` class tokens out of one selector.
-fn extract_classes<'a>(selector: &'a str, out: &mut FxHashSet<&'a str>) {
-    let bytes = selector.as_bytes();
-    let mut index = 0;
-    let mut bracket_depth = 0u32;
-    while index < bytes.len() {
-        match bytes[index] {
-            b'[' => bracket_depth += 1,
-            b']' => bracket_depth = bracket_depth.saturating_sub(1),
-            // A `.` inside `[attr=".x"]` is part of a value, not a class.
-            b'.' if bracket_depth == 0 => {
-                let start = index + 1;
-                let mut end = start;
-                while end < bytes.len() && is_class_char(bytes[end]) {
-                    end += 1;
-                }
-                if end > start {
-                    out.insert(&selector[start..end]);
-                }
-                index = end;
-                continue;
-            }
-            _ => {}
-        }
-        index += 1;
-    }
-}
-
-fn is_class_char(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_' || byte >= 0x80 || byte == b'\\'
 }
 
 #[cfg(test)]

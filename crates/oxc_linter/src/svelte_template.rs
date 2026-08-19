@@ -76,6 +76,7 @@ pub fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRul
         RuleEnum::SvelteNoUnusedSvelteIgnore(rule) => Some(rule),
         RuleEnum::SvelteRequireStoreReactiveAccess(rule) => Some(rule),
         RuleEnum::SvelteNoNavigationWithoutResolve(rule) => Some(rule),
+        RuleEnum::SvelteValidStyleParse(rule) => Some(rule),
         RuleEnum::SveltePreferDestructuredStoreProps(rule) => Some(rule),
         RuleEnum::SveltePreferClassDirective(rule) => Some(rule),
         RuleEnum::SveltePreferConst(rule) => Some(rule),

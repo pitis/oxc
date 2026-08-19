@@ -2268,6 +2268,7 @@ dependencies = [
  "markdown",
  "memchr",
  "nodejs-built-in-modules",
+ "oxc-css-parser",
  "oxc-schemars",
  "oxc_allocator",
  "oxc_ast",

@@ -32,6 +32,7 @@ mod schemars;
 mod static_value;
 mod svelte_store;
 mod svelte_style_attribute;
+mod svelte_style_block;
 mod svelte_template;
 mod this_expression;
 mod typescript;
@@ -45,8 +46,9 @@ mod vue_template;
 pub use self::{
     comment::*, config::*, control_flow::*, express::*, framework::*, jest::*, jsdoc::*, nextjs::*,
     node::*, promise::*, react::*, react_compiler::*, react_perf::*, regex::*, schemars::*,
-    static_value::*, svelte_store::*, svelte_style_attribute::*, svelte_template::*,
-    this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*, vue_template::*,
+    static_value::*, svelte_store::*, svelte_style_attribute::*, svelte_style_block::*,
+    svelte_template::*, this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*,
+    vue_template::*,
 };
 
 /// List of Eslint rules that have TypeScript equivalents.

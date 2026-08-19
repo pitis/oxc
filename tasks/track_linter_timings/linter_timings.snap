@@ -543,6 +543,7 @@ svelte/sort-attributes                                     |      0
 svelte/spaced-html-comment                                 |      0
 svelte/system                                              |      0
 svelte/valid-each-key                                      |      0
+svelte/valid-style-parse                                   |      0
 typescript/adjacent-overload-signatures                    |  14374
 typescript/array-type                                      |  14479
 typescript/ban-ts-comment                                  |      4

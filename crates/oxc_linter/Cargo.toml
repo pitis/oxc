@@ -46,6 +46,9 @@ oxc_semantic = { workspace = true, features = ["cfg", "linter"] }
 oxc_span = { workspace = true, features = ["schemars", "serialize"] }
 vue_sfc_parser = { workspace = true }
 svelte_markup_parser = { workspace = true }
+# Reads `<style>` blocks for the `svelte/*` CSS rules. Its only dependency is
+# `oxc_allocator`, already a dependency here, so this adds no transitive crates.
+oxc-css-parser = { workspace = true }
 oxc_str = { workspace = true, features = ["serialize"] }
 oxc_syntax = { workspace = true, features = ["serialize"] }
 

@@ -1,0 +1,29 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(valid-style-parse): Error parsing style element. Error message: "unclosed block before end of file"
+   ╭─[valid_style_parse.tsx:2:5]
+ 1 │ <style>
+ 2 │     .a { color: red;
+   ·        ─
+ 3 │ </style>
+   ╰────
+  help: Fix the CSS so the component's `<style>` block parses.
+
+  ⚠ svelte(valid-style-parse): Error parsing style element. Error message: "expect token `<eof>`, but found `}`"
+   ╭─[valid_style_parse.tsx:2:20]
+ 1 │ <style>
+ 2 │     .a { color: red } }
+   ·                       ─
+ 3 │ </style>
+   ╰────
+  help: Fix the CSS so the component's `<style>` block parses.
+
+  ⚠ svelte(valid-style-parse): Found unsupported style element language "stylus"
+   ╭─[valid_style_parse.tsx:1:1]
+ 1 │ <style lang="stylus">
+   · ─────────────────────
+ 2 │     .a
+   ╰────
+  help: Use `css`, `scss`, `sass` or `less`.

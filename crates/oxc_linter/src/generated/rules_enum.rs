@@ -583,6 +583,7 @@ pub use crate::rules::svelte::spaced_html_comment::SpacedHtmlComment as SvelteSp
 pub use crate::rules::svelte::system::System as SvelteSystem;
 pub use crate::rules::svelte::valid_each_key::ValidEachKey as SvelteValidEachKey;
 pub use crate::rules::svelte::valid_prop_names_in_kit_pages::ValidPropNamesInKitPages as SvelteValidPropNamesInKitPages;
+pub use crate::rules::svelte::valid_style_parse::ValidStyleParse as SvelteValidStyleParse;
 pub use crate::rules::typescript::adjacent_overload_signatures::AdjacentOverloadSignatures as TypescriptAdjacentOverloadSignatures;
 pub use crate::rules::typescript::array_type::ArrayType as TypescriptArrayType;
 pub use crate::rules::typescript::await_thenable::AwaitThenable as TypescriptAwaitThenable;
@@ -2020,6 +2021,7 @@ pub enum RuleEnum {
     SvelteSystem(SvelteSystem),
     SvelteValidEachKey(SvelteValidEachKey),
     SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages),
+    SvelteValidStyleParse(SvelteValidStyleParse),
 }
 const IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID: usize = 0usize;
 const IMPORT_DEFAULT_ID: usize = IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID + 1usize;
@@ -3147,7 +3149,8 @@ const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_SORT_ATTRIBUTES_ID + 1usize;
 const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
-static RULE_NAMES: [&str; 996usize] = [
+const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
+static RULE_NAMES: [&str; 997usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4144,6 +4147,7 @@ static RULE_NAMES: [&str; 996usize] = [
     SvelteSystem::NAME,
     SvelteValidEachKey::NAME,
     SvelteValidPropNamesInKitPages::NAME,
+    SvelteValidStyleParse::NAME,
 ];
 impl RuleEnum {
     pub fn id(&self) -> usize {
@@ -5300,6 +5304,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SVELTE_SYSTEM_ID,
             Self::SvelteValidEachKey(_) => SVELTE_VALID_EACH_KEY_ID,
             Self::SvelteValidPropNamesInKitPages(_) => SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID,
+            Self::SvelteValidStyleParse(_) => SVELTE_VALID_STYLE_PARSE_ID,
         }
     }
     pub fn name(&self) -> &'static str {
@@ -6515,6 +6520,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SvelteSystem::CATEGORY,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::CATEGORY,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::CATEGORY,
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::CATEGORY,
         }
     }
     #[doc = r" This [`Rule`]'s auto-fix capabilities."]
@@ -7648,6 +7654,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SvelteSystem::FIX,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::FIX,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::FIX,
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::FIX,
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -9107,6 +9114,7 @@ impl RuleEnum {
             Self::SvelteValidPropNamesInKitPages(_) => {
                 SvelteValidPropNamesInKitPages::documentation()
             }
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::documentation(),
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -11987,6 +11995,8 @@ impl RuleEnum {
                 SvelteValidPropNamesInKitPages::config_schema(generator)
                     .or_else(|| SvelteValidPropNamesInKitPages::schema(generator))
             }
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::config_schema(generator)
+                .or_else(|| SvelteValidStyleParse::schema(generator)),
         }
     }
     pub fn plugin_name(&self) -> &'static str {
@@ -12987,6 +12997,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => "svelte",
             Self::SvelteValidEachKey(_) => "svelte",
             Self::SvelteValidPropNamesInKitPages(_) => "svelte",
+            Self::SvelteValidStyleParse(_) => "svelte",
         }
     }
     pub fn from_configuration(
@@ -15228,6 +15239,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.run(node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run(node, ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run(node, ctx),
+            Self::SvelteValidStyleParse(rule) => rule.run(node, ctx),
         }
     }
     pub(crate) fn run<'a, const TIMINGS: bool>(
@@ -16241,6 +16253,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.run_once(ctx),
             Self::SvelteValidEachKey(rule) => rule.run_once(ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_once(ctx),
+            Self::SvelteValidStyleParse(rule) => rule.run_once(ctx),
         }
     }
     pub(crate) fn run_once<const TIMINGS: bool>(
@@ -17389,6 +17402,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteValidStyleParse(rule) => rule.run_on_jest_node(jest_node, ctx),
         }
     }
     pub(crate) fn run_on_jest_node<'a, 'c, const TIMINGS: bool>(
@@ -18403,6 +18417,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.should_run(ctx),
             Self::SvelteValidEachKey(rule) => rule.should_run(ctx),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.should_run(ctx),
+            Self::SvelteValidStyleParse(rule) => rule.should_run(ctx),
         }
     }
     pub fn is_tsgolint_rule(&self) -> bool {
@@ -19861,6 +19876,7 @@ impl RuleEnum {
             Self::SvelteValidPropNamesInKitPages(_) => {
                 SvelteValidPropNamesInKitPages::IS_TSGOLINT_RULE
             }
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::IS_TSGOLINT_RULE,
         }
     }
     #[doc = r" The version of oxlint in which this rule was first available."]
@@ -21075,6 +21091,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SvelteSystem::VERSION,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::VERSION,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::VERSION,
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::VERSION,
         }
     }
     #[doc = r" Whether this rule declares a configuration type."]
@@ -22340,6 +22357,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SvelteSystem::HAS_CONFIG,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::HAS_CONFIG,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::HAS_CONFIG,
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::HAS_CONFIG,
         }
     }
     #[doc = r" Additional information about this rule."]
@@ -23474,6 +23492,7 @@ impl RuleEnum {
             Self::SvelteSystem(_) => SvelteSystem::INFO,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::INFO,
             Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::INFO,
+            Self::SvelteValidStyleParse(_) => SvelteValidStyleParse::INFO,
         }
     }
     #[doc = r" A short, one-line summary of what this rule does."]
@@ -24479,6 +24498,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.types_info(),
             Self::SvelteValidEachKey(rule) => rule.types_info(),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.types_info(),
+            Self::SvelteValidStyleParse(rule) => rule.types_info(),
         }
     }
     pub fn run_info(&self) -> RuleRunFunctionsImplemented {
@@ -25479,6 +25499,7 @@ impl RuleEnum {
             Self::SvelteSystem(rule) => rule.run_info(),
             Self::SvelteValidEachKey(rule) => rule.run_info(),
             Self::SvelteValidPropNamesInKitPages(rule) => rule.run_info(),
+            Self::SvelteValidStyleParse(rule) => rule.run_info(),
         }
     }
 }
@@ -26633,5 +26654,6 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteSystem(SvelteSystem::default()),
         RuleEnum::SvelteValidEachKey(SvelteValidEachKey::default()),
         RuleEnum::SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages::default()),
+        RuleEnum::SvelteValidStyleParse(SvelteValidStyleParse::default()),
     ]
 });

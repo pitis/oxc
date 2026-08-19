@@ -6243,3 +6243,8 @@ impl RuleRunner for crate::rules::svelte::valid_prop_names_in_kit_pages::ValidPr
         Some(&AstTypesBitset::from_types(&[AstType::VariableDeclarator]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
+
+impl RuleRunner for crate::rules::svelte::valid_style_parse::ValidStyleParse {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
