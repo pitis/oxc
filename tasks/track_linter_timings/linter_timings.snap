@@ -502,6 +502,8 @@ svelte/comment-directive                                   |      0
 svelte/consistent-selector-style                           |      0
 svelte/experimental-require-slot-types                     |      0
 svelte/experimental-require-strict-events                  |      0
+svelte/html-closing-bracket-spacing                        |      0
+svelte/html-quotes                                         |      0
 svelte/max-lines-per-block                                 |      0
 svelte/no-at-const-tags                                    |      0
 svelte/no-at-debug-tags                                    |      0
@@ -540,6 +542,8 @@ svelte/prefer-style-directive                              |      0
 svelte/require-each-key                                    |      0
 svelte/require-optimized-style-attribute                   |      0
 svelte/require-store-reactive-access                       |      0
+svelte/shorthand-attribute                                 |      0
+svelte/shorthand-directive                                 |      0
 svelte/sort-attributes                                     |      0
 svelte/spaced-html-comment                                 |      0
 svelte/system                                              |      0

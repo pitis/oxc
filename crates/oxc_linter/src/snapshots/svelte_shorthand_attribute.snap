@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(shorthand-attribute): Expected shorthand attribute.
+   ╭─[shorthand_attribute.tsx:1:9]
+ 1 │ <Widget foo={foo} />
+   ·         ─────────
+   ╰────
+  help: Write it as `{foo}`.
+
+  ⚠ svelte(shorthand-attribute): Expected shorthand attribute.
+   ╭─[shorthand_attribute.tsx:1:9]
+ 1 │ <Widget foo="{foo}" />
+   ·         ───────────
+   ╰────
+  help: Write it as `{foo}`.
+
+  ⚠ svelte(shorthand-attribute): Expected shorthand attribute.
+   ╭─[shorthand_attribute.tsx:1:9]
+ 1 │ <Widget foo={ foo } />
+   ·         ───────────
+   ╰────
+  help: Write it as `{foo}`.
+
+  ⚠ svelte(shorthand-attribute): Expected regular attribute syntax.
+   ╭─[shorthand_attribute.tsx:1:9]
+ 1 │ <Widget {foo} />
+   ·         ─────
+   ╰────
+  help: Write it as `foo={foo}`.

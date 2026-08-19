@@ -1027,6 +1027,8 @@ pub(crate) mod svelte {
     pub mod derived_has_same_inputs_outputs;
     pub mod experimental_require_slot_types;
     pub mod experimental_require_strict_events;
+    pub mod html_closing_bracket_spacing;
+    pub mod html_quotes;
     pub mod infinite_reactive_loop;
     pub mod max_lines_per_block;
     pub mod no_add_event_listener;
@@ -1086,6 +1088,8 @@ pub(crate) mod svelte {
     pub mod require_store_callbacks_use_set_param;
     pub mod require_store_reactive_access;
     pub mod require_stores_init;
+    pub mod shorthand_attribute;
+    pub mod shorthand_directive;
     pub mod sort_attributes;
     pub mod spaced_html_comment;
     pub mod system;

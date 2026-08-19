@@ -1,0 +1,59 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by double quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class='foo'></div>
+   ·            ─────
+   ╰────
+  help: Rewrite the attribute value as double quotes.
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by double quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class=foo></div>
+   ·            ───
+   ╰────
+  help: Rewrite the attribute value as double quotes.
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by single quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class="foo"></div>
+   ·            ─────
+   ╰────
+  help: Rewrite the attribute value as single quotes.
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by double quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class={foo}></div>
+   ·            ─────
+   ╰────
+  help: Rewrite the attribute value as double quotes.
+
+  ⚠ svelte(html-quotes): Unexpected to be enclosed by any quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class="{foo}"></div>
+   ·            ───────
+   ╰────
+  help: Remove the quotes around the attribute value.
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div title=a"b></div>
+   ·            ───
+   ╰────
+  help: Wrap the attribute value in quotes.
+
+  ⚠ svelte(html-quotes): Expected to be enclosed by double quotes.
+   ╭─[html_quotes.tsx:1:12]
+ 1 │ <div class={a + b}></div>
+   ·            ───────
+   ╰────
+  help: Rewrite the attribute value as double quotes.
+
+  ⚠ svelte(html-quotes): Unexpected to be enclosed by any quotes.
+   ╭─[html_quotes.tsx:1:19]
+ 1 │ <input bind:value="{value}" />
+   ·                   ─────────
+   ╰────
+  help: Remove the quotes around the attribute value.

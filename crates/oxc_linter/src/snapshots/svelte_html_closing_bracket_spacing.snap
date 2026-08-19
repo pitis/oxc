@@ -1,0 +1,52 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected no space before '>', but found.
+   ╭─[html_closing_bracket_spacing.tsx:1:5]
+ 1 │ <div ></div>
+   ·     ──
+   ╰────
+  help: Remove the space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected no space before '>', but found.
+   ╭─[html_closing_bracket_spacing.tsx:1:11]
+ 1 │ <div></div >
+   ·           ──
+   ╰────
+  help: Remove the space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected space before '>', but not found.
+   ╭─[html_closing_bracket_spacing.tsx:1:7]
+ 1 │ <input/>
+   ·       ──
+   ╰────
+  help: Put a space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected space before '>', but not found.
+   ╭─[html_closing_bracket_spacing.tsx:1:5]
+ 1 │ <div></div>
+   ·     ─
+   ╰────
+  help: Put a space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected space before '>', but not found.
+   ╭─[html_closing_bracket_spacing.tsx:1:11]
+ 1 │ <div></div>
+   ·           ─
+   ╰────
+  help: Put a space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected no space before '>', but found.
+   ╭─[html_closing_bracket_spacing.tsx:1:15]
+ 1 │ <div class="a" ></div>
+   ·               ──
+   ╰────
+  help: Remove the space before the closing bracket.
+
+  ⚠ svelte(html-closing-bracket-spacing): Expected no space before '>', but found.
+   ╭─[html_closing_bracket_spacing.tsx:1:4]
+ 1 │ <br >
+   ·    ──
+   ╰────
+  help: Remove the space before the closing bracket.

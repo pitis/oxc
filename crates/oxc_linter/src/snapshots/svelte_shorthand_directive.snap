@@ -1,0 +1,38 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(shorthand-directive): Expected shorthand directive.
+   ╭─[shorthand_directive.tsx:1:8]
+ 1 │ <input bind:value={value} />
+   ·        ──────────────────
+   ╰────
+  help: Write it as `bind:value`.
+
+  ⚠ svelte(shorthand-directive): Expected shorthand directive.
+   ╭─[shorthand_directive.tsx:1:6]
+ 1 │ <div class:active={active} />
+   ·      ─────────────────────
+   ╰────
+  help: Write it as `class:active`.
+
+  ⚠ svelte(shorthand-directive): Expected shorthand directive.
+   ╭─[shorthand_directive.tsx:1:6]
+ 1 │ <div style:color={color} />
+   ·      ───────────────────
+   ╰────
+  help: Write it as `style:color`.
+
+  ⚠ svelte(shorthand-directive): Expected regular directive syntax.
+   ╭─[shorthand_directive.tsx:1:8]
+ 1 │ <input bind:value />
+   ·        ──────────
+   ╰────
+  help: Write it as `bind:value={value}`.
+
+  ⚠ svelte(shorthand-directive): Expected regular directive syntax.
+   ╭─[shorthand_directive.tsx:1:6]
+ 1 │ <div class:active />
+   ·      ────────────
+   ╰────
+  help: Write it as `class:active={active}`.

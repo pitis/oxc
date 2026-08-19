@@ -5888,6 +5888,16 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::html_closing_bracket_spacing::HtmlClosingBracketSpacing {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::html_quotes::HtmlQuotes {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
@@ -6221,6 +6231,16 @@ impl RuleRunner
 impl RuleRunner for crate::rules::svelte::require_stores_init::RequireStoresInit {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
+impl RuleRunner for crate::rules::svelte::shorthand_attribute::ShorthandAttribute {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::shorthand_directive::ShorthandDirective {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::svelte::sort_attributes::SortAttributes {
