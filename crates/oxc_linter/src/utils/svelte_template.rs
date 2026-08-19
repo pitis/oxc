@@ -80,3 +80,50 @@ pub fn has_spread_attribute(element: &Element<'_>) -> bool {
 pub fn svelte_start_tag_span(element: &Element<'_>) -> Span {
     Span::new(element.span.start, element.open_tag_end)
 }
+
+/// One `<script>` block of a `.svelte` file, located for on-demand parsing
+/// by hybrid markup rules (rules that need both template and script).
+///
+/// Pure-script rules should NOT use this: they run as ordinary rules on the
+/// extracted script sub-hosts with full semantic analysis. This exists for
+/// markup-pass rules that additionally need to look into the script (e.g.
+/// `bind:this` targets, `$props()` declarations).
+#[derive(Debug, Clone, Copy)]
+pub struct SvelteScript<'a> {
+    /// The script body text, exactly the element's raw-text span.
+    pub content: &'a str,
+    /// File offset of `content`'s first byte: add to any span produced by
+    /// parsing `content` to get a file-absolute span.
+    pub offset: u32,
+    /// `lang="ts"` (or `lang="tsx"`).
+    pub typescript: bool,
+    /// `context="module"` (Svelte 4) / `module` attribute (Svelte 5).
+    pub module: bool,
+}
+
+/// The `<script>` blocks of a parsed `.svelte` file, in source order.
+pub fn svelte_scripts<'a>(nodes: &[Node<'a>], source_text: &'a str) -> Vec<SvelteScript<'a>> {
+    let mut scripts = Vec::new();
+    walk_svelte_elements(nodes, &mut |element| {
+        if !element.name.eq_ignore_ascii_case("script") {
+            return;
+        }
+        let Some(raw) = element.raw_text else { return };
+        let typescript = get_plain_attribute(element, "lang")
+            .and_then(|(_, value)| value.and_then(AttributeValue::as_static_text))
+            .is_some_and(|lang| {
+                lang.eq_ignore_ascii_case("ts") || lang.eq_ignore_ascii_case("tsx")
+            });
+        let module = get_plain_attribute(element, "context")
+            .and_then(|(_, value)| value.and_then(AttributeValue::as_static_text))
+            .is_some_and(|context| context == "module")
+            || get_plain_attribute(element, "module").is_some();
+        scripts.push(SvelteScript {
+            content: &source_text[raw.start as usize..raw.end as usize],
+            offset: raw.start,
+            typescript,
+            module,
+        });
+    });
+    scripts
+}

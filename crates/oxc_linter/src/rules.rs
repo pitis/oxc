@@ -1021,20 +1021,46 @@ pub(crate) mod vue {
 /// <https://github.com/sveltejs/eslint-plugin-svelte>
 pub(crate) mod svelte {
     pub mod button_has_type;
+    pub mod comment_directive;
+    pub mod infinite_reactive_loop;
     pub mod no_at_debug_tags;
     pub mod no_at_html_tags;
+    pub mod no_dom_manipulating;
     pub mod no_dupe_else_if_blocks;
     pub mod no_dupe_on_directives;
     pub mod no_dupe_style_properties;
     pub mod no_dupe_use_directives;
     pub mod no_dynamic_slot_name;
+    pub mod no_export_load_in_svelte_module_in_kit_pages;
+    pub mod no_immutable_reactive_statements;
+    pub mod no_inner_declarations;
+    pub mod no_inspect;
+    pub mod no_navigation_without_resolve;
     pub mod no_not_function_handler;
     pub mod no_object_in_text_mustaches;
+    pub mod no_raw_special_elements;
+    pub mod no_reactive_functions;
+    pub mod no_reactive_literals;
+    pub mod no_reactive_reassign;
+    pub mod no_shorthand_style_property_overrides;
     pub mod no_spaces_around_equal_signs_in_attribute;
+    pub mod no_store_async;
+    pub mod no_svelte_internal;
     pub mod no_target_blank;
+    pub mod no_unknown_style_directive_property;
+    pub mod no_unnecessary_state_wrap;
+    pub mod no_unused_props;
+    pub mod no_unused_svelte_ignore;
     pub mod no_useless_children_snippet;
     pub mod no_useless_mustaches;
+    pub mod prefer_svelte_reactivity;
+    pub mod prefer_writable_derived;
     pub mod require_each_key;
+    pub mod require_event_dispatcher_types;
+    pub mod require_store_reactive_access;
+    pub mod system;
+    pub mod valid_each_key;
+    pub mod valid_prop_names_in_kit_pages;
 }
 
 pub(crate) mod shared;

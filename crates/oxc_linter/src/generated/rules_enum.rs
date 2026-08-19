@@ -514,20 +514,46 @@ pub use crate::rules::react_perf::jsx_no_new_array_as_prop::JsxNoNewArrayAsProp 
 pub use crate::rules::react_perf::jsx_no_new_function_as_prop::JsxNoNewFunctionAsProp as ReactPerfJsxNoNewFunctionAsProp;
 pub use crate::rules::react_perf::jsx_no_new_object_as_prop::JsxNoNewObjectAsProp as ReactPerfJsxNoNewObjectAsProp;
 pub use crate::rules::svelte::button_has_type::ButtonHasType as SvelteButtonHasType;
+pub use crate::rules::svelte::comment_directive::CommentDirective as SvelteCommentDirective;
+pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
 pub use crate::rules::svelte::no_at_html_tags::NoAtHtmlTags as SvelteNoAtHtmlTags;
+pub use crate::rules::svelte::no_dom_manipulating::NoDomManipulating as SvelteNoDomManipulating;
 pub use crate::rules::svelte::no_dupe_else_if_blocks::NoDupeElseIfBlocks as SvelteNoDupeElseIfBlocks;
 pub use crate::rules::svelte::no_dupe_on_directives::NoDupeOnDirectives as SvelteNoDupeOnDirectives;
 pub use crate::rules::svelte::no_dupe_style_properties::NoDupeStyleProperties as SvelteNoDupeStyleProperties;
 pub use crate::rules::svelte::no_dupe_use_directives::NoDupeUseDirectives as SvelteNoDupeUseDirectives;
 pub use crate::rules::svelte::no_dynamic_slot_name::NoDynamicSlotName as SvelteNoDynamicSlotName;
+pub use crate::rules::svelte::no_export_load_in_svelte_module_in_kit_pages::NoExportLoadInSvelteModuleInKitPages as SvelteNoExportLoadInSvelteModuleInKitPages;
+pub use crate::rules::svelte::no_immutable_reactive_statements::NoImmutableReactiveStatements as SvelteNoImmutableReactiveStatements;
+pub use crate::rules::svelte::no_inner_declarations::NoInnerDeclarations as SvelteNoInnerDeclarations;
+pub use crate::rules::svelte::no_inspect::NoInspect as SvelteNoInspect;
+pub use crate::rules::svelte::no_navigation_without_resolve::NoNavigationWithoutResolve as SvelteNoNavigationWithoutResolve;
 pub use crate::rules::svelte::no_not_function_handler::NoNotFunctionHandler as SvelteNoNotFunctionHandler;
 pub use crate::rules::svelte::no_object_in_text_mustaches::NoObjectInTextMustaches as SvelteNoObjectInTextMustaches;
+pub use crate::rules::svelte::no_raw_special_elements::NoRawSpecialElements as SvelteNoRawSpecialElements;
+pub use crate::rules::svelte::no_reactive_functions::NoReactiveFunctions as SvelteNoReactiveFunctions;
+pub use crate::rules::svelte::no_reactive_literals::NoReactiveLiterals as SvelteNoReactiveLiterals;
+pub use crate::rules::svelte::no_reactive_reassign::NoReactiveReassign as SvelteNoReactiveReassign;
+pub use crate::rules::svelte::no_shorthand_style_property_overrides::NoShorthandStylePropertyOverrides as SvelteNoShorthandStylePropertyOverrides;
 pub use crate::rules::svelte::no_spaces_around_equal_signs_in_attribute::NoSpacesAroundEqualSignsInAttribute as SvelteNoSpacesAroundEqualSignsInAttribute;
+pub use crate::rules::svelte::no_store_async::NoStoreAsync as SvelteNoStoreAsync;
+pub use crate::rules::svelte::no_svelte_internal::NoSvelteInternal as SvelteNoSvelteInternal;
 pub use crate::rules::svelte::no_target_blank::NoTargetBlank as SvelteNoTargetBlank;
+pub use crate::rules::svelte::no_unknown_style_directive_property::NoUnknownStyleDirectiveProperty as SvelteNoUnknownStyleDirectiveProperty;
+pub use crate::rules::svelte::no_unnecessary_state_wrap::NoUnnecessaryStateWrap as SvelteNoUnnecessaryStateWrap;
+pub use crate::rules::svelte::no_unused_props::NoUnusedProps as SvelteNoUnusedProps;
+pub use crate::rules::svelte::no_unused_svelte_ignore::NoUnusedSvelteIgnore as SvelteNoUnusedSvelteIgnore;
 pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
 pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
+pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity as SveltePreferSvelteReactivity;
+pub use crate::rules::svelte::prefer_writable_derived::PreferWritableDerived as SveltePreferWritableDerived;
 pub use crate::rules::svelte::require_each_key::RequireEachKey as SvelteRequireEachKey;
+pub use crate::rules::svelte::require_event_dispatcher_types::RequireEventDispatcherTypes as SvelteRequireEventDispatcherTypes;
+pub use crate::rules::svelte::require_store_reactive_access::RequireStoreReactiveAccess as SvelteRequireStoreReactiveAccess;
+pub use crate::rules::svelte::system::System as SvelteSystem;
+pub use crate::rules::svelte::valid_each_key::ValidEachKey as SvelteValidEachKey;
+pub use crate::rules::svelte::valid_prop_names_in_kit_pages::ValidPropNamesInKitPages as SvelteValidPropNamesInKitPages;
 pub use crate::rules::typescript::adjacent_overload_signatures::AdjacentOverloadSignatures as TypescriptAdjacentOverloadSignatures;
 pub use crate::rules::typescript::array_type::ArrayType as TypescriptArrayType;
 pub use crate::rules::typescript::await_thenable::AwaitThenable as TypescriptAwaitThenable;
@@ -1896,20 +1922,46 @@ pub enum RuleEnum {
     VueValidVSlot(VueValidVSlot),
     VueValidVText(VueValidVText),
     SvelteButtonHasType(SvelteButtonHasType),
+    SvelteCommentDirective(SvelteCommentDirective),
+    SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
     SvelteNoAtHtmlTags(SvelteNoAtHtmlTags),
+    SvelteNoDomManipulating(SvelteNoDomManipulating),
     SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks),
     SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives),
     SvelteNoDupeStyleProperties(SvelteNoDupeStyleProperties),
     SvelteNoDupeUseDirectives(SvelteNoDupeUseDirectives),
     SvelteNoDynamicSlotName(SvelteNoDynamicSlotName),
+    SvelteNoExportLoadInSvelteModuleInKitPages(SvelteNoExportLoadInSvelteModuleInKitPages),
+    SvelteNoImmutableReactiveStatements(SvelteNoImmutableReactiveStatements),
+    SvelteNoInnerDeclarations(SvelteNoInnerDeclarations),
+    SvelteNoInspect(SvelteNoInspect),
+    SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve),
     SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler),
     SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches),
+    SvelteNoRawSpecialElements(SvelteNoRawSpecialElements),
+    SvelteNoReactiveFunctions(SvelteNoReactiveFunctions),
+    SvelteNoReactiveLiterals(SvelteNoReactiveLiterals),
+    SvelteNoReactiveReassign(SvelteNoReactiveReassign),
+    SvelteNoShorthandStylePropertyOverrides(SvelteNoShorthandStylePropertyOverrides),
     SvelteNoSpacesAroundEqualSignsInAttribute(SvelteNoSpacesAroundEqualSignsInAttribute),
+    SvelteNoStoreAsync(SvelteNoStoreAsync),
+    SvelteNoSvelteInternal(SvelteNoSvelteInternal),
     SvelteNoTargetBlank(SvelteNoTargetBlank),
+    SvelteNoUnknownStyleDirectiveProperty(SvelteNoUnknownStyleDirectiveProperty),
+    SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap),
+    SvelteNoUnusedProps(SvelteNoUnusedProps),
+    SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore),
     SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
     SvelteNoUselessMustaches(SvelteNoUselessMustaches),
+    SveltePreferSvelteReactivity(SveltePreferSvelteReactivity),
+    SveltePreferWritableDerived(SveltePreferWritableDerived),
     SvelteRequireEachKey(SvelteRequireEachKey),
+    SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes),
+    SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess),
+    SvelteSystem(SvelteSystem),
+    SvelteValidEachKey(SvelteValidEachKey),
+    SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages),
 }
 const IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID: usize = 0usize;
 const IMPORT_DEFAULT_ID: usize = IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID + 1usize;
@@ -2952,23 +3004,54 @@ const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
 const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
 const SVELTE_BUTTON_HAS_TYPE_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
-const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
+const SVELTE_COMMENT_DIRECTIVE_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
+const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
+const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
-const SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
+const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
+const SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID: usize = SVELTE_NO_DOM_MANIPULATING_ID + 1usize;
 const SVELTE_NO_DUPE_ON_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID + 1usize;
 const SVELTE_NO_DUPE_STYLE_PROPERTIES_ID: usize = SVELTE_NO_DUPE_ON_DIRECTIVES_ID + 1usize;
 const SVELTE_NO_DUPE_USE_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_STYLE_PROPERTIES_ID + 1usize;
 const SVELTE_NO_DYNAMIC_SLOT_NAME_ID: usize = SVELTE_NO_DUPE_USE_DIRECTIVES_ID + 1usize;
-const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_DYNAMIC_SLOT_NAME_ID + 1usize;
+const SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID: usize =
+    SVELTE_NO_DYNAMIC_SLOT_NAME_ID + 1usize;
+const SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID: usize =
+    SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID + 1usize;
+const SVELTE_NO_INNER_DECLARATIONS_ID: usize = SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID + 1usize;
+const SVELTE_NO_INSPECT_ID: usize = SVELTE_NO_INNER_DECLARATIONS_ID + 1usize;
+const SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID: usize = SVELTE_NO_INSPECT_ID + 1usize;
+const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID + 1usize;
 const SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID: usize = SVELTE_NO_NOT_FUNCTION_HANDLER_ID + 1usize;
+const SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID: usize = SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID + 1usize;
+const SVELTE_NO_REACTIVE_FUNCTIONS_ID: usize = SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID + 1usize;
+const SVELTE_NO_REACTIVE_LITERALS_ID: usize = SVELTE_NO_REACTIVE_FUNCTIONS_ID + 1usize;
+const SVELTE_NO_REACTIVE_REASSIGN_ID: usize = SVELTE_NO_REACTIVE_LITERALS_ID + 1usize;
+const SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID: usize =
+    SVELTE_NO_REACTIVE_REASSIGN_ID + 1usize;
 const SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID: usize =
-    SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID + 1usize;
-const SVELTE_NO_TARGET_BLANK_ID: usize =
+    SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID + 1usize;
+const SVELTE_NO_STORE_ASYNC_ID: usize =
     SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID + 1usize;
-const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
+const SVELTE_NO_SVELTE_INTERNAL_ID: usize = SVELTE_NO_STORE_ASYNC_ID + 1usize;
+const SVELTE_NO_TARGET_BLANK_ID: usize = SVELTE_NO_SVELTE_INTERNAL_ID + 1usize;
+const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
+const SVELTE_NO_UNNECESSARY_STATE_WRAP_ID: usize =
+    SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID + 1usize;
+const SVELTE_NO_UNUSED_PROPS_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1usize;
+const SVELTE_NO_UNUSED_SVELTE_IGNORE_ID: usize = SVELTE_NO_UNUSED_PROPS_ID + 1usize;
+const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_UNUSED_SVELTE_IGNORE_ID + 1usize;
 const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
-const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
-static RULE_NAMES: [&str; 941usize] = [
+const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
+const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_PREFER_WRITABLE_DERIVED_ID + 1usize;
+const SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID: usize = SVELTE_REQUIRE_EACH_KEY_ID + 1usize;
+const SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID: usize =
+    SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID + 1usize;
+const SVELTE_SYSTEM_ID: usize = SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID + 1usize;
+const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
+const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
+static RULE_NAMES: [&str; 967usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -3896,20 +3979,46 @@ static RULE_NAMES: [&str; 941usize] = [
     VueValidVSlot::NAME,
     VueValidVText::NAME,
     SvelteButtonHasType::NAME,
+    SvelteCommentDirective::NAME,
+    SvelteInfiniteReactiveLoop::NAME,
     SvelteNoAtDebugTags::NAME,
     SvelteNoAtHtmlTags::NAME,
+    SvelteNoDomManipulating::NAME,
     SvelteNoDupeElseIfBlocks::NAME,
     SvelteNoDupeOnDirectives::NAME,
     SvelteNoDupeStyleProperties::NAME,
     SvelteNoDupeUseDirectives::NAME,
     SvelteNoDynamicSlotName::NAME,
+    SvelteNoExportLoadInSvelteModuleInKitPages::NAME,
+    SvelteNoImmutableReactiveStatements::NAME,
+    SvelteNoInnerDeclarations::NAME,
+    SvelteNoInspect::NAME,
+    SvelteNoNavigationWithoutResolve::NAME,
     SvelteNoNotFunctionHandler::NAME,
     SvelteNoObjectInTextMustaches::NAME,
+    SvelteNoRawSpecialElements::NAME,
+    SvelteNoReactiveFunctions::NAME,
+    SvelteNoReactiveLiterals::NAME,
+    SvelteNoReactiveReassign::NAME,
+    SvelteNoShorthandStylePropertyOverrides::NAME,
     SvelteNoSpacesAroundEqualSignsInAttribute::NAME,
+    SvelteNoStoreAsync::NAME,
+    SvelteNoSvelteInternal::NAME,
     SvelteNoTargetBlank::NAME,
+    SvelteNoUnknownStyleDirectiveProperty::NAME,
+    SvelteNoUnnecessaryStateWrap::NAME,
+    SvelteNoUnusedProps::NAME,
+    SvelteNoUnusedSvelteIgnore::NAME,
     SvelteNoUselessChildrenSnippet::NAME,
     SvelteNoUselessMustaches::NAME,
+    SveltePreferSvelteReactivity::NAME,
+    SveltePreferWritableDerived::NAME,
     SvelteRequireEachKey::NAME,
+    SvelteRequireEventDispatcherTypes::NAME,
+    SvelteRequireStoreReactiveAccess::NAME,
+    SvelteSystem::NAME,
+    SvelteValidEachKey::NAME,
+    SvelteValidPropNamesInKitPages::NAME,
 ];
 impl RuleEnum {
     pub fn id(&self) -> usize {
@@ -4975,22 +5084,56 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VUE_VALID_V_SLOT_ID,
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
             Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
+            Self::SvelteCommentDirective(_) => SVELTE_COMMENT_DIRECTIVE_ID,
+            Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
             Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
             Self::SvelteNoAtHtmlTags(_) => SVELTE_NO_AT_HTML_TAGS_ID,
+            Self::SvelteNoDomManipulating(_) => SVELTE_NO_DOM_MANIPULATING_ID,
             Self::SvelteNoDupeElseIfBlocks(_) => SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID,
             Self::SvelteNoDupeOnDirectives(_) => SVELTE_NO_DUPE_ON_DIRECTIVES_ID,
             Self::SvelteNoDupeStyleProperties(_) => SVELTE_NO_DUPE_STYLE_PROPERTIES_ID,
             Self::SvelteNoDupeUseDirectives(_) => SVELTE_NO_DUPE_USE_DIRECTIVES_ID,
             Self::SvelteNoDynamicSlotName(_) => SVELTE_NO_DYNAMIC_SLOT_NAME_ID,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SVELTE_NO_EXPORT_LOAD_IN_SVELTE_MODULE_IN_KIT_PAGES_ID
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SVELTE_NO_IMMUTABLE_REACTIVE_STATEMENTS_ID
+            }
+            Self::SvelteNoInnerDeclarations(_) => SVELTE_NO_INNER_DECLARATIONS_ID,
+            Self::SvelteNoInspect(_) => SVELTE_NO_INSPECT_ID,
+            Self::SvelteNoNavigationWithoutResolve(_) => SVELTE_NO_NAVIGATION_WITHOUT_RESOLVE_ID,
             Self::SvelteNoNotFunctionHandler(_) => SVELTE_NO_NOT_FUNCTION_HANDLER_ID,
             Self::SvelteNoObjectInTextMustaches(_) => SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID,
+            Self::SvelteNoRawSpecialElements(_) => SVELTE_NO_RAW_SPECIAL_ELEMENTS_ID,
+            Self::SvelteNoReactiveFunctions(_) => SVELTE_NO_REACTIVE_FUNCTIONS_ID,
+            Self::SvelteNoReactiveLiterals(_) => SVELTE_NO_REACTIVE_LITERALS_ID,
+            Self::SvelteNoReactiveReassign(_) => SVELTE_NO_REACTIVE_REASSIGN_ID,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SVELTE_NO_SHORTHAND_STYLE_PROPERTY_OVERRIDES_ID
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID
             }
+            Self::SvelteNoStoreAsync(_) => SVELTE_NO_STORE_ASYNC_ID,
+            Self::SvelteNoSvelteInternal(_) => SVELTE_NO_SVELTE_INTERNAL_ID,
             Self::SvelteNoTargetBlank(_) => SVELTE_NO_TARGET_BLANK_ID,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SVELTE_NO_UNNECESSARY_STATE_WRAP_ID,
+            Self::SvelteNoUnusedProps(_) => SVELTE_NO_UNUSED_PROPS_ID,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SVELTE_NO_UNUSED_SVELTE_IGNORE_ID,
             Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
             Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
+            Self::SveltePreferSvelteReactivity(_) => SVELTE_PREFER_SVELTE_REACTIVITY_ID,
+            Self::SveltePreferWritableDerived(_) => SVELTE_PREFER_WRITABLE_DERIVED_ID,
             Self::SvelteRequireEachKey(_) => SVELTE_REQUIRE_EACH_KEY_ID,
+            Self::SvelteRequireEventDispatcherTypes(_) => SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID,
+            Self::SvelteRequireStoreReactiveAccess(_) => SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID,
+            Self::SvelteSystem(_) => SVELTE_SYSTEM_ID,
+            Self::SvelteValidEachKey(_) => SVELTE_VALID_EACH_KEY_ID,
+            Self::SvelteValidPropNamesInKitPages(_) => SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID,
         }
     }
     pub fn name(&self) -> &'static str {
@@ -6109,22 +6252,58 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::CATEGORY,
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::CATEGORY,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::CATEGORY,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::CATEGORY,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::CATEGORY,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::CATEGORY,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::CATEGORY,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::CATEGORY,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::CATEGORY,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::CATEGORY
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::CATEGORY
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::CATEGORY,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::CATEGORY,
+            Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::CATEGORY,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::CATEGORY,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::CATEGORY,
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::CATEGORY,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::CATEGORY,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::CATEGORY,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::CATEGORY,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::CATEGORY
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::CATEGORY
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::CATEGORY,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::CATEGORY,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::CATEGORY,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::CATEGORY
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::CATEGORY,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::CATEGORY,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::CATEGORY,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::CATEGORY,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::CATEGORY,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::CATEGORY,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::CATEGORY,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::CATEGORY,
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::CATEGORY
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::CATEGORY,
+            Self::SvelteSystem(_) => SvelteSystem::CATEGORY,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::CATEGORY,
+            Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::CATEGORY,
         }
     }
     #[doc = r" This [`Rule`]'s auto-fix capabilities."]
@@ -7173,22 +7352,56 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::FIX,
             Self::VueValidVText(_) => VueValidVText::FIX,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::FIX,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::FIX,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::FIX,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::FIX,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::FIX,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::FIX,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::FIX,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::FIX,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::FIX
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::FIX
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::FIX,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::FIX,
+            Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::FIX,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::FIX,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::FIX,
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::FIX,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::FIX,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::FIX,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::FIX,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::FIX
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::FIX
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::FIX,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::FIX,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::FIX,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::FIX
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::FIX,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::FIX,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::FIX,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::FIX,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::FIX,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::FIX,
+            Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::FIX,
+            Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::FIX,
+            Self::SvelteSystem(_) => SvelteSystem::FIX,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::FIX,
+            Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::FIX,
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -8531,26 +8744,68 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::documentation(),
             Self::VueValidVText(_) => VueValidVText::documentation(),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::documentation(),
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::documentation(),
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::documentation(),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::documentation(),
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::documentation(),
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::documentation(),
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::documentation(),
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::documentation(),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::documentation()
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::documentation()
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::documentation(),
+            Self::SvelteNoInspect(_) => SvelteNoInspect::documentation(),
+            Self::SvelteNoNavigationWithoutResolve(_) => {
+                SvelteNoNavigationWithoutResolve::documentation()
+            }
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::documentation(),
             Self::SvelteNoObjectInTextMustaches(_) => {
                 SvelteNoObjectInTextMustaches::documentation()
             }
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::documentation(),
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::documentation(),
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::documentation(),
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::documentation(),
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::documentation()
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::documentation()
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::documentation(),
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::documentation(),
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::documentation(),
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::documentation()
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::documentation(),
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::documentation(),
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::documentation(),
             Self::SvelteNoUselessChildrenSnippet(_) => {
                 SvelteNoUselessChildrenSnippet::documentation()
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::documentation(),
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::documentation(),
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::documentation(),
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::documentation(),
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::documentation()
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => {
+                SvelteRequireStoreReactiveAccess::documentation()
+            }
+            Self::SvelteSystem(_) => SvelteSystem::documentation(),
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::documentation(),
+            Self::SvelteValidPropNamesInKitPages(_) => {
+                SvelteValidPropNamesInKitPages::documentation()
+            }
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -11214,10 +11469,18 @@ impl RuleEnum {
             }
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::config_schema(generator)
                 .or_else(|| SvelteButtonHasType::schema(generator)),
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::config_schema(generator)
+                .or_else(|| SvelteCommentDirective::schema(generator)),
+            Self::SvelteInfiniteReactiveLoop(_) => {
+                SvelteInfiniteReactiveLoop::config_schema(generator)
+                    .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
+            }
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::config_schema(generator)
                 .or_else(|| SvelteNoAtDebugTags::schema(generator)),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::config_schema(generator)
                 .or_else(|| SvelteNoAtHtmlTags::schema(generator)),
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::config_schema(generator)
+                .or_else(|| SvelteNoDomManipulating::schema(generator)),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::config_schema(generator)
                 .or_else(|| SvelteNoDupeElseIfBlocks::schema(generator)),
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::config_schema(generator)
@@ -11232,6 +11495,24 @@ impl RuleEnum {
             }
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::config_schema(generator)
                 .or_else(|| SvelteNoDynamicSlotName::schema(generator)),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::config_schema(generator)
+                    .or_else(|| SvelteNoExportLoadInSvelteModuleInKitPages::schema(generator))
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::config_schema(generator)
+                    .or_else(|| SvelteNoImmutableReactiveStatements::schema(generator))
+            }
+            Self::SvelteNoInnerDeclarations(_) => {
+                SvelteNoInnerDeclarations::config_schema(generator)
+                    .or_else(|| SvelteNoInnerDeclarations::schema(generator))
+            }
+            Self::SvelteNoInspect(_) => SvelteNoInspect::config_schema(generator)
+                .or_else(|| SvelteNoInspect::schema(generator)),
+            Self::SvelteNoNavigationWithoutResolve(_) => {
+                SvelteNoNavigationWithoutResolve::config_schema(generator)
+                    .or_else(|| SvelteNoNavigationWithoutResolve::schema(generator))
+            }
             Self::SvelteNoNotFunctionHandler(_) => {
                 SvelteNoNotFunctionHandler::config_schema(generator)
                     .or_else(|| SvelteNoNotFunctionHandler::schema(generator))
@@ -11240,20 +11521,79 @@ impl RuleEnum {
                 SvelteNoObjectInTextMustaches::config_schema(generator)
                     .or_else(|| SvelteNoObjectInTextMustaches::schema(generator))
             }
+            Self::SvelteNoRawSpecialElements(_) => {
+                SvelteNoRawSpecialElements::config_schema(generator)
+                    .or_else(|| SvelteNoRawSpecialElements::schema(generator))
+            }
+            Self::SvelteNoReactiveFunctions(_) => {
+                SvelteNoReactiveFunctions::config_schema(generator)
+                    .or_else(|| SvelteNoReactiveFunctions::schema(generator))
+            }
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::config_schema(generator)
+                .or_else(|| SvelteNoReactiveLiterals::schema(generator)),
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::config_schema(generator)
+                .or_else(|| SvelteNoReactiveReassign::schema(generator)),
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::config_schema(generator)
+                    .or_else(|| SvelteNoShorthandStylePropertyOverrides::schema(generator))
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::config_schema(generator)
                     .or_else(|| SvelteNoSpacesAroundEqualSignsInAttribute::schema(generator))
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::config_schema(generator)
+                .or_else(|| SvelteNoStoreAsync::schema(generator)),
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::config_schema(generator)
+                .or_else(|| SvelteNoSvelteInternal::schema(generator)),
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::config_schema(generator)
                 .or_else(|| SvelteNoTargetBlank::schema(generator)),
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::config_schema(generator)
+                    .or_else(|| SvelteNoUnknownStyleDirectiveProperty::schema(generator))
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => {
+                SvelteNoUnnecessaryStateWrap::config_schema(generator)
+                    .or_else(|| SvelteNoUnnecessaryStateWrap::schema(generator))
+            }
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::config_schema(generator)
+                .or_else(|| SvelteNoUnusedProps::schema(generator)),
+            Self::SvelteNoUnusedSvelteIgnore(_) => {
+                SvelteNoUnusedSvelteIgnore::config_schema(generator)
+                    .or_else(|| SvelteNoUnusedSvelteIgnore::schema(generator))
+            }
             Self::SvelteNoUselessChildrenSnippet(_) => {
                 SvelteNoUselessChildrenSnippet::config_schema(generator)
                     .or_else(|| SvelteNoUselessChildrenSnippet::schema(generator))
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::config_schema(generator)
                 .or_else(|| SvelteNoUselessMustaches::schema(generator)),
+            Self::SveltePreferSvelteReactivity(_) => {
+                SveltePreferSvelteReactivity::config_schema(generator)
+                    .or_else(|| SveltePreferSvelteReactivity::schema(generator))
+            }
+            Self::SveltePreferWritableDerived(_) => {
+                SveltePreferWritableDerived::config_schema(generator)
+                    .or_else(|| SveltePreferWritableDerived::schema(generator))
+            }
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::config_schema(generator)
                 .or_else(|| SvelteRequireEachKey::schema(generator)),
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::config_schema(generator)
+                    .or_else(|| SvelteRequireEventDispatcherTypes::schema(generator))
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => {
+                SvelteRequireStoreReactiveAccess::config_schema(generator)
+                    .or_else(|| SvelteRequireStoreReactiveAccess::schema(generator))
+            }
+            Self::SvelteSystem(_) => {
+                SvelteSystem::config_schema(generator).or_else(|| SvelteSystem::schema(generator))
+            }
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::config_schema(generator)
+                .or_else(|| SvelteValidEachKey::schema(generator)),
+            Self::SvelteValidPropNamesInKitPages(_) => {
+                SvelteValidPropNamesInKitPages::config_schema(generator)
+                    .or_else(|| SvelteValidPropNamesInKitPages::schema(generator))
+            }
         }
     }
     pub fn plugin_name(&self) -> &'static str {
@@ -12185,20 +12525,46 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => "vue",
             Self::VueValidVText(_) => "vue",
             Self::SvelteButtonHasType(_) => "svelte",
+            Self::SvelteCommentDirective(_) => "svelte",
+            Self::SvelteInfiniteReactiveLoop(_) => "svelte",
             Self::SvelteNoAtDebugTags(_) => "svelte",
             Self::SvelteNoAtHtmlTags(_) => "svelte",
+            Self::SvelteNoDomManipulating(_) => "svelte",
             Self::SvelteNoDupeElseIfBlocks(_) => "svelte",
             Self::SvelteNoDupeOnDirectives(_) => "svelte",
             Self::SvelteNoDupeStyleProperties(_) => "svelte",
             Self::SvelteNoDupeUseDirectives(_) => "svelte",
             Self::SvelteNoDynamicSlotName(_) => "svelte",
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => "svelte",
+            Self::SvelteNoImmutableReactiveStatements(_) => "svelte",
+            Self::SvelteNoInnerDeclarations(_) => "svelte",
+            Self::SvelteNoInspect(_) => "svelte",
+            Self::SvelteNoNavigationWithoutResolve(_) => "svelte",
             Self::SvelteNoNotFunctionHandler(_) => "svelte",
             Self::SvelteNoObjectInTextMustaches(_) => "svelte",
+            Self::SvelteNoRawSpecialElements(_) => "svelte",
+            Self::SvelteNoReactiveFunctions(_) => "svelte",
+            Self::SvelteNoReactiveLiterals(_) => "svelte",
+            Self::SvelteNoReactiveReassign(_) => "svelte",
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => "svelte",
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => "svelte",
+            Self::SvelteNoStoreAsync(_) => "svelte",
+            Self::SvelteNoSvelteInternal(_) => "svelte",
             Self::SvelteNoTargetBlank(_) => "svelte",
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => "svelte",
+            Self::SvelteNoUnnecessaryStateWrap(_) => "svelte",
+            Self::SvelteNoUnusedProps(_) => "svelte",
+            Self::SvelteNoUnusedSvelteIgnore(_) => "svelte",
             Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
             Self::SvelteNoUselessMustaches(_) => "svelte",
+            Self::SveltePreferSvelteReactivity(_) => "svelte",
+            Self::SveltePreferWritableDerived(_) => "svelte",
             Self::SvelteRequireEachKey(_) => "svelte",
+            Self::SvelteRequireEventDispatcherTypes(_) => "svelte",
+            Self::SvelteRequireStoreReactiveAccess(_) => "svelte",
+            Self::SvelteSystem(_) => "svelte",
+            Self::SvelteValidEachKey(_) => "svelte",
+            Self::SvelteValidPropNamesInKitPages(_) => "svelte",
         }
     }
     pub fn from_configuration(
@@ -14325,20 +14691,46 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.run(node, ctx),
             Self::VueValidVText(rule) => rule.run(node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
+            Self::SvelteCommentDirective(rule) => rule.run(node, ctx),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run(node, ctx),
+            Self::SvelteNoDomManipulating(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeStyleProperties(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeUseDirectives(rule) => rule.run(node, ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.run(node, ctx),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run(node, ctx),
+            Self::SvelteNoImmutableReactiveStatements(rule) => rule.run(node, ctx),
+            Self::SvelteNoInnerDeclarations(rule) => rule.run(node, ctx),
+            Self::SvelteNoInspect(rule) => rule.run(node, ctx),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.run(node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run(node, ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run(node, ctx),
+            Self::SvelteNoRawSpecialElements(rule) => rule.run(node, ctx),
+            Self::SvelteNoReactiveFunctions(rule) => rule.run(node, ctx),
+            Self::SvelteNoReactiveLiterals(rule) => rule.run(node, ctx),
+            Self::SvelteNoReactiveReassign(rule) => rule.run(node, ctx),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run(node, ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run(node, ctx),
+            Self::SvelteNoStoreAsync(rule) => rule.run(node, ctx),
+            Self::SvelteNoSvelteInternal(rule) => rule.run(node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run(node, ctx),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run(node, ctx),
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run(node, ctx),
+            Self::SvelteNoUnusedProps(rule) => rule.run(node, ctx),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
+            Self::SveltePreferSvelteReactivity(rule) => rule.run(node, ctx),
+            Self::SveltePreferWritableDerived(rule) => rule.run(node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run(node, ctx),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.run(node, ctx),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.run(node, ctx),
+            Self::SvelteSystem(rule) => rule.run(node, ctx),
+            Self::SvelteValidEachKey(rule) => rule.run(node, ctx),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.run(node, ctx),
         }
     }
     pub(crate) fn run<'a, const TIMINGS: bool>(
@@ -15283,20 +15675,46 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.run_once(ctx),
             Self::VueValidVText(rule) => rule.run_once(ctx),
             Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
+            Self::SvelteCommentDirective(rule) => rule.run_once(ctx),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_once(ctx),
+            Self::SvelteNoDomManipulating(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeStyleProperties(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeUseDirectives(rule) => rule.run_once(ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.run_once(ctx),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_once(ctx),
+            Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_once(ctx),
+            Self::SvelteNoInnerDeclarations(rule) => rule.run_once(ctx),
+            Self::SvelteNoInspect(rule) => rule.run_once(ctx),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_once(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_once(ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_once(ctx),
+            Self::SvelteNoRawSpecialElements(rule) => rule.run_once(ctx),
+            Self::SvelteNoReactiveFunctions(rule) => rule.run_once(ctx),
+            Self::SvelteNoReactiveLiterals(rule) => rule.run_once(ctx),
+            Self::SvelteNoReactiveReassign(rule) => rule.run_once(ctx),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run_once(ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_once(ctx),
+            Self::SvelteNoStoreAsync(rule) => rule.run_once(ctx),
+            Self::SvelteNoSvelteInternal(rule) => rule.run_once(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_once(ctx),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_once(ctx),
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_once(ctx),
+            Self::SvelteNoUnusedProps(rule) => rule.run_once(ctx),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
+            Self::SveltePreferSvelteReactivity(rule) => rule.run_once(ctx),
+            Self::SveltePreferWritableDerived(rule) => rule.run_once(ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_once(ctx),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_once(ctx),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_once(ctx),
+            Self::SvelteSystem(rule) => rule.run_once(ctx),
+            Self::SvelteValidEachKey(rule) => rule.run_once(ctx),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.run_once(ctx),
         }
     }
     pub(crate) fn run_once<const TIMINGS: bool>(
@@ -16360,22 +16778,56 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDomManipulating(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeStyleProperties(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeUseDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
+            Self::SvelteNoImmutableReactiveStatements(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
+            Self::SvelteNoInnerDeclarations(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoInspect(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoRawSpecialElements(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoReactiveFunctions(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoReactiveLiterals(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoReactiveReassign(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
+            Self::SvelteNoStoreAsync(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoSvelteInternal(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUnusedProps(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferSvelteReactivity(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferWritableDerived(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteSystem(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteValidEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.run_on_jest_node(jest_node, ctx),
         }
     }
     pub(crate) fn run_on_jest_node<'a, 'c, const TIMINGS: bool>(
@@ -17321,20 +17773,46 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.should_run(ctx),
             Self::VueValidVText(rule) => rule.should_run(ctx),
             Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
+            Self::SvelteCommentDirective(rule) => rule.should_run(ctx),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.should_run(ctx),
+            Self::SvelteNoDomManipulating(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeStyleProperties(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeUseDirectives(rule) => rule.should_run(ctx),
             Self::SvelteNoDynamicSlotName(rule) => rule.should_run(ctx),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.should_run(ctx),
+            Self::SvelteNoImmutableReactiveStatements(rule) => rule.should_run(ctx),
+            Self::SvelteNoInnerDeclarations(rule) => rule.should_run(ctx),
+            Self::SvelteNoInspect(rule) => rule.should_run(ctx),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.should_run(ctx),
             Self::SvelteNoNotFunctionHandler(rule) => rule.should_run(ctx),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.should_run(ctx),
+            Self::SvelteNoRawSpecialElements(rule) => rule.should_run(ctx),
+            Self::SvelteNoReactiveFunctions(rule) => rule.should_run(ctx),
+            Self::SvelteNoReactiveLiterals(rule) => rule.should_run(ctx),
+            Self::SvelteNoReactiveReassign(rule) => rule.should_run(ctx),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.should_run(ctx),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.should_run(ctx),
+            Self::SvelteNoStoreAsync(rule) => rule.should_run(ctx),
+            Self::SvelteNoSvelteInternal(rule) => rule.should_run(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.should_run(ctx),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.should_run(ctx),
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.should_run(ctx),
+            Self::SvelteNoUnusedProps(rule) => rule.should_run(ctx),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
+            Self::SveltePreferSvelteReactivity(rule) => rule.should_run(ctx),
+            Self::SveltePreferWritableDerived(rule) => rule.should_run(ctx),
             Self::SvelteRequireEachKey(rule) => rule.should_run(ctx),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.should_run(ctx),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.should_run(ctx),
+            Self::SvelteSystem(rule) => rule.should_run(ctx),
+            Self::SvelteValidEachKey(rule) => rule.should_run(ctx),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.should_run(ctx),
         }
     }
     pub fn is_tsgolint_rule(&self) -> bool {
@@ -18676,26 +19154,68 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::IS_TSGOLINT_RULE,
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::IS_TSGOLINT_RULE,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::IS_TSGOLINT_RULE,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::IS_TSGOLINT_RULE,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::IS_TSGOLINT_RULE,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::IS_TSGOLINT_RULE,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::IS_TSGOLINT_RULE,
+            Self::SvelteNoNavigationWithoutResolve(_) => {
+                SvelteNoNavigationWithoutResolve::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::IS_TSGOLINT_RULE,
             Self::SvelteNoObjectInTextMustaches(_) => {
                 SvelteNoObjectInTextMustaches::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::IS_TSGOLINT_RULE,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::IS_TSGOLINT_RULE,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::IS_TSGOLINT_RULE,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::IS_TSGOLINT_RULE,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::IS_TSGOLINT_RULE,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::IS_TSGOLINT_RULE,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::IS_TSGOLINT_RULE,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::IS_TSGOLINT_RULE,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::IS_TSGOLINT_RULE,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::IS_TSGOLINT_RULE,
             Self::SvelteNoUselessChildrenSnippet(_) => {
                 SvelteNoUselessChildrenSnippet::IS_TSGOLINT_RULE
             }
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::IS_TSGOLINT_RULE,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::IS_TSGOLINT_RULE,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::IS_TSGOLINT_RULE,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::IS_TSGOLINT_RULE,
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::IS_TSGOLINT_RULE
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => {
+                SvelteRequireStoreReactiveAccess::IS_TSGOLINT_RULE
+            }
+            Self::SvelteSystem(_) => SvelteSystem::IS_TSGOLINT_RULE,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::IS_TSGOLINT_RULE,
+            Self::SvelteValidPropNamesInKitPages(_) => {
+                SvelteValidPropNamesInKitPages::IS_TSGOLINT_RULE
+            }
         }
     }
     #[doc = r" The version of oxlint in which this rule was first available."]
@@ -19813,22 +20333,58 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::VERSION,
             Self::VueValidVText(_) => VueValidVText::VERSION,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::VERSION,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::VERSION,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::VERSION,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::VERSION,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::VERSION,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::VERSION,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::VERSION,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::VERSION,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::VERSION
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::VERSION
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::VERSION,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::VERSION,
+            Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::VERSION,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::VERSION,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::VERSION,
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::VERSION,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::VERSION,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::VERSION,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::VERSION,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::VERSION
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::VERSION
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::VERSION,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::VERSION,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::VERSION,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::VERSION
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::VERSION,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::VERSION,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::VERSION,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::VERSION,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::VERSION,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::VERSION,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::VERSION,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::VERSION,
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::VERSION
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::VERSION,
+            Self::SvelteSystem(_) => SvelteSystem::VERSION,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::VERSION,
+            Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::VERSION,
         }
     }
     #[doc = r" Whether this rule declares a configuration type."]
@@ -20991,22 +21547,62 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::HAS_CONFIG,
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::HAS_CONFIG,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::HAS_CONFIG,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::HAS_CONFIG,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::HAS_CONFIG,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::HAS_CONFIG,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::HAS_CONFIG,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::HAS_CONFIG,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::HAS_CONFIG,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::HAS_CONFIG
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::HAS_CONFIG
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::HAS_CONFIG,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::HAS_CONFIG,
+            Self::SvelteNoNavigationWithoutResolve(_) => {
+                SvelteNoNavigationWithoutResolve::HAS_CONFIG
+            }
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::HAS_CONFIG,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::HAS_CONFIG,
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::HAS_CONFIG,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::HAS_CONFIG,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::HAS_CONFIG,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::HAS_CONFIG,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::HAS_CONFIG
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::HAS_CONFIG
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::HAS_CONFIG,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::HAS_CONFIG,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::HAS_CONFIG,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::HAS_CONFIG
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::HAS_CONFIG,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::HAS_CONFIG,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::HAS_CONFIG,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::HAS_CONFIG,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::HAS_CONFIG,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::HAS_CONFIG,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::HAS_CONFIG,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::HAS_CONFIG,
+            Self::SvelteRequireEventDispatcherTypes(_) => {
+                SvelteRequireEventDispatcherTypes::HAS_CONFIG
+            }
+            Self::SvelteRequireStoreReactiveAccess(_) => {
+                SvelteRequireStoreReactiveAccess::HAS_CONFIG
+            }
+            Self::SvelteSystem(_) => SvelteSystem::HAS_CONFIG,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::HAS_CONFIG,
+            Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::HAS_CONFIG,
         }
     }
     #[doc = r" Additional information about this rule."]
@@ -22056,22 +22652,56 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => VueValidVSlot::INFO,
             Self::VueValidVText(_) => VueValidVText::INFO,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
+            Self::SvelteCommentDirective(_) => SvelteCommentDirective::INFO,
+            Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::INFO,
+            Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::INFO,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::INFO,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::INFO,
             Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::INFO,
             Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::INFO,
             Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::INFO,
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(_) => {
+                SvelteNoExportLoadInSvelteModuleInKitPages::INFO
+            }
+            Self::SvelteNoImmutableReactiveStatements(_) => {
+                SvelteNoImmutableReactiveStatements::INFO
+            }
+            Self::SvelteNoInnerDeclarations(_) => SvelteNoInnerDeclarations::INFO,
+            Self::SvelteNoInspect(_) => SvelteNoInspect::INFO,
+            Self::SvelteNoNavigationWithoutResolve(_) => SvelteNoNavigationWithoutResolve::INFO,
             Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::INFO,
             Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::INFO,
+            Self::SvelteNoRawSpecialElements(_) => SvelteNoRawSpecialElements::INFO,
+            Self::SvelteNoReactiveFunctions(_) => SvelteNoReactiveFunctions::INFO,
+            Self::SvelteNoReactiveLiterals(_) => SvelteNoReactiveLiterals::INFO,
+            Self::SvelteNoReactiveReassign(_) => SvelteNoReactiveReassign::INFO,
+            Self::SvelteNoShorthandStylePropertyOverrides(_) => {
+                SvelteNoShorthandStylePropertyOverrides::INFO
+            }
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
                 SvelteNoSpacesAroundEqualSignsInAttribute::INFO
             }
+            Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::INFO,
+            Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::INFO,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::INFO,
+            Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
+                SvelteNoUnknownStyleDirectiveProperty::INFO
+            }
+            Self::SvelteNoUnnecessaryStateWrap(_) => SvelteNoUnnecessaryStateWrap::INFO,
+            Self::SvelteNoUnusedProps(_) => SvelteNoUnusedProps::INFO,
+            Self::SvelteNoUnusedSvelteIgnore(_) => SvelteNoUnusedSvelteIgnore::INFO,
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
+            Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::INFO,
+            Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::INFO,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::INFO,
+            Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::INFO,
+            Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::INFO,
+            Self::SvelteSystem(_) => SvelteSystem::INFO,
+            Self::SvelteValidEachKey(_) => SvelteValidEachKey::INFO,
+            Self::SvelteValidPropNamesInKitPages(_) => SvelteValidPropNamesInKitPages::INFO,
         }
     }
     #[doc = r" A short, one-line summary of what this rule does."]
@@ -23008,20 +23638,46 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.types_info(),
             Self::VueValidVText(rule) => rule.types_info(),
             Self::SvelteButtonHasType(rule) => rule.types_info(),
+            Self::SvelteCommentDirective(rule) => rule.types_info(),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.types_info(),
+            Self::SvelteNoDomManipulating(rule) => rule.types_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.types_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.types_info(),
             Self::SvelteNoDupeStyleProperties(rule) => rule.types_info(),
             Self::SvelteNoDupeUseDirectives(rule) => rule.types_info(),
             Self::SvelteNoDynamicSlotName(rule) => rule.types_info(),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.types_info(),
+            Self::SvelteNoImmutableReactiveStatements(rule) => rule.types_info(),
+            Self::SvelteNoInnerDeclarations(rule) => rule.types_info(),
+            Self::SvelteNoInspect(rule) => rule.types_info(),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.types_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.types_info(),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.types_info(),
+            Self::SvelteNoRawSpecialElements(rule) => rule.types_info(),
+            Self::SvelteNoReactiveFunctions(rule) => rule.types_info(),
+            Self::SvelteNoReactiveLiterals(rule) => rule.types_info(),
+            Self::SvelteNoReactiveReassign(rule) => rule.types_info(),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.types_info(),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.types_info(),
+            Self::SvelteNoStoreAsync(rule) => rule.types_info(),
+            Self::SvelteNoSvelteInternal(rule) => rule.types_info(),
             Self::SvelteNoTargetBlank(rule) => rule.types_info(),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.types_info(),
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.types_info(),
+            Self::SvelteNoUnusedProps(rule) => rule.types_info(),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.types_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
+            Self::SveltePreferSvelteReactivity(rule) => rule.types_info(),
+            Self::SveltePreferWritableDerived(rule) => rule.types_info(),
             Self::SvelteRequireEachKey(rule) => rule.types_info(),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.types_info(),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.types_info(),
+            Self::SvelteSystem(rule) => rule.types_info(),
+            Self::SvelteValidEachKey(rule) => rule.types_info(),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.types_info(),
         }
     }
     pub fn run_info(&self) -> RuleRunFunctionsImplemented {
@@ -23953,20 +24609,46 @@ impl RuleEnum {
             Self::VueValidVSlot(rule) => rule.run_info(),
             Self::VueValidVText(rule) => rule.run_info(),
             Self::SvelteButtonHasType(rule) => rule.run_info(),
+            Self::SvelteCommentDirective(rule) => rule.run_info(),
+            Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_info(),
+            Self::SvelteNoDomManipulating(rule) => rule.run_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_info(),
             Self::SvelteNoDupeStyleProperties(rule) => rule.run_info(),
             Self::SvelteNoDupeUseDirectives(rule) => rule.run_info(),
             Self::SvelteNoDynamicSlotName(rule) => rule.run_info(),
+            Self::SvelteNoExportLoadInSvelteModuleInKitPages(rule) => rule.run_info(),
+            Self::SvelteNoImmutableReactiveStatements(rule) => rule.run_info(),
+            Self::SvelteNoInnerDeclarations(rule) => rule.run_info(),
+            Self::SvelteNoInspect(rule) => rule.run_info(),
+            Self::SvelteNoNavigationWithoutResolve(rule) => rule.run_info(),
             Self::SvelteNoNotFunctionHandler(rule) => rule.run_info(),
             Self::SvelteNoObjectInTextMustaches(rule) => rule.run_info(),
+            Self::SvelteNoRawSpecialElements(rule) => rule.run_info(),
+            Self::SvelteNoReactiveFunctions(rule) => rule.run_info(),
+            Self::SvelteNoReactiveLiterals(rule) => rule.run_info(),
+            Self::SvelteNoReactiveReassign(rule) => rule.run_info(),
+            Self::SvelteNoShorthandStylePropertyOverrides(rule) => rule.run_info(),
             Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_info(),
+            Self::SvelteNoStoreAsync(rule) => rule.run_info(),
+            Self::SvelteNoSvelteInternal(rule) => rule.run_info(),
             Self::SvelteNoTargetBlank(rule) => rule.run_info(),
+            Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_info(),
+            Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_info(),
+            Self::SvelteNoUnusedProps(rule) => rule.run_info(),
+            Self::SvelteNoUnusedSvelteIgnore(rule) => rule.run_info(),
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
+            Self::SveltePreferSvelteReactivity(rule) => rule.run_info(),
+            Self::SveltePreferWritableDerived(rule) => rule.run_info(),
             Self::SvelteRequireEachKey(rule) => rule.run_info(),
+            Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_info(),
+            Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_info(),
+            Self::SvelteSystem(rule) => rule.run_info(),
+            Self::SvelteValidEachKey(rule) => rule.run_info(),
+            Self::SvelteValidPropNamesInKitPages(rule) => rule.run_info(),
         }
     }
 }
@@ -25036,21 +25718,55 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVSlot(VueValidVSlot::default()),
         RuleEnum::VueValidVText(VueValidVText::default()),
         RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
+        RuleEnum::SvelteCommentDirective(SvelteCommentDirective::default()),
+        RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
         RuleEnum::SvelteNoAtHtmlTags(SvelteNoAtHtmlTags::default()),
+        RuleEnum::SvelteNoDomManipulating(SvelteNoDomManipulating::default()),
         RuleEnum::SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks::default()),
         RuleEnum::SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives::default()),
         RuleEnum::SvelteNoDupeStyleProperties(SvelteNoDupeStyleProperties::default()),
         RuleEnum::SvelteNoDupeUseDirectives(SvelteNoDupeUseDirectives::default()),
         RuleEnum::SvelteNoDynamicSlotName(SvelteNoDynamicSlotName::default()),
+        RuleEnum::SvelteNoExportLoadInSvelteModuleInKitPages(
+            SvelteNoExportLoadInSvelteModuleInKitPages::default(),
+        ),
+        RuleEnum::SvelteNoImmutableReactiveStatements(
+            SvelteNoImmutableReactiveStatements::default(),
+        ),
+        RuleEnum::SvelteNoInnerDeclarations(SvelteNoInnerDeclarations::default()),
+        RuleEnum::SvelteNoInspect(SvelteNoInspect::default()),
+        RuleEnum::SvelteNoNavigationWithoutResolve(SvelteNoNavigationWithoutResolve::default()),
         RuleEnum::SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler::default()),
         RuleEnum::SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches::default()),
+        RuleEnum::SvelteNoRawSpecialElements(SvelteNoRawSpecialElements::default()),
+        RuleEnum::SvelteNoReactiveFunctions(SvelteNoReactiveFunctions::default()),
+        RuleEnum::SvelteNoReactiveLiterals(SvelteNoReactiveLiterals::default()),
+        RuleEnum::SvelteNoReactiveReassign(SvelteNoReactiveReassign::default()),
+        RuleEnum::SvelteNoShorthandStylePropertyOverrides(
+            SvelteNoShorthandStylePropertyOverrides::default(),
+        ),
         RuleEnum::SvelteNoSpacesAroundEqualSignsInAttribute(
             SvelteNoSpacesAroundEqualSignsInAttribute::default(),
         ),
+        RuleEnum::SvelteNoStoreAsync(SvelteNoStoreAsync::default()),
+        RuleEnum::SvelteNoSvelteInternal(SvelteNoSvelteInternal::default()),
         RuleEnum::SvelteNoTargetBlank(SvelteNoTargetBlank::default()),
+        RuleEnum::SvelteNoUnknownStyleDirectiveProperty(
+            SvelteNoUnknownStyleDirectiveProperty::default(),
+        ),
+        RuleEnum::SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap::default()),
+        RuleEnum::SvelteNoUnusedProps(SvelteNoUnusedProps::default()),
+        RuleEnum::SvelteNoUnusedSvelteIgnore(SvelteNoUnusedSvelteIgnore::default()),
         RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
         RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
+        RuleEnum::SveltePreferSvelteReactivity(SveltePreferSvelteReactivity::default()),
+        RuleEnum::SveltePreferWritableDerived(SveltePreferWritableDerived::default()),
         RuleEnum::SvelteRequireEachKey(SvelteRequireEachKey::default()),
+        RuleEnum::SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes::default()),
+        RuleEnum::SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess::default()),
+        RuleEnum::SvelteSystem(SvelteSystem::default()),
+        RuleEnum::SvelteValidEachKey(SvelteValidEachKey::default()),
+        RuleEnum::SvelteValidPropNamesInKitPages(SvelteValidPropNamesInKitPages::default()),
     ]
 });
