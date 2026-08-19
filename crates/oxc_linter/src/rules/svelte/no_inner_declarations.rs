@@ -114,9 +114,15 @@ declare_oxc_lint!(
     ///
     /// Same as `eslint/no-inner-declarations`:
     /// `["functions" | "both", { "blockScopedFunctions": "allow" | "disallow" }]`.
-    /// `"both"` also checks `var` declarations; passing an options array with
-    /// `blockScopedFunctions` left as `"allow"` skips function declarations
-    /// in strict-mode code (Svelte scripts are modules, hence always strict).
+    /// `"both"` also checks `var` declarations.
+    ///
+    /// `blockScopedFunctions` defaults to `"allow"`, as in ESLint 9+ — a
+    /// function declaration in a nested block is legal in strict-mode code
+    /// and Svelte `<script>` blocks are always modules, so nothing is
+    /// reported for functions unless you pass `"disallow"`. This differs
+    /// from oxlint's core `eslint/no-inner-declarations`, which still
+    /// defaults to the pre-ESLint-9 behaviour; the default here follows
+    /// eslint-plugin-svelte.
     NoInnerDeclarations,
     svelte,
     correctness,
@@ -136,20 +142,21 @@ impl Rule for NoInnerDeclarations {
         );
 
         // Options follow the mode string, matching ESLint's positional schema
-        // `[("functions" | "both"), { … }]`.
-        let block_scoped_functions = if value.is_array() && !value.is_null() {
+        // `[("functions" | "both"), { … }]`. ESLint 9 changed the default to
+        // `blockScopedFunctions: "allow"`, so an omitted option means "allow"
+        // here (unlike oxlint's core `eslint/no-inner-declarations`, which
+        // still defaults to the pre-9 behaviour); Svelte scripts are always
+        // modules, so this is what eslint-plugin-svelte reports in practice.
+        let block_scoped_functions = Some(
             value
                 .get(1)
                 .and_then(|v| v.get("blockScopedFunctions"))
                 .and_then(serde_json::Value::as_str)
-                .map(|value| match value {
+                .map_or(BlockScopedFunctions::Allow, |value| match value {
                     "disallow" => BlockScopedFunctions::Disallow,
                     _ => BlockScopedFunctions::Allow,
-                })
-                .or(Some(BlockScopedFunctions::Allow))
-        } else {
-            None
-        };
+                }),
+        );
 
         let namespaces =
             value.get(1).and_then(|v| v.get("namespaces")).and_then(serde_json::Value::as_str).map(
@@ -276,11 +283,11 @@ fn test() {
     let svelte_path = || Some(PathBuf::from("test.svelte"));
 
     // NOTE: with the default configuration only function declarations are
-    // checked; `var` cases need `["both"]` and the strict-mode exemption
-    // needs `["functions", { "blockScopedFunctions": "allow" }]`. Those
-    // option-dependent cases are listed commented out below until options
-    // dispatch for this rule lands (regenerated `from_configuration`
-    // dispatch via `cargo lintgen`).
+    // checked, and `blockScopedFunctions` defaults to `"allow"` — so in a
+    // Svelte script (always a module, hence strict) nested *function*
+    // declarations are allowed by default, exactly as eslint-plugin-svelte
+    // behaves. `var` cases need `["both"]`; reporting a nested function
+    // needs an explicit `{ "blockScopedFunctions": "disallow" }`.
     let pass = vec![
         ("<script>\n\tfunction doSomething() {}\n</script>", None, None, svelte_path()),
         // A function body is a valid root.
@@ -330,12 +337,8 @@ fn test() {
         ("<script>\n\texport function bar() {}\n</script>", None, None, svelte_path()),
         // No script at all.
         ("<div>{content}</div>", None, None, svelte_path()),
-        // Option-dependent cases (enable once options dispatch lands):
-        // ("<script>\n\tif (test) { let x = 1; }\n</script>", Some(serde_json::json!(["both"])), None, svelte_path()),
-        // ("<script>\n\tif (test) { function doSomething() {} }\n</script>", Some(serde_json::json!(["functions", { "blockScopedFunctions": "allow" }])), None, svelte_path()),
-    ];
-
-    let fail = vec![
+        // `blockScopedFunctions` defaults to `"allow"`, so a nested function
+        // declaration in a (always strict) Svelte script is not reported.
         (
             "<script>\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
             None,
@@ -349,31 +352,92 @@ fn test() {
             None,
             svelte_path(),
         ),
-        // Nested block inside a function body reports "function body root".
         (
             "<script>\n\tfunction doSomething() {\n\t\tdo {\n\t\t\tfunction somethingElse() {}\n\t\t} while (test);\n\t}\n</script>",
             None,
             None,
             svelte_path(),
         ),
-        // Module scripts are checked the same way.
         (
             "<script context=\"module\">\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
             None,
             None,
             svelte_path(),
         ),
-        // TypeScript scripts too.
         (
             "<script lang=\"ts\">\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
             None,
             None,
             svelte_path(),
         ),
-        // Option-dependent cases (enable once options dispatch lands):
-        // ("<script>\n\tif (foo) var a;\n</script>", Some(serde_json::json!(["both"])), None, svelte_path()),
-        // ("<script>\n\twhile (test) {\n\t\tvar foo;\n\t}\n</script>", Some(serde_json::json!(["both"])), None, svelte_path()),
-        // ("<script>\n\tif (test) { function doSomething() {} }\n</script>", Some(serde_json::json!(["both", { "blockScopedFunctions": "disallow" }])), None, svelte_path()),
+        // Explicitly asking for the ES5 behaviour still allows the cases the
+        // rule never checks.
+        (
+            "<script>\n\tif (test) {\n\t\tvar fn = function () {};\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // `let` is block-scoped, so `["both"]` does not report it either.
+        (
+            "<script>\n\tif (test) { let x = 1; }\n</script>",
+            Some(serde_json::json!(["both"])),
+            None,
+            svelte_path(),
+        ),
+    ];
+
+    let fail = vec![
+        // `blockScopedFunctions: "disallow"` restores the pre-ESLint-9
+        // behaviour and reports nested function declarations.
+        (
+            "<script>\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // Svelte reactive statements create ordinary nested blocks.
+        (
+            "<script>\n\t$: {\n\t\tfunction doSomething() {}\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // Nested block inside a function body reports "function body root".
+        (
+            "<script>\n\tfunction doSomething() {\n\t\tdo {\n\t\t\tfunction somethingElse() {}\n\t\t} while (test);\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // Module scripts are checked the same way.
+        (
+            "<script context=\"module\">\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // TypeScript scripts too.
+        (
+            "<script lang=\"ts\">\n\tif (test) {\n\t\tfunction doSomething() {}\n\t}\n</script>",
+            Some(serde_json::json!(["functions", { "blockScopedFunctions": "disallow" }])),
+            None,
+            svelte_path(),
+        ),
+        // `["both"]` additionally checks `var` — with the default
+        // `blockScopedFunctions`, so no explicit option is needed.
+        (
+            "<script>\n\tif (foo) var a;\n</script>",
+            Some(serde_json::json!(["both"])),
+            None,
+            svelte_path(),
+        ),
+        (
+            "<script>\n\twhile (test) {\n\t\tvar foo;\n\t}\n</script>",
+            Some(serde_json::json!(["both"])),
+            None,
+            svelte_path(),
+        ),
     ];
 
     Tester::new(NoInnerDeclarations::NAME, NoInnerDeclarations::PLUGIN, pass, fail)

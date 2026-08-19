@@ -439,7 +439,8 @@ fn check_link_element(
                         }),
                 };
                 if !allowed {
-                    diagnostics.push(link_diagnostic(value.span));
+                    // Upstream labels the whole `href="…"` attribute.
+                    diagnostics.push(link_diagnostic(attribute.span));
                 }
             }
             // `<a {href}>` is shorthand for `href={href}`.

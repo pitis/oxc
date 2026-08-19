@@ -46,3 +46,21 @@ source: crates/oxc_linter/src/tester.rs
  4 │     }
    ╰────
   help: Move function declaration to program root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:2:11]
+ 1 │ <script>
+ 2 │     if (foo) var a;
+   ·              ───
+ 3 │ </script>
+   ╰────
+  help: Move variable declaration to program root
+
+  ⚠ svelte(no-inner-declarations): Variable or `function` declarations are not allowed in nested blocks
+   ╭─[no_inner_declarations.tsx:3:3]
+ 2 │     while (test) {
+ 3 │         var foo;
+   ·         ───
+ 4 │     }
+   ╰────
+  help: Move variable declaration to program root

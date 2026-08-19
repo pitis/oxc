@@ -103,6 +103,12 @@ impl Rule for NoUnassignedVars {
             ctx.diagnostic(no_unassigned_vars_diagnostic(ident.span, ident.name.as_str()));
         }
     }
+
+    fn should_run(&self, ctx: &crate::context::ContextHost) -> bool {
+        // ignore svelte/vue: their templates can assign a binding
+        // (`bind:this`, `bind:value`, `v-model`), which we can't see.
+        !ctx.file_extension().is_some_and(|ext| ext == "svelte" || ext == "vue")
+    }
 }
 
 #[test]
@@ -159,4 +165,45 @@ fn test() {
     ];
 
     Tester::new(NoUnassignedVars::NAME, NoUnassignedVars::PLUGIN, pass, fail).test_and_snapshot();
+}
+
+#[test]
+fn test_svelte() {
+    use crate::tester::Tester;
+
+    // The markup is stripped before linting; it documents the template-side
+    // write (`bind:this`, `bind:value`) that assigns these bindings.
+    let pass = vec![
+        "<script>
+            let node;
+            onMount(() => node.focus());
+         </script>
+         <div bind:this={node}></div>",
+        "<script>
+            let value;
+            log(value);
+         </script>
+         <input bind:value />",
+    ];
+
+    Tester::new(NoUnassignedVars::NAME, NoUnassignedVars::PLUGIN, pass, vec![])
+        .change_rule_path("test.svelte")
+        .test();
+}
+
+#[test]
+fn test_vue() {
+    use crate::tester::Tester;
+
+    let pass = vec![
+        "<script setup>
+            let msg;
+            log(msg);
+         </script>
+         <template><input v-model=\"msg\" /></template>",
+    ];
+
+    Tester::new(NoUnassignedVars::NAME, NoUnassignedVars::PLUGIN, pass, vec![])
+        .change_rule_path("test.vue")
+        .test();
 }

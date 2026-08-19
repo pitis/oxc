@@ -54,6 +54,14 @@ declare_oxc_lint!(
     ///   const dispatch = createEventDispatcher<{ click: null }>();
     /// </script>
     /// ```
+    ///
+    /// ### Deviations from `eslint-plugin-svelte`
+    ///
+    /// Upstream skips this rule entirely when the installed Svelte is 5
+    /// (`createEventDispatcher` is deprecated there in favour of callback
+    /// props). oxlint does not resolve the installed Svelte version, so it
+    /// approximates the same gate per file: a component that uses runes
+    /// (`$props()`, `$state()`, …) is Svelte 5 code and is skipped.
     RequireEventDispatcherTypes,
     svelte,
     suspicious,
@@ -61,9 +69,18 @@ declare_oxc_lint!(
     short_description = "Require type parameters on `createEventDispatcher`.",
 );
 
+/// The Svelte 5 runes. A component that calls any of them is Svelte 5 code,
+/// where upstream does not run this rule (see the rule docs).
+const RUNES: [&str; 7] =
+    ["$state", "$props", "$derived", "$effect", "$bindable", "$inspect", "$host"];
+
 impl Rule for RequireEventDispatcherTypes {
     fn run_once(&self, ctx: &LintContext) {
         let scoping = ctx.scoping();
+
+        if scoping.root_unresolved_references().keys().any(|name| RUNES.contains(&name.as_str())) {
+            return;
+        }
 
         for entry in &ctx.module_record().import_entries {
             if entry.module_request.name() != "svelte" {
@@ -213,6 +230,19 @@ fn test() {
         (
             r#"<script lang="ts">
                 const createEventDispatcher = () => () => {};
+                const dispatch = createEventDispatcher();
+            </script>"#,
+            None,
+            None,
+            svelte_path(),
+        ),
+        // A component using runes is Svelte 5 code, where upstream skips
+        // this rule entirely.
+        (
+            r#"<script lang="ts">
+                import { createEventDispatcher } from 'svelte';
+
+                let { value } = $props();
                 const dispatch = createEventDispatcher();
             </script>"#,
             None,

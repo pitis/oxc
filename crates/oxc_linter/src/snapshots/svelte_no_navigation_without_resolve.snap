@@ -21,37 +21,37 @@ source: crates/oxc_linter/src/tester.rs
   help: Wrap the URL with `resolve()` from `$app/paths`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:6:22]
+   ╭─[no_navigation_without_resolve.tsx:6:16]
  5 │ 
  6 │             <a href="/foo">Click me!</a>
-   ·                      ────
+   ·                ───────────
  7 │             <a href={'/foo'}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:7:21]
+   ╭─[no_navigation_without_resolve.tsx:7:16]
  6 │             <a href="/foo">Click me!</a>
  7 │             <a href={'/foo'}>Click me!</a>
-   ·                     ────────
+   ·                ─────────────
  8 │             <a href={'/' + 'foo'}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:8:21]
+   ╭─[no_navigation_without_resolve.tsx:8:16]
  7 │             <a href={'/foo'}>Click me!</a>
  8 │             <a href={'/' + 'foo'}>Click me!</a>
-   ·                     ─────────────
+   ·                ──────────────────
  9 │             <a href={value}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-    ╭─[no_navigation_without_resolve.tsx:9:21]
+    ╭─[no_navigation_without_resolve.tsx:9:16]
   8 │             <a href={'/' + 'foo'}>Click me!</a>
   9 │             <a href={value}>Click me!</a>
-    ·                     ───────
+    ·                ────────────
  10 │             <a {href}>Click me!</a>
     ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
@@ -66,84 +66,84 @@ source: crates/oxc_linter/src/tester.rs
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-    ╭─[no_navigation_without_resolve.tsx:11:21]
+    ╭─[no_navigation_without_resolve.tsx:11:16]
  10 │             <a {href}>Click me!</a>
  11 │             <a href={'/user:42'}>Click me!</a>
-    ·                     ────────────
+    ·                ─────────────────
     ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:7:21]
+   ╭─[no_navigation_without_resolve.tsx:7:16]
  6 │ 
  7 │             <a href={resolve('/foo') + '/bar'}>Click me!</a>
-   ·                     ──────────────────────────
+   ·                ───────────────────────────────
  8 │             <a href={'/foo' + resolve('/bar')}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:8:21]
+   ╭─[no_navigation_without_resolve.tsx:8:16]
  7 │             <a href={resolve('/foo') + '/bar'}>Click me!</a>
  8 │             <a href={'/foo' + resolve('/bar')}>Click me!</a>
-   ·                     ──────────────────────────
+   ·                ───────────────────────────────
  9 │             <a href={value}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:9:21]
+   ╭─[no_navigation_without_resolve.tsx:9:16]
  8 │             <a href={'/foo' + resolve('/bar')}>Click me!</a>
  9 │             <a href={value}>Click me!</a>
-   ·                     ───────
+   ·                ────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:1:10]
+   ╭─[no_navigation_without_resolve.tsx:1:4]
  1 │ <a href="/foo#section">Click me!</a>
-   ·          ────────────
+   ·    ───────────────────
  2 │ <a href={'/foo#section'}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:2:9]
+   ╭─[no_navigation_without_resolve.tsx:2:4]
  1 │ <a href="/foo#section">Click me!</a>
  2 │ <a href={'/foo#section'}>Click me!</a>
-   ·         ────────────────
+   ·    ─────────────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:1:10]
+   ╭─[no_navigation_without_resolve.tsx:1:4]
  1 │ <a href="undefined">Click me!</a>
-   ·          ─────────
+   ·    ────────────────
  2 │ <a href="null">Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:2:10]
+   ╭─[no_navigation_without_resolve.tsx:2:4]
  1 │ <a href="undefined">Click me!</a>
  2 │ <a href="null">Click me!</a>
-   ·          ────
+   ·    ───────────
  3 │ <a href={`${undefined}`}>Click me!</a>
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:3:9]
+   ╭─[no_navigation_without_resolve.tsx:3:4]
  2 │ <a href="null">Click me!</a>
  3 │ <a href={`${undefined}`}>Click me!</a>
-   ·         ────────────────
+   ·    ─────────────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:1:9]
+   ╭─[no_navigation_without_resolve.tsx:1:4]
  1 │ <a href={'https://example.com' - '/foo'}>Click me!</a>
-   ·         ────────────────────────────────
+   ·    ─────────────────────────────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
@@ -237,10 +237,10 @@ source: crates/oxc_linter/src/tester.rs
   help: Wrap the URL with `resolve()` from `$app/paths`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:6:21]
+   ╭─[no_navigation_without_resolve.tsx:6:16]
  5 │ 
  6 │             <a href={value}>Click me!</a>
-   ·                     ───────
+   ·                ────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
@@ -253,9 +253,9 @@ source: crates/oxc_linter/src/tester.rs
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
 
   ⚠ svelte(no-navigation-without-resolve): Unexpected href link without resolve().
-   ╭─[no_navigation_without_resolve.tsx:5:21]
+   ╭─[no_navigation_without_resolve.tsx:5:16]
  4 │ 
  5 │             <a href={paths.asset('/foo/')}>Click me!</a>
-   ·                     ──────────────────────
+   ·                ───────────────────────────
    ╰────
   help: Wrap the URL with `resolve()` from `$app/paths`, or mark the link with `rel="external"`.
