@@ -506,6 +506,7 @@ svelte/no-at-const-tags                                    |      0
 svelte/no-at-debug-tags                                    |      0
 svelte/no-at-html-tags                                     |      0
 svelte/no-bind-value-on-checkable-inputs                   |      0
+svelte/no-conflicting-module-names                         |      7
 svelte/no-dom-manipulating                                 |      0
 svelte/no-dupe-else-if-blocks                              |      0
 svelte/no-dupe-on-directives                               |      0
@@ -531,6 +532,9 @@ svelte/no-unused-svelte-ignore                             |      0
 svelte/no-useless-children-snippet                         |      0
 svelte/no-useless-mustaches                                |      0
 svelte/prefer-attribute-interpolation                      |      0
+svelte/prefer-class-directive                              |      0
+svelte/prefer-const                                        |      0
+svelte/prefer-destructured-store-props                     |      0
 svelte/prefer-style-directive                              |      0
 svelte/require-each-key                                    |      0
 svelte/require-optimized-style-attribute                   |      0

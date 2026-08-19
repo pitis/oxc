@@ -1,0 +1,57 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-const): 'greeting' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:2:6]
+ 1 │ <script>
+ 2 │     let greeting = 'hello';
+   ·         ────────
+ 3 │ </script>
+   ╰────
+  help: Replace `let` with `const`.
+
+  ⚠ svelte(prefer-const): 'count' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:2:6]
+ 1 │ <script>
+ 2 │     let count = $state(0);
+   ·         ─────
+ 3 │ </script>
+   ╰────
+  help: Replace `let` with `const`.
+
+  ⚠ svelte(prefer-const): 'local' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:3:7]
+ 2 │     function f() {
+ 3 │         let local = 1;
+   ·             ─────
+ 4 │         return local;
+   ╰────
+  help: Replace `let` with `const`.
+
+  ⚠ svelte(prefer-const): 'a' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:2:8]
+ 1 │ <script>
+ 2 │     let { a, b } = obj;
+   ·           ─
+ 3 │ </script>
+   ╰────
+  help: Replace `let` with `const`.
+
+  ⚠ svelte(prefer-const): 'b' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:2:11]
+ 1 │ <script>
+ 2 │     let { a, b } = obj;
+   ·              ─
+ 3 │ </script>
+   ╰────
+  help: Replace `let` with `const`.
+
+  ⚠ svelte(prefer-const): 'doubled' is never reassigned. Use 'const' instead.
+   ╭─[prefer_const.tsx:2:6]
+ 1 │ <script>
+ 2 │     let doubled = $derived(count * 2);
+   ·         ───────
+ 3 │ </script>
+   ╰────
+  help: Replace `let` with `const`.

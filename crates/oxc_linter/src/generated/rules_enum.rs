@@ -526,6 +526,7 @@ pub use crate::rules::svelte::no_at_const_tags::NoAtConstTags as SvelteNoAtConst
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
 pub use crate::rules::svelte::no_at_html_tags::NoAtHtmlTags as SvelteNoAtHtmlTags;
 pub use crate::rules::svelte::no_bind_value_on_checkable_inputs::NoBindValueOnCheckableInputs as SvelteNoBindValueOnCheckableInputs;
+pub use crate::rules::svelte::no_conflicting_module_names::NoConflictingModuleNames as SvelteNoConflictingModuleNames;
 pub use crate::rules::svelte::no_dom_manipulating::NoDomManipulating as SvelteNoDomManipulating;
 pub use crate::rules::svelte::no_dupe_else_if_blocks::NoDupeElseIfBlocks as SvelteNoDupeElseIfBlocks;
 pub use crate::rules::svelte::no_dupe_on_directives::NoDupeOnDirectives as SvelteNoDupeOnDirectives;
@@ -555,6 +556,7 @@ pub use crate::rules::svelte::no_spaces_around_equal_signs_in_attribute::NoSpace
 pub use crate::rules::svelte::no_store_async::NoStoreAsync as SvelteNoStoreAsync;
 pub use crate::rules::svelte::no_svelte_internal::NoSvelteInternal as SvelteNoSvelteInternal;
 pub use crate::rules::svelte::no_target_blank::NoTargetBlank as SvelteNoTargetBlank;
+pub use crate::rules::svelte::no_top_level_browser_globals::NoTopLevelBrowserGlobals as SvelteNoTopLevelBrowserGlobals;
 pub use crate::rules::svelte::no_unknown_style_directive_property::NoUnknownStyleDirectiveProperty as SvelteNoUnknownStyleDirectiveProperty;
 pub use crate::rules::svelte::no_unnecessary_state_wrap::NoUnnecessaryStateWrap as SvelteNoUnnecessaryStateWrap;
 pub use crate::rules::svelte::no_unused_class_name::NoUnusedClassName as SvelteNoUnusedClassName;
@@ -563,7 +565,10 @@ pub use crate::rules::svelte::no_unused_svelte_ignore::NoUnusedSvelteIgnore as S
 pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
 pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
 pub use crate::rules::svelte::prefer_attribute_interpolation::PreferAttributeInterpolation as SveltePreferAttributeInterpolation;
+pub use crate::rules::svelte::prefer_class_directive::PreferClassDirective as SveltePreferClassDirective;
+pub use crate::rules::svelte::prefer_const::PreferConst as SveltePreferConst;
 pub use crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy as SveltePreferDerivedOverDerivedBy;
+pub use crate::rules::svelte::prefer_destructured_store_props::PreferDestructuredStoreProps as SveltePreferDestructuredStoreProps;
 pub use crate::rules::svelte::prefer_style_directive::PreferStyleDirective as SveltePreferStyleDirective;
 pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity as SveltePreferSvelteReactivity;
 pub use crate::rules::svelte::prefer_writable_derived::PreferWritableDerived as SveltePreferWritableDerived;
@@ -1958,6 +1963,7 @@ pub enum RuleEnum {
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
     SvelteNoAtHtmlTags(SvelteNoAtHtmlTags),
     SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs),
+    SvelteNoConflictingModuleNames(SvelteNoConflictingModuleNames),
     SvelteNoDomManipulating(SvelteNoDomManipulating),
     SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks),
     SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives),
@@ -1987,6 +1993,7 @@ pub enum RuleEnum {
     SvelteNoStoreAsync(SvelteNoStoreAsync),
     SvelteNoSvelteInternal(SvelteNoSvelteInternal),
     SvelteNoTargetBlank(SvelteNoTargetBlank),
+    SvelteNoTopLevelBrowserGlobals(SvelteNoTopLevelBrowserGlobals),
     SvelteNoUnknownStyleDirectiveProperty(SvelteNoUnknownStyleDirectiveProperty),
     SvelteNoUnnecessaryStateWrap(SvelteNoUnnecessaryStateWrap),
     SvelteNoUnusedClassName(SvelteNoUnusedClassName),
@@ -1995,7 +2002,10 @@ pub enum RuleEnum {
     SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
     SvelteNoUselessMustaches(SvelteNoUselessMustaches),
     SveltePreferAttributeInterpolation(SveltePreferAttributeInterpolation),
+    SveltePreferClassDirective(SveltePreferClassDirective),
+    SveltePreferConst(SveltePreferConst),
     SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy),
+    SveltePreferDestructuredStoreProps(SveltePreferDestructuredStoreProps),
     SveltePreferStyleDirective(SveltePreferStyleDirective),
     SveltePreferSvelteReactivity(SveltePreferSvelteReactivity),
     SveltePreferWritableDerived(SveltePreferWritableDerived),
@@ -3067,7 +3077,9 @@ const SVELTE_NO_AT_CONST_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usi
 const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_AT_CONST_TAGS_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
 const SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
-const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID + 1usize;
+const SVELTE_NO_CONFLICTING_MODULE_NAMES_ID: usize =
+    SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID + 1usize;
+const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_CONFLICTING_MODULE_NAMES_ID + 1usize;
 const SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID: usize = SVELTE_NO_DOM_MANIPULATING_ID + 1usize;
 const SVELTE_NO_DUPE_ON_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID + 1usize;
 const SVELTE_NO_DUPE_STYLE_PROPERTIES_ID: usize = SVELTE_NO_DUPE_ON_DIRECTIVES_ID + 1usize;
@@ -3102,7 +3114,9 @@ const SVELTE_NO_STORE_ASYNC_ID: usize =
     SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID + 1usize;
 const SVELTE_NO_SVELTE_INTERNAL_ID: usize = SVELTE_NO_STORE_ASYNC_ID + 1usize;
 const SVELTE_NO_TARGET_BLANK_ID: usize = SVELTE_NO_SVELTE_INTERNAL_ID + 1usize;
-const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
+const SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
+const SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID: usize =
+    SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID + 1usize;
 const SVELTE_NO_UNNECESSARY_STATE_WRAP_ID: usize =
     SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID + 1usize;
 const SVELTE_NO_UNUSED_CLASS_NAME_ID: usize = SVELTE_NO_UNNECESSARY_STATE_WRAP_ID + 1usize;
@@ -3111,9 +3125,12 @@ const SVELTE_NO_UNUSED_SVELTE_IGNORE_ID: usize = SVELTE_NO_UNUSED_PROPS_ID + 1us
 const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_UNUSED_SVELTE_IGNORE_ID + 1usize;
 const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
 const SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
-const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize =
-    SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID + 1usize;
-const SVELTE_PREFER_STYLE_DIRECTIVE_ID: usize = SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
+const SVELTE_PREFER_CLASS_DIRECTIVE_ID: usize = SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID + 1usize;
+const SVELTE_PREFER_CONST_ID: usize = SVELTE_PREFER_CLASS_DIRECTIVE_ID + 1usize;
+const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize = SVELTE_PREFER_CONST_ID + 1usize;
+const SVELTE_PREFER_DESTRUCTURED_STORE_PROPS_ID: usize =
+    SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
+const SVELTE_PREFER_STYLE_DIRECTIVE_ID: usize = SVELTE_PREFER_DESTRUCTURED_STORE_PROPS_ID + 1usize;
 const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_STYLE_DIRECTIVE_ID + 1usize;
 const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
 const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_PREFER_WRITABLE_DERIVED_ID + 1usize;
@@ -3130,7 +3147,7 @@ const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_SORT_ATTRIBUTES_ID + 1usize;
 const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
-static RULE_NAMES: [&str; 991usize] = [
+static RULE_NAMES: [&str; 996usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4070,6 +4087,7 @@ static RULE_NAMES: [&str; 991usize] = [
     SvelteNoAtDebugTags::NAME,
     SvelteNoAtHtmlTags::NAME,
     SvelteNoBindValueOnCheckableInputs::NAME,
+    SvelteNoConflictingModuleNames::NAME,
     SvelteNoDomManipulating::NAME,
     SvelteNoDupeElseIfBlocks::NAME,
     SvelteNoDupeOnDirectives::NAME,
@@ -4099,6 +4117,7 @@ static RULE_NAMES: [&str; 991usize] = [
     SvelteNoStoreAsync::NAME,
     SvelteNoSvelteInternal::NAME,
     SvelteNoTargetBlank::NAME,
+    SvelteNoTopLevelBrowserGlobals::NAME,
     SvelteNoUnknownStyleDirectiveProperty::NAME,
     SvelteNoUnnecessaryStateWrap::NAME,
     SvelteNoUnusedClassName::NAME,
@@ -4107,7 +4126,10 @@ static RULE_NAMES: [&str; 991usize] = [
     SvelteNoUselessChildrenSnippet::NAME,
     SvelteNoUselessMustaches::NAME,
     SveltePreferAttributeInterpolation::NAME,
+    SveltePreferClassDirective::NAME,
+    SveltePreferConst::NAME,
     SveltePreferDerivedOverDerivedBy::NAME,
+    SveltePreferDestructuredStoreProps::NAME,
     SveltePreferStyleDirective::NAME,
     SveltePreferSvelteReactivity::NAME,
     SveltePreferWritableDerived::NAME,
@@ -5205,6 +5227,7 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID
             }
+            Self::SvelteNoConflictingModuleNames(_) => SVELTE_NO_CONFLICTING_MODULE_NAMES_ID,
             Self::SvelteNoDomManipulating(_) => SVELTE_NO_DOM_MANIPULATING_ID,
             Self::SvelteNoDupeElseIfBlocks(_) => SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID,
             Self::SvelteNoDupeOnDirectives(_) => SVELTE_NO_DUPE_ON_DIRECTIVES_ID,
@@ -5242,6 +5265,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SVELTE_NO_STORE_ASYNC_ID,
             Self::SvelteNoSvelteInternal(_) => SVELTE_NO_SVELTE_INTERNAL_ID,
             Self::SvelteNoTargetBlank(_) => SVELTE_NO_TARGET_BLANK_ID,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SVELTE_NO_TOP_LEVEL_BROWSER_GLOBALS_ID,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SVELTE_NO_UNKNOWN_STYLE_DIRECTIVE_PROPERTY_ID
             }
@@ -5252,7 +5276,12 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
             Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
             Self::SveltePreferAttributeInterpolation(_) => SVELTE_PREFER_ATTRIBUTE_INTERPOLATION_ID,
+            Self::SveltePreferClassDirective(_) => SVELTE_PREFER_CLASS_DIRECTIVE_ID,
+            Self::SveltePreferConst(_) => SVELTE_PREFER_CONST_ID,
             Self::SveltePreferDerivedOverDerivedBy(_) => SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID,
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SVELTE_PREFER_DESTRUCTURED_STORE_PROPS_ID
+            }
             Self::SveltePreferStyleDirective(_) => SVELTE_PREFER_STYLE_DIRECTIVE_ID,
             Self::SveltePreferSvelteReactivity(_) => SVELTE_PREFER_SVELTE_REACTIVITY_ID,
             Self::SveltePreferWritableDerived(_) => SVELTE_PREFER_WRITABLE_DERIVED_ID,
@@ -6409,6 +6438,7 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SvelteNoBindValueOnCheckableInputs::CATEGORY
             }
+            Self::SvelteNoConflictingModuleNames(_) => SvelteNoConflictingModuleNames::CATEGORY,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::CATEGORY,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::CATEGORY,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::CATEGORY,
@@ -6446,6 +6476,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::CATEGORY,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::CATEGORY,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::CATEGORY,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::CATEGORY,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::CATEGORY
             }
@@ -6458,7 +6489,12 @@ impl RuleEnum {
             Self::SveltePreferAttributeInterpolation(_) => {
                 SveltePreferAttributeInterpolation::CATEGORY
             }
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::CATEGORY,
+            Self::SveltePreferConst(_) => SveltePreferConst::CATEGORY,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::CATEGORY,
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::CATEGORY
+            }
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::CATEGORY,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::CATEGORY,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::CATEGORY,
@@ -7541,6 +7577,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::FIX,
             Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::FIX,
+            Self::SvelteNoConflictingModuleNames(_) => SvelteNoConflictingModuleNames::FIX,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::FIX,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::FIX,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::FIX,
@@ -7578,6 +7615,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::FIX,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::FIX,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::FIX,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::FIX,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::FIX
             }
@@ -7588,7 +7626,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
             Self::SveltePreferAttributeInterpolation(_) => SveltePreferAttributeInterpolation::FIX,
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::FIX,
+            Self::SveltePreferConst(_) => SveltePreferConst::FIX,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::FIX,
+            Self::SveltePreferDestructuredStoreProps(_) => SveltePreferDestructuredStoreProps::FIX,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::FIX,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::FIX,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::FIX,
@@ -8969,6 +9010,9 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SvelteNoBindValueOnCheckableInputs::documentation()
             }
+            Self::SvelteNoConflictingModuleNames(_) => {
+                SvelteNoConflictingModuleNames::documentation()
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::documentation(),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::documentation(),
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::documentation(),
@@ -9014,6 +9058,9 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::documentation(),
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::documentation(),
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::documentation(),
+            Self::SvelteNoTopLevelBrowserGlobals(_) => {
+                SvelteNoTopLevelBrowserGlobals::documentation()
+            }
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::documentation()
             }
@@ -9028,8 +9075,13 @@ impl RuleEnum {
             Self::SveltePreferAttributeInterpolation(_) => {
                 SveltePreferAttributeInterpolation::documentation()
             }
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::documentation(),
+            Self::SveltePreferConst(_) => SveltePreferConst::documentation(),
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::documentation()
+            }
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::documentation()
             }
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::documentation(),
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::documentation(),
@@ -11752,6 +11804,10 @@ impl RuleEnum {
                 SvelteNoBindValueOnCheckableInputs::config_schema(generator)
                     .or_else(|| SvelteNoBindValueOnCheckableInputs::schema(generator))
             }
+            Self::SvelteNoConflictingModuleNames(_) => {
+                SvelteNoConflictingModuleNames::config_schema(generator)
+                    .or_else(|| SvelteNoConflictingModuleNames::schema(generator))
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::config_schema(generator)
                 .or_else(|| SvelteNoDomManipulating::schema(generator)),
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::config_schema(generator)
@@ -11842,6 +11898,10 @@ impl RuleEnum {
                 .or_else(|| SvelteNoSvelteInternal::schema(generator)),
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::config_schema(generator)
                 .or_else(|| SvelteNoTargetBlank::schema(generator)),
+            Self::SvelteNoTopLevelBrowserGlobals(_) => {
+                SvelteNoTopLevelBrowserGlobals::config_schema(generator)
+                    .or_else(|| SvelteNoTopLevelBrowserGlobals::schema(generator))
+            }
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::config_schema(generator)
                     .or_else(|| SvelteNoUnknownStyleDirectiveProperty::schema(generator))
@@ -11868,9 +11928,19 @@ impl RuleEnum {
                 SveltePreferAttributeInterpolation::config_schema(generator)
                     .or_else(|| SveltePreferAttributeInterpolation::schema(generator))
             }
+            Self::SveltePreferClassDirective(_) => {
+                SveltePreferClassDirective::config_schema(generator)
+                    .or_else(|| SveltePreferClassDirective::schema(generator))
+            }
+            Self::SveltePreferConst(_) => SveltePreferConst::config_schema(generator)
+                .or_else(|| SveltePreferConst::schema(generator)),
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::config_schema(generator)
                     .or_else(|| SveltePreferDerivedOverDerivedBy::schema(generator))
+            }
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::config_schema(generator)
+                    .or_else(|| SveltePreferDestructuredStoreProps::schema(generator))
             }
             Self::SveltePreferStyleDirective(_) => {
                 SveltePreferStyleDirective::config_schema(generator)
@@ -12860,6 +12930,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(_) => "svelte",
             Self::SvelteNoAtHtmlTags(_) => "svelte",
             Self::SvelteNoBindValueOnCheckableInputs(_) => "svelte",
+            Self::SvelteNoConflictingModuleNames(_) => "svelte",
             Self::SvelteNoDomManipulating(_) => "svelte",
             Self::SvelteNoDupeElseIfBlocks(_) => "svelte",
             Self::SvelteNoDupeOnDirectives(_) => "svelte",
@@ -12889,6 +12960,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => "svelte",
             Self::SvelteNoSvelteInternal(_) => "svelte",
             Self::SvelteNoTargetBlank(_) => "svelte",
+            Self::SvelteNoTopLevelBrowserGlobals(_) => "svelte",
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => "svelte",
             Self::SvelteNoUnnecessaryStateWrap(_) => "svelte",
             Self::SvelteNoUnusedClassName(_) => "svelte",
@@ -12897,7 +12969,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
             Self::SvelteNoUselessMustaches(_) => "svelte",
             Self::SveltePreferAttributeInterpolation(_) => "svelte",
+            Self::SveltePreferClassDirective(_) => "svelte",
+            Self::SveltePreferConst(_) => "svelte",
             Self::SveltePreferDerivedOverDerivedBy(_) => "svelte",
+            Self::SveltePreferDestructuredStoreProps(_) => "svelte",
             Self::SveltePreferStyleDirective(_) => "svelte",
             Self::SveltePreferSvelteReactivity(_) => "svelte",
             Self::SveltePreferWritableDerived(_) => "svelte",
@@ -14101,6 +14176,12 @@ impl RuleEnum {
             Self::SvelteNoUnusedClassName(_) => Ok(Self::SvelteNoUnusedClassName(
                 SvelteNoUnusedClassName::from_configuration(value)?,
             )),
+            Self::SveltePreferClassDirective(_) => Ok(Self::SveltePreferClassDirective(
+                SveltePreferClassDirective::from_configuration(value)?,
+            )),
+            Self::SveltePreferConst(_) => {
+                Ok(Self::SveltePreferConst(SveltePreferConst::from_configuration(value)?))
+            }
             Self::SvelteSortAttributes(_) => {
                 Ok(Self::SvelteSortAttributes(SvelteSortAttributes::from_configuration(value)?))
             }
@@ -15090,6 +15171,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run(node, ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run(node, ctx),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.run(node, ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run(node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run(node, ctx),
@@ -15119,6 +15201,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.run(node, ctx),
             Self::SvelteNoSvelteInternal(rule) => rule.run(node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run(node, ctx),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run(node, ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run(node, ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run(node, ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.run(node, ctx),
@@ -15127,7 +15210,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
             Self::SveltePreferAttributeInterpolation(rule) => rule.run(node, ctx),
+            Self::SveltePreferClassDirective(rule) => rule.run(node, ctx),
+            Self::SveltePreferConst(rule) => rule.run(node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run(node, ctx),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.run(node, ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run(node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run(node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run(node, ctx),
@@ -16098,6 +16184,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_once(ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_once(ctx),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.run_once(ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_once(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_once(ctx),
@@ -16127,6 +16214,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.run_once(ctx),
             Self::SvelteNoSvelteInternal(rule) => rule.run_once(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_once(ctx),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_once(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_once(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_once(ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.run_once(ctx),
@@ -16135,7 +16223,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
             Self::SveltePreferAttributeInterpolation(rule) => rule.run_once(ctx),
+            Self::SveltePreferClassDirective(rule) => rule.run_once(ctx),
+            Self::SveltePreferConst(rule) => rule.run_once(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_once(ctx),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.run_once(ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run_once(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_once(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_once(ctx),
@@ -17227,6 +17318,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDomManipulating(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17264,6 +17356,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoSvelteInternal(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoTargetBlank(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
@@ -17274,7 +17367,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferAttributeInterpolation(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferClassDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferConst(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferStyleDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18250,6 +18346,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.should_run(ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.should_run(ctx),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.should_run(ctx),
             Self::SvelteNoDomManipulating(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.should_run(ctx),
             Self::SvelteNoDupeOnDirectives(rule) => rule.should_run(ctx),
@@ -18279,6 +18376,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.should_run(ctx),
             Self::SvelteNoSvelteInternal(rule) => rule.should_run(ctx),
             Self::SvelteNoTargetBlank(rule) => rule.should_run(ctx),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.should_run(ctx),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.should_run(ctx),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.should_run(ctx),
             Self::SvelteNoUnusedClassName(rule) => rule.should_run(ctx),
@@ -18287,7 +18385,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
             Self::SveltePreferAttributeInterpolation(rule) => rule.should_run(ctx),
+            Self::SveltePreferClassDirective(rule) => rule.should_run(ctx),
+            Self::SveltePreferConst(rule) => rule.should_run(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.should_run(ctx),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.should_run(ctx),
             Self::SveltePreferStyleDirective(rule) => rule.should_run(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.should_run(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.should_run(ctx),
@@ -19663,6 +19764,9 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SvelteNoBindValueOnCheckableInputs::IS_TSGOLINT_RULE
             }
+            Self::SvelteNoConflictingModuleNames(_) => {
+                SvelteNoConflictingModuleNames::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::IS_TSGOLINT_RULE,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::IS_TSGOLINT_RULE,
@@ -19708,6 +19812,9 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::IS_TSGOLINT_RULE,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::IS_TSGOLINT_RULE,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::IS_TSGOLINT_RULE,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => {
+                SvelteNoTopLevelBrowserGlobals::IS_TSGOLINT_RULE
+            }
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::IS_TSGOLINT_RULE
             }
@@ -19722,8 +19829,13 @@ impl RuleEnum {
             Self::SveltePreferAttributeInterpolation(_) => {
                 SveltePreferAttributeInterpolation::IS_TSGOLINT_RULE
             }
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::IS_TSGOLINT_RULE,
+            Self::SveltePreferConst(_) => SveltePreferConst::IS_TSGOLINT_RULE,
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::IS_TSGOLINT_RULE
+            }
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::IS_TSGOLINT_RULE
             }
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::IS_TSGOLINT_RULE,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::IS_TSGOLINT_RULE,
@@ -20886,6 +20998,7 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SvelteNoBindValueOnCheckableInputs::VERSION
             }
+            Self::SvelteNoConflictingModuleNames(_) => SvelteNoConflictingModuleNames::VERSION,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::VERSION,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::VERSION,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::VERSION,
@@ -20923,6 +21036,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::VERSION,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::VERSION,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::VERSION,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::VERSION,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::VERSION
             }
@@ -20935,7 +21049,12 @@ impl RuleEnum {
             Self::SveltePreferAttributeInterpolation(_) => {
                 SveltePreferAttributeInterpolation::VERSION
             }
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::VERSION,
+            Self::SveltePreferConst(_) => SveltePreferConst::VERSION,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::VERSION,
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::VERSION
+            }
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::VERSION,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::VERSION,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::VERSION,
@@ -22138,6 +22257,7 @@ impl RuleEnum {
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
                 SvelteNoBindValueOnCheckableInputs::HAS_CONFIG
             }
+            Self::SvelteNoConflictingModuleNames(_) => SvelteNoConflictingModuleNames::HAS_CONFIG,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::HAS_CONFIG,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::HAS_CONFIG,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::HAS_CONFIG,
@@ -22177,6 +22297,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::HAS_CONFIG,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::HAS_CONFIG,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::HAS_CONFIG,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::HAS_CONFIG,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::HAS_CONFIG
             }
@@ -22189,8 +22310,13 @@ impl RuleEnum {
             Self::SveltePreferAttributeInterpolation(_) => {
                 SveltePreferAttributeInterpolation::HAS_CONFIG
             }
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::HAS_CONFIG,
+            Self::SveltePreferConst(_) => SveltePreferConst::HAS_CONFIG,
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::HAS_CONFIG
+            }
+            Self::SveltePreferDestructuredStoreProps(_) => {
+                SveltePreferDestructuredStoreProps::HAS_CONFIG
             }
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::HAS_CONFIG,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::HAS_CONFIG,
@@ -23277,6 +23403,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::INFO,
             Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::INFO,
+            Self::SvelteNoConflictingModuleNames(_) => SvelteNoConflictingModuleNames::INFO,
             Self::SvelteNoDomManipulating(_) => SvelteNoDomManipulating::INFO,
             Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::INFO,
             Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::INFO,
@@ -23314,6 +23441,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(_) => SvelteNoStoreAsync::INFO,
             Self::SvelteNoSvelteInternal(_) => SvelteNoSvelteInternal::INFO,
             Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::INFO,
+            Self::SvelteNoTopLevelBrowserGlobals(_) => SvelteNoTopLevelBrowserGlobals::INFO,
             Self::SvelteNoUnknownStyleDirectiveProperty(_) => {
                 SvelteNoUnknownStyleDirectiveProperty::INFO
             }
@@ -23324,7 +23452,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
             Self::SveltePreferAttributeInterpolation(_) => SveltePreferAttributeInterpolation::INFO,
+            Self::SveltePreferClassDirective(_) => SveltePreferClassDirective::INFO,
+            Self::SveltePreferConst(_) => SveltePreferConst::INFO,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::INFO,
+            Self::SveltePreferDestructuredStoreProps(_) => SveltePreferDestructuredStoreProps::INFO,
             Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::INFO,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::INFO,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::INFO,
@@ -24291,6 +24422,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.types_info(),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.types_info(),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.types_info(),
             Self::SvelteNoDomManipulating(rule) => rule.types_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.types_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.types_info(),
@@ -24320,6 +24452,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.types_info(),
             Self::SvelteNoSvelteInternal(rule) => rule.types_info(),
             Self::SvelteNoTargetBlank(rule) => rule.types_info(),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.types_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.types_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.types_info(),
             Self::SvelteNoUnusedClassName(rule) => rule.types_info(),
@@ -24328,7 +24461,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
             Self::SveltePreferAttributeInterpolation(rule) => rule.types_info(),
+            Self::SveltePreferClassDirective(rule) => rule.types_info(),
+            Self::SveltePreferConst(rule) => rule.types_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.types_info(),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.types_info(),
             Self::SveltePreferStyleDirective(rule) => rule.types_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.types_info(),
             Self::SveltePreferWritableDerived(rule) => rule.types_info(),
@@ -25286,6 +25422,7 @@ impl RuleEnum {
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_info(),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_info(),
+            Self::SvelteNoConflictingModuleNames(rule) => rule.run_info(),
             Self::SvelteNoDomManipulating(rule) => rule.run_info(),
             Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_info(),
             Self::SvelteNoDupeOnDirectives(rule) => rule.run_info(),
@@ -25315,6 +25452,7 @@ impl RuleEnum {
             Self::SvelteNoStoreAsync(rule) => rule.run_info(),
             Self::SvelteNoSvelteInternal(rule) => rule.run_info(),
             Self::SvelteNoTargetBlank(rule) => rule.run_info(),
+            Self::SvelteNoTopLevelBrowserGlobals(rule) => rule.run_info(),
             Self::SvelteNoUnknownStyleDirectiveProperty(rule) => rule.run_info(),
             Self::SvelteNoUnnecessaryStateWrap(rule) => rule.run_info(),
             Self::SvelteNoUnusedClassName(rule) => rule.run_info(),
@@ -25323,7 +25461,10 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
             Self::SveltePreferAttributeInterpolation(rule) => rule.run_info(),
+            Self::SveltePreferClassDirective(rule) => rule.run_info(),
+            Self::SveltePreferConst(rule) => rule.run_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_info(),
+            Self::SveltePreferDestructuredStoreProps(rule) => rule.run_info(),
             Self::SveltePreferStyleDirective(rule) => rule.run_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_info(),
             Self::SveltePreferWritableDerived(rule) => rule.run_info(),
@@ -26421,6 +26562,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
         RuleEnum::SvelteNoAtHtmlTags(SvelteNoAtHtmlTags::default()),
         RuleEnum::SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs::default()),
+        RuleEnum::SvelteNoConflictingModuleNames(SvelteNoConflictingModuleNames::default()),
         RuleEnum::SvelteNoDomManipulating(SvelteNoDomManipulating::default()),
         RuleEnum::SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks::default()),
         RuleEnum::SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives::default()),
@@ -26458,6 +26600,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoStoreAsync(SvelteNoStoreAsync::default()),
         RuleEnum::SvelteNoSvelteInternal(SvelteNoSvelteInternal::default()),
         RuleEnum::SvelteNoTargetBlank(SvelteNoTargetBlank::default()),
+        RuleEnum::SvelteNoTopLevelBrowserGlobals(SvelteNoTopLevelBrowserGlobals::default()),
         RuleEnum::SvelteNoUnknownStyleDirectiveProperty(
             SvelteNoUnknownStyleDirectiveProperty::default(),
         ),
@@ -26468,7 +26611,10 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
         RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
         RuleEnum::SveltePreferAttributeInterpolation(SveltePreferAttributeInterpolation::default()),
+        RuleEnum::SveltePreferClassDirective(SveltePreferClassDirective::default()),
+        RuleEnum::SveltePreferConst(SveltePreferConst::default()),
         RuleEnum::SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy::default()),
+        RuleEnum::SveltePreferDestructuredStoreProps(SveltePreferDestructuredStoreProps::default()),
         RuleEnum::SveltePreferStyleDirective(SveltePreferStyleDirective::default()),
         RuleEnum::SveltePreferSvelteReactivity(SveltePreferSvelteReactivity::default()),
         RuleEnum::SveltePreferWritableDerived(SveltePreferWritableDerived::default()),

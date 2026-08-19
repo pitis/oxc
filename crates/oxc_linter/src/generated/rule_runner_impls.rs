@@ -5921,6 +5921,11 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::no_conflicting_module_names::NoConflictingModuleNames {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
 impl RuleRunner for crate::rules::svelte::no_dom_manipulating::NoDomManipulating {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
@@ -6086,6 +6091,11 @@ impl RuleRunner for crate::rules::svelte::no_target_blank::NoTargetBlank {
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::no_top_level_browser_globals::NoTopLevelBrowserGlobals {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
 impl RuleRunner
     for crate::rules::svelte::no_unknown_style_directive_property::NoUnknownStyleDirectiveProperty
 {
@@ -6130,12 +6140,29 @@ impl RuleRunner
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::svelte::prefer_class_directive::PreferClassDirective {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::svelte::prefer_const::PreferConst {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner
     for crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy
 {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner
+    for crate::rules::svelte::prefer_destructured_store_props::PreferDestructuredStoreProps
+{
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::svelte::prefer_style_directive::PreferStyleDirective {

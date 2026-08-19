@@ -1,0 +1,17 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-conflicting-module-names): The module `Conflict.svelte.ts` has the same name as this component. TypeScript resolves the import `./Conflict.svelte` to that module, not to this component.
+   ╭─[no_conflicting_module_names.tsx:1:1]
+ 1 │ <div />
+   · ▲
+   ╰────
+  help: Rename `Conflict.svelte.ts`.
+
+  ⚠ svelte(no-conflicting-module-names): This module has the same name as the component `Conflict.svelte`. TypeScript resolves the import `./Conflict.svelte` to this module, not to the component.
+   ╭─[no_conflicting_module_names.tsx:1:1]
+ 1 │ export const state = 1;
+   · ▲
+   ╰────
+  help: Rename this file.

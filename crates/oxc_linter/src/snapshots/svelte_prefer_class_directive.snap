@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-class-directive): Unexpected class using the ternary operator.
+   ╭─[prefer_class_directive.tsx:1:13]
+ 1 │ <div class="{isSelected ? 'selected' : ''}"></div>
+   ·             ──────────────────────────────
+   ╰────
+  help: Use a `class:name={condition}` directive instead.
+
+  ⚠ svelte(prefer-class-directive): Unexpected class using the ternary operator.
+   ╭─[prefer_class_directive.tsx:1:13]
+ 1 │ <div class="{a ? '' : 'x'}"></div>
+   ·             ──────────────
+   ╰────
+  help: Use a `class:name={condition}` directive instead.
+
+  ⚠ svelte(prefer-class-directive): Unexpected class using the ternary operator.
+   ╭─[prefer_class_directive.tsx:1:15]
+ 1 │ <div class="a {isSelected ? 'selected' : ''} b"></div>
+   ·               ──────────────────────────────
+   ╰────
+  help: Use a `class:name={condition}` directive instead.
+
+  ⚠ svelte(prefer-class-directive): Unexpected class using the ternary operator.
+   ╭─[prefer_class_directive.tsx:1:13]
+ 1 │ <div class="{a ? 'x' : 'y'}"></div>
+   ·             ───────────────
+   ╰────
+  help: Use a `class:name={condition}` directive instead.

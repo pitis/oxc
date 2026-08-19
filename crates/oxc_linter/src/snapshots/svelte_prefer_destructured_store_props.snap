@@ -1,0 +1,38 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-destructured-store-props): Destructure name from $user for better change tracking & fewer redraws
+   ╭─[prefer_destructured_store_props.tsx:1:5]
+ 1 │ <p>{$user.name}</p>
+   ·     ──────────
+   ╰────
+  help: Add `$: ({ name } = $user);` to the script and use `name` here.
+
+  ⚠ svelte(prefer-destructured-store-props): Destructure name from $user for better change tracking & fewer redraws
+   ╭─[prefer_destructured_store_props.tsx:1:13]
+ 1 │ <div title={$user.name}></div>
+   ·             ──────────
+   ╰────
+  help: Add `$: ({ name } = $user);` to the script and use `name` here.
+
+  ⚠ svelte(prefer-destructured-store-props): Destructure isAdmin from $user for better change tracking & fewer redraws
+   ╭─[prefer_destructured_store_props.tsx:1:6]
+ 1 │ {#if $user.isAdmin}<p>admin</p>{/if}
+   ·      ─────────────
+   ╰────
+  help: Add `$: ({ isAdmin } = $user);` to the script and use `isAdmin` here.
+
+  ⚠ svelte(prefer-destructured-store-props): Destructure profile from $user for better change tracking & fewer redraws
+   ╭─[prefer_destructured_store_props.tsx:1:5]
+ 1 │ <p>{$user.profile.name}</p>
+   ·     ─────────────
+   ╰────
+  help: Add `$: ({ profile } = $user);` to the script and use `profile` here.
+
+  ⚠ svelte(prefer-destructured-store-props): Destructure html from $page for better change tracking & fewer redraws
+   ╭─[prefer_destructured_store_props.tsx:1:8]
+ 1 │ {@html $page.html}
+   ·        ──────────
+   ╰────
+  help: Add `$: ({ html } = $page);` to the script and use `html` here.

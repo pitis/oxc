@@ -1,0 +1,39 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-top-level-browser-globals): Unexpected top-level browser global variable "window".
+   ╭─[no_top_level_browser_globals.tsx:2:16]
+ 1 │ <script>
+ 2 │     const width = window.innerWidth;
+   ·                   ──────
+ 3 │ </script>
+   ╰────
+  help: Move the access into `onMount`, an `$effect`, or a `typeof window !== 'undefined'` guard.
+
+  ⚠ svelte(no-top-level-browser-globals): Unexpected top-level browser global variable "document".
+   ╭─[no_top_level_browser_globals.tsx:2:16]
+ 1 │ <script>
+ 2 │     const title = document.title;
+   ·                   ────────
+ 3 │ </script>
+   ╰────
+  help: Move the access into `onMount`, an `$effect`, or a `typeof window !== 'undefined'` guard.
+
+  ⚠ svelte(no-top-level-browser-globals): Unexpected top-level browser global variable "localStorage".
+   ╭─[no_top_level_browser_globals.tsx:2:16]
+ 1 │ <script>
+ 2 │     const saved = localStorage.getItem('x');
+   ·                   ────────────
+ 3 │ </script>
+   ╰────
+  help: Move the access into `onMount`, an `$effect`, or a `typeof window !== 'undefined'` guard.
+
+  ⚠ svelte(no-top-level-browser-globals): Unexpected top-level browser global variable "document".
+   ╭─[no_top_level_browser_globals.tsx:2:91]
+ 1 │ <script>
+ 2 │                 if (typeof window !== 'undefined') { console.log(1); } else { console.log(document.title); }
+   ·                                                                                           ────────
+ 3 │             </script>
+   ╰────
+  help: Move the access into `onMount`, an `$effect`, or a `typeof window !== 'undefined'` guard.

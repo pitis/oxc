@@ -1033,6 +1033,7 @@ pub(crate) mod svelte {
     pub mod no_at_debug_tags;
     pub mod no_at_html_tags;
     pub mod no_bind_value_on_checkable_inputs;
+    pub mod no_conflicting_module_names;
     pub mod no_dom_manipulating;
     pub mod no_dupe_else_if_blocks;
     pub mod no_dupe_on_directives;
@@ -1062,6 +1063,7 @@ pub(crate) mod svelte {
     pub mod no_store_async;
     pub mod no_svelte_internal;
     pub mod no_target_blank;
+    pub mod no_top_level_browser_globals;
     pub mod no_unknown_style_directive_property;
     pub mod no_unnecessary_state_wrap;
     pub mod no_unused_class_name;
@@ -1070,7 +1072,10 @@ pub(crate) mod svelte {
     pub mod no_useless_children_snippet;
     pub mod no_useless_mustaches;
     pub mod prefer_attribute_interpolation;
+    pub mod prefer_class_directive;
+    pub mod prefer_const;
     pub mod prefer_derived_over_derived_by;
+    pub mod prefer_destructured_store_props;
     pub mod prefer_style_directive;
     pub mod prefer_svelte_reactivity;
     pub mod prefer_writable_derived;

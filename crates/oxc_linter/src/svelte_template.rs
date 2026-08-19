@@ -76,6 +76,10 @@ pub fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRul
         RuleEnum::SvelteNoUnusedSvelteIgnore(rule) => Some(rule),
         RuleEnum::SvelteRequireStoreReactiveAccess(rule) => Some(rule),
         RuleEnum::SvelteNoNavigationWithoutResolve(rule) => Some(rule),
+        RuleEnum::SveltePreferDestructuredStoreProps(rule) => Some(rule),
+        RuleEnum::SveltePreferClassDirective(rule) => Some(rule),
+        RuleEnum::SveltePreferConst(rule) => Some(rule),
+        RuleEnum::SvelteNoConflictingModuleNames(rule) => Some(rule),
         RuleEnum::SvelteNoUnusedClassName(rule) => Some(rule),
         RuleEnum::SvelteMaxLinesPerBlock(rule) => Some(rule),
         RuleEnum::SveltePreferAttributeInterpolation(rule) => Some(rule),
@@ -101,6 +105,8 @@ pub fn as_svelte_template_rule(rule: &RuleEnum) -> Option<&dyn SvelteTemplateRul
 pub struct SvelteTemplateContext<'a> {
     /// The whole `.svelte` file source — what the AST spans index into.
     source_text: &'a str,
+    /// The linted file's path.
+    path: &'a Path,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
@@ -108,6 +114,11 @@ impl<'a> SvelteTemplateContext<'a> {
     /// The whole `.svelte` file source (what the AST spans are relative to).
     pub fn source_text(&self) -> &'a str {
         self.source_text
+    }
+
+    /// The linted file's path.
+    pub fn path(&self) -> &'a Path {
+        self.path
     }
 
     /// Report a violation. Label spans are absolute file offsets, exactly as
@@ -163,7 +174,7 @@ impl Linter {
 
         let mut messages = Vec::new();
         for (rule, template_rule, severity) in &template_rules {
-            let mut ctx = SvelteTemplateContext { source_text, diagnostics: Vec::new() };
+            let mut ctx = SvelteTemplateContext { source_text, path, diagnostics: Vec::new() };
             template_rule.run_on_markup(&nodes, &mut ctx);
             let mut diagnostics = ctx.diagnostics;
             retain_unsuppressed(&mut diagnostics, &[&directives], rule);
