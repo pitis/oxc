@@ -1,0 +1,47 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(block-lang): The lang attribute of the <script> block should be not set.
+   ╭─[block_lang.tsx:1:1]
+ 1 │ <script lang="ts"></script>
+   · ──────────────────
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.
+
+  ⚠ svelte(block-lang): The lang attribute of the <script> block should be "ts".
+   ╭─[block_lang.tsx:1:1]
+ 1 │ <script></script>
+   · ────────
+ 2 │ <style></style>
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.
+
+  ⚠ svelte(block-lang): The lang attribute of the <style> block should be "scss".
+   ╭─[block_lang.tsx:2:1]
+ 1 │ <script></script>
+ 2 │ <style></style>
+   · ───────
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.
+
+  ⚠ svelte(block-lang): The lang attribute of the <script> block should be "ts" or "tsx".
+   ╭─[block_lang.tsx:1:1]
+ 1 │ <script lang="js"></script>
+   · ──────────────────
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.
+
+  ⚠ svelte(block-lang): The <script> block should be present and its lang attribute should be "ts".
+   ╭─[block_lang.tsx:1:1]
+ 1 │ <div></div>
+   · ▲
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.
+
+  ⚠ svelte(block-lang): The <style> block should be present and its lang attribute should be "scss".
+   ╭─[block_lang.tsx:1:1]
+ 1 │ <div></div>
+   · ▲
+   ╰────
+  help: Set the block's `lang` attribute to one of the configured languages.

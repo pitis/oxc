@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(sort-attributes): Attribute `id` should go before `class`.
+   ╭─[sort_attributes.tsx:1:18]
+ 1 │ <div class="foo" id="bar"></div>
+   ·                  ────────
+   ╰────
+  help: Reorder the attributes to match the configured order.
+
+  ⚠ svelte(sort-attributes): Attribute `id` should go before `on:click`.
+   ╭─[sort_attributes.tsx:1:19]
+ 1 │ <div on:click={f} id="a"></div>
+   ·                   ──────
+   ╰────
+  help: Reorder the attributes to match the configured order.
+
+  ⚠ svelte(sort-attributes): Attribute `data-x` should go before `role`.
+   ╭─[sort_attributes.tsx:1:15]
+ 1 │ <div role="c" data-x="b"></div>
+   ·               ──────────
+   ╰────
+  help: Reorder the attributes to match the configured order.
+
+  ⚠ svelte(sort-attributes): Attribute `class` should go before `id`.
+   ╭─[sort_attributes.tsx:1:13]
+ 1 │ <div id="a" class="c"></div>
+   ·             ─────────
+   ╰────
+  help: Reorder the attributes to match the configured order.

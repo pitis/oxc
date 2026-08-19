@@ -513,11 +513,15 @@ pub use crate::rules::react_perf::jsx_no_jsx_as_prop::JsxNoJsxAsProp as ReactPer
 pub use crate::rules::react_perf::jsx_no_new_array_as_prop::JsxNoNewArrayAsProp as ReactPerfJsxNoNewArrayAsProp;
 pub use crate::rules::react_perf::jsx_no_new_function_as_prop::JsxNoNewFunctionAsProp as ReactPerfJsxNoNewFunctionAsProp;
 pub use crate::rules::react_perf::jsx_no_new_object_as_prop::JsxNoNewObjectAsProp as ReactPerfJsxNoNewObjectAsProp;
+pub use crate::rules::svelte::block_lang::BlockLang as SvelteBlockLang;
 pub use crate::rules::svelte::button_has_type::ButtonHasType as SvelteButtonHasType;
 pub use crate::rules::svelte::comment_directive::CommentDirective as SvelteCommentDirective;
 pub use crate::rules::svelte::derived_has_same_inputs_outputs::DerivedHasSameInputsOutputs as SvelteDerivedHasSameInputsOutputs;
+pub use crate::rules::svelte::experimental_require_slot_types::ExperimentalRequireSlotTypes as SvelteExperimentalRequireSlotTypes;
+pub use crate::rules::svelte::experimental_require_strict_events::ExperimentalRequireStrictEvents as SvelteExperimentalRequireStrictEvents;
 pub use crate::rules::svelte::infinite_reactive_loop::InfiniteReactiveLoop as SvelteInfiniteReactiveLoop;
 pub use crate::rules::svelte::no_add_event_listener::NoAddEventListener as SvelteNoAddEventListener;
+pub use crate::rules::svelte::no_at_const_tags::NoAtConstTags as SvelteNoAtConstTags;
 pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
 pub use crate::rules::svelte::no_at_html_tags::NoAtHtmlTags as SvelteNoAtHtmlTags;
 pub use crate::rules::svelte::no_bind_value_on_checkable_inputs::NoBindValueOnCheckableInputs as SvelteNoBindValueOnCheckableInputs;
@@ -555,13 +559,16 @@ pub use crate::rules::svelte::no_unused_svelte_ignore::NoUnusedSvelteIgnore as S
 pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
 pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
 pub use crate::rules::svelte::prefer_derived_over_derived_by::PreferDerivedOverDerivedBy as SveltePreferDerivedOverDerivedBy;
+pub use crate::rules::svelte::prefer_style_directive::PreferStyleDirective as SveltePreferStyleDirective;
 pub use crate::rules::svelte::prefer_svelte_reactivity::PreferSvelteReactivity as SveltePreferSvelteReactivity;
 pub use crate::rules::svelte::prefer_writable_derived::PreferWritableDerived as SveltePreferWritableDerived;
 pub use crate::rules::svelte::require_each_key::RequireEachKey as SvelteRequireEachKey;
 pub use crate::rules::svelte::require_event_dispatcher_types::RequireEventDispatcherTypes as SvelteRequireEventDispatcherTypes;
+pub use crate::rules::svelte::require_optimized_style_attribute::RequireOptimizedStyleAttribute as SvelteRequireOptimizedStyleAttribute;
 pub use crate::rules::svelte::require_store_callbacks_use_set_param::RequireStoreCallbacksUseSetParam as SvelteRequireStoreCallbacksUseSetParam;
 pub use crate::rules::svelte::require_store_reactive_access::RequireStoreReactiveAccess as SvelteRequireStoreReactiveAccess;
 pub use crate::rules::svelte::require_stores_init::RequireStoresInit as SvelteRequireStoresInit;
+pub use crate::rules::svelte::sort_attributes::SortAttributes as SvelteSortAttributes;
 pub use crate::rules::svelte::spaced_html_comment::SpacedHtmlComment as SvelteSpacedHtmlComment;
 pub use crate::rules::svelte::system::System as SvelteSystem;
 pub use crate::rules::svelte::valid_each_key::ValidEachKey as SvelteValidEachKey;
@@ -1933,11 +1940,15 @@ pub enum RuleEnum {
     VueValidVShow(VueValidVShow),
     VueValidVSlot(VueValidVSlot),
     VueValidVText(VueValidVText),
+    SvelteBlockLang(SvelteBlockLang),
     SvelteButtonHasType(SvelteButtonHasType),
     SvelteCommentDirective(SvelteCommentDirective),
     SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs),
+    SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes),
+    SvelteExperimentalRequireStrictEvents(SvelteExperimentalRequireStrictEvents),
     SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop),
     SvelteNoAddEventListener(SvelteNoAddEventListener),
+    SvelteNoAtConstTags(SvelteNoAtConstTags),
     SvelteNoAtDebugTags(SvelteNoAtDebugTags),
     SvelteNoAtHtmlTags(SvelteNoAtHtmlTags),
     SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs),
@@ -1975,13 +1986,16 @@ pub enum RuleEnum {
     SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
     SvelteNoUselessMustaches(SvelteNoUselessMustaches),
     SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy),
+    SveltePreferStyleDirective(SveltePreferStyleDirective),
     SveltePreferSvelteReactivity(SveltePreferSvelteReactivity),
     SveltePreferWritableDerived(SveltePreferWritableDerived),
     SvelteRequireEachKey(SvelteRequireEachKey),
     SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes),
+    SvelteRequireOptimizedStyleAttribute(SvelteRequireOptimizedStyleAttribute),
     SvelteRequireStoreCallbacksUseSetParam(SvelteRequireStoreCallbacksUseSetParam),
     SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess),
     SvelteRequireStoresInit(SvelteRequireStoresInit),
+    SvelteSortAttributes(SvelteSortAttributes),
     SvelteSpacedHtmlComment(SvelteSpacedHtmlComment),
     SvelteSystem(SvelteSystem),
     SvelteValidEachKey(SvelteValidEachKey),
@@ -3027,12 +3041,19 @@ const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
 const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
 const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
-const SVELTE_BUTTON_HAS_TYPE_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
+const SVELTE_BLOCK_LANG_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
+const SVELTE_BUTTON_HAS_TYPE_ID: usize = SVELTE_BLOCK_LANG_ID + 1usize;
 const SVELTE_COMMENT_DIRECTIVE_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
 const SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
-const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize = SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID + 1usize;
+const SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID: usize =
+    SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID + 1usize;
+const SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID: usize =
+    SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID + 1usize;
+const SVELTE_INFINITE_REACTIVE_LOOP_ID: usize =
+    SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID + 1usize;
 const SVELTE_NO_ADD_EVENT_LISTENER_ID: usize = SVELTE_INFINITE_REACTIVE_LOOP_ID + 1usize;
-const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
+const SVELTE_NO_AT_CONST_TAGS_ID: usize = SVELTE_NO_ADD_EVENT_LISTENER_ID + 1usize;
+const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_NO_AT_CONST_TAGS_ID + 1usize;
 const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
 const SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
 const SVELTE_NO_DOM_MANIPULATING_ID: usize = SVELTE_NO_BIND_VALUE_ON_CHECKABLE_INPUTS_ID + 1usize;
@@ -3075,20 +3096,24 @@ const SVELTE_NO_UNUSED_SVELTE_IGNORE_ID: usize = SVELTE_NO_UNUSED_PROPS_ID + 1us
 const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_UNUSED_SVELTE_IGNORE_ID + 1usize;
 const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
 const SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
-const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
+const SVELTE_PREFER_STYLE_DIRECTIVE_ID: usize = SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID + 1usize;
+const SVELTE_PREFER_SVELTE_REACTIVITY_ID: usize = SVELTE_PREFER_STYLE_DIRECTIVE_ID + 1usize;
 const SVELTE_PREFER_WRITABLE_DERIVED_ID: usize = SVELTE_PREFER_SVELTE_REACTIVITY_ID + 1usize;
 const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_PREFER_WRITABLE_DERIVED_ID + 1usize;
 const SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID: usize = SVELTE_REQUIRE_EACH_KEY_ID + 1usize;
-const SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID: usize =
+const SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID: usize =
     SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID + 1usize;
+const SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID: usize =
+    SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID + 1usize;
 const SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID: usize =
     SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID + 1usize;
 const SVELTE_REQUIRE_STORES_INIT_ID: usize = SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID + 1usize;
-const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_REQUIRE_STORES_INIT_ID + 1usize;
+const SVELTE_SORT_ATTRIBUTES_ID: usize = SVELTE_REQUIRE_STORES_INIT_ID + 1usize;
+const SVELTE_SPACED_HTML_COMMENT_ID: usize = SVELTE_SORT_ATTRIBUTES_ID + 1usize;
 const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
-static RULE_NAMES: [&str; 979usize] = [
+static RULE_NAMES: [&str; 986usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4015,11 +4040,15 @@ static RULE_NAMES: [&str; 979usize] = [
     VueValidVShow::NAME,
     VueValidVSlot::NAME,
     VueValidVText::NAME,
+    SvelteBlockLang::NAME,
     SvelteButtonHasType::NAME,
     SvelteCommentDirective::NAME,
     SvelteDerivedHasSameInputsOutputs::NAME,
+    SvelteExperimentalRequireSlotTypes::NAME,
+    SvelteExperimentalRequireStrictEvents::NAME,
     SvelteInfiniteReactiveLoop::NAME,
     SvelteNoAddEventListener::NAME,
+    SvelteNoAtConstTags::NAME,
     SvelteNoAtDebugTags::NAME,
     SvelteNoAtHtmlTags::NAME,
     SvelteNoBindValueOnCheckableInputs::NAME,
@@ -4057,13 +4086,16 @@ static RULE_NAMES: [&str; 979usize] = [
     SvelteNoUselessChildrenSnippet::NAME,
     SvelteNoUselessMustaches::NAME,
     SveltePreferDerivedOverDerivedBy::NAME,
+    SveltePreferStyleDirective::NAME,
     SveltePreferSvelteReactivity::NAME,
     SveltePreferWritableDerived::NAME,
     SvelteRequireEachKey::NAME,
     SvelteRequireEventDispatcherTypes::NAME,
+    SvelteRequireOptimizedStyleAttribute::NAME,
     SvelteRequireStoreCallbacksUseSetParam::NAME,
     SvelteRequireStoreReactiveAccess::NAME,
     SvelteRequireStoresInit::NAME,
+    SvelteSortAttributes::NAME,
     SvelteSpacedHtmlComment::NAME,
     SvelteSystem::NAME,
     SvelteValidEachKey::NAME,
@@ -5132,11 +5164,19 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
             Self::VueValidVSlot(_) => VUE_VALID_V_SLOT_ID,
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
+            Self::SvelteBlockLang(_) => SVELTE_BLOCK_LANG_ID,
             Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
             Self::SvelteCommentDirective(_) => SVELTE_COMMENT_DIRECTIVE_ID,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SVELTE_DERIVED_HAS_SAME_INPUTS_OUTPUTS_ID,
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SVELTE_EXPERIMENTAL_REQUIRE_SLOT_TYPES_ID
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SVELTE_EXPERIMENTAL_REQUIRE_STRICT_EVENTS_ID
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SVELTE_INFINITE_REACTIVE_LOOP_ID,
             Self::SvelteNoAddEventListener(_) => SVELTE_NO_ADD_EVENT_LISTENER_ID,
+            Self::SvelteNoAtConstTags(_) => SVELTE_NO_AT_CONST_TAGS_ID,
             Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
             Self::SvelteNoAtHtmlTags(_) => SVELTE_NO_AT_HTML_TAGS_ID,
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -5186,15 +5226,20 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
             Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
             Self::SveltePreferDerivedOverDerivedBy(_) => SVELTE_PREFER_DERIVED_OVER_DERIVED_BY_ID,
+            Self::SveltePreferStyleDirective(_) => SVELTE_PREFER_STYLE_DIRECTIVE_ID,
             Self::SveltePreferSvelteReactivity(_) => SVELTE_PREFER_SVELTE_REACTIVITY_ID,
             Self::SveltePreferWritableDerived(_) => SVELTE_PREFER_WRITABLE_DERIVED_ID,
             Self::SvelteRequireEachKey(_) => SVELTE_REQUIRE_EACH_KEY_ID,
             Self::SvelteRequireEventDispatcherTypes(_) => SVELTE_REQUIRE_EVENT_DISPATCHER_TYPES_ID,
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SVELTE_REQUIRE_OPTIMIZED_STYLE_ATTRIBUTE_ID
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SVELTE_REQUIRE_STORE_CALLBACKS_USE_SET_PARAM_ID
             }
             Self::SvelteRequireStoreReactiveAccess(_) => SVELTE_REQUIRE_STORE_REACTIVE_ACCESS_ID,
             Self::SvelteRequireStoresInit(_) => SVELTE_REQUIRE_STORES_INIT_ID,
+            Self::SvelteSortAttributes(_) => SVELTE_SORT_ATTRIBUTES_ID,
             Self::SvelteSpacedHtmlComment(_) => SVELTE_SPACED_HTML_COMMENT_ID,
             Self::SvelteSystem(_) => SVELTE_SYSTEM_ID,
             Self::SvelteValidEachKey(_) => SVELTE_VALID_EACH_KEY_ID,
@@ -6316,13 +6361,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
             Self::VueValidVSlot(_) => VueValidVSlot::CATEGORY,
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::CATEGORY,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::CATEGORY,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::CATEGORY
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::CATEGORY
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::CATEGORY
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::CATEGORY,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::CATEGORY,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::CATEGORY,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::CATEGORY,
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -6372,17 +6425,22 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::CATEGORY,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::CATEGORY,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::CATEGORY,
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::CATEGORY,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::CATEGORY,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::CATEGORY,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::CATEGORY,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::CATEGORY
             }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::CATEGORY
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::CATEGORY
             }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::CATEGORY,
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::CATEGORY,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::CATEGORY,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::CATEGORY,
             Self::SvelteSystem(_) => SvelteSystem::CATEGORY,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::CATEGORY,
@@ -7434,11 +7492,17 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::FIX,
             Self::VueValidVSlot(_) => VueValidVSlot::FIX,
             Self::VueValidVText(_) => VueValidVText::FIX,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::FIX,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::FIX,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::FIX,
+            Self::SvelteExperimentalRequireSlotTypes(_) => SvelteExperimentalRequireSlotTypes::FIX,
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::FIX
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::FIX,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::FIX,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::FIX,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::FIX,
             Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::FIX,
@@ -7486,15 +7550,20 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::FIX,
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::FIX,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::FIX,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::FIX,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::FIX,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::FIX,
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::FIX
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::FIX
             }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::FIX,
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::FIX,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::FIX,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::FIX,
             Self::SvelteSystem(_) => SvelteSystem::FIX,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::FIX,
@@ -8840,13 +8909,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::documentation(),
             Self::VueValidVSlot(_) => VueValidVSlot::documentation(),
             Self::VueValidVText(_) => VueValidVText::documentation(),
+            Self::SvelteBlockLang(_) => SvelteBlockLang::documentation(),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::documentation(),
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::documentation()
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::documentation()
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::documentation()
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::documentation(),
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::documentation(),
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::documentation(),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::documentation(),
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -8906,11 +8983,15 @@ impl RuleEnum {
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::documentation()
             }
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::documentation(),
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::documentation(),
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::documentation(),
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::documentation(),
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::documentation()
+            }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::documentation()
             }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::documentation()
@@ -8919,6 +9000,7 @@ impl RuleEnum {
                 SvelteRequireStoreReactiveAccess::documentation()
             }
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::documentation(),
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::documentation(),
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::documentation(),
             Self::SvelteSystem(_) => SvelteSystem::documentation(),
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::documentation(),
@@ -11586,6 +11668,8 @@ impl RuleEnum {
             Self::VueValidVText(_) => {
                 VueValidVText::config_schema(generator).or_else(|| VueValidVText::schema(generator))
             }
+            Self::SvelteBlockLang(_) => SvelteBlockLang::config_schema(generator)
+                .or_else(|| SvelteBlockLang::schema(generator)),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::config_schema(generator)
                 .or_else(|| SvelteButtonHasType::schema(generator)),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::config_schema(generator)
@@ -11594,12 +11678,22 @@ impl RuleEnum {
                 SvelteDerivedHasSameInputsOutputs::config_schema(generator)
                     .or_else(|| SvelteDerivedHasSameInputsOutputs::schema(generator))
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::config_schema(generator)
+                    .or_else(|| SvelteExperimentalRequireSlotTypes::schema(generator))
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::config_schema(generator)
+                    .or_else(|| SvelteExperimentalRequireStrictEvents::schema(generator))
+            }
             Self::SvelteInfiniteReactiveLoop(_) => {
                 SvelteInfiniteReactiveLoop::config_schema(generator)
                     .or_else(|| SvelteInfiniteReactiveLoop::schema(generator))
             }
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::config_schema(generator)
                 .or_else(|| SvelteNoAddEventListener::schema(generator)),
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::config_schema(generator)
+                .or_else(|| SvelteNoAtConstTags::schema(generator)),
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::config_schema(generator)
                 .or_else(|| SvelteNoAtDebugTags::schema(generator)),
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::config_schema(generator)
@@ -11716,6 +11810,10 @@ impl RuleEnum {
                 SveltePreferDerivedOverDerivedBy::config_schema(generator)
                     .or_else(|| SveltePreferDerivedOverDerivedBy::schema(generator))
             }
+            Self::SveltePreferStyleDirective(_) => {
+                SveltePreferStyleDirective::config_schema(generator)
+                    .or_else(|| SveltePreferStyleDirective::schema(generator))
+            }
             Self::SveltePreferSvelteReactivity(_) => {
                 SveltePreferSvelteReactivity::config_schema(generator)
                     .or_else(|| SveltePreferSvelteReactivity::schema(generator))
@@ -11730,6 +11828,10 @@ impl RuleEnum {
                 SvelteRequireEventDispatcherTypes::config_schema(generator)
                     .or_else(|| SvelteRequireEventDispatcherTypes::schema(generator))
             }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::config_schema(generator)
+                    .or_else(|| SvelteRequireOptimizedStyleAttribute::schema(generator))
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::config_schema(generator)
                     .or_else(|| SvelteRequireStoreCallbacksUseSetParam::schema(generator))
@@ -11740,6 +11842,8 @@ impl RuleEnum {
             }
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::config_schema(generator)
                 .or_else(|| SvelteRequireStoresInit::schema(generator)),
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::config_schema(generator)
+                .or_else(|| SvelteSortAttributes::schema(generator)),
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::config_schema(generator)
                 .or_else(|| SvelteSpacedHtmlComment::schema(generator)),
             Self::SvelteSystem(_) => {
@@ -12681,11 +12785,15 @@ impl RuleEnum {
             Self::VueValidVShow(_) => "vue",
             Self::VueValidVSlot(_) => "vue",
             Self::VueValidVText(_) => "vue",
+            Self::SvelteBlockLang(_) => "svelte",
             Self::SvelteButtonHasType(_) => "svelte",
             Self::SvelteCommentDirective(_) => "svelte",
             Self::SvelteDerivedHasSameInputsOutputs(_) => "svelte",
+            Self::SvelteExperimentalRequireSlotTypes(_) => "svelte",
+            Self::SvelteExperimentalRequireStrictEvents(_) => "svelte",
             Self::SvelteInfiniteReactiveLoop(_) => "svelte",
             Self::SvelteNoAddEventListener(_) => "svelte",
+            Self::SvelteNoAtConstTags(_) => "svelte",
             Self::SvelteNoAtDebugTags(_) => "svelte",
             Self::SvelteNoAtHtmlTags(_) => "svelte",
             Self::SvelteNoBindValueOnCheckableInputs(_) => "svelte",
@@ -12723,13 +12831,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
             Self::SvelteNoUselessMustaches(_) => "svelte",
             Self::SveltePreferDerivedOverDerivedBy(_) => "svelte",
+            Self::SveltePreferStyleDirective(_) => "svelte",
             Self::SveltePreferSvelteReactivity(_) => "svelte",
             Self::SveltePreferWritableDerived(_) => "svelte",
             Self::SvelteRequireEachKey(_) => "svelte",
             Self::SvelteRequireEventDispatcherTypes(_) => "svelte",
+            Self::SvelteRequireOptimizedStyleAttribute(_) => "svelte",
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => "svelte",
             Self::SvelteRequireStoreReactiveAccess(_) => "svelte",
             Self::SvelteRequireStoresInit(_) => "svelte",
+            Self::SvelteSortAttributes(_) => "svelte",
             Self::SvelteSpacedHtmlComment(_) => "svelte",
             Self::SvelteSystem(_) => "svelte",
             Self::SvelteValidEachKey(_) => "svelte",
@@ -13883,6 +13994,9 @@ impl RuleEnum {
             Self::VueValidVSlot(_) => {
                 Ok(Self::VueValidVSlot(VueValidVSlot::from_configuration(value)?))
             }
+            Self::SvelteBlockLang(_) => {
+                Ok(Self::SvelteBlockLang(SvelteBlockLang::from_configuration(value)?))
+            }
             Self::SvelteButtonHasType(_) => {
                 Ok(Self::SvelteButtonHasType(SvelteButtonHasType::from_configuration(value)?))
             }
@@ -13914,6 +14028,9 @@ impl RuleEnum {
             Self::SvelteNoUnnecessaryStateWrap(_) => Ok(Self::SvelteNoUnnecessaryStateWrap(
                 SvelteNoUnnecessaryStateWrap::from_configuration(value)?,
             )),
+            Self::SvelteSortAttributes(_) => {
+                Ok(Self::SvelteSortAttributes(SvelteSortAttributes::from_configuration(value)?))
+            }
             Self::SvelteSpacedHtmlComment(_) => Ok(Self::SvelteSpacedHtmlComment(
                 SvelteSpacedHtmlComment::from_configuration(value)?,
             )),
@@ -14887,11 +15004,15 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run(node, ctx),
             Self::VueValidVSlot(rule) => rule.run(node, ctx),
             Self::VueValidVText(rule) => rule.run(node, ctx),
+            Self::SvelteBlockLang(rule) => rule.run(node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run(node, ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run(node, ctx),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run(node, ctx),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run(node, ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run(node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run(node, ctx),
+            Self::SvelteNoAtConstTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run(node, ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run(node, ctx),
@@ -14929,13 +15050,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run(node, ctx),
+            Self::SveltePreferStyleDirective(rule) => rule.run(node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run(node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run(node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run(node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run(node, ctx),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run(node, ctx),
             Self::SvelteRequireStoresInit(rule) => rule.run(node, ctx),
+            Self::SvelteSortAttributes(rule) => rule.run(node, ctx),
             Self::SvelteSpacedHtmlComment(rule) => rule.run(node, ctx),
             Self::SvelteSystem(rule) => rule.run(node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run(node, ctx),
@@ -15883,11 +16007,15 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_once(ctx),
             Self::VueValidVSlot(rule) => rule.run_once(ctx),
             Self::VueValidVText(rule) => rule.run_once(ctx),
+            Self::SvelteBlockLang(rule) => rule.run_once(ctx),
             Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
             Self::SvelteCommentDirective(rule) => rule.run_once(ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_once(ctx),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_once(ctx),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_once(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_once(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_once(ctx),
+            Self::SvelteNoAtConstTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_once(ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_once(ctx),
@@ -15925,13 +16053,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_once(ctx),
+            Self::SveltePreferStyleDirective(rule) => rule.run_once(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_once(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_once(ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_once(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_once(ctx),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_once(ctx),
             Self::SvelteRequireStoresInit(rule) => rule.run_once(ctx),
+            Self::SvelteSortAttributes(rule) => rule.run_once(ctx),
             Self::SvelteSpacedHtmlComment(rule) => rule.run_once(ctx),
             Self::SvelteSystem(rule) => rule.run_once(ctx),
             Self::SvelteValidEachKey(rule) => rule.run_once(ctx),
@@ -16998,11 +17129,17 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVSlot(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteBlockLang(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAddEventListener(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoAtConstTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17050,15 +17187,20 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SveltePreferStyleDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SveltePreferWritableDerived(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => {
                 rule.run_on_jest_node(jest_node, ctx)
             }
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteRequireStoresInit(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteSortAttributes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteSpacedHtmlComment(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteSystem(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteValidEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18007,11 +18149,15 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.should_run(ctx),
             Self::VueValidVSlot(rule) => rule.should_run(ctx),
             Self::VueValidVText(rule) => rule.should_run(ctx),
+            Self::SvelteBlockLang(rule) => rule.should_run(ctx),
             Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
             Self::SvelteCommentDirective(rule) => rule.should_run(ctx),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.should_run(ctx),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.should_run(ctx),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => rule.should_run(ctx),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.should_run(ctx),
             Self::SvelteNoAddEventListener(rule) => rule.should_run(ctx),
+            Self::SvelteNoAtConstTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
             Self::SvelteNoAtHtmlTags(rule) => rule.should_run(ctx),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.should_run(ctx),
@@ -18049,13 +18195,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
             Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.should_run(ctx),
+            Self::SveltePreferStyleDirective(rule) => rule.should_run(ctx),
             Self::SveltePreferSvelteReactivity(rule) => rule.should_run(ctx),
             Self::SveltePreferWritableDerived(rule) => rule.should_run(ctx),
             Self::SvelteRequireEachKey(rule) => rule.should_run(ctx),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.should_run(ctx),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.should_run(ctx),
             Self::SvelteRequireStoresInit(rule) => rule.should_run(ctx),
+            Self::SvelteSortAttributes(rule) => rule.should_run(ctx),
             Self::SvelteSpacedHtmlComment(rule) => rule.should_run(ctx),
             Self::SvelteSystem(rule) => rule.should_run(ctx),
             Self::SvelteValidEachKey(rule) => rule.should_run(ctx),
@@ -19400,13 +19549,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
             Self::VueValidVSlot(_) => VueValidVSlot::IS_TSGOLINT_RULE,
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::IS_TSGOLINT_RULE,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::IS_TSGOLINT_RULE,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::IS_TSGOLINT_RULE
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::IS_TSGOLINT_RULE
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::IS_TSGOLINT_RULE
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::IS_TSGOLINT_RULE,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::IS_TSGOLINT_RULE,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::IS_TSGOLINT_RULE,
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -19466,11 +19623,15 @@ impl RuleEnum {
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::IS_TSGOLINT_RULE
             }
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::IS_TSGOLINT_RULE,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::IS_TSGOLINT_RULE,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::IS_TSGOLINT_RULE,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::IS_TSGOLINT_RULE,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::IS_TSGOLINT_RULE
+            }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::IS_TSGOLINT_RULE
             }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::IS_TSGOLINT_RULE
@@ -19479,6 +19640,7 @@ impl RuleEnum {
                 SvelteRequireStoreReactiveAccess::IS_TSGOLINT_RULE
             }
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::IS_TSGOLINT_RULE,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::IS_TSGOLINT_RULE,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::IS_TSGOLINT_RULE,
             Self::SvelteSystem(_) => SvelteSystem::IS_TSGOLINT_RULE,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::IS_TSGOLINT_RULE,
@@ -20601,13 +20763,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::VERSION,
             Self::VueValidVSlot(_) => VueValidVSlot::VERSION,
             Self::VueValidVText(_) => VueValidVText::VERSION,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::VERSION,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::VERSION,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::VERSION
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::VERSION
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::VERSION
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::VERSION,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::VERSION,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::VERSION,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::VERSION,
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -20657,17 +20827,22 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::VERSION,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::VERSION,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::VERSION,
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::VERSION,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::VERSION,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::VERSION,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::VERSION,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::VERSION
             }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::VERSION
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::VERSION
             }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::VERSION,
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::VERSION,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::VERSION,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::VERSION,
             Self::SvelteSystem(_) => SvelteSystem::VERSION,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::VERSION,
@@ -21833,13 +22008,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
             Self::VueValidVSlot(_) => VueValidVSlot::HAS_CONFIG,
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::HAS_CONFIG,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::HAS_CONFIG,
             Self::SvelteDerivedHasSameInputsOutputs(_) => {
                 SvelteDerivedHasSameInputsOutputs::HAS_CONFIG
             }
+            Self::SvelteExperimentalRequireSlotTypes(_) => {
+                SvelteExperimentalRequireSlotTypes::HAS_CONFIG
+            }
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::HAS_CONFIG
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::HAS_CONFIG,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::HAS_CONFIG,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::HAS_CONFIG,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::HAS_CONFIG,
             Self::SvelteNoBindValueOnCheckableInputs(_) => {
@@ -21893,11 +22076,15 @@ impl RuleEnum {
             Self::SveltePreferDerivedOverDerivedBy(_) => {
                 SveltePreferDerivedOverDerivedBy::HAS_CONFIG
             }
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::HAS_CONFIG,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::HAS_CONFIG,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::HAS_CONFIG,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::HAS_CONFIG,
             Self::SvelteRequireEventDispatcherTypes(_) => {
                 SvelteRequireEventDispatcherTypes::HAS_CONFIG
+            }
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::HAS_CONFIG
             }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::HAS_CONFIG
@@ -21906,6 +22093,7 @@ impl RuleEnum {
                 SvelteRequireStoreReactiveAccess::HAS_CONFIG
             }
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::HAS_CONFIG,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::HAS_CONFIG,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::HAS_CONFIG,
             Self::SvelteSystem(_) => SvelteSystem::HAS_CONFIG,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::HAS_CONFIG,
@@ -22958,11 +23146,17 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::INFO,
             Self::VueValidVSlot(_) => VueValidVSlot::INFO,
             Self::VueValidVText(_) => VueValidVText::INFO,
+            Self::SvelteBlockLang(_) => SvelteBlockLang::INFO,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::INFO,
             Self::SvelteDerivedHasSameInputsOutputs(_) => SvelteDerivedHasSameInputsOutputs::INFO,
+            Self::SvelteExperimentalRequireSlotTypes(_) => SvelteExperimentalRequireSlotTypes::INFO,
+            Self::SvelteExperimentalRequireStrictEvents(_) => {
+                SvelteExperimentalRequireStrictEvents::INFO
+            }
             Self::SvelteInfiniteReactiveLoop(_) => SvelteInfiniteReactiveLoop::INFO,
             Self::SvelteNoAddEventListener(_) => SvelteNoAddEventListener::INFO,
+            Self::SvelteNoAtConstTags(_) => SvelteNoAtConstTags::INFO,
             Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
             Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::INFO,
             Self::SvelteNoBindValueOnCheckableInputs(_) => SvelteNoBindValueOnCheckableInputs::INFO,
@@ -23010,15 +23204,20 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
             Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
             Self::SveltePreferDerivedOverDerivedBy(_) => SveltePreferDerivedOverDerivedBy::INFO,
+            Self::SveltePreferStyleDirective(_) => SveltePreferStyleDirective::INFO,
             Self::SveltePreferSvelteReactivity(_) => SveltePreferSvelteReactivity::INFO,
             Self::SveltePreferWritableDerived(_) => SveltePreferWritableDerived::INFO,
             Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::INFO,
             Self::SvelteRequireEventDispatcherTypes(_) => SvelteRequireEventDispatcherTypes::INFO,
+            Self::SvelteRequireOptimizedStyleAttribute(_) => {
+                SvelteRequireOptimizedStyleAttribute::INFO
+            }
             Self::SvelteRequireStoreCallbacksUseSetParam(_) => {
                 SvelteRequireStoreCallbacksUseSetParam::INFO
             }
             Self::SvelteRequireStoreReactiveAccess(_) => SvelteRequireStoreReactiveAccess::INFO,
             Self::SvelteRequireStoresInit(_) => SvelteRequireStoresInit::INFO,
+            Self::SvelteSortAttributes(_) => SvelteSortAttributes::INFO,
             Self::SvelteSpacedHtmlComment(_) => SvelteSpacedHtmlComment::INFO,
             Self::SvelteSystem(_) => SvelteSystem::INFO,
             Self::SvelteValidEachKey(_) => SvelteValidEachKey::INFO,
@@ -23958,11 +24157,15 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.types_info(),
             Self::VueValidVSlot(rule) => rule.types_info(),
             Self::VueValidVText(rule) => rule.types_info(),
+            Self::SvelteBlockLang(rule) => rule.types_info(),
             Self::SvelteButtonHasType(rule) => rule.types_info(),
             Self::SvelteCommentDirective(rule) => rule.types_info(),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.types_info(),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.types_info(),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => rule.types_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.types_info(),
             Self::SvelteNoAddEventListener(rule) => rule.types_info(),
+            Self::SvelteNoAtConstTags(rule) => rule.types_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.types_info(),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.types_info(),
@@ -24000,13 +24203,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.types_info(),
+            Self::SveltePreferStyleDirective(rule) => rule.types_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.types_info(),
             Self::SveltePreferWritableDerived(rule) => rule.types_info(),
             Self::SvelteRequireEachKey(rule) => rule.types_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.types_info(),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.types_info(),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.types_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.types_info(),
             Self::SvelteRequireStoresInit(rule) => rule.types_info(),
+            Self::SvelteSortAttributes(rule) => rule.types_info(),
             Self::SvelteSpacedHtmlComment(rule) => rule.types_info(),
             Self::SvelteSystem(rule) => rule.types_info(),
             Self::SvelteValidEachKey(rule) => rule.types_info(),
@@ -24941,11 +25147,15 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_info(),
             Self::VueValidVSlot(rule) => rule.run_info(),
             Self::VueValidVText(rule) => rule.run_info(),
+            Self::SvelteBlockLang(rule) => rule.run_info(),
             Self::SvelteButtonHasType(rule) => rule.run_info(),
             Self::SvelteCommentDirective(rule) => rule.run_info(),
             Self::SvelteDerivedHasSameInputsOutputs(rule) => rule.run_info(),
+            Self::SvelteExperimentalRequireSlotTypes(rule) => rule.run_info(),
+            Self::SvelteExperimentalRequireStrictEvents(rule) => rule.run_info(),
             Self::SvelteInfiniteReactiveLoop(rule) => rule.run_info(),
             Self::SvelteNoAddEventListener(rule) => rule.run_info(),
+            Self::SvelteNoAtConstTags(rule) => rule.run_info(),
             Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
             Self::SvelteNoAtHtmlTags(rule) => rule.run_info(),
             Self::SvelteNoBindValueOnCheckableInputs(rule) => rule.run_info(),
@@ -24983,13 +25193,16 @@ impl RuleEnum {
             Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
             Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
             Self::SveltePreferDerivedOverDerivedBy(rule) => rule.run_info(),
+            Self::SveltePreferStyleDirective(rule) => rule.run_info(),
             Self::SveltePreferSvelteReactivity(rule) => rule.run_info(),
             Self::SveltePreferWritableDerived(rule) => rule.run_info(),
             Self::SvelteRequireEachKey(rule) => rule.run_info(),
             Self::SvelteRequireEventDispatcherTypes(rule) => rule.run_info(),
+            Self::SvelteRequireOptimizedStyleAttribute(rule) => rule.run_info(),
             Self::SvelteRequireStoreCallbacksUseSetParam(rule) => rule.run_info(),
             Self::SvelteRequireStoreReactiveAccess(rule) => rule.run_info(),
             Self::SvelteRequireStoresInit(rule) => rule.run_info(),
+            Self::SvelteSortAttributes(rule) => rule.run_info(),
             Self::SvelteSpacedHtmlComment(rule) => rule.run_info(),
             Self::SvelteSystem(rule) => rule.run_info(),
             Self::SvelteValidEachKey(rule) => rule.run_info(),
@@ -26062,11 +26275,17 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVShow(VueValidVShow::default()),
         RuleEnum::VueValidVSlot(VueValidVSlot::default()),
         RuleEnum::VueValidVText(VueValidVText::default()),
+        RuleEnum::SvelteBlockLang(SvelteBlockLang::default()),
         RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
         RuleEnum::SvelteCommentDirective(SvelteCommentDirective::default()),
         RuleEnum::SvelteDerivedHasSameInputsOutputs(SvelteDerivedHasSameInputsOutputs::default()),
+        RuleEnum::SvelteExperimentalRequireSlotTypes(SvelteExperimentalRequireSlotTypes::default()),
+        RuleEnum::SvelteExperimentalRequireStrictEvents(
+            SvelteExperimentalRequireStrictEvents::default(),
+        ),
         RuleEnum::SvelteInfiniteReactiveLoop(SvelteInfiniteReactiveLoop::default()),
         RuleEnum::SvelteNoAddEventListener(SvelteNoAddEventListener::default()),
+        RuleEnum::SvelteNoAtConstTags(SvelteNoAtConstTags::default()),
         RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
         RuleEnum::SvelteNoAtHtmlTags(SvelteNoAtHtmlTags::default()),
         RuleEnum::SvelteNoBindValueOnCheckableInputs(SvelteNoBindValueOnCheckableInputs::default()),
@@ -26114,15 +26333,20 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
         RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
         RuleEnum::SveltePreferDerivedOverDerivedBy(SveltePreferDerivedOverDerivedBy::default()),
+        RuleEnum::SveltePreferStyleDirective(SveltePreferStyleDirective::default()),
         RuleEnum::SveltePreferSvelteReactivity(SveltePreferSvelteReactivity::default()),
         RuleEnum::SveltePreferWritableDerived(SveltePreferWritableDerived::default()),
         RuleEnum::SvelteRequireEachKey(SvelteRequireEachKey::default()),
         RuleEnum::SvelteRequireEventDispatcherTypes(SvelteRequireEventDispatcherTypes::default()),
+        RuleEnum::SvelteRequireOptimizedStyleAttribute(
+            SvelteRequireOptimizedStyleAttribute::default(),
+        ),
         RuleEnum::SvelteRequireStoreCallbacksUseSetParam(
             SvelteRequireStoreCallbacksUseSetParam::default(),
         ),
         RuleEnum::SvelteRequireStoreReactiveAccess(SvelteRequireStoreReactiveAccess::default()),
         RuleEnum::SvelteRequireStoresInit(SvelteRequireStoresInit::default()),
+        RuleEnum::SvelteSortAttributes(SvelteSortAttributes::default()),
         RuleEnum::SvelteSpacedHtmlComment(SvelteSpacedHtmlComment::default()),
         RuleEnum::SvelteSystem(SvelteSystem::default()),
         RuleEnum::SvelteValidEachKey(SvelteValidEachKey::default()),

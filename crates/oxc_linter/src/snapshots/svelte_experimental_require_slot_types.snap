@@ -1,0 +1,19 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(experimental-require-slot-types): Missing $$Slots declaration.
+   ╭─[experimental_require_slot_types.tsx:1:1]
+ 1 │ <script lang="ts"></script>
+   · ▲
+ 2 │ <slot />
+   ╰────
+  help: Declare `interface $$Slots { … }` in the component's `<script lang="ts">`.
+
+  ⚠ svelte(experimental-require-slot-types): Missing $$Slots declaration.
+   ╭─[experimental_require_slot_types.tsx:1:1]
+ 1 │ <script lang="ts">
+   · ▲
+ 2 │     interface $$SlotsOther {}
+   ╰────
+  help: Declare `interface $$Slots { … }` in the component's `<script lang="ts">`.

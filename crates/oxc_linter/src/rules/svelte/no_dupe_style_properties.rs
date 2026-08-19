@@ -2,12 +2,12 @@ use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
 use rustc_hash::FxHashMap;
-use svelte_markup_parser::ast::{AttributeKind, AttributeValue, DirectiveKind, Node, ValuePart};
+use svelte_markup_parser::ast::{AttributeKind, DirectiveKind, Node};
 
 use crate::{
     rule::Rule,
     svelte_template::{SvelteTemplateContext, SvelteTemplateRule},
-    utils::walk_svelte_elements,
+    utils::{SvelteStyleSegment, parse_svelte_style_attribute, walk_svelte_elements},
 };
 
 fn no_dupe_style_properties_diagnostic(name: &str, span: Span) -> OxcDiagnostic {
@@ -53,103 +53,11 @@ declare_oxc_lint!(
 );
 
 /// A style declaration whose property name is statically known.
+/// A property set on an element, from either a `style:` directive or one
+/// declaration of a `style` attribute.
 struct StyleDecl<'a> {
     property: &'a str,
     span: Span,
-}
-
-/// Collect the declarations of a `style` attribute value whose property
-/// names appear in static text.
-///
-/// `{expr}` parts are masked out byte-for-byte, so a declaration like
-/// `background: {color}` still yields its static property name while
-/// expression contents can never introduce a phantom `;` or `:`.
-/// Declarations are split on `;` outside quotes and parentheses, and the
-/// property is the trimmed text before the first `:`.
-#[expect(clippy::cast_possible_truncation)] // offsets into a source file, capped at `u32` by `Span`
-fn collect_style_decls<'a>(
-    value: &AttributeValue<'a>,
-    source: &'a str,
-    decls: &mut Vec<StyleDecl<'a>>,
-) {
-    let value_start = value.span.start as usize;
-    let value_end = (value.span.end as usize).min(source.len());
-    if value_start >= value_end {
-        return;
-    }
-    let raw = &source[value_start..value_end];
-
-    let mut masked = raw.as_bytes().to_vec();
-    let mut expression_ranges: Vec<(usize, usize)> = Vec::new();
-    for part in &value.parts {
-        if let ValuePart::Expression(expression) = part {
-            let range_start =
-                (expression.span.start as usize).saturating_sub(value_start).min(masked.len());
-            let range_end =
-                (expression.span.end as usize).saturating_sub(value_start).min(masked.len());
-            masked[range_start..range_end].fill(b'0');
-            expression_ranges.push((range_start, range_end));
-        }
-    }
-
-    // Split into `;`-separated declaration segments, ignoring `;` inside
-    // quotes and parentheses (`content: "a;b"`, `background: url(a;b)`).
-    let mut segments: Vec<(usize, usize)> = Vec::new();
-    let mut segment_start = 0;
-    let mut paren_depth = 0u32;
-    let mut quote: Option<u8> = None;
-    for (index, &byte) in masked.iter().enumerate() {
-        match quote {
-            Some(open) => {
-                if byte == open {
-                    quote = None;
-                }
-            }
-            None => match byte {
-                b'"' | b'\'' => quote = Some(byte),
-                b'(' => paren_depth += 1,
-                b')' => paren_depth = paren_depth.saturating_sub(1),
-                b';' if paren_depth == 0 => {
-                    segments.push((segment_start, index));
-                    segment_start = index + 1;
-                }
-                _ => {}
-            },
-        }
-    }
-    segments.push((segment_start, masked.len()));
-
-    for (start, end) in segments {
-        let Some(colon) = masked[start..end].iter().position(|&byte| byte == b':') else {
-            continue;
-        };
-        let mut property_start = start;
-        let property_limit = start + colon;
-        while property_start < property_limit && masked[property_start].is_ascii_whitespace() {
-            property_start += 1;
-        }
-        let mut property_end = property_limit;
-        while property_end > property_start && masked[property_end - 1].is_ascii_whitespace() {
-            property_end -= 1;
-        }
-        if property_start == property_end {
-            continue;
-        }
-        // A property name overlapping an `{expr}` part is not statically
-        // known — skip the declaration.
-        if expression_ranges.iter().any(|&(range_start, range_end)| {
-            range_start < property_end && range_end > property_start
-        }) {
-            continue;
-        }
-        decls.push(StyleDecl {
-            property: &raw[property_start..property_end],
-            span: Span::new(
-                (value_start + property_start) as u32,
-                (value_start + property_end) as u32,
-            ),
-        });
-    }
 }
 
 impl Rule for NoDupeStyleProperties {}
@@ -180,7 +88,15 @@ impl SvelteTemplateRule for NoDupeStyleProperties {
                         });
                     }
                     AttributeKind::Plain { name: "style", value: Some(value), .. } => {
-                        collect_style_decls(value, source, &mut decls);
+                        decls.extend(
+                            parse_svelte_style_attribute(value, source)
+                                .iter()
+                                .filter_map(SvelteStyleSegment::as_decl)
+                                .map(|decl| StyleDecl {
+                                    property: decl.property,
+                                    span: decl.property_span,
+                                }),
+                        );
                     }
                     _ => {}
                 }

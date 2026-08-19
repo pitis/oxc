@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-optimized-style-attribute): Unexpected shorthand `style` attribute.
+   ╭─[require_optimized_style_attribute.tsx:1:6]
+ 1 │ <div {style}></div>
+   ·      ───────
+   ╰────
+  help: Write the declarations out, e.g. `style="color: {color}"`.
+
+  ⚠ svelte(require-optimized-style-attribute): Unexpected interpolation in the property name of a `style` attribute.
+   ╭─[require_optimized_style_attribute.tsx:1:13]
+ 1 │ <div style="{key}: red"></div>
+   ·             ──────────
+   ╰────
+  help: Use a fixed property name, or a `style:` directive.
+
+  ⚠ svelte(require-optimized-style-attribute): Unexpected complex `style` attribute.
+   ╭─[require_optimized_style_attribute.tsx:1:13]
+ 1 │ <div style="{styles}"></div>
+   ·             ────────
+   ╰────
+  help: Keep each declaration a simple `property: value` pair so Svelte can update it in place.
+
+  ⚠ svelte(require-optimized-style-attribute): Unexpected comment in a `style` attribute.
+   ╭─[require_optimized_style_attribute.tsx:1:25]
+ 1 │ <div style="color: red; /* comment */"></div>
+   ·                         ─────────────
+   ╰────
+  help: Remove the comment.

@@ -496,8 +496,12 @@ react_perf/jsx-no-jsx-as-prop                              |    804
 react_perf/jsx-no-new-array-as-prop                        |    804
 react_perf/jsx-no-new-function-as-prop                     |    804
 react_perf/jsx-no-new-object-as-prop                       |    804
+svelte/block-lang                                          |      0
 svelte/button-has-type                                     |      0
 svelte/comment-directive                                   |      0
+svelte/experimental-require-slot-types                     |      0
+svelte/experimental-require-strict-events                  |      0
+svelte/no-at-const-tags                                    |      0
 svelte/no-at-debug-tags                                    |      0
 svelte/no-at-html-tags                                     |      0
 svelte/no-bind-value-on-checkable-inputs                   |      0
@@ -522,8 +526,11 @@ svelte/no-unused-props                                     |      0
 svelte/no-unused-svelte-ignore                             |      0
 svelte/no-useless-children-snippet                         |      0
 svelte/no-useless-mustaches                                |      0
+svelte/prefer-style-directive                              |      0
 svelte/require-each-key                                    |      0
+svelte/require-optimized-style-attribute                   |      0
 svelte/require-store-reactive-access                       |      0
+svelte/sort-attributes                                     |      0
 svelte/spaced-html-comment                                 |      0
 svelte/system                                              |      0
 svelte/valid-each-key                                      |      0

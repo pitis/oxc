@@ -1,0 +1,19 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-at-const-tags): Use `{const ...}` declaration tag instead of legacy `{@const ...}`.
+   ╭─[no_at_const_tags.tsx:4:22]
+ 3 │ </script>
+ 4 │ {#each items as item}{@const t = item.a + item.b}<p>{t}</p>{/each}
+   ·                      ────────────────────────────
+   ╰────
+  help: Drop the `@`, and wrap the initializer in `$derived(...)` if it should stay reactive.
+
+  ⚠ svelte(no-at-const-tags): Use `{const ...}` declaration tag instead of legacy `{@const ...}`.
+   ╭─[no_at_const_tags.tsx:4:12]
+ 3 │ </script>
+ 4 │ {#if count}{@const doubled = count * 2}{doubled}{/if}
+   ·            ────────────────────────────
+   ╰────
+  help: Drop the `@`, and wrap the initializer in `$derived(...)` if it should stay reactive.

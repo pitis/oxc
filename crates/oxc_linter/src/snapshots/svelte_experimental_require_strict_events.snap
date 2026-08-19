@@ -1,0 +1,18 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(experimental-require-strict-events): Missing strictEvents attribute or $$Events declaration.
+   ╭─[experimental_require_strict_events.tsx:1:1]
+ 1 │ <script lang="ts"></script>
+   · ──────────────────
+   ╰────
+  help: Add `strictEvents` to the `<script>` tag, or declare `interface $$Events { … }`.
+
+  ⚠ svelte(experimental-require-strict-events): Missing strictEvents attribute or $$Events declaration.
+   ╭─[experimental_require_strict_events.tsx:1:1]
+ 1 │ <script lang="ts">
+   · ──────────────────
+ 2 │     interface $$EventsOther {}
+   ╰────
+  help: Add `strictEvents` to the `<script>` tag, or declare `interface $$Events { … }`.

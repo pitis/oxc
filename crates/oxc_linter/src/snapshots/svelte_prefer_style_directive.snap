@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(prefer-style-directive): Can use `style:` directive instead.
+   ╭─[prefer_style_directive.tsx:1:13]
+ 1 │ <div style="color: red"></div>
+   ·             ──────────
+   ╰────
+  help: Write `style:property="value"` so Svelte updates that property on its own.
+
+  ⚠ svelte(prefer-style-directive): Can use `style:` directive instead.
+   ╭─[prefer_style_directive.tsx:1:13]
+ 1 │ <div style="color: {color}"></div>
+   ·             ──────────────
+   ╰────
+  help: Write `style:property="value"` so Svelte updates that property on its own.
+
+  ⚠ svelte(prefer-style-directive): Can use `style:` directive instead.
+   ╭─[prefer_style_directive.tsx:1:13]
+ 1 │ <div style="color: red; background: blue"></div>
+   ·             ──────────
+   ╰────
+  help: Write `style:property="value"` so Svelte updates that property on its own.
+
+  ⚠ svelte(prefer-style-directive): Can use `style:` directive instead.
+   ╭─[prefer_style_directive.tsx:1:25]
+ 1 │ <div style="color: red; background: blue"></div>
+   ·                         ────────────────
+   ╰────
+  help: Write `style:property="value"` so Svelte updates that property on its own.
