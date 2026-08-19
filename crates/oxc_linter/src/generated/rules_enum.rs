@@ -513,6 +513,21 @@ pub use crate::rules::react_perf::jsx_no_jsx_as_prop::JsxNoJsxAsProp as ReactPer
 pub use crate::rules::react_perf::jsx_no_new_array_as_prop::JsxNoNewArrayAsProp as ReactPerfJsxNoNewArrayAsProp;
 pub use crate::rules::react_perf::jsx_no_new_function_as_prop::JsxNoNewFunctionAsProp as ReactPerfJsxNoNewFunctionAsProp;
 pub use crate::rules::react_perf::jsx_no_new_object_as_prop::JsxNoNewObjectAsProp as ReactPerfJsxNoNewObjectAsProp;
+pub use crate::rules::svelte::button_has_type::ButtonHasType as SvelteButtonHasType;
+pub use crate::rules::svelte::no_at_debug_tags::NoAtDebugTags as SvelteNoAtDebugTags;
+pub use crate::rules::svelte::no_at_html_tags::NoAtHtmlTags as SvelteNoAtHtmlTags;
+pub use crate::rules::svelte::no_dupe_else_if_blocks::NoDupeElseIfBlocks as SvelteNoDupeElseIfBlocks;
+pub use crate::rules::svelte::no_dupe_on_directives::NoDupeOnDirectives as SvelteNoDupeOnDirectives;
+pub use crate::rules::svelte::no_dupe_style_properties::NoDupeStyleProperties as SvelteNoDupeStyleProperties;
+pub use crate::rules::svelte::no_dupe_use_directives::NoDupeUseDirectives as SvelteNoDupeUseDirectives;
+pub use crate::rules::svelte::no_dynamic_slot_name::NoDynamicSlotName as SvelteNoDynamicSlotName;
+pub use crate::rules::svelte::no_not_function_handler::NoNotFunctionHandler as SvelteNoNotFunctionHandler;
+pub use crate::rules::svelte::no_object_in_text_mustaches::NoObjectInTextMustaches as SvelteNoObjectInTextMustaches;
+pub use crate::rules::svelte::no_spaces_around_equal_signs_in_attribute::NoSpacesAroundEqualSignsInAttribute as SvelteNoSpacesAroundEqualSignsInAttribute;
+pub use crate::rules::svelte::no_target_blank::NoTargetBlank as SvelteNoTargetBlank;
+pub use crate::rules::svelte::no_useless_children_snippet::NoUselessChildrenSnippet as SvelteNoUselessChildrenSnippet;
+pub use crate::rules::svelte::no_useless_mustaches::NoUselessMustaches as SvelteNoUselessMustaches;
+pub use crate::rules::svelte::require_each_key::RequireEachKey as SvelteRequireEachKey;
 pub use crate::rules::typescript::adjacent_overload_signatures::AdjacentOverloadSignatures as TypescriptAdjacentOverloadSignatures;
 pub use crate::rules::typescript::array_type::ArrayType as TypescriptArrayType;
 pub use crate::rules::typescript::await_thenable::AwaitThenable as TypescriptAwaitThenable;
@@ -1880,6 +1895,21 @@ pub enum RuleEnum {
     VueValidVShow(VueValidVShow),
     VueValidVSlot(VueValidVSlot),
     VueValidVText(VueValidVText),
+    SvelteButtonHasType(SvelteButtonHasType),
+    SvelteNoAtDebugTags(SvelteNoAtDebugTags),
+    SvelteNoAtHtmlTags(SvelteNoAtHtmlTags),
+    SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks),
+    SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives),
+    SvelteNoDupeStyleProperties(SvelteNoDupeStyleProperties),
+    SvelteNoDupeUseDirectives(SvelteNoDupeUseDirectives),
+    SvelteNoDynamicSlotName(SvelteNoDynamicSlotName),
+    SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler),
+    SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches),
+    SvelteNoSpacesAroundEqualSignsInAttribute(SvelteNoSpacesAroundEqualSignsInAttribute),
+    SvelteNoTargetBlank(SvelteNoTargetBlank),
+    SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet),
+    SvelteNoUselessMustaches(SvelteNoUselessMustaches),
+    SvelteRequireEachKey(SvelteRequireEachKey),
 }
 const IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID: usize = 0usize;
 const IMPORT_DEFAULT_ID: usize = IMPORT_CONSISTENT_TYPE_SPECIFIER_STYLE_ID + 1usize;
@@ -2921,7 +2951,24 @@ const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
 const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
 const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
-static RULE_NAMES: [&str; 926usize] = [
+const SVELTE_BUTTON_HAS_TYPE_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
+const SVELTE_NO_AT_DEBUG_TAGS_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
+const SVELTE_NO_AT_HTML_TAGS_ID: usize = SVELTE_NO_AT_DEBUG_TAGS_ID + 1usize;
+const SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID: usize = SVELTE_NO_AT_HTML_TAGS_ID + 1usize;
+const SVELTE_NO_DUPE_ON_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID + 1usize;
+const SVELTE_NO_DUPE_STYLE_PROPERTIES_ID: usize = SVELTE_NO_DUPE_ON_DIRECTIVES_ID + 1usize;
+const SVELTE_NO_DUPE_USE_DIRECTIVES_ID: usize = SVELTE_NO_DUPE_STYLE_PROPERTIES_ID + 1usize;
+const SVELTE_NO_DYNAMIC_SLOT_NAME_ID: usize = SVELTE_NO_DUPE_USE_DIRECTIVES_ID + 1usize;
+const SVELTE_NO_NOT_FUNCTION_HANDLER_ID: usize = SVELTE_NO_DYNAMIC_SLOT_NAME_ID + 1usize;
+const SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID: usize = SVELTE_NO_NOT_FUNCTION_HANDLER_ID + 1usize;
+const SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID: usize =
+    SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID + 1usize;
+const SVELTE_NO_TARGET_BLANK_ID: usize =
+    SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID + 1usize;
+const SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID: usize = SVELTE_NO_TARGET_BLANK_ID + 1usize;
+const SVELTE_NO_USELESS_MUSTACHES_ID: usize = SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID + 1usize;
+const SVELTE_REQUIRE_EACH_KEY_ID: usize = SVELTE_NO_USELESS_MUSTACHES_ID + 1usize;
+static RULE_NAMES: [&str; 941usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -3848,6 +3895,21 @@ static RULE_NAMES: [&str; 926usize] = [
     VueValidVShow::NAME,
     VueValidVSlot::NAME,
     VueValidVText::NAME,
+    SvelteButtonHasType::NAME,
+    SvelteNoAtDebugTags::NAME,
+    SvelteNoAtHtmlTags::NAME,
+    SvelteNoDupeElseIfBlocks::NAME,
+    SvelteNoDupeOnDirectives::NAME,
+    SvelteNoDupeStyleProperties::NAME,
+    SvelteNoDupeUseDirectives::NAME,
+    SvelteNoDynamicSlotName::NAME,
+    SvelteNoNotFunctionHandler::NAME,
+    SvelteNoObjectInTextMustaches::NAME,
+    SvelteNoSpacesAroundEqualSignsInAttribute::NAME,
+    SvelteNoTargetBlank::NAME,
+    SvelteNoUselessChildrenSnippet::NAME,
+    SvelteNoUselessMustaches::NAME,
+    SvelteRequireEachKey::NAME,
 ];
 impl RuleEnum {
     pub fn id(&self) -> usize {
@@ -4912,6 +4974,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
             Self::VueValidVSlot(_) => VUE_VALID_V_SLOT_ID,
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
+            Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
+            Self::SvelteNoAtDebugTags(_) => SVELTE_NO_AT_DEBUG_TAGS_ID,
+            Self::SvelteNoAtHtmlTags(_) => SVELTE_NO_AT_HTML_TAGS_ID,
+            Self::SvelteNoDupeElseIfBlocks(_) => SVELTE_NO_DUPE_ELSE_IF_BLOCKS_ID,
+            Self::SvelteNoDupeOnDirectives(_) => SVELTE_NO_DUPE_ON_DIRECTIVES_ID,
+            Self::SvelteNoDupeStyleProperties(_) => SVELTE_NO_DUPE_STYLE_PROPERTIES_ID,
+            Self::SvelteNoDupeUseDirectives(_) => SVELTE_NO_DUPE_USE_DIRECTIVES_ID,
+            Self::SvelteNoDynamicSlotName(_) => SVELTE_NO_DYNAMIC_SLOT_NAME_ID,
+            Self::SvelteNoNotFunctionHandler(_) => SVELTE_NO_NOT_FUNCTION_HANDLER_ID,
+            Self::SvelteNoObjectInTextMustaches(_) => SVELTE_NO_OBJECT_IN_TEXT_MUSTACHES_ID,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SVELTE_NO_SPACES_AROUND_EQUAL_SIGNS_IN_ATTRIBUTE_ID
+            }
+            Self::SvelteNoTargetBlank(_) => SVELTE_NO_TARGET_BLANK_ID,
+            Self::SvelteNoUselessChildrenSnippet(_) => SVELTE_NO_USELESS_CHILDREN_SNIPPET_ID,
+            Self::SvelteNoUselessMustaches(_) => SVELTE_NO_USELESS_MUSTACHES_ID,
+            Self::SvelteRequireEachKey(_) => SVELTE_REQUIRE_EACH_KEY_ID,
         }
     }
     pub fn name(&self) -> &'static str {
@@ -6029,6 +6108,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
             Self::VueValidVSlot(_) => VueValidVSlot::CATEGORY,
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::CATEGORY,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::CATEGORY,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::CATEGORY,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::CATEGORY,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::CATEGORY,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::CATEGORY,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::CATEGORY,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::CATEGORY,
+            Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::CATEGORY,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::CATEGORY
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::CATEGORY,
+            Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::CATEGORY,
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::CATEGORY,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::CATEGORY,
         }
     }
     #[doc = r" This [`Rule`]'s auto-fix capabilities."]
@@ -7076,6 +7172,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::FIX,
             Self::VueValidVSlot(_) => VueValidVSlot::FIX,
             Self::VueValidVText(_) => VueValidVText::FIX,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::FIX,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::FIX,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::FIX,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::FIX,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::FIX,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::FIX,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::FIX,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::FIX,
+            Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::FIX,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::FIX
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::FIX,
+            Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::FIX,
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::FIX,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::FIX,
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -8417,6 +8530,27 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::documentation(),
             Self::VueValidVSlot(_) => VueValidVSlot::documentation(),
             Self::VueValidVText(_) => VueValidVText::documentation(),
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::documentation(),
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::documentation(),
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::documentation(),
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::documentation(),
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::documentation(),
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::documentation(),
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::documentation(),
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::documentation(),
+            Self::SvelteNoObjectInTextMustaches(_) => {
+                SvelteNoObjectInTextMustaches::documentation()
+            }
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::documentation()
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::documentation(),
+            Self::SvelteNoUselessChildrenSnippet(_) => {
+                SvelteNoUselessChildrenSnippet::documentation()
+            }
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::documentation(),
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::documentation(),
         }
     }
     #[cfg(feature = "ruledocs")]
@@ -11078,6 +11212,48 @@ impl RuleEnum {
             Self::VueValidVText(_) => {
                 VueValidVText::config_schema(generator).or_else(|| VueValidVText::schema(generator))
             }
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::config_schema(generator)
+                .or_else(|| SvelteButtonHasType::schema(generator)),
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::config_schema(generator)
+                .or_else(|| SvelteNoAtDebugTags::schema(generator)),
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::config_schema(generator)
+                .or_else(|| SvelteNoAtHtmlTags::schema(generator)),
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::config_schema(generator)
+                .or_else(|| SvelteNoDupeElseIfBlocks::schema(generator)),
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::config_schema(generator)
+                .or_else(|| SvelteNoDupeOnDirectives::schema(generator)),
+            Self::SvelteNoDupeStyleProperties(_) => {
+                SvelteNoDupeStyleProperties::config_schema(generator)
+                    .or_else(|| SvelteNoDupeStyleProperties::schema(generator))
+            }
+            Self::SvelteNoDupeUseDirectives(_) => {
+                SvelteNoDupeUseDirectives::config_schema(generator)
+                    .or_else(|| SvelteNoDupeUseDirectives::schema(generator))
+            }
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::config_schema(generator)
+                .or_else(|| SvelteNoDynamicSlotName::schema(generator)),
+            Self::SvelteNoNotFunctionHandler(_) => {
+                SvelteNoNotFunctionHandler::config_schema(generator)
+                    .or_else(|| SvelteNoNotFunctionHandler::schema(generator))
+            }
+            Self::SvelteNoObjectInTextMustaches(_) => {
+                SvelteNoObjectInTextMustaches::config_schema(generator)
+                    .or_else(|| SvelteNoObjectInTextMustaches::schema(generator))
+            }
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::config_schema(generator)
+                    .or_else(|| SvelteNoSpacesAroundEqualSignsInAttribute::schema(generator))
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::config_schema(generator)
+                .or_else(|| SvelteNoTargetBlank::schema(generator)),
+            Self::SvelteNoUselessChildrenSnippet(_) => {
+                SvelteNoUselessChildrenSnippet::config_schema(generator)
+                    .or_else(|| SvelteNoUselessChildrenSnippet::schema(generator))
+            }
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::config_schema(generator)
+                .or_else(|| SvelteNoUselessMustaches::schema(generator)),
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::config_schema(generator)
+                .or_else(|| SvelteRequireEachKey::schema(generator)),
         }
     }
     pub fn plugin_name(&self) -> &'static str {
@@ -12008,6 +12184,21 @@ impl RuleEnum {
             Self::VueValidVShow(_) => "vue",
             Self::VueValidVSlot(_) => "vue",
             Self::VueValidVText(_) => "vue",
+            Self::SvelteButtonHasType(_) => "svelte",
+            Self::SvelteNoAtDebugTags(_) => "svelte",
+            Self::SvelteNoAtHtmlTags(_) => "svelte",
+            Self::SvelteNoDupeElseIfBlocks(_) => "svelte",
+            Self::SvelteNoDupeOnDirectives(_) => "svelte",
+            Self::SvelteNoDupeStyleProperties(_) => "svelte",
+            Self::SvelteNoDupeUseDirectives(_) => "svelte",
+            Self::SvelteNoDynamicSlotName(_) => "svelte",
+            Self::SvelteNoNotFunctionHandler(_) => "svelte",
+            Self::SvelteNoObjectInTextMustaches(_) => "svelte",
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => "svelte",
+            Self::SvelteNoTargetBlank(_) => "svelte",
+            Self::SvelteNoUselessChildrenSnippet(_) => "svelte",
+            Self::SvelteNoUselessMustaches(_) => "svelte",
+            Self::SvelteRequireEachKey(_) => "svelte",
         }
     }
     pub fn from_configuration(
@@ -14127,6 +14318,21 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run(node, ctx),
             Self::VueValidVSlot(rule) => rule.run(node, ctx),
             Self::VueValidVText(rule) => rule.run(node, ctx),
+            Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
+            Self::SvelteNoAtDebugTags(rule) => rule.run(node, ctx),
+            Self::SvelteNoAtHtmlTags(rule) => rule.run(node, ctx),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.run(node, ctx),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.run(node, ctx),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.run(node, ctx),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.run(node, ctx),
+            Self::SvelteNoDynamicSlotName(rule) => rule.run(node, ctx),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.run(node, ctx),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.run(node, ctx),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run(node, ctx),
+            Self::SvelteNoTargetBlank(rule) => rule.run(node, ctx),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.run(node, ctx),
+            Self::SvelteNoUselessMustaches(rule) => rule.run(node, ctx),
+            Self::SvelteRequireEachKey(rule) => rule.run(node, ctx),
         }
     }
     pub(crate) fn run<'a, const TIMINGS: bool>(
@@ -15070,6 +15276,21 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_once(ctx),
             Self::VueValidVSlot(rule) => rule.run_once(ctx),
             Self::VueValidVText(rule) => rule.run_once(ctx),
+            Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
+            Self::SvelteNoAtDebugTags(rule) => rule.run_once(ctx),
+            Self::SvelteNoAtHtmlTags(rule) => rule.run_once(ctx),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_once(ctx),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.run_once(ctx),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.run_once(ctx),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.run_once(ctx),
+            Self::SvelteNoDynamicSlotName(rule) => rule.run_once(ctx),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.run_once(ctx),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.run_once(ctx),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_once(ctx),
+            Self::SvelteNoTargetBlank(rule) => rule.run_once(ctx),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_once(ctx),
+            Self::SvelteNoUselessMustaches(rule) => rule.run_once(ctx),
+            Self::SvelteRequireEachKey(rule) => rule.run_once(ctx),
         }
     }
     pub(crate) fn run_once<const TIMINGS: bool>(
@@ -16132,6 +16353,23 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVSlot(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoAtDebugTags(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoAtHtmlTags(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoDynamicSlotName(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => {
+                rule.run_on_jest_node(jest_node, ctx)
+            }
+            Self::SvelteNoTargetBlank(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteNoUselessMustaches(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::SvelteRequireEachKey(rule) => rule.run_on_jest_node(jest_node, ctx),
         }
     }
     pub(crate) fn run_on_jest_node<'a, 'c, const TIMINGS: bool>(
@@ -17076,6 +17314,21 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.should_run(ctx),
             Self::VueValidVSlot(rule) => rule.should_run(ctx),
             Self::VueValidVText(rule) => rule.should_run(ctx),
+            Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
+            Self::SvelteNoAtDebugTags(rule) => rule.should_run(ctx),
+            Self::SvelteNoAtHtmlTags(rule) => rule.should_run(ctx),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.should_run(ctx),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.should_run(ctx),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.should_run(ctx),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.should_run(ctx),
+            Self::SvelteNoDynamicSlotName(rule) => rule.should_run(ctx),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.should_run(ctx),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.should_run(ctx),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.should_run(ctx),
+            Self::SvelteNoTargetBlank(rule) => rule.should_run(ctx),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.should_run(ctx),
+            Self::SvelteNoUselessMustaches(rule) => rule.should_run(ctx),
+            Self::SvelteRequireEachKey(rule) => rule.should_run(ctx),
         }
     }
     pub fn is_tsgolint_rule(&self) -> bool {
@@ -18416,6 +18669,27 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
             Self::VueValidVSlot(_) => VueValidVSlot::IS_TSGOLINT_RULE,
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::IS_TSGOLINT_RULE,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::IS_TSGOLINT_RULE,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::IS_TSGOLINT_RULE,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::IS_TSGOLINT_RULE,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::IS_TSGOLINT_RULE,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::IS_TSGOLINT_RULE,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::IS_TSGOLINT_RULE,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::IS_TSGOLINT_RULE,
+            Self::SvelteNoObjectInTextMustaches(_) => {
+                SvelteNoObjectInTextMustaches::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::IS_TSGOLINT_RULE,
+            Self::SvelteNoUselessChildrenSnippet(_) => {
+                SvelteNoUselessChildrenSnippet::IS_TSGOLINT_RULE
+            }
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::IS_TSGOLINT_RULE,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::IS_TSGOLINT_RULE,
         }
     }
     #[doc = r" The version of oxlint in which this rule was first available."]
@@ -19532,6 +19806,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::VERSION,
             Self::VueValidVSlot(_) => VueValidVSlot::VERSION,
             Self::VueValidVText(_) => VueValidVText::VERSION,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::VERSION,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::VERSION,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::VERSION,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::VERSION,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::VERSION,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::VERSION,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::VERSION,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::VERSION,
+            Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::VERSION,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::VERSION
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::VERSION,
+            Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::VERSION,
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::VERSION,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::VERSION,
         }
     }
     #[doc = r" Whether this rule declares a configuration type."]
@@ -20693,6 +20984,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
             Self::VueValidVSlot(_) => VueValidVSlot::HAS_CONFIG,
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::HAS_CONFIG,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::HAS_CONFIG,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::HAS_CONFIG,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::HAS_CONFIG,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::HAS_CONFIG,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::HAS_CONFIG,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::HAS_CONFIG,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::HAS_CONFIG,
+            Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::HAS_CONFIG,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::HAS_CONFIG
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::HAS_CONFIG,
+            Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::HAS_CONFIG,
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::HAS_CONFIG,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::HAS_CONFIG,
         }
     }
     #[doc = r" Additional information about this rule."]
@@ -21741,6 +22049,23 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::INFO,
             Self::VueValidVSlot(_) => VueValidVSlot::INFO,
             Self::VueValidVText(_) => VueValidVText::INFO,
+            Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
+            Self::SvelteNoAtDebugTags(_) => SvelteNoAtDebugTags::INFO,
+            Self::SvelteNoAtHtmlTags(_) => SvelteNoAtHtmlTags::INFO,
+            Self::SvelteNoDupeElseIfBlocks(_) => SvelteNoDupeElseIfBlocks::INFO,
+            Self::SvelteNoDupeOnDirectives(_) => SvelteNoDupeOnDirectives::INFO,
+            Self::SvelteNoDupeStyleProperties(_) => SvelteNoDupeStyleProperties::INFO,
+            Self::SvelteNoDupeUseDirectives(_) => SvelteNoDupeUseDirectives::INFO,
+            Self::SvelteNoDynamicSlotName(_) => SvelteNoDynamicSlotName::INFO,
+            Self::SvelteNoNotFunctionHandler(_) => SvelteNoNotFunctionHandler::INFO,
+            Self::SvelteNoObjectInTextMustaches(_) => SvelteNoObjectInTextMustaches::INFO,
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(_) => {
+                SvelteNoSpacesAroundEqualSignsInAttribute::INFO
+            }
+            Self::SvelteNoTargetBlank(_) => SvelteNoTargetBlank::INFO,
+            Self::SvelteNoUselessChildrenSnippet(_) => SvelteNoUselessChildrenSnippet::INFO,
+            Self::SvelteNoUselessMustaches(_) => SvelteNoUselessMustaches::INFO,
+            Self::SvelteRequireEachKey(_) => SvelteRequireEachKey::INFO,
         }
     }
     #[doc = r" A short, one-line summary of what this rule does."]
@@ -22676,6 +23001,21 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.types_info(),
             Self::VueValidVSlot(rule) => rule.types_info(),
             Self::VueValidVText(rule) => rule.types_info(),
+            Self::SvelteButtonHasType(rule) => rule.types_info(),
+            Self::SvelteNoAtDebugTags(rule) => rule.types_info(),
+            Self::SvelteNoAtHtmlTags(rule) => rule.types_info(),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.types_info(),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.types_info(),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.types_info(),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.types_info(),
+            Self::SvelteNoDynamicSlotName(rule) => rule.types_info(),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.types_info(),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.types_info(),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.types_info(),
+            Self::SvelteNoTargetBlank(rule) => rule.types_info(),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.types_info(),
+            Self::SvelteNoUselessMustaches(rule) => rule.types_info(),
+            Self::SvelteRequireEachKey(rule) => rule.types_info(),
         }
     }
     pub fn run_info(&self) -> RuleRunFunctionsImplemented {
@@ -23606,6 +23946,21 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_info(),
             Self::VueValidVSlot(rule) => rule.run_info(),
             Self::VueValidVText(rule) => rule.run_info(),
+            Self::SvelteButtonHasType(rule) => rule.run_info(),
+            Self::SvelteNoAtDebugTags(rule) => rule.run_info(),
+            Self::SvelteNoAtHtmlTags(rule) => rule.run_info(),
+            Self::SvelteNoDupeElseIfBlocks(rule) => rule.run_info(),
+            Self::SvelteNoDupeOnDirectives(rule) => rule.run_info(),
+            Self::SvelteNoDupeStyleProperties(rule) => rule.run_info(),
+            Self::SvelteNoDupeUseDirectives(rule) => rule.run_info(),
+            Self::SvelteNoDynamicSlotName(rule) => rule.run_info(),
+            Self::SvelteNoNotFunctionHandler(rule) => rule.run_info(),
+            Self::SvelteNoObjectInTextMustaches(rule) => rule.run_info(),
+            Self::SvelteNoSpacesAroundEqualSignsInAttribute(rule) => rule.run_info(),
+            Self::SvelteNoTargetBlank(rule) => rule.run_info(),
+            Self::SvelteNoUselessChildrenSnippet(rule) => rule.run_info(),
+            Self::SvelteNoUselessMustaches(rule) => rule.run_info(),
+            Self::SvelteRequireEachKey(rule) => rule.run_info(),
         }
     }
 }
@@ -24674,5 +25029,22 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVShow(VueValidVShow::default()),
         RuleEnum::VueValidVSlot(VueValidVSlot::default()),
         RuleEnum::VueValidVText(VueValidVText::default()),
+        RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
+        RuleEnum::SvelteNoAtDebugTags(SvelteNoAtDebugTags::default()),
+        RuleEnum::SvelteNoAtHtmlTags(SvelteNoAtHtmlTags::default()),
+        RuleEnum::SvelteNoDupeElseIfBlocks(SvelteNoDupeElseIfBlocks::default()),
+        RuleEnum::SvelteNoDupeOnDirectives(SvelteNoDupeOnDirectives::default()),
+        RuleEnum::SvelteNoDupeStyleProperties(SvelteNoDupeStyleProperties::default()),
+        RuleEnum::SvelteNoDupeUseDirectives(SvelteNoDupeUseDirectives::default()),
+        RuleEnum::SvelteNoDynamicSlotName(SvelteNoDynamicSlotName::default()),
+        RuleEnum::SvelteNoNotFunctionHandler(SvelteNoNotFunctionHandler::default()),
+        RuleEnum::SvelteNoObjectInTextMustaches(SvelteNoObjectInTextMustaches::default()),
+        RuleEnum::SvelteNoSpacesAroundEqualSignsInAttribute(
+            SvelteNoSpacesAroundEqualSignsInAttribute::default(),
+        ),
+        RuleEnum::SvelteNoTargetBlank(SvelteNoTargetBlank::default()),
+        RuleEnum::SvelteNoUselessChildrenSnippet(SvelteNoUselessChildrenSnippet::default()),
+        RuleEnum::SvelteNoUselessMustaches(SvelteNoUselessMustaches::default()),
+        RuleEnum::SvelteRequireEachKey(SvelteRequireEachKey::default()),
     ]
 });

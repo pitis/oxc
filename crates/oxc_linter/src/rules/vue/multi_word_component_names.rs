@@ -13,10 +13,10 @@ use oxc_macros::declare_oxc_lint;
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
 use oxc_span::{SourceType, Span};
-use vue_sfc_parser::{Sfc, SfcBlock};
 use rustc_hash::FxHashSet;
 use schemars::JsonSchema;
 use serde::Deserialize;
+use vue_sfc_parser::{Sfc, SfcBlock};
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},

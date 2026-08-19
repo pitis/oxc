@@ -1,9 +1,9 @@
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use vue_sfc_parser::ast::{Attribute, Directive, DirectiveShorthand, Element, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
+use vue_sfc_parser::ast::{Attribute, Directive, DirectiveShorthand, Element, Node};
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},

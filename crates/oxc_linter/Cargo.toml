@@ -45,6 +45,7 @@ oxc_resolver = { workspace = true }
 oxc_semantic = { workspace = true, features = ["cfg", "linter"] }
 oxc_span = { workspace = true, features = ["schemars", "serialize"] }
 vue_sfc_parser = { workspace = true }
+svelte_markup_parser = { workspace = true }
 oxc_str = { workspace = true, features = ["serialize"] }
 oxc_syntax = { workspace = true, features = ["serialize"] }
 

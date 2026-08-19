@@ -672,6 +672,8 @@ impl Runtime {
                         // no `<script>` block at all.
                         let mut template_messages =
                             me.linter.run_vue_template_rules(path, dep.source_text);
+                        template_messages
+                            .extend(me.linter.run_svelte_template_rules(path, dep.source_text));
                         crate::vue_template::filter_by_script_directives(
                             &mut template_messages,
                             &context_sub_hosts,
@@ -832,6 +834,8 @@ impl Runtime {
                             // `.vue` files without any `<script>` block.
                             let mut template_messages =
                                 me.linter.run_vue_template_rules(path, source_text);
+                            template_messages
+                                .extend(me.linter.run_svelte_template_rules(path, source_text));
                             crate::vue_template::filter_by_script_directives(
                                 &mut template_messages,
                                 &context_sub_hosts,
@@ -986,6 +990,10 @@ impl Runtime {
                         let mut template_messages = me
                             .linter
                             .run_vue_template_rules(Path::new(&module.path), source_text);
+                        template_messages.extend(
+                            me.linter
+                                .run_svelte_template_rules(Path::new(&module.path), source_text),
+                        );
                         crate::vue_template::filter_by_script_directives(
                             &mut template_messages,
                             &context_sub_hosts,

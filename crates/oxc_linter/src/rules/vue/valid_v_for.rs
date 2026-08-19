@@ -4,9 +4,9 @@ use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_parser::Parser;
 use oxc_span::{GetSpan, SourceType, Span};
-use vue_sfc_parser::ast::{AttributeValue, Element, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
+use vue_sfc_parser::ast::{AttributeValue, Element, Node};
 
 use crate::{
     rule::{DefaultRuleConfig, Rule},

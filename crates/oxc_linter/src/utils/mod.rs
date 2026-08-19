@@ -29,6 +29,7 @@ mod react_perf;
 mod regex;
 mod schemars;
 mod static_value;
+mod svelte_template;
 mod this_expression;
 mod typescript;
 mod unicorn;
@@ -41,7 +42,8 @@ mod vue_template;
 pub use self::{
     comment::*, config::*, control_flow::*, express::*, jest::*, jsdoc::*, nextjs::*, node::*,
     promise::*, react::*, react_compiler::*, react_perf::*, regex::*, schemars::*, static_value::*,
-    this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*, vue_template::*,
+    svelte_template::*, this_expression::*, typescript::*, unicorn::*, url::*, vitest::*, vue::*,
+    vue_template::*,
 };
 
 /// List of Eslint rules that have TypeScript equivalents.

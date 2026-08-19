@@ -9,8 +9,8 @@ use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Statement};
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
 use oxc_span::{SourceType, Span};
-use vue_sfc_parser::ast::{Attribute, Element, Node};
 use rustc_hash::FxHashSet;
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 
 use super::{
     VUE_RESERVED_DEPRECATED_HTML_ELEMENTS, VUE_RESERVED_HTML_ELEMENTS,

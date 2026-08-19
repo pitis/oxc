@@ -1,0 +1,24 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-at-debug-tags): Unexpected `{@debug}`.
+   ╭─[no_at_debug_tags.tsx:1:1]
+ 1 │ {@debug user}
+   · ─────────────
+   ╰────
+  help: `{@debug}` pauses execution in devtools; remove it before shipping.
+
+  ⚠ svelte(no-at-debug-tags): Unexpected `{@debug}`.
+   ╭─[no_at_debug_tags.tsx:1:1]
+ 1 │ {@debug}
+   · ────────
+   ╰────
+  help: `{@debug}` pauses execution in devtools; remove it before shipping.
+
+  ⚠ svelte(no-at-debug-tags): Unexpected `{@debug}`.
+   ╭─[no_at_debug_tags.tsx:1:13]
+ 1 │ {#if a}<div>{@debug a, b}</div>{/if}
+   ·             ─────────────
+   ╰────
+  help: `{@debug}` pauses execution in devtools; remove it before shipping.

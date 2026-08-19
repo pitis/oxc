@@ -2,9 +2,9 @@ use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
 use oxc_syntax::identifier::is_identifier_name;
-use vue_sfc_parser::ast::{Attribute, DirectiveShorthand, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
+use vue_sfc_parser::ast::{Attribute, DirectiveShorthand, Node};
 
 use crate::{
     rule::{Rule, TupleRuleConfig},

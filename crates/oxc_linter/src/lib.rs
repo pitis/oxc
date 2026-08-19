@@ -43,6 +43,7 @@ mod options;
 mod rule;
 mod service;
 mod suppression;
+mod svelte_template;
 pub(crate) mod timing;
 mod tsgolint;
 mod utils;

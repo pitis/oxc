@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(no-at-html-tags): `{@html}` can lead to XSS attack.
+   ╭─[no_at_html_tags.tsx:1:6]
+ 1 │ <div>{@html post.content}</div>
+   ·      ────────────────────
+   ╰────
+  help: Rendering raw HTML bypasses Svelte's escaping; sanitize the value or render it as text instead.
+
+  ⚠ svelte(no-at-html-tags): `{@html}` can lead to XSS attack.
+   ╭─[no_at_html_tags.tsx:1:8]
+ 1 │ {#if a}{@html a}{:else}{@html b}{/if}
+   ·        ─────────
+   ╰────
+  help: Rendering raw HTML bypasses Svelte's escaping; sanitize the value or render it as text instead.
+
+  ⚠ svelte(no-at-html-tags): `{@html}` can lead to XSS attack.
+   ╭─[no_at_html_tags.tsx:1:24]
+ 1 │ {#if a}{@html a}{:else}{@html b}{/if}
+   ·                        ─────────
+   ╰────
+  help: Rendering raw HTML bypasses Svelte's escaping; sanitize the value or render it as text instead.
+
+  ⚠ svelte(no-at-html-tags): `{@html}` can lead to XSS attack.
+   ╭─[no_at_html_tags.tsx:1:22]
+ 1 │ {#each items as item}{@html item}{/each}
+   ·                      ────────────
+   ╰────
+  help: Rendering raw HTML bypasses Svelte's escaping; sanitize the value or render it as text instead.

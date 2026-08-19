@@ -1,0 +1,24 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ svelte(require-each-key): Each block should have a key.
+   ╭─[require_each_key.tsx:1:1]
+ 1 │ {#each items as item}<Row {item} />{/each}
+   · ─────────────────────
+   ╰────
+  help: Add a keyed expression, e.g. `{#each items as item (item.id)}`, so Svelte can track each item's identity when the list changes.
+
+  ⚠ svelte(require-each-key): Each block should have a key.
+   ╭─[require_each_key.tsx:1:1]
+ 1 │ {#each new Array(3)}<hr>{/each}
+   · ────────────────────
+   ╰────
+  help: Add a keyed expression, e.g. `{#each items as item (item.id)}`, so Svelte can track each item's identity when the list changes.
+
+  ⚠ svelte(require-each-key): Each block should have a key.
+   ╭─[require_each_key.tsx:1:29]
+ 1 │ {#each rows as row (row.id)}{#each row.cells as cell}<td>{cell}</td>{/each}{/each}
+   ·                             ─────────────────────────
+   ╰────
+  help: Add a keyed expression, e.g. `{#each items as item (item.id)}`, so Svelte can track each item's identity when the list changes.

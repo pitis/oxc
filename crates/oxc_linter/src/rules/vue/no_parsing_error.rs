@@ -4,8 +4,8 @@ use cow_utils::CowUtils;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use vue_sfc_parser::ast::{Attribute, Element, Node};
 use rustc_hash::FxHashSet;
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 
 use crate::{
     rule::Rule,

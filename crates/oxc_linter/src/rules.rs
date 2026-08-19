@@ -1018,6 +1018,25 @@ pub(crate) mod vue {
     pub mod valid_v_text;
 }
 
+/// <https://github.com/sveltejs/eslint-plugin-svelte>
+pub(crate) mod svelte {
+    pub mod button_has_type;
+    pub mod no_at_debug_tags;
+    pub mod no_at_html_tags;
+    pub mod no_dupe_else_if_blocks;
+    pub mod no_dupe_on_directives;
+    pub mod no_dupe_style_properties;
+    pub mod no_dupe_use_directives;
+    pub mod no_dynamic_slot_name;
+    pub mod no_not_function_handler;
+    pub mod no_object_in_text_mustaches;
+    pub mod no_spaces_around_equal_signs_in_attribute;
+    pub mod no_target_blank;
+    pub mod no_useless_children_snippet;
+    pub mod no_useless_mustaches;
+    pub mod require_each_key;
+}
+
 pub(crate) mod shared;
 
 // Re-export RuleEnum, RULES, and all rule type aliases from generated code
