@@ -1,0 +1,30 @@
+{
+  "name": "oxlint-plugin-svelte",
+  "version": "1.79.0",
+  "description": "The Svelte lint rules that need the Svelte compiler, as an Oxlint plugin",
+  "keywords": [
+    "linter",
+    "oxlint",
+    "plugin",
+    "svelte"
+  ],
+  "homepage": "https://oxc.rs/docs/guide/usage/linter/js-plugins",
+  "bugs": "https://github.com/oxc-project/oxc/issues",
+  "license": "MIT",
+  "author": "Boshen and oxc contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxc-project/oxc.git",
+    "directory": "npm/oxlint-plugin-svelte"
+  },
+  "files": [
+    "index.js",
+    "rules",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}

@@ -419,6 +419,8 @@ importers:
 
   npm/oxlint-plugin-eslint: {}
 
+  npm/oxlint-plugin-svelte: {}
+
   npm/oxlint-plugins: {}
 
   npm/runtime: {}
