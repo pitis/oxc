@@ -3,7 +3,7 @@ use std::path::Path;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::{Sfc, ast::Node, parse_template};
+use vue_sfc_parser::{Sfc, ast::Node, parse_template};
 
 use crate::{
     rule::Rule,
@@ -91,7 +91,7 @@ impl VueSfcRule for ValidTemplateRoot {
 }
 
 fn check_template_block<'a>(
-    block: &oxc_vue_parser::SfcBlock<'a>,
+    block: &vue_sfc_parser::SfcBlock<'a>,
     ctx: &mut VueTemplateContext<'a>,
 ) {
     let has_src = block.has_attribute("src");

@@ -5,7 +5,7 @@ use oxc_macros::declare_oxc_lint;
 use oxc_parser::{ParseOptions, Parser};
 use oxc_span::{ContentEq, GetSpan, SourceType, Span};
 use oxc_syntax::operator::LogicalOperator;
-use oxc_vue_parser::ast::{Attribute, Element, Node};
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 
 use crate::{
     rule::Rule,

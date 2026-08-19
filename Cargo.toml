@@ -173,7 +173,7 @@ oxc_linter = { path = "crates/oxc_linter" } # Linting engine
 oxc_macros = { path = "crates/oxc_macros" } # Proc macros
 oxc_tasks_common = { path = "tasks/common" } # Task utilities
 oxc_tasks_transform_checker = { path = "tasks/transform_checker" } # Transform validation
-oxc_vue_parser = { path = "crates/oxc_vue_parser" } # Vue SFC and template parser
+vue_sfc_parser = { git = "https://github.com/pitis/vue-sfc-parser", tag = "v0.1.0" } # Vue SFC and template parser (extracted crate)
 website_common = { path = "tasks/website_common" } # Website utilities
 oxfmt = { path = "apps/oxfmt" } # Formatter CLI
 oxlint = { path = "apps/oxlint" } # Linter CLI
@@ -296,6 +296,7 @@ ignored = [
 # Force the registry request to resolve to the workspace copy so there's a single instance.
 [patch.crates-io]
 oxc_allocator = { path = "crates/oxc_allocator" }
+oxc_span = { path = "crates/oxc_span" }
 
 [profile.dev]
 # Disabling debug info speeds up local and CI builds,

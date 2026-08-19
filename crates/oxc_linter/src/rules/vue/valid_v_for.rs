@@ -4,7 +4,7 @@ use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_parser::Parser;
 use oxc_span::{GetSpan, SourceType, Span};
-use oxc_vue_parser::ast::{AttributeValue, Element, Node};
+use vue_sfc_parser::ast::{AttributeValue, Element, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
 

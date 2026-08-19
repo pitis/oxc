@@ -9,7 +9,7 @@ use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Statement};
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
 use oxc_span::{SourceType, Span};
-use oxc_vue_parser::ast::{Attribute, Element, Node};
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 use rustc_hash::FxHashSet;
 
 use super::{
@@ -63,7 +63,7 @@ pub fn get_attribute<'e, 'a>(element: &'e Element<'a>, name: &str) -> Option<&'e
 /// upstream rule that keys off a *native* tag — `<template>`, `<component>`,
 /// `<slot>`, … — matches against the lowercased `name`, so `<Template>` and
 /// `<TEMPLATE>` are the same element to them. This fork's
-/// [`Element::name`](oxc_vue_parser::ast::Element::name) is the *raw* name, so
+/// [`Element::name`](vue_sfc_parser::ast::Element::name) is the *raw* name, so
 /// rules mirroring those selectors must fold case here rather than compare
 /// with `==`.
 ///
@@ -302,7 +302,7 @@ pub fn walk_elements_with_siblings<'e, 'a>(
 /// the first dot is the real separator.
 ///
 /// This indexes raw `.` positions in the post-argument text directly, unlike
-/// [`oxc_vue_parser::ast::Directive::modifiers`] itself, which drops empty
+/// [`vue_sfc_parser::ast::Directive::modifiers`] itself, which drops empty
 /// segments (so `..` in the source doesn't produce an empty modifier). The
 /// two agree on well-formed input, but for a name with consecutive dots
 /// (e.g. `:foo..bar`) `index`-to-modifier alignment between this function and
@@ -478,7 +478,7 @@ pub enum TemplateExpressionKind {
 }
 
 /// The first parse error from parsing `text` as `kind`, or `None` when it
-/// parses cleanly — the error channel `oxc_vue_parser` doesn't have.
+/// parses cleanly — the error channel `vue_sfc_parser` doesn't have.
 ///
 /// Every other expression helper here (and in the individual rules) bails
 /// *silently* on a parse failure, which is safe but leaves a broken expression
@@ -595,7 +595,7 @@ fn collect_binding_names(pattern: &BindingPattern<'_>, out: &mut FxHashSet<Strin
 }
 
 /// Depth-first walk over every [`Node`] in `nodes` — not just [`Element`]s,
-/// since callers that also need [`oxc_vue_parser::ast::Interpolation`]s (every
+/// since callers that also need [`vue_sfc_parser::ast::Interpolation`]s (every
 /// expression-inspecting rule this was built for: `this-in-template`,
 /// `no-deprecated-dollar-listeners-api`, `no-deprecated-dollar-scopedslots-api`)
 /// match on the node kind themselves — together with the set of scope-variable
@@ -798,7 +798,7 @@ pub fn free_reference_spans(text: &str, name: &str) -> Vec<Span> {
 
 #[cfg(test)]
 mod tests {
-    use oxc_vue_parser::{ast::Node, parse_template};
+    use vue_sfc_parser::{ast::Node, parse_template};
 
     use super::{directive_modifier_span, directive_modifiers_span};
 

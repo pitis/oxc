@@ -2290,7 +2290,6 @@ dependencies = [
  "oxc_span",
  "oxc_str",
  "oxc_syntax",
- "oxc_vue_parser",
  "papaya",
  "phf",
  "rayon",
@@ -2303,6 +2302,7 @@ dependencies = [
  "smallvec",
  "unicode-segmentation",
  "url",
+ "vue_sfc_parser",
 ]
 
 [[package]]
@@ -2878,13 +2878,6 @@ dependencies = [
  "rayon",
  "rustc-hash",
  "self_cell",
-]
-
-[[package]]
-name = "oxc_vue_parser"
-version = "0.0.1"
-dependencies = [
- "oxc_span",
 ]
 
 [[package]]
@@ -4204,6 +4197,14 @@ name = "vsimd"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c3082ca00d5a5ef149bb8b555a72ae84c9c59f7250f013ac822ac2e49b19c64"
+
+[[package]]
+name = "vue_sfc_parser"
+version = "0.1.0"
+source = "git+https://github.com/pitis/vue-sfc-parser?tag=v0.1.0#cb5c90adef2b4311555da6936a945f5f585c6859"
+dependencies = [
+ "oxc_span",
+]
 
 [[package]]
 name = "walkdir"

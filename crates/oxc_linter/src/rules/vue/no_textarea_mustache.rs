@@ -1,7 +1,7 @@
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::ast::Node;
+use vue_sfc_parser::ast::Node;
 
 use crate::{
     rule::Rule,
@@ -87,7 +87,7 @@ impl VueTemplateRule for NoTextareaMustache {
 /// `<script>`/`<style>`) for byte-faithful reprinting, so its body
 /// never becomes `Interpolation` nodes the way ordinary text content does —
 /// this rule has to re-scan the raw bytes itself, mirroring
-/// `oxc_vue_parser`'s own `{{` → matching `}}` interpolation scanner
+/// `vue_sfc_parser`'s own `{{` → matching `}}` interpolation scanner
 /// (`Parser::interpolation`).
 ///
 /// An unterminated `{{` (no matching `}}` before the element closes) is not

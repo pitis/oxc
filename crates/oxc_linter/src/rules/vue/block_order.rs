@@ -3,7 +3,7 @@ use std::path::Path;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::{Sfc, SfcBlock};
+use vue_sfc_parser::{Sfc, SfcBlock};
 use schemars::JsonSchema;
 use serde::Deserialize;
 

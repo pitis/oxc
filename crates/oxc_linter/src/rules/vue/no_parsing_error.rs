@@ -4,7 +4,7 @@ use cow_utils::CowUtils;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::ast::{Attribute, Element, Node};
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 use rustc_hash::FxHashSet;
 
 use crate::{
@@ -73,7 +73,7 @@ declare_oxc_lint!(
     /// `:bind`, `@on`, `v-for`, `v-model`, `v-slot`'s pattern, custom
     /// directives, …). vue-eslint-parser parses those as part of building the
     /// template body and pushes any failure into `templateBody.errors`, which
-    /// upstream's `no-parsing-error` then reports; `oxc_vue_parser` has no
+    /// upstream's `no-parsing-error` then reports; `vue_sfc_parser` has no
     /// error channel, and every expression-inspecting rule here bails
     /// silently when a value doesn't parse, so without this the whole class
     /// of broken expressions would be invisible. The diagnostic is placed on

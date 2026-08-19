@@ -3,7 +3,7 @@ use std::fmt::Write as _;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_span::Span;
-use oxc_vue_parser::ast::{Attribute, Element, Node};
+use vue_sfc_parser::ast::{Attribute, Element, Node};
 use schemars::JsonSchema;
 use serde::Deserialize;
 

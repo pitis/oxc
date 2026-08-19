@@ -2,7 +2,7 @@
 //!
 //! The loader extracts only `<script>` blocks from `.vue` files, so the
 //! script sub-host machinery never sees the template. This pass parses the
-//! `<template>` block(s) with `oxc_vue_parser` and runs the template-capable
+//! `<template>` block(s) with `vue_sfc_parser` and runs the template-capable
 //! rules of the `vue` plugin over the resulting AST.
 //!
 //! It is deliberately independent of the sub-host loop:
@@ -30,7 +30,7 @@ use std::path::Path;
 
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_span::Span;
-use oxc_vue_parser::{Sfc, ast::Comment, ast::Node, parse_sfc, parse_template};
+use vue_sfc_parser::{Sfc, ast::Comment, ast::Node, parse_sfc, parse_template};
 use rustc_hash::FxHashMap;
 
 use crate::{
