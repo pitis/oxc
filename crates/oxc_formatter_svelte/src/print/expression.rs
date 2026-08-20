@@ -7,13 +7,13 @@
 //! does not mean the same thing.
 
 use oxc_formatter_core::{
-    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, InputKind,
-    builders::{text, token},
-    write,
+    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, InputKind,
+    builders::{dedent, group, indent, soft_line_break, text, token},
+    remove_lines, write,
 };
 use svelte_markup_parser::ast::ExpressionTag;
 
-use super::{SvelteFormatter, write_source};
+use super::{SvelteFormatter, format_with, write_source};
 
 /// Where an expression sits, which decides its preferred quote style.
 ///
@@ -29,6 +29,12 @@ pub enum ExpressionPosition {
     Braces,
     /// One part of a quoted attribute value made of text and expressions.
     QuotedAttribute,
+    /// A `{#if}` / `{#each}` / `{#await}` / `{#key}` header, which stays on
+    /// one line however long it is (Prettier's `forceSingleLine`).
+    BlockHeader,
+    /// A `bind:` directive's value, which gets a break of its own to move to
+    /// when the tag wraps (Prettier's `surroundWithSoftline`).
+    BindDirective,
 }
 
 /// Print a `{…}` in a text position, which may be a declaration tag.
@@ -52,18 +58,49 @@ pub fn write_mustache<'a>(tag: &ExpressionTag<'a>, f: &mut SvelteFormatter<'_, '
 /// Split a declaration tag's text into its keyword and what follows.
 ///
 /// `type` is left alone: what follows it is a type, not an expression, and
-/// this printer has no way to lay one out on its own.
+/// this printer has no way to lay one out on its own. So is a declaration of
+/// more than one binding — `{let a = 1, b = 2}` — because the single
+/// declarator goes through the expression path, and two of them would come
+/// back as the sequence expression `(a = 1), (b = 2)`, which is not the same
+/// declaration and does not parse as one.
 fn declaration_tag(expression: &str) -> Option<(&'static str, &str)> {
     let expression = expression.trim_start();
     for keyword in ["const", "let"] {
         if let Some(rest) = expression.strip_prefix(keyword)
             && rest.starts_with(|c: char| c.is_whitespace())
-            && !rest.trim_start().is_empty()
         {
-            return Some((keyword, rest.trim_start()));
+            let declarator = rest.trim_start();
+            if declarator.is_empty() || has_top_level_comma(declarator) {
+                return None;
+            }
+            return Some((keyword, declarator));
         }
     }
     None
+}
+
+/// Whether a `,` separates two declarators rather than sitting inside one.
+fn has_top_level_comma(text: &str) -> bool {
+    let mut depth = 0i32;
+    let mut quote = None;
+    let mut escaped = false;
+    for byte in text.bytes() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        match (quote, byte) {
+            (Some(_), b'\\') => escaped = true,
+            (Some(open), byte) if byte == open => quote = None,
+            (None, b'"' | b'\'' | b'`') => quote = Some(byte),
+            (None, b'(' | b'[' | b'{') => depth += 1,
+            (None, b')' | b']' | b'}') => depth -= 1,
+            (None, b',') if depth == 0 => return true,
+            // Anything else is part of a declarator, inside a string or not.
+            _ => {}
+        }
+    }
+    false
 }
 
 /// Print `{expr}`, with the expression formatted by whoever owns JavaScript.
@@ -100,7 +137,9 @@ pub fn write_expression<'a>(
         // markup can carry `as` casts and non-null assertions whether or not
         // its script declares `lang="ts"`, and TS is a superset of what plain
         // JavaScript allows here.
-        ExpressionPosition::Braces => "ts-expression",
+        ExpressionPosition::Braces
+        | ExpressionPosition::BlockHeader
+        | ExpressionPosition::BindDirective => "ts-expression",
         ExpressionPosition::QuotedAttribute => "ts-attribute-expression",
     };
     let response = f.session().dispatch(DispatchRequest {
@@ -119,6 +158,42 @@ pub fn write_expression<'a>(
     // `__onHtmlBindingRoot` hook — `prettier-plugin-svelte` does not: its
     // `{…}` is the expression's doc between two braces, and the expression's
     // own groups decide where it breaks.
-    let ir = payload.into_doc(f.context_mut());
-    f.write_elements(ir);
+    let mut ir = payload.into_doc(f.context_mut());
+    match position {
+        // A block header is one line however long it gets: the expression
+        // that decides what a `{#each}` iterates reads as part of the marker,
+        // not as content laid out beside it.
+        ExpressionPosition::BlockHeader => {
+            remove_lines(&mut ir);
+            f.write_elements(ir);
+        }
+        // A `bind:` value carries a break of its own, so a tag that has to
+        // wrap can put the value on the next line rather than only inside it.
+        ExpressionPosition::BindDirective => {
+            let content = WriteElements(std::cell::RefCell::new(Some(ir)));
+            write!(
+                f,
+                group(&indent(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
+                    write!(f, [soft_line_break(), group(&content), dedent(&soft_line_break())]);
+                })))
+            );
+        }
+        _ => f.write_elements(ir),
+    }
+}
+
+/// The child's IR, written once into whatever position the layout puts it.
+///
+/// The builders take their content by reference and may format it more than
+/// once while measuring, so the elements are moved out on the first write.
+struct WriteElements<'a>(
+    std::cell::RefCell<Option<oxc_allocator::ArenaVec<'a, oxc_formatter_core::FormatElement<'a>>>>,
+);
+
+impl<'a> Format<'a, crate::context::SvelteFormatContext<'a>> for WriteElements<'a> {
+    fn fmt(&self, f: &mut SvelteFormatter<'_, 'a>) {
+        if let Some(elements) = self.0.borrow_mut().take() {
+            f.write_elements(elements);
+        }
+    }
 }

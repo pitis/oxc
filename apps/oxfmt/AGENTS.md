@@ -71,12 +71,17 @@ The stable distinction is:
 
 Oxfmt utilizes different implementations depending on the file extension and filename:
 
-- Tier 1: Rust implementations using `oxc_formatter`, `oxc_formatter_json`, etc found in this repository
+- Tier 1: Rust implementations using `oxc_formatter`, `oxc_formatter_json`, `oxc_formatter_svelte`, etc found in this repository
 - Tier 2: Rust implementations using external libraries like `oxc_toml`
 - Tier 3: Delegations to Prettier via NAPI-JS calls (e.g., for Vue or Markdown)
-- Tier 4: Delegations to Prettier that require additional Prettier plugins (e.g., for Svelte)
+- Tier 4: Delegations to Prettier that require additional Prettier plugins
 
 NOTE: Rust written formatters never fall back to Prettier, since they exist to reduce the dependency on Prettier.
+
+`.svelte` is Tier 1: `oxc_formatter_svelte` prints the markup, and the `<script>`, `<style>` and `{…}` inside it reach `oxc_formatter` / `oxc_formatter_css` through the dispatcher.
+It therefore works in the pure Rust build like any other native language, and needs no config key to be enabled.
+`prettier-plugin-svelte` remains bundled for one thing only: the ` ```svelte ` code blocks a Markdown or MDX file may contain, which are Prettier's to print.
+The `svelte` config key still gates *that* (`is_svelte_enabled`) and still carries the printer's options (`sortOrder`, `allowShorthand`, `indentScriptAndStyle`), which both printers read.
 
 ### Embedded language formatting
 

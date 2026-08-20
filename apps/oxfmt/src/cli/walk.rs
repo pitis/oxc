@@ -684,7 +684,6 @@ fn resolve_format_strategy(
     let kind = classify_file_kind(Arc::clone(&path))?;
     match resolver.resolve(kind) {
         Ok(ResolveOutcome::Format(strategy)) => Some(strategy),
-        Ok(ResolveOutcome::MissingPlugin(_)) => None,
         Err(err) => {
             // Report a per-file config resolve error via the diagnostic channel.
             let diagnostics = DiagnosticService::wrap_diagnostics(

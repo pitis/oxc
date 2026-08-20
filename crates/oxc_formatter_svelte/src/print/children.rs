@@ -39,6 +39,9 @@ pub struct ChildLayout {
     /// The child is kept exactly as written: a `prettier-ignore` before it,
     /// or an enclosing `prettier-ignore-start` range.
     pub verbatim: bool,
+    /// The child is somewhere under a `<pre>`, so its own text renders as
+    /// written however deeply it is nested.
+    pub in_pre: bool,
     /// A `softline` before the child, so a block breaks onto its own line.
     pub softline_before: bool,
     /// A `softline` after it, for the same reason.
@@ -86,6 +89,8 @@ pub struct PlanContext {
     /// Whether these are the component's own top-level nodes, which is where
     /// a `prettier-ignore-start` range is recognised.
     pub top_level: bool,
+    /// Whether a `<pre>` encloses them.
+    pub in_pre: bool,
 }
 
 /// As [`plan_children`], over a chosen subset of the children — the top-level
@@ -121,7 +126,11 @@ pub fn plan_some_children(
 
     let mut layouts: Vec<ChildLayout> = prepared
         .iter()
-        .map(|&index| ChildLayout { trim: trim_of(index), ..ChildLayout::default() })
+        .map(|&index| ChildLayout {
+            trim: trim_of(index),
+            in_pre: context.in_pre,
+            ..ChildLayout::default()
+        })
         .collect();
 
     // Whether the text child just laid out gave its trailing whitespace to

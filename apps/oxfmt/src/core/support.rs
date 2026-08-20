@@ -6,9 +6,6 @@ use oxc_formatter_css::CssVariant;
 use oxc_formatter_json::JsonVariant;
 use oxc_span::SourceType;
 
-#[cfg(feature = "napi")]
-use super::oxfmtrc::FormatConfig;
-
 /// Classify a file path into a [`FileKind`].
 ///
 /// Returns `None` when the file type is not a formatting target.
@@ -70,6 +67,13 @@ pub fn classify_file_kind(path: Arc<Path>) -> Option<FileKind> {
     if is_yaml_file(file_name, extension) {
         return Some(FileKind::OxcFormatterYaml { path });
     }
+    // A `.svelte` component is formatted by `oxc_formatter_svelte`, which is
+    // pure Rust — so it is classified here rather than as a Prettier target,
+    // and works in a build without the `napi` feature like every other
+    // native language.
+    if extension == Some("svelte") {
+        return Some(FileKind::OxcFormatterSvelte { path });
+    }
 
     // Prettier-delegated files are only supported with the `napi` feature
     #[cfg(feature = "napi")]
@@ -108,6 +112,8 @@ pub enum FileKind {
     OxcFormatterGraphql { path: Arc<Path> },
     /// CSS/SCSS/Less files formatted by `oxc_formatter_css`.
     OxcFormatterCss { path: Arc<Path>, variant: CssVariant },
+    /// `.svelte` components formatted by `oxc_formatter_svelte`.
+    OxcFormatterSvelte { path: Arc<Path> },
     /// YAML files formatted by `oxc_formatter_yaml`.
     OxcFormatterYaml { path: Arc<Path> },
     /// Files like `.prettierrc`:
@@ -139,29 +145,13 @@ impl FileKind {
             | Self::OxcFormatterJsonPackageJson { path }
             | Self::OxcFormatterGraphql { path }
             | Self::OxcFormatterCss { path, .. }
+            | Self::OxcFormatterSvelte { path }
             | Self::OxcFormatterYaml { path }
             | Self::OxcFormatterYamlRc { path }
             | Self::OxfmtToml { path } => path,
             #[cfg(feature = "napi")]
             Self::Prettier { path, .. } => path,
         }
-    }
-
-    /// Returns the config key (e.g. `"svelte"`) of an opt-in Prettier plugin
-    /// that this file's parser requires but the resolved config did NOT enable.
-    ///
-    /// `.svelte` files cannot be formatted without `prettier-plugin-svelte`,
-    /// which is gated behind the `svelte` config key. The plugin is considered
-    /// disabled when the field is unset or `false`; the resolver bails out with
-    /// [`super::ResolveOutcome::MissingPlugin`] in that case.
-    #[cfg(feature = "napi")]
-    pub fn requires_plugin(&self, config: &FormatConfig) -> Option<&'static str> {
-        if let Self::Prettier { parser_name: "svelte", .. } = self
-            && !config.is_svelte_enabled()
-        {
-            return Some("svelte");
-        }
-        None
     }
 }
 
@@ -176,7 +166,6 @@ static TAILWIND_PARSERS: phf::Set<&'static str> = phf_set! {
     "vue",
     "angular",
     "glimmer",
-    "svelte",
 };
 
 /// Parsers(files) that can embed JS/TS code and benefit from oxfmt plugin.
@@ -187,16 +176,17 @@ static TAILWIND_PARSERS: phf::Set<&'static str> = phf_set! {
 static OXFMT_PARSERS: phf::Set<&'static str> = phf_set! {
     // "html",
     "vue",
-    "svelte",
     // "markdown",
     // "mdx",
 };
 
 /// Parsers(files) that benefit from `prettier-plugin-svelte`.
-/// `.svelte` is the primary target; `markdown`/`mdx` allow ` ```svelte ` code blocks.
+///
+/// Only the ` ```svelte ` code blocks a Markdown or MDX file may contain:
+/// a `.svelte` file itself is [`FileKind::OxcFormatterSvelte`] and never
+/// reaches Prettier.
 #[cfg(feature = "napi")]
 static SVELTE_PARSERS: phf::Set<&'static str> = phf_set! {
-    "svelte",
     "markdown",
     "mdx",
 };
@@ -444,12 +434,6 @@ fn get_prettier_parser_name(file_name: &str, extension: Option<&str>) -> Option<
     }
     if extension == Some("vue") {
         return Some("vue");
-    }
-    // NOTE: `.svelte` files are recognized here, but actual formatting is gated by
-    // `ResolveOutcome::MissingPlugin` (requires `svelte: {}` in resolved config).
-    // We classify here (not skip) so that user-friendly errors/skips can be surfaced per caller.
-    if extension == Some("svelte") {
-        return Some("svelte");
     }
     if extension == Some("mjml") {
         return Some("mjml");

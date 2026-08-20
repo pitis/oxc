@@ -90,6 +90,13 @@ pub fn is_boundary(element: &Element<'_>) -> bool {
 /// the two tags Svelte gives a node of its own — `<slot>` and `<title>`.
 /// Those are laid out like neither a block nor an inline element: the
 /// whitespace at their edges is dropped, but they do not force a break.
+///
+/// Svelte calls this a `RegularElement`, and a few rules key off it directly
+/// rather than off the display category — see [`is_regular_element`].
+pub fn is_regular_element(element: &Element<'_>) -> bool {
+    is_plain_html(element)
+}
+
 fn is_plain_html(element: &Element<'_>) -> bool {
     !element.is_component_like()
         && element.svelte_name().is_none()

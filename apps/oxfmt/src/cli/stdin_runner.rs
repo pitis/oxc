@@ -140,10 +140,6 @@ impl StdinRunner {
         };
         let strategy = match config_resolver.resolve(kind) {
             Ok(ResolveOutcome::Format(strategy)) => strategy,
-            Ok(ResolveOutcome::MissingPlugin(_)) => {
-                utils::print_and_flush(stdout, &source_text);
-                return CliRunResult::FormatSucceeded;
-            }
             Err(err) => {
                 utils::print_and_flush(stderr, &format!("{err}\n"));
                 return CliRunResult::InvalidOptionConfig;

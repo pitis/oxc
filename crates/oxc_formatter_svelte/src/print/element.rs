@@ -13,18 +13,17 @@ use oxc_formatter_core::{
     },
     write,
 };
-use oxc_span::Span;
 use svelte_markup_parser::ast::{Element, Node};
 
 use crate::options::WhitespaceSensitivity;
 
 use super::{
     SvelteFormatter,
-    attribute::write_attribute,
-    children::Trim,
+    attribute::{AttributeContext, write_attribute},
+    children::{ChildLayout, Trim},
     classify::{
         ends_with_collapsible_whitespace, is_block_tag, is_boundary, is_collapsible_whitespace,
-        is_empty, is_inline_tag, is_pre_content, is_raw_text_element,
+        is_empty, is_inline_tag, is_pre_content, is_raw_text_element, is_regular_element,
         starts_with_collapsible_whitespace, starts_with_line_breaks,
     },
     format_with,
@@ -35,6 +34,7 @@ use super::{
 pub fn write_element<'a>(
     element: &Element<'a>,
     last_in_block_parent: bool,
+    in_pre: bool,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
     let source = f.context().source_text().as_str();
@@ -52,10 +52,15 @@ pub fn write_element<'a>(
 
     let self_closing = empty && (element.self_closing || element.is_void);
     let attributes: Vec<&_> = element.attributes.iter().collect();
-    let allow_shorthand = options.allow_shorthand.is_enabled();
+    let attribute_context = AttributeContext {
+        allow_shorthand: options.allow_shorthand.is_enabled(),
+        regular_element: is_regular_element(element),
+    };
     // `<pre>` and `<textarea>` render their own whitespace, so their content
     // is not the printer's to lay out. The tag around it still is.
-    let pre = is_pre_content(element);
+    // Being inside one counts: a `<span>` in a `<pre>` shows its own
+    // whitespace too, however deeply it is nested.
+    let pre = in_pre || is_pre_content(element);
     let sensitivity = options.whitespace_sensitivity;
     let bracket_same_line = options.bracket_same_line.is_enabled();
     let block = is_block_tag(element, sensitivity);
@@ -73,7 +78,7 @@ pub fn write_element<'a>(
                     indent(&group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
                         for attribute in &attributes {
                             write!(f, soft_line_break_or_space());
-                            write_attribute(attribute, source, allow_shorthand, f);
+                            write_attribute(attribute, source, attribute_context, f);
                         }
                         if !bracket_same_line {
                             write!(f, dedent(&soft_line_break_or_space()));
@@ -141,7 +146,7 @@ pub fn write_element<'a>(
             indent(&group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
                 for attribute in &attributes {
                     write!(f, soft_line_break_or_space());
-                    write_attribute(attribute, source, allow_shorthand, f);
+                    write_attribute(attribute, source, attribute_context, f);
                 }
                 if (!hug_start || empty) && !pre && !bracket_same_line {
                     write!(f, dedent(&soft_line_break()));
@@ -158,7 +163,7 @@ pub fn write_element<'a>(
             write_pre_children(children, f);
             return;
         }
-        write_children(children, &trims, block, f);
+        write_children(children, &trims, block, pre, f);
     });
 
     if empty {
@@ -296,14 +301,20 @@ fn hugs_next_node(element: &Element<'_>, source: &str) -> bool {
     }
 }
 
-/// The content of a `<pre>` or `<textarea>`, exactly as written.
+/// The content of a `<pre>` or `<textarea>`: its text exactly as written,
+/// and everything else printed as usual.
 ///
-/// Everything under it, not only its text: a `<span>` inside a `<pre>` shows
-/// its own whitespace too, so there is no layout decision to take anywhere in
-/// the subtree.
+/// Only text renders as written. A tag, a `{…}` or a block marker is markup
+/// the browser never shows, so reshaping one changes nothing on the page —
+/// which is why Prettier lays them out here as it does anywhere else.
 fn write_pre_children<'a>(children: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
-    let (Some(first), Some(last)) = (children.first(), children.last()) else { return };
-    write_source(Span::new(first.span().start, last.span().end), f);
+    let layout = ChildLayout { in_pre: true, ..ChildLayout::default() };
+    for child in children {
+        match child {
+            Node::Text(text) => write_source(text.span, f),
+            other => super::write_node(other, layout, f),
+        }
+    }
 }
 
 /// What goes between a tag and its content when the content does not hug it.

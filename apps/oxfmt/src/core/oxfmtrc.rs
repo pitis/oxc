@@ -273,18 +273,20 @@ pub struct FormatConfig {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub jsdoc: Option<JsdocUserConfig>,
 
-    /// Options for `prettier-plugin-svelte`.
+    /// Svelte formatting options.
     ///
-    /// Pass `true` or an object to enable `.svelte` file formatting,
-    /// or `false` (handy in overrides) / omit to disable.
+    /// `.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;
+    /// this only carries the options, which have the same names and meanings
+    /// `prettier-plugin-svelte` gives them.
     /// Setting `true` resets to defaults — any options inherited from a parent scope are dropped.
     ///
-    /// NOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,
-    /// but Oxfmt does NOT bundle or auto-install it.
-    /// You must install `svelte` yourself in your project, formatting will fail at runtime otherwise.
+    /// It does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may
+    /// contain, which Prettier prints through `prettier-plugin-svelte`.
+    /// That plugin requires the `svelte` package (`svelte/compiler`) at runtime, which Oxfmt does
+    /// NOT bundle or auto-install; install it yourself or such a code block fails to format.
     ///
     /// - Languages: Svelte
-    /// - Default: Disabled
+    /// - Default: options at their defaults, Markdown code blocks disabled
     #[serde(skip_serializing_if = "Option::is_none")]
     pub svelte: Option<SvelteUserConfig>,
 }
@@ -302,17 +304,13 @@ impl FormatConfig {
     ///
     /// Enabled when `svelte` is set to `true` or an object;
     /// disabled when unset or `false`.
+    ///
+    /// Only about ` ```svelte ` code blocks inside Markdown or MDX, which are
+    /// Prettier's to print and need `prettier-plugin-svelte` loaded. A
+    /// `.svelte` file is formatted by `oxc_formatter_svelte` whatever this
+    /// says.
     pub fn is_svelte_enabled(&self) -> bool {
         matches!(self.svelte, Some(SvelteUserConfig::Bool(true) | SvelteUserConfig::Object(_)))
-    }
-
-    /// Whether `.svelte` files go to the native printer rather than to
-    /// `prettier-plugin-svelte`.
-    pub fn is_svelte_native_engine(&self) -> bool {
-        matches!(
-            &self.svelte,
-            Some(SvelteUserConfig::Object(config)) if config.engine == Some(SvelteEngine::Native)
-        )
     }
 
     /// Whether Tailwind class sorting is enabled by this config.
@@ -949,28 +947,6 @@ pub struct SvelteConfig {
     /// - Default: `true`
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indent_script_and_style: Option<bool>,
-    /// Which printer formats `.svelte` files.
-    ///
-    /// Transitional, while the native printer is built out: `"prettier"`
-    /// delegates to the bundled `prettier-plugin-svelte`, `"native"` uses
-    /// `oxc_formatter_svelte`. It goes away once the native printer is the
-    /// only one, so it is deliberately not advertised in the published
-    /// configuration schema.
-    ///
-    /// - Default: `"prettier"`
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub engine: Option<SvelteEngine>,
-}
-
-/// Which printer formats `.svelte` files. See [`SvelteConfig::engine`].
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum SvelteEngine {
-    /// The bundled `prettier-plugin-svelte`.
-    #[default]
-    Prettier,
-    /// `oxc_formatter_svelte`.
-    Native,
 }
 
 // ---

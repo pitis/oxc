@@ -57,16 +57,6 @@ pub fn run(
     };
     let strategy = match resolve_for_api(options.unwrap_or_default(), kind, &cwd) {
         Ok(ResolveOutcome::Format(strategy)) => strategy,
-        Ok(ResolveOutcome::MissingPlugin(plugin)) => {
-            external_services.cleanup();
-            return ApiFormatResult {
-                code: source_text,
-                errors: vec![OxcError::new(format!(
-                    "Cannot format `.{plugin}`: `{plugin}` plugin is not enabled in resolved config: {filename}"
-                ))],
-                warnings: vec![],
-            };
-        }
         Err(err) => {
             external_services.cleanup();
             return ApiFormatResult {

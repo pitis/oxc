@@ -85,10 +85,6 @@ pub enum FormatStrategy {
         insert_final_newline: bool,
     },
     /// For `.svelte` files formatted by `oxc_formatter_svelte`.
-    ///
-    /// Only chosen when the config asks for it (`svelte.engine: "native"`);
-    /// otherwise `.svelte` goes to `prettier-plugin-svelte` through
-    /// [`Self::Prettier`].
     OxcFormatterSvelte {
         path: Arc<Path>,
         format_options: Box<SvelteFormatOptions>,
@@ -232,21 +228,13 @@ impl FormatStrategy {
                 toml_options: to_oxc_toml(&config, core),
                 insert_final_newline,
             },
-            // `.svelte` is classified as a Prettier target, because that is
-            // still the default printer for it. The native one is opt-in
-            // while it is being built out.
-            #[cfg(feature = "napi")]
-            FileKind::Prettier { path, parser_name: "svelte", .. }
-                if config.is_svelte_native_engine() =>
-            {
-                Self::OxcFormatterSvelte {
-                    path,
-                    format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
-                    config: Arc::new(config),
-                    core,
-                    insert_final_newline,
-                }
-            }
+            FileKind::OxcFormatterSvelte { path } => Self::OxcFormatterSvelte {
+                path,
+                format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
+                config: Arc::new(config),
+                core,
+                insert_final_newline,
+            },
             #[cfg(feature = "napi")]
             FileKind::Prettier {
                 path,

@@ -537,6 +537,29 @@ impl TextWidth {
     }
 }
 
+/// Lay content out on one line whatever its own groups would have chosen —
+/// Prettier's `removeLines`.
+///
+/// A soft break disappears, a soft-or-space becomes the space it stands for,
+/// and a group that had already decided to expand is set back to flat. Breaks
+/// the author wrote — a hard line, a blank line, a literal line — stay: those
+/// are content rather than layout, and Prettier keeps them too.
+///
+/// Only the top level of the list: an `Interned` or `BestFitting` subtree is
+/// shared or pre-measured and is left as it is.
+pub fn remove_lines<'a>(elements: &mut ArenaVec<'a, FormatElement<'a>>) {
+    for element in elements.iter_mut() {
+        match element {
+            FormatElement::Line(LineMode::SoftOrSpace) => *element = FormatElement::Space,
+            FormatElement::Tag(Tag::StartGroup(group)) => group.set_flat(),
+            _ => {}
+        }
+    }
+    elements.retain(|element| {
+        !matches!(element, FormatElement::Line(LineMode::Soft) | FormatElement::ExpandParent)
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

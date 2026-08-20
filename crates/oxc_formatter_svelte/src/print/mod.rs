@@ -7,7 +7,10 @@
 
 use oxc_formatter_core::{
     Buffer, Format, Formatter,
-    builders::{empty_line, expand_parent, group, soft_line_break, soft_line_break_or_space, text},
+    builders::{
+        empty_line, expand_parent, group, hard_line_break, soft_line_break,
+        soft_line_break_or_space, text,
+    },
     write,
 };
 use oxc_span::Span;
@@ -93,6 +96,12 @@ fn section_of(nodes: &[Node<'_>], index: usize, node: &Node<'_>) -> Section {
         Node::Element(element) if element.name.eq_ignore_ascii_case("script") => Section::Scripts,
         Node::Element(element) if element.name.eq_ignore_ascii_case("style") => Section::Styles,
         Node::Element(element) if element.svelte_name() == Some("options") => Section::Options,
+        // A comment above a hoisted section describes it, so it travels with
+        // it. A `prettier-ignore` directive does not: it is about the node
+        // after it wherever that node ends up.
+        Node::Comment(comment) if !is_ignore_directive(comment.content) => {
+            leading_comment_section(nodes, index)
+        }
         // Whitespace between two sections belongs to neither: the blank line
         // between them is written by the ordering, not carried across.
         Node::Text(text) if is_only_collapsible_whitespace(text.value) => {
@@ -100,6 +109,34 @@ fn section_of(nodes: &[Node<'_>], index: usize, node: &Node<'_>) -> Section {
         }
         _ => Section::Markup,
     }
+}
+
+fn is_ignore_directive(content: &str) -> bool {
+    matches!(content.trim(), "prettier-ignore" | "prettier-ignore-start" | "prettier-ignore-end")
+}
+
+/// The section a top-level comment belongs to: the one the next real node is
+/// in, when that is a section this printer hoists.
+fn leading_comment_section(nodes: &[Node<'_>], index: usize) -> Section {
+    for (offset, node) in nodes[index + 1..].iter().enumerate() {
+        match node {
+            Node::Text(text) if is_only_collapsible_whitespace(text.value) => {}
+            Node::Comment(comment) if !is_ignore_directive(comment.content) => {}
+            Node::Element(_) => {
+                let section = section_of(nodes, index + 1 + offset, node);
+                return if section == Section::Markup { Section::Markup } else { section };
+            }
+            _ => return Section::Markup,
+        }
+    }
+    Section::Markup
+}
+
+/// Whether a blank line follows the node at `index`, which a comment that
+/// travels with its section has to take along.
+fn blank_line_after(nodes: &[Node<'_>], index: usize) -> bool {
+    matches!(nodes.get(index + 1), Some(Node::Text(text))
+        if is_only_collapsible_whitespace(text.value) && text.value.matches('\n').count() >= 2)
 }
 
 /// The section a run of whitespace goes with: the markup, unless it sits
@@ -149,23 +186,40 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatRoot<'_, 'a> {
                     .collect();
                 write_root_of(self.nodes, &indices, f);
             }
-            // The other three sections are made of whole elements, and the
-            // whitespace the author put between them is not carried across —
-            // they are separated by a blank line wherever they came from.
+            // The other three sections are made of whole elements, each with
+            // whatever comments describe it. The whitespace the author put
+            // between them is not carried across — they are separated by a
+            // blank line wherever they came from.
             Some(section) => {
-                let mut elements: Vec<usize> = (0..self.nodes.len())
-                    .filter(|&index| {
-                        matches!(&self.nodes[index], Node::Element(_))
-                            && section_of(self.nodes, index, &self.nodes[index]) == section
-                    })
-                    .collect();
+                let mut groups: Vec<(Vec<usize>, usize)> = Vec::new();
+                let mut comments: Vec<usize> = Vec::new();
+                for index in 0..self.nodes.len() {
+                    if section_of(self.nodes, index, &self.nodes[index]) != section {
+                        continue;
+                    }
+                    match &self.nodes[index] {
+                        Node::Comment(_) => comments.push(index),
+                        Node::Element(_) => {
+                            groups.push((std::mem::take(&mut comments), index));
+                        }
+                        _ => {}
+                    }
+                }
                 if section == Section::Scripts {
                     // `<script module>` comes first however it was written.
-                    elements.sort_by_key(|&index| !is_module_script(&self.nodes[index]));
+                    groups.sort_by_key(|(_, index)| !is_module_script(&self.nodes[*index]));
                 }
-                for (position, index) in elements.iter().enumerate() {
+                for (position, (comments, index)) in groups.iter().enumerate() {
                     if position > 0 {
                         write!(f, empty_line());
+                    }
+                    for &comment in comments {
+                        write_node(&self.nodes[comment], ChildLayout::default(), f);
+                        if blank_line_after(self.nodes, comment) {
+                            write!(f, empty_line());
+                        } else {
+                            write!(f, hard_line_break());
+                        }
                     }
                     write_node(&self.nodes[*index], ChildLayout::default(), f);
                 }
@@ -186,6 +240,7 @@ fn root_context(f: &SvelteFormatter<'_, '_>) -> PlanContext {
         sensitivity: f.options().whitespace_sensitivity,
         parent_is_block: false,
         top_level: true,
+        in_pre: false,
     }
 }
 
@@ -223,12 +278,14 @@ pub fn write_children<'a>(
     children: &[Node<'a>],
     outer: &[Trim],
     parent_is_block: bool,
+    in_pre: bool,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
     let context = PlanContext {
         sensitivity: f.options().whitespace_sensitivity,
         parent_is_block,
         top_level: false,
+        in_pre,
     };
     let plan = plan_children(children, outer, context);
     if plan.is_empty() {
@@ -289,7 +346,9 @@ fn write_node<'a>(node: &Node<'a>, layout: ChildLayout, f: &mut SvelteFormatter<
     }
     let trim = layout.trim;
     match node {
-        Node::Element(element) => write_element(element, layout.last_in_block_parent, f),
+        Node::Element(element) => {
+            write_element(element, layout.last_in_block_parent, layout.in_pre, f);
+        }
         // `write_text` handles the whitespace-only case itself, once the
         // trim has been applied — a node the layout has taken over entirely
         // must print nothing at all.

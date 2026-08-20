@@ -230,13 +230,13 @@ pub fn build_prettier_options(config: &FormatConfig, path: &Path) -> Value {
 /// Inject Svelte plugin keys derived from `config.svelte`.
 ///
 /// No-ops when `svelte` is disabled (unset or `false`) — `Bool(true)` falls back to defaults.
-/// The caller gates this on capability (`supports_svelte`):
-/// `.svelte` is the primary target, plus `markdown`/`mdx` for code blocks.
+/// The caller gates this on capability (`supports_svelte`), which is now only
+/// `markdown`/`mdx` and their ` ```svelte ` code blocks: a `.svelte` file is
+/// formatted by `oxc_formatter_svelte` and never reaches Prettier.
 ///
 /// See: <https://github.com/sveltejs/prettier-plugin-svelte#options>
 pub fn inject_svelte_plugin_payload(opts: &mut Value, config: &FormatConfig) {
-    // `engine` picks the printer, so it never reaches Prettier.
-    let Some(SvelteConfig { sort_order, allow_shorthand, indent_script_and_style, engine: _ }) =
+    let Some(SvelteConfig { sort_order, allow_shorthand, indent_script_and_style }) =
         config.svelte.clone().and_then(SvelteUserConfig::into_config)
     else {
         return;

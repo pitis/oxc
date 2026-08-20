@@ -9,13 +9,20 @@
 use cow_utils::CowUtils;
 use oxc_formatter_core::{
     Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, InputKind,
-    builders::{block_indent, hard_line_break, space, text, token},
+    builders::{
+        block_indent, dedent, group, hard_line_break, indent, soft_line_break,
+        soft_line_break_or_space, text, token,
+    },
     write,
 };
 use oxc_span::Span;
 use svelte_markup_parser::ast::Element;
 
-use super::{SvelteFormatter, attribute::write_attribute, write_source};
+use super::{
+    SvelteFormatter,
+    attribute::{AttributeContext, write_attribute},
+    format_with, write_source,
+};
 
 /// Print a `<script>` or `<style>` element: its tag as markup, its body by
 /// whoever owns that language.
@@ -26,17 +33,49 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
     };
     let source = f.context().source_text().as_str();
     let options = *f.options();
-    let allow_shorthand = options.allow_shorthand.is_enabled();
+    // A `<script>` or `<style>` is a regular element, so its attributes are
+    // printed under the same rules as any other tag's.
+    let attribute_context = AttributeContext {
+        allow_shorthand: options.allow_shorthand.is_enabled(),
+        regular_element: true,
+    };
     let body_text = &source[body.start as usize..body.end as usize];
 
     // The open tag is markup like any other, so it is printed rather than
-    // copied — attribute spacing and quoting get normalized with the rest.
+    // copied — attribute spacing and quoting get normalized with the rest,
+    // and a list too long for the line wraps the same way.
+    let bracket_same_line = options.bracket_same_line.is_enabled();
+    let attributes: Vec<&_> = element.attributes.iter().collect();
     write!(f, [token("<"), text(element.name)]);
-    for attribute in &element.attributes {
-        write!(f, space());
-        write_attribute(attribute, source, allow_shorthand, f);
+    // `indent` rejects content that produces nothing, so a bare `<script>`
+    // under `bracketSameLine` skips the wrapper entirely.
+    if !attributes.is_empty() || !bracket_same_line {
+        write!(
+            f,
+            indent(&group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
+                for attribute in &attributes {
+                    write!(f, soft_line_break_or_space());
+                    write_attribute(attribute, source, attribute_context, f);
+                }
+                if !bracket_same_line {
+                    write!(f, dedent(&soft_line_break()));
+                }
+            })))
+        );
     }
     write!(f, token(">"));
+
+    // Nothing between the tags at all, so they meet. Whitespace *is*
+    // something: an author who left a line in an empty `<script>` keeps one.
+    if body_text.is_empty() {
+        write_close_tag(element, f);
+        return;
+    }
+    if body_text.trim().is_empty() {
+        write!(f, hard_line_break());
+        write_close_tag(element, f);
+        return;
+    }
 
     let Some(language) = language_of(element) else {
         // A `lang` nothing here formats: the body is not ours to touch.
@@ -44,12 +83,6 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
         write_close_tag(element, f);
         return;
     };
-
-    if body_text.trim().is_empty() {
-        write!(f, hard_line_break());
-        write_close_tag(element, f);
-        return;
-    }
 
     let response = f.session().dispatch(DispatchRequest {
         language,

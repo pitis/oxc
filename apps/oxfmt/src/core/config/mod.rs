@@ -119,11 +119,6 @@ pub fn build_resolver_from_discovered(
 pub enum ResolveOutcome {
     /// Ready to format with this strategy.
     Format(FormatStrategy),
-    /// The file's parser requires a plugin that the resolved config did NOT enable.
-    /// The payload carries the missing config key (e.g. `"svelte"`)
-    /// so callers can construct a friendly error or log message.
-    #[cfg_attr(not(feature = "napi"), expect(dead_code))]
-    MissingPlugin(&'static str),
 }
 
 /// Resolve options for a pre-classified file and build a [`ResolveOutcome`].
@@ -148,9 +143,6 @@ pub fn resolve_for_api(
     // downstream mapping consumes the derived artifacts and cannot re-fail,
     // and `Prettier` kinds have no later chance before values reach Prettier.
     let validated = validate(&format_config)?;
-    if let Some(plugin) = kind.requires_plugin(&format_config) {
-        return Ok(ResolveOutcome::MissingPlugin(plugin));
-    }
     Ok(ResolveOutcome::Format(FormatStrategy::from_format_config(format_config, &validated, kind)))
 }
 
@@ -440,10 +432,6 @@ impl ConfigResolver {
     #[instrument(level = "debug", name = "oxfmt::config::resolve", skip_all, fields(path = %kind.path().display()))]
     pub fn resolve(&self, kind: FileKind) -> Result<ResolveOutcome, String> {
         let (format_config, validated) = self.resolve_options(kind.path())?;
-        #[cfg(feature = "napi")]
-        if let Some(plugin) = kind.requires_plugin(&format_config) {
-            return Ok(ResolveOutcome::MissingPlugin(plugin));
-        }
         Ok(ResolveOutcome::Format(FormatStrategy::from_format_config(
             format_config,
             &validated,

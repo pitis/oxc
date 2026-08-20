@@ -44,7 +44,6 @@ pub enum WhitespaceSensitivity {
     Ignore,
 }
 
-
 /// Where each top-level section goes. Mirrors `prettier-plugin-svelte`'s
 /// `svelteSortOrder`.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]

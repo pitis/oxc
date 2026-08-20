@@ -4,9 +4,11 @@
 //! attribute text, and neither does this. What is decided here is only the
 //! shorthand form and where the printer may break between attributes.
 
+use std::borrow::Cow;
+
 use oxc_formatter_core::{
     Buffer, FormatElement, TailwindCollector,
-    builders::{text, token},
+    builders::{expand_parent, text, token},
     write,
 };
 use svelte_markup_parser::ast::{
@@ -18,14 +20,25 @@ use super::{
     expression::{ExpressionPosition, write_expression, write_expression_tag},
 };
 
+/// What the element around an attribute tells its printing.
+#[derive(Debug, Clone, Copy)]
+pub struct AttributeContext {
+    /// Whether `foo={foo}` may be written `{foo}`.
+    pub allow_shorthand: bool,
+    /// Whether the element is a plain HTML tag, which is the only place the
+    /// `class` attribute's whitespace is tidied.
+    pub regular_element: bool,
+}
+
 /// Write one attribute, as written in the source apart from the shorthand
 /// decision.
 pub fn write_attribute<'a>(
     attribute: &Attribute<'a>,
     source: &'a str,
-    allow_shorthand: bool,
+    context: AttributeContext,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
+    let allow_shorthand = context.allow_shorthand;
     match &attribute.kind {
         AttributeKind::Plain { name, value, .. } => {
             let Some(value) = value else {
@@ -38,7 +51,7 @@ pub fn write_attribute<'a>(
                 return;
             }
             write!(f, [text(name), token("=")]);
-            write_value(value, *name == "class", f);
+            write_value(value, ClassAttribute::of(name, context), f);
         }
         AttributeKind::Shorthand { name, .. } => {
             // `{@attach expr}` is an attachment, not a shorthand: the parser
@@ -83,7 +96,11 @@ pub fn write_attribute<'a>(
             write!(f, token("="));
             // `class:foo={…}` names one class; it is not a class *list*, and
             // `prettier-plugin-tailwindcss` does not sort it either.
-            write_value(value, false, f);
+            let position = match directive.kind {
+                DirectiveKind::Bind => ExpressionPosition::BindDirective,
+                _ => ExpressionPosition::Braces,
+            };
+            write_value_at(value, ClassAttribute::NONE, position, f);
         }
         AttributeKind::Comment { .. } => {
             // A comment between attributes is the author's prose; it keeps
@@ -108,16 +125,48 @@ fn is_shorthandable(name: &str, value: &AttributeValue<'_>) -> bool {
     value.as_single_expression().is_some_and(|tag| tag.expression.trim() == name)
 }
 
+/// Whether a value's text is a list of CSS classes, and in which of the two
+/// senses that matters.
+#[derive(Debug, Clone, Copy)]
+struct ClassAttribute {
+    /// A `class` attribute anywhere: its text is a Tailwind class list.
+    sortable: bool,
+    /// A `class` attribute on a plain HTML element, whose whitespace Prettier
+    /// tidies — the one attribute value it reflows at all.
+    tidy_whitespace: bool,
+}
+
+impl ClassAttribute {
+    const NONE: Self = Self { sortable: false, tidy_whitespace: false };
+
+    fn of(name: &str, context: AttributeContext) -> Self {
+        let sortable = name == "class";
+        Self { sortable, tidy_whitespace: sortable && context.regular_element }
+    }
+}
+
 /// Write the value after `=`, keeping its quoting as written unless it has
 /// none to keep.
-///
-/// `class_list` marks the value as one whose text is a list of Tailwind
-/// classes to be sorted.
-fn write_value<'a>(value: &AttributeValue<'a>, class_list: bool, f: &mut SvelteFormatter<'_, 'a>) {
+fn write_value<'a>(
+    value: &AttributeValue<'a>,
+    class_list: ClassAttribute,
+    f: &mut SvelteFormatter<'_, 'a>,
+) {
+    write_value_at(value, class_list, ExpressionPosition::Braces, f);
+}
+
+/// As [`write_value`], for a value whose lone `{…}` sits in a position with a
+/// layout of its own.
+fn write_value_at<'a>(
+    value: &AttributeValue<'a>,
+    class_list: ClassAttribute,
+    position: ExpressionPosition,
+    f: &mut SvelteFormatter<'_, 'a>,
+) {
     // A value that is exactly one `{…}` needs no quotes; anything else is
     // quoted, since removing them could change where the value ends.
     if let Some(tag) = value.as_single_expression() {
-        write_expression_tag(tag, ExpressionPosition::Braces, f);
+        write_expression_tag(tag, position, f);
         return;
     }
     // `"` unless the value contains one, in which case `'`. Prettier writes
@@ -125,11 +174,29 @@ fn write_value<'a>(value: &AttributeValue<'a>, class_list: bool, f: &mut SvelteF
     // no longer parses. Divergence recorded in `keeps_a_value_that_is_quoted`.
     let quote = if contains_double_quote(value) { token("'") } else { token("\"") };
     write!(f, quote);
-    for part in &value.parts {
+    let last = value.parts.len().saturating_sub(1);
+    for (index, part) in value.parts.iter().enumerate() {
         match part {
             ValuePart::Text(part) => {
-                if !class_list || !write_tailwind_classes(part.value, f) {
-                    write!(f, text(part.value));
+                if !class_list.sortable || !write_tailwind_classes(part.value, f) {
+                    let value = if class_list.tidy_whitespace {
+                        // The tidied text is new, so it has to live in the
+                        // arena the IR does rather than in this frame.
+                        match tidied_classes(part.value, index == last) {
+                            Cow::Owned(tidied) => f.allocator().alloc_str(&tidied),
+                            Cow::Borrowed(value) => value,
+                        }
+                    } else {
+                        part.value
+                    };
+                    write!(f, text(value));
+                }
+                // A value the author spread over lines takes the attribute
+                // list with it: the tag can no longer sit on one line, and
+                // the printer has to be told, since the newline is inside a
+                // text token it cannot see.
+                if part.value.contains('\n') {
+                    write!(f, expand_parent());
                 }
             }
             ValuePart::Expression(tag) => {
@@ -138,6 +205,62 @@ fn write_value<'a>(value: &AttributeValue<'a>, class_list: bool, f: &mut SvelteF
         }
     }
     write!(f, quote);
+}
+
+/// A `class` attribute's text with its whitespace tidied, which is the one
+/// attribute value Prettier reflows at all.
+///
+/// A run of spaces or tabs following something on the same line collapses to
+/// a single space, or to nothing when a line break follows it; a run at the
+/// very end of the value goes entirely when this is the last part of the
+/// value, and becomes one space when an expression follows it. A run on a
+/// line of its own — indentation the author wrote — is left alone, which is
+/// what makes a multi-line class list keep its shape.
+fn tidied_classes(value: &str, is_last_part: bool) -> Cow<'_, str> {
+    let bytes = value.as_bytes();
+    let mut out: Option<String> = None;
+    let mut index = 0;
+    let mut copied_from = 0;
+    while index < bytes.len() {
+        if !matches!(bytes[index], b' ' | b'\t') {
+            index += 1;
+            continue;
+        }
+        // Only a run that follows something on its own line is collapsible.
+        if index == 0 || matches!(bytes[index - 1], b' ' | b'\t' | b'\n') {
+            index += 1;
+            continue;
+        }
+        let start = index;
+        while index < bytes.len() && matches!(bytes[index], b' ' | b'\t') {
+            index += 1;
+        }
+        let replacement = match bytes.get(index) {
+            None => {
+                if is_last_part {
+                    ""
+                } else {
+                    " "
+                }
+            }
+            Some(b'\n') => "",
+            Some(_) => " ",
+        };
+        if value[start..index] == *replacement {
+            continue;
+        }
+        let out = out.get_or_insert_with(|| String::with_capacity(value.len()));
+        out.push_str(&value[copied_from..start]);
+        out.push_str(replacement);
+        copied_from = index;
+    }
+    match out {
+        Some(mut out) => {
+            out.push_str(&value[copied_from..]);
+            Cow::Owned(out)
+        }
+        None => Cow::Borrowed(value),
+    }
 }
 
 /// Register a `class` attribute's text as one sortable list, and write the

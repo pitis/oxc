@@ -402,13 +402,6 @@ impl ServerFormatter {
         };
         let strategy = match resolver.resolve(kind) {
             Ok(ResolveOutcome::Format(strategy)) => strategy,
-            Ok(ResolveOutcome::MissingPlugin(plugin)) => {
-                warn!(
-                    "Skipping `.{plugin}`: `{plugin}` plugin is not enabled in resolved config: {}",
-                    path.display()
-                );
-                return None;
-            }
             Err(err) => {
                 debug!("Config resolve error for {}: {err}", path.display());
                 return None;

@@ -191,6 +191,11 @@ impl Group {
         }
     }
 
+    /// Undo a decision to expand, for [`crate::remove_lines`].
+    pub fn set_flat(&self) {
+        self.mode.set(GroupMode::Flat);
+    }
+
     pub fn id(&self) -> Option<GroupId> {
         self.id
     }

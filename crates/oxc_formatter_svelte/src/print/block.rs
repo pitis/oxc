@@ -217,9 +217,11 @@ pub fn write_tag<'a>(tag: &Tag<'a>, f: &mut SvelteFormatter<'_, 'a>) {
     }
 }
 
-/// An expression slot of a block header.
+/// An expression slot of a block header, which stays on one line however
+/// long it is: it reads as part of the marker rather than as content laid out
+/// beside it.
 fn write_slot<'a>(slot: &ExpressionSlot<'a>, f: &mut SvelteFormatter<'_, 'a>) {
-    write_expression(slot.text, ExpressionPosition::Braces, f);
+    write_expression(slot.text, ExpressionPosition::BlockHeader, f);
 }
 
 /// A `{:then value}` / `{:catch error}` binding, which keeps its spelling and
@@ -280,7 +282,7 @@ fn write_branch<'a>(children: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
             write!(
                 f,
                 group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
-                    write_children(children, &trims, false, f);
+                    write_children(children, &trims, false, false, f);
                 }))
             );
         }))

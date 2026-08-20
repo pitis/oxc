@@ -196,7 +196,16 @@ const categories: Category[] = [
         },
       },
     ],
-    notes: {},
+    notes: {
+      "externals/plugin-svelte/declaration-tag.svelte":
+        "Reduced port: `{let a = 1, b = 2}` keeps its spelling. A declaration tag's single declarator is formatted through the expression path, where two of them would come back as the sequence expression `(a = 1), (b = 2)` — a different declaration that does not parse as one. See crates/oxc_formatter_svelte/AGENTS.md",
+      "externals/plugin-svelte/each-await-block-destructuring.svelte":
+        "Reduced port: an `{#each … as PATTERN}` / `{:then PATTERN}` binding keeps its spelling. Prettier re-serializes it with a bespoke pattern printer (`expandNode`) that preserves literal spelling and never breaks; the fragment path here would reach it through the estree printer, which does neither. Canonical spacing already matches. See crates/oxc_formatter_svelte/AGENTS.md",
+      "externals/plugin-svelte/long-mustache-value.svelte":
+        "Layout-only: a `{…}` whose expression breaks continues at the mustache's indent, where Prettier adds one level. Prettier prints the expression as a real estree node (whose unknown parent makes `printBinaryishExpression` indent); this goes through the JS *fragment* path, which does not. Never changes meaning",
+      "externals/plugin-svelte/region-markers.svelte":
+        "Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not",
+    },
   },
   {
     name: "graphql",
