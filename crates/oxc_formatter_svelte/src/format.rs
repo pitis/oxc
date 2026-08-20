@@ -1,0 +1,71 @@
+use oxc_allocator::Allocator;
+use oxc_diagnostics::OxcDiagnostic;
+use oxc_formatter_core::{
+    Buffer, Document, Format, FormatState, Formatted, VecBuffer, builders::text, write,
+};
+use svelte_markup_parser::{ParseResult, ast::Node, parse};
+
+use crate::{context::SvelteFormatContext, options::SvelteFormatOptions, print::SvelteFormatter};
+
+/// Parse `source_text` as a Svelte component and build its formatter IR.
+///
+/// # Errors
+/// Returns an [`OxcDiagnostic`] when the markup is not well-formed. The
+/// markup parser never fails — it recovers — so this is the parser's
+/// `recovered` flag rather than a hard error: a component the Svelte
+/// compiler would reject is left untouched instead of being rewritten from
+/// a guess at what was meant.
+pub fn format<'a>(
+    allocator: &'a Allocator,
+    source_text: &str,
+    options: SvelteFormatOptions,
+) -> Result<Formatted<'a, SvelteFormatContext<'a>>, OxcDiagnostic> {
+    let (has_bom, source_text) = oxc_formatter_core::spec::split_bom(source_text);
+    // The printer re-applies the configured line ending, and `text` rejects a
+    // lone `\r`, so normalize before anything looks at the source.
+    let source_text = oxc_formatter_core::normalize_newlines(source_text, ['\r']);
+    let source: &'a str = allocator.alloc_str(&source_text);
+
+    let ParseResult { nodes, recovered } = parse(source, 0);
+    if recovered {
+        return Err(OxcDiagnostic::error(
+            "Cannot format: the markup is not well-formed, and reformatting it would \
+             change what it means.",
+        ));
+    }
+
+    let context = SvelteFormatContext::new(options, source);
+    let mut state = FormatState::new(context, allocator);
+    let capacity = (source.len() * 3 / 10).max(1024);
+    let mut buffer = VecBuffer::with_capacity(capacity, &mut state);
+
+    write!(&mut buffer, FormatSvelteRoot { nodes: &nodes, source, has_bom });
+
+    let elements = buffer.into_vec();
+    let context = state.into_context();
+
+    Ok(Formatted::new(Document::new(elements, Vec::new()), context))
+}
+
+/// The whole component.
+///
+/// `'n` is the borrow of the node tree, which only has to outlive the IR
+/// build; `'a` is the arena the source and the IR live in.
+struct FormatSvelteRoot<'n, 'a> {
+    #[expect(dead_code, reason = "the printer grows onto this in S2")]
+    nodes: &'n [Node<'a>],
+    source: &'a str,
+    has_bom: bool,
+}
+
+impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatSvelteRoot<'_, 'a> {
+    fn fmt(&self, f: &mut SvelteFormatter<'_, 'a>) {
+        if self.has_bom {
+            write!(f, text("\u{feff}"));
+        }
+        // S1 re-emits the component verbatim: the pipeline is live end to
+        // end, and every later stage replaces a piece of this with real
+        // printing. A multiline `text` prints its own newlines literally.
+        write!(f, text(self.source));
+    }
+}

@@ -9,6 +9,7 @@ use oxc_formatter_core::{CoreFormatOptions, FormatSession, InputKind, SessionSer
 use oxc_formatter_css::CssFormatOptions;
 use oxc_formatter_graphql::GraphqlFormatOptions;
 use oxc_formatter_json::{JsonFormatOptions, JsonVariant};
+use oxc_formatter_svelte::SvelteFormatOptions;
 use oxc_formatter_yaml::YamlFormatOptions;
 use oxc_span::SourceType;
 use oxc_toml::Options as TomlFormatterOptions;
@@ -22,7 +23,8 @@ use super::{
     embed::dispatcher::ResolvedDispatchConfig,
     options::{
         ValidatedOptions, to_oxc_formatter, to_oxc_formatter_css, to_oxc_formatter_graphql,
-        to_oxc_formatter_json, to_oxc_formatter_yaml, to_oxc_toml, to_sort_package_json,
+        to_oxc_formatter_json, to_oxc_formatter_svelte, to_oxc_formatter_yaml, to_oxc_toml,
+        to_sort_package_json,
     },
     oxfmtrc::FormatConfig,
     support::FileKind,
@@ -82,6 +84,16 @@ pub enum FormatStrategy {
         core: CoreFormatOptions,
         insert_final_newline: bool,
     },
+    /// For `.svelte` files formatted by `oxc_formatter_svelte`.
+    ///
+    /// Only chosen when the config asks for it (`svelte.engine: "native"`);
+    /// otherwise `.svelte` goes to `prettier-plugin-svelte` through
+    /// [`Self::Prettier`].
+    OxcFormatterSvelte {
+        path: Arc<Path>,
+        format_options: Box<SvelteFormatOptions>,
+        insert_final_newline: bool,
+    },
     /// For YAML files formatted by `oxc_formatter_yaml`.
     OxcFormatterYaml {
         path: Arc<Path>,
@@ -127,6 +139,7 @@ impl FormatStrategy {
             | Self::OxcFormatterJsonPackageJson { path, .. }
             | Self::OxcFormatterGraphql { path, .. }
             | Self::OxcFormatterCss { path, .. }
+            | Self::OxcFormatterSvelte { path, .. }
             | Self::OxcFormatterYaml { path, .. }
             | Self::OxcFormatterYamlRc { path, .. }
             | Self::OxfmtToml { path, .. } => path,
@@ -214,6 +227,19 @@ impl FormatStrategy {
                 toml_options: to_oxc_toml(&config, core),
                 insert_final_newline,
             },
+            // `.svelte` is classified as a Prettier target, because that is
+            // still the default printer for it. The native one is opt-in
+            // while it is being built out.
+            #[cfg(feature = "napi")]
+            FileKind::Prettier { path, parser_name: "svelte", .. }
+                if config.is_svelte_native_engine() =>
+            {
+                Self::OxcFormatterSvelte {
+                    path,
+                    format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
+                    insert_final_newline,
+                }
+            }
             #[cfg(feature = "napi")]
             FileKind::Prettier {
                 path,
@@ -354,6 +380,10 @@ impl SourceFormatter {
                     &config,
                     core,
                 ),
+                insert_final_newline,
+            ),
+            FormatStrategy::OxcFormatterSvelte { path, format_options, insert_final_newline } => (
+                self.format_by_oxc_formatter_svelte(source_text, &path, *format_options),
                 insert_final_newline,
             ),
             FormatStrategy::OxcFormatterYaml { path, format_options, insert_final_newline } => (
@@ -570,6 +600,25 @@ impl SourceFormatter {
         };
 
         Ok(code.into_code())
+    }
+
+    /// Format a Svelte component using `oxc_formatter_svelte`.
+    #[instrument(level = "debug", name = "oxfmt::format::oxc_formatter_svelte", skip_all)]
+    fn format_by_oxc_formatter_svelte(
+        &self,
+        source_text: &str,
+        path: &Path,
+        format_options: SvelteFormatOptions,
+    ) -> Result<String, OxcDiagnostic> {
+        let allocator = self.allocator_pool.get();
+        let formatted = oxc_formatter_svelte::format(&allocator, source_text, format_options)?;
+        let printed = formatted.print().map_err(|err| {
+            OxcDiagnostic::error(format!(
+                "Failed to print formatted Svelte: {}\n{err}",
+                path.display()
+            ))
+        })?;
+        Ok(printed.into_code())
     }
 
     /// Format YAML source using `oxc_formatter_yaml`.

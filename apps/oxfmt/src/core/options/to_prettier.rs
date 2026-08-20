@@ -235,7 +235,8 @@ pub fn build_prettier_options(config: &FormatConfig, path: &Path) -> Value {
 ///
 /// See: <https://github.com/sveltejs/prettier-plugin-svelte#options>
 pub fn inject_svelte_plugin_payload(opts: &mut Value, config: &FormatConfig) {
-    let Some(SvelteConfig { sort_order, allow_shorthand, indent_script_and_style }) =
+    // `engine` picks the printer, so it never reaches Prettier.
+    let Some(SvelteConfig { sort_order, allow_shorthand, indent_script_and_style, engine: _ }) =
         config.svelte.clone().and_then(SvelteUserConfig::into_config)
     else {
         return;
