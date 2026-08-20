@@ -63,20 +63,33 @@ pub fn is_block_tag(element: &Element<'_>) -> bool {
 /// whitespace on either side of it is part of the rendered text.
 pub fn is_inline_element(node: &Node<'_>) -> bool {
     let Node::Element(element) = node else { return false };
+    is_inline_tag(element)
+}
+
+pub fn is_inline_tag(element: &Element<'_>) -> bool {
     is_plain_html(element) && !BLOCK_ELEMENTS.contains(&element.name)
 }
 
-/// An ordinary HTML tag: not a component, not `<svelte:…>`.
-fn is_plain_html(element: &Element<'_>) -> bool {
-    !element.is_component_like() && element.svelte_name().is_none()
+/// `<svelte:boundary>`, whose content never hugs its tags: its children are
+/// what it swaps in and out, and they read as a block whatever they are.
+pub fn is_boundary(element: &Element<'_>) -> bool {
+    element.svelte_name() == Some("boundary")
 }
 
-/// Whether an element's content is kept exactly as written, whitespace
-/// included. `<pre>` and `<textarea>` render their own whitespace.
-pub fn is_pre_tag(element: &Element<'_>) -> bool {
-    is_plain_html(element)
-        && (element.name.eq_ignore_ascii_case("pre")
-            || element.name.eq_ignore_ascii_case("textarea"))
+/// An ordinary HTML tag: not a component, not `<svelte:…>`, and not one of
+/// the two tags Svelte gives a node of its own — `<slot>` and `<title>`.
+/// Those are laid out like neither a block nor an inline element: the
+/// whitespace at their edges is dropped, but they do not force a break.
+fn is_plain_html(element: &Element<'_>) -> bool {
+    !element.is_component_like()
+        && element.svelte_name().is_none()
+        && !matches!(element.name, "slot" | "title")
+}
+
+/// Whether the element renders its own whitespace, so its content is kept
+/// exactly as written. Its *tag* is still printed as markup.
+pub fn is_pre_content(element: &Element<'_>) -> bool {
+    element.name.eq_ignore_ascii_case("pre") || element.name.eq_ignore_ascii_case("textarea")
 }
 
 /// Whether the element's body is a foreign language this printer hands to

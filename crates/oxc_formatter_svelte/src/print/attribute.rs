@@ -41,15 +41,24 @@ pub fn write_attribute<'a>(
             write_value(value, source, f);
         }
         AttributeKind::Shorthand { name, .. } => {
+            // `{@attach expr}` is an attachment, not a shorthand: the parser
+            // reports every non-spread `{…}` attribute the same way, and the
+            // `@` sigil is what tells them apart.
+            if let Some((keyword, expression)) = attachment(name) {
+                write!(f, [token("{@"), text(keyword), token(" ")]);
+                write_expression(expression, ExpressionPosition::Braces, f);
+                write!(f, token("}"));
+                return;
+            }
             if allow_shorthand {
                 write!(f, [token("{"), text(name), token("}")]);
             } else {
                 write!(f, [text(name), token("={"), text(name), token("}")]);
             }
         }
-        AttributeKind::Spread { expression, expression_span } => {
+        AttributeKind::Spread { expression, .. } => {
             write!(f, token("{..."));
-            write_expression(expression, *expression_span, ExpressionPosition::Braces, f);
+            write_expression(expression, ExpressionPosition::Braces, f);
             write!(f, token("}"));
         }
         AttributeKind::Directive(directive) => {
@@ -82,6 +91,16 @@ pub fn write_attribute<'a>(
     }
 }
 
+/// Split a `{@attach expr}` attribute into its keyword and its expression.
+fn attachment(text: &str) -> Option<(&'static str, &str)> {
+    let rest = text.strip_prefix("@attach")?;
+    if !rest.starts_with(|c: char| c.is_whitespace()) {
+        return None;
+    }
+    let expression = rest.trim_start();
+    (!expression.is_empty()).then_some(("attach", expression))
+}
+
 /// Whether `name={name}` can be written `{name}`.
 fn is_shorthandable(name: &str, value: &AttributeValue<'_>) -> bool {
     value.as_single_expression().is_some_and(|tag| tag.expression.trim() == name)
@@ -97,7 +116,11 @@ fn write_value<'a>(value: &AttributeValue<'a>, source: &'a str, f: &mut SvelteFo
         return;
     }
     let _ = source;
-    write!(f, token("\""));
+    // `"` unless the value contains one, in which case `'`. Prettier writes
+    // `"` either way, which turns `prop='"'` into `prop=""" ` — markup that
+    // no longer parses. Divergence recorded in `keeps_a_value_that_is_quoted`.
+    let quote = if contains_double_quote(value) { token("'") } else { token("\"") };
+    write!(f, quote);
     for part in &value.parts {
         match part {
             ValuePart::Text(part) => write!(f, text(part.value)),
@@ -106,7 +129,23 @@ fn write_value<'a>(value: &AttributeValue<'a>, source: &'a str, f: &mut SvelteFo
             }
         }
     }
-    write!(f, token("\""));
+    write!(f, quote);
+}
+
+/// Whether the value's literal text carries a `"`, which the surrounding
+/// quotes then cannot be.
+///
+/// Only for a value that is all text. An expression inside a quoted value is
+/// formatted with single quotes preferred — that is what keeps it from ending
+/// a double-quoted value early — so a single-quoted wrapper would be the one
+/// broken instead. A value carrying both a literal `"` and an expression has
+/// no spelling this printer can produce, and keeps Prettier's.
+fn contains_double_quote(value: &AttributeValue<'_>) -> bool {
+    value.parts.iter().all(|part| matches!(part, ValuePart::Text(_)))
+        && value.parts.iter().any(|part| match part {
+            ValuePart::Text(part) => part.value.contains('"'),
+            ValuePart::Expression(_) => false,
+        })
 }
 
 fn source_of<'a>(source: &'a str, attribute: &Attribute<'_>) -> &'a str {

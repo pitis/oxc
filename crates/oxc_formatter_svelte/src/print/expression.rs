@@ -11,7 +11,6 @@ use oxc_formatter_core::{
     builders::{text, token},
     write,
 };
-use oxc_span::Span;
 use svelte_markup_parser::ast::ExpressionTag;
 
 use super::{SvelteFormatter, write_source};
@@ -32,6 +31,41 @@ pub enum ExpressionPosition {
     QuotedAttribute,
 }
 
+/// Print a `{…}` in a text position, which may be a declaration tag.
+pub fn write_mustache<'a>(tag: &ExpressionTag<'a>, f: &mut SvelteFormatter<'_, 'a>) {
+    if !tag.unterminated
+        && let Some((keyword, declarator)) = declaration_tag(tag.expression)
+    {
+        // `{const x = 1}` declares a binding for the rest of the fragment.
+        // The declarator is the same shape `{@const x = 1}` carries, so it
+        // goes through the expression path: `x = 1` reads as an assignment
+        // and `{ a, b } = obj` as one to a destructuring pattern, both of
+        // which the JavaScript formatter lays out the way Prettier does.
+        write!(f, [token("{"), text(keyword), token(" ")]);
+        write_expression(declarator, ExpressionPosition::Braces, f);
+        write!(f, token("}"));
+        return;
+    }
+    write_expression_tag(tag, ExpressionPosition::Braces, f);
+}
+
+/// Split a declaration tag's text into its keyword and what follows.
+///
+/// `type` is left alone: what follows it is a type, not an expression, and
+/// this printer has no way to lay one out on its own.
+fn declaration_tag(expression: &str) -> Option<(&'static str, &str)> {
+    let expression = expression.trim_start();
+    for keyword in ["const", "let"] {
+        if let Some(rest) = expression.strip_prefix(keyword)
+            && rest.starts_with(|c: char| c.is_whitespace())
+            && !rest.trim_start().is_empty()
+        {
+            return Some((keyword, rest.trim_start()));
+        }
+    }
+    None
+}
+
 /// Print `{expr}`, with the expression formatted by whoever owns JavaScript.
 pub fn write_expression_tag<'a>(
     tag: &ExpressionTag<'a>,
@@ -43,19 +77,21 @@ pub fn write_expression_tag<'a>(
         return;
     }
     write!(f, token("{"));
-    write_expression(tag.expression, tag.expression_span, position, f);
+    write_expression(tag.expression, position, f);
     write!(f, token("}"));
 }
 
 /// Print one expression's text, formatted if it can be.
 pub fn write_expression<'a>(
     expression: &'a str,
-    span: Span,
     position: ExpressionPosition,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
     if expression.trim().is_empty() {
-        write_source(span, f);
+        // Nothing at all rather than the source's own padding: a header that
+        // brings its own space would otherwise grow by one every run. The
+        // parser already reports such a construct as recovery, so this is
+        // only reached through an embedder that formats anyway.
         return;
     }
 

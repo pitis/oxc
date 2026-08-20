@@ -1,3 +1,6 @@
+// A `.a{color:red}` in an expectation is CSS, not a format argument.
+#![expect(clippy::literal_string_with_formatting_args)]
+
 use oxc_allocator::Allocator;
 
 use oxc_formatter_core::IndentStyle;
@@ -74,6 +77,10 @@ fn orders_the_top_level_sections() {
 fn keeps_content_that_must_not_be_reflowed() {
     check("<pre>\n  keep   this\n</pre>\n", "<pre>\n  keep   this\n</pre>\n");
     check("<textarea>\n  a   b\n</textarea>\n", "<textarea>\n  a   b\n</textarea>\n");
+    // Everything under a `<pre>` shows its own whitespace, not only its text.
+    check("<pre>a <b>  c  </b></pre>\n", "<pre>a <b>  c  </b></pre>\n");
+    // The tag itself is markup, and is normalized like any other.
+    check("<textarea   readonly={readonly}></textarea>\n", "<textarea {readonly}></textarea>\n");
 }
 
 #[test]
@@ -103,6 +110,17 @@ fn drops_a_space_that_would_start_a_line() {
     check("<div>text <p>block</p> text</div>\n", "<div>\n\ttext <p>block</p>\n\ttext\n</div>\n");
 }
 
+/// A quoted value keeps a `"` of its own by changing the quotes around it.
+///
+/// Known divergence: `prettier-plugin-svelte` always writes `"`, so it turns
+/// `prop='"'` into `prop="""` — markup that no longer parses.
+#[test]
+fn keeps_a_value_that_is_quoted() {
+    check("<Child prop='\"' />\n", "<Child prop='\"' />\n");
+    check("<span title='\"a\"'>x</span>\n", "<span title='\"a\"'>x</span>\n");
+    check("<span title='a'>x</span>\n", "<span title=\"a\">x</span>\n");
+}
+
 /// Directives drop a value that only repeats their own name.
 #[test]
 fn shortens_directives() {
@@ -125,6 +143,58 @@ fn keeps_embedded_bodies_when_nothing_can_format_them() {
         "<style lang=\"stylus\">\n\t.a\n\t\tcolor red\n</style>\n",
         "<style lang=\"stylus\">\n\t.a\n\t\tcolor red\n</style>\n",
     );
+}
+
+/// A block is control flow: it always breaks, and its branches are indented.
+#[test]
+fn lays_blocks_out_over_lines() {
+    check("{#if a}x{/if}\n", "{#if a}x{/if}\n");
+    check("{#if a}\n\tx\n{/if}\n", "{#if a}\n\tx\n{/if}\n");
+    check(
+        "{#if a}\n\tx\n{:else if b}\n\ty\n{:else}\n\tz\n{/if}\n",
+        "{#if a}\n\tx\n{:else if b}\n\ty\n{:else}\n\tz\n{/if}\n",
+    );
+    // A branch that is nothing but a blank line keeps it: two breaks with
+    // nothing between them are one blank line, not one break.
+    check("{#snippet t()}\n\t\n{/snippet}\n", "{#snippet t()}\n\n{/snippet}\n");
+}
+
+/// A block header keeps the spelling of what is not an expression — the `as`
+/// pattern and the index name — and normalizes the rest.
+#[test]
+fn writes_block_headers() {
+    check("{#each  items  as item}{item}{/each}\n", "{#each items as item}{item}{/each}\n");
+    check(
+        "{#each items as item, i (item.id)}{item}{/each}\n",
+        "{#each items as item, i (item.id)}{item}{/each}\n",
+    );
+    check("{#each items}x{:else}none{/each}\n", "{#each items}x{:else}none{/each}\n");
+    check("{#key  value }x{/key}\n", "{#key value}x{/key}\n");
+    // Nothing to show while pending collapses into the one-line form.
+    check("{#await p}{:then v}ok{/await}\n", "{#await p then v}ok{/await}\n");
+    check("{#await p}…{:then v}ok{/await}\n", "{#await p}…{:then v}ok{/await}\n");
+    check("{#await p}{:catch e}bad{/await}\n", "{#await p catch e}bad{/await}\n");
+}
+
+/// The `{@…}` tags, and `{const …}`, which declares a binding rather than
+/// interpolating one.
+#[test]
+fn writes_tags() {
+    check("{@html  content }\n", "{@html content}\n");
+    check("{@render  row(x) }\n", "{@render row(x)}\n");
+    check("{@debug}\n", "{@debug}\n");
+    check("<div>{@const  n = 1 }</div>\n", "<div>{@const n = 1}</div>\n");
+    check("<div>{const  n = 1 }</div>\n", "<div>{const n = 1}</div>\n");
+    // `{constant}` is an expression, not a declaration.
+    check("<div>{constant}</div>\n", "<div>{constant}</div>\n");
+}
+
+/// `{@attach …}` reads as a shorthand attribute in the AST; the `@` is what
+/// tells them apart.
+#[test]
+fn writes_an_attachment_attribute() {
+    check("<div {@attach  thing }></div>\n", "<div {@attach thing}></div>\n");
+    check("<div {value}></div>\n", "<div {value}></div>\n");
 }
 
 /// With no dispatcher there is nothing to format an expression with, so its

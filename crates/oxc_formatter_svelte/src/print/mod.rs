@@ -18,14 +18,16 @@ use crate::context::SvelteFormatContext;
 use crate::options::SortOrder;
 
 use self::{
+    block::{write_block, write_tag},
     children::{ChildLayout, Trim, plan_children, plan_some_children},
     classify::{is_empty_text, is_only_collapsible_whitespace},
     element::write_element,
-    expression::{ExpressionPosition, write_expression_tag},
+    expression::write_mustache,
     text::write_text,
 };
 
 mod attribute;
+mod block;
 mod children;
 mod classify;
 mod element;
@@ -270,13 +272,10 @@ fn write_node<'a>(node: &Node<'a>, trim: Trim, f: &mut SvelteFormatter<'_, 'a>) 
         // trim has been applied — a node the layout has taken over entirely
         // must print nothing at all.
         Node::Text(node_text) => write_text(node_text.value, trim, f),
-        Node::Mustache(tag) => {
-            write_expression_tag(tag, ExpressionPosition::Braces, f);
-        }
-        // Everything below keeps the source's own spelling until the stage
-        // that owns it lands.
-        Node::Tag(tag) => write_source(tag.span, f),
-        Node::Block(block) => write_source(block.span, f),
+        Node::Mustache(tag) => write_mustache(tag, f),
+        Node::Tag(tag) => write_tag(tag, f),
+        Node::Block(block) => write_block(block, f),
+        // A comment is the author's prose; it keeps its exact spelling.
         Node::Comment(comment) => write_source(comment.span, f),
         Node::Raw(span) => write_source(*span, f),
     }
@@ -286,4 +285,24 @@ fn write_node<'a>(node: &Node<'a>, trim: Trim, f: &mut SvelteFormatter<'_, 'a>) 
 pub fn write_source(span: Span, f: &mut SvelteFormatter<'_, '_>) {
     let source = f.context().source_text().as_str();
     write!(f, text(&source[span.start as usize..span.end as usize]));
+}
+
+/// A `Format` from a closure, so the layout above reads as the shape it
+/// produces rather than as buffer plumbing.
+fn format_with<'a, F>(closure: F) -> FormatWith<F>
+where
+    F: Fn(&mut SvelteFormatter<'_, 'a>),
+{
+    FormatWith(closure)
+}
+
+struct FormatWith<F>(F);
+
+impl<'a, F> Format<'a, crate::context::SvelteFormatContext<'a>> for FormatWith<F>
+where
+    F: Fn(&mut SvelteFormatter<'_, 'a>),
+{
+    fn fmt(&self, f: &mut SvelteFormatter<'_, 'a>) {
+        (self.0)(f);
+    }
 }

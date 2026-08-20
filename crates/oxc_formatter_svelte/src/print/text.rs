@@ -27,6 +27,10 @@ enum Piece<'a> {
     Line,
     /// A break the author wrote, which is always taken.
     Hardline,
+    /// Two breaks the author wrote: a blank line. One element rather than two
+    /// `Hardline`s, because the printer only starts a new line once per line
+    /// of output and two in a row would collapse into one.
+    EmptyLine,
 }
 
 /// Print a run of text, with whatever whitespace the surrounding layout has
@@ -86,6 +90,7 @@ impl<'a> Format<'a, crate::context::SvelteFormatContext<'a>> for FormatPiece<'a>
             }
             Piece::Line => write!(f, soft_line_break_or_space()),
             Piece::Hardline => write!(f, hard_line_break()),
+            Piece::EmptyLine => write!(f, empty_line()),
         }
     }
 }
@@ -94,7 +99,7 @@ impl<'a> Format<'a, crate::context::SvelteFormatContext<'a>> for FormatPiece<'a>
 /// author's own line breaks at either end to hard ones.
 fn split_into_pieces(value: &str) -> Vec<Piece<'_>> {
     let mut pieces = Vec::new();
-    for (index, word) in value.split(|c: char| is_whitespace_char(c)).enumerate() {
+    for (index, word) in split_on_whitespace_runs(value).enumerate() {
         if index > 0 {
             pieces.push(Piece::Line);
         }
@@ -106,20 +111,35 @@ fn split_into_pieces(value: &str) -> Vec<Piece<'_>> {
     if starts_with_line_breaks(value, 1)
         && let Some(first) = pieces.first_mut()
     {
-        *first = Piece::Hardline;
-    }
-    if starts_with_line_breaks(value, 2) {
-        pieces.insert(0, Piece::Hardline);
+        *first = if starts_with_line_breaks(value, 2) { Piece::EmptyLine } else { Piece::Hardline };
     }
     if ends_with_line_breaks(value, 1)
         && let Some(last) = pieces.last_mut()
     {
-        *last = Piece::Hardline;
-    }
-    if ends_with_line_breaks(value, 2) {
-        pieces.push(Piece::Hardline);
+        *last = if ends_with_line_breaks(value, 2) { Piece::EmptyLine } else { Piece::Hardline };
     }
     pieces
+}
+
+/// The words of a text run, split on whole *runs* of whitespace — one break
+/// between two words however much whitespace the author left there.
+///
+/// A run at either end yields an empty word on that side, which is what marks
+/// the text as starting or ending with a break.
+fn split_on_whitespace_runs(value: &str) -> impl Iterator<Item = &str> {
+    let mut rest = Some(value);
+    std::iter::from_fn(move || {
+        let current = rest?;
+        let Some(start) = current.find(is_whitespace_char) else {
+            rest = None;
+            return Some(current);
+        };
+        let end = current[start..]
+            .find(|c: char| !is_whitespace_char(c))
+            .map_or(current.len(), |offset| start + offset);
+        rest = Some(&current[end..]);
+        Some(&current[..start])
+    })
 }
 
 fn is_whitespace_char(c: char) -> bool {
