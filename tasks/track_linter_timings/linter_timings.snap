@@ -818,6 +818,7 @@ vitest/valid-title                                         |      0
 vitest/warn-todo                                           |      0
 vue/attribute-hyphenation                                  |      0
 vue/block-order                                            |      0
+vue/comment-directive                                      |      0
 vue/component-definition-name-casing                       |  76731
 vue/multi-word-component-names                             |      0
 vue/no-arrow-functions-in-watch                            |  62608

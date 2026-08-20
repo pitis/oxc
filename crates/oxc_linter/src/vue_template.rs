@@ -71,6 +71,7 @@ pub trait VueSfcRule {
 /// The subset of the resolved rule set that participates in the template pass.
 fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
     match rule {
+        RuleEnum::VueCommentDirective(rule) => Some(rule),
         RuleEnum::VueRequireVForKey(rule) => Some(rule),
         RuleEnum::VueNoDuplicateAttributes(rule) => Some(rule),
         RuleEnum::VueNoTemplateKey(rule) => Some(rule),

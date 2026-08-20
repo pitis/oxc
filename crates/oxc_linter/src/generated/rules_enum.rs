@@ -919,6 +919,7 @@ pub use crate::rules::vitest::valid_title::ValidTitle as VitestValidTitle;
 pub use crate::rules::vitest::warn_todo::WarnTodo as VitestWarnTodo;
 pub use crate::rules::vue::attribute_hyphenation::AttributeHyphenation as VueAttributeHyphenation;
 pub use crate::rules::vue::block_order::BlockOrder as VueBlockOrder;
+pub use crate::rules::vue::comment_directive::CommentDirective as VueCommentDirective;
 pub use crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing as VueComponentDefinitionNameCasing;
 pub use crate::rules::vue::define_emits_declaration::DefineEmitsDeclaration as VueDefineEmitsDeclaration;
 pub use crate::rules::vue::define_props_declaration::DefinePropsDeclaration as VueDefinePropsDeclaration;
@@ -1862,6 +1863,7 @@ pub enum RuleEnum {
     NodeNoSync(NodeNoSync),
     NodeNoTopLevelAwait(NodeNoTopLevelAwait),
     VueAttributeHyphenation(VueAttributeHyphenation),
+    VueCommentDirective(VueCommentDirective),
     VueBlockOrder(VueBlockOrder),
     VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing),
     VueDefineEmitsDeclaration(VueDefineEmitsDeclaration),
@@ -2974,7 +2976,8 @@ const NODE_NO_PROCESS_ENV_ID: usize = NODE_NO_PATH_CONCAT_ID + 1usize;
 const NODE_NO_SYNC_ID: usize = NODE_NO_PROCESS_ENV_ID + 1usize;
 const NODE_NO_TOP_LEVEL_AWAIT_ID: usize = NODE_NO_SYNC_ID + 1usize;
 const VUE_ATTRIBUTE_HYPHENATION_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
-const VUE_BLOCK_ORDER_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_COMMENT_DIRECTIVE_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_BLOCK_ORDER_ID: usize = VUE_COMMENT_DIRECTIVE_ID + 1usize;
 const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_BLOCK_ORDER_ID + 1usize;
 const VUE_DEFINE_EMITS_DECLARATION_ID: usize = VUE_COMPONENT_DEFINITION_NAME_CASING_ID + 1usize;
 const VUE_DEFINE_PROPS_DECLARATION_ID: usize = VUE_DEFINE_EMITS_DECLARATION_ID + 1usize;
@@ -3186,7 +3189,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1009usize] = [
+static RULE_NAMES: [&str; 1010usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4012,6 +4015,7 @@ static RULE_NAMES: [&str; 1009usize] = [
     NodeNoSync::NAME,
     NodeNoTopLevelAwait::NAME,
     VueAttributeHyphenation::NAME,
+    VueCommentDirective::NAME,
     VueBlockOrder::NAME,
     VueComponentDefinitionNameCasing::NAME,
     VueDefineEmitsDeclaration::NAME,
@@ -5151,6 +5155,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NODE_NO_SYNC_ID,
             Self::NodeNoTopLevelAwait(_) => NODE_NO_TOP_LEVEL_AWAIT_ID,
             Self::VueAttributeHyphenation(_) => VUE_ATTRIBUTE_HYPHENATION_ID,
+            Self::VueCommentDirective(_) => VUE_COMMENT_DIRECTIVE_ID,
             Self::VueBlockOrder(_) => VUE_BLOCK_ORDER_ID,
             Self::VueComponentDefinitionNameCasing(_) => VUE_COMPONENT_DEFINITION_NAME_CASING_ID,
             Self::VueDefineEmitsDeclaration(_) => VUE_DEFINE_EMITS_DECLARATION_ID,
@@ -6365,6 +6370,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::CATEGORY,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::CATEGORY,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::CATEGORY,
+            Self::VueCommentDirective(_) => VueCommentDirective::CATEGORY,
             Self::VueBlockOrder(_) => VueBlockOrder::CATEGORY,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::CATEGORY,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::CATEGORY,
@@ -7533,6 +7539,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::FIX,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::FIX,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::FIX,
+            Self::VueCommentDirective(_) => VueCommentDirective::FIX,
             Self::VueBlockOrder(_) => VueBlockOrder::FIX,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::FIX,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::FIX,
@@ -8937,6 +8944,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::documentation(),
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::documentation(),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::documentation(),
+            Self::VueCommentDirective(_) => VueCommentDirective::documentation(),
             Self::VueBlockOrder(_) => VueBlockOrder::documentation(),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::documentation()
@@ -11584,6 +11592,8 @@ impl RuleEnum {
                 .or_else(|| NodeNoTopLevelAwait::schema(generator)),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::config_schema(generator)
                 .or_else(|| VueAttributeHyphenation::schema(generator)),
+            Self::VueCommentDirective(_) => VueCommentDirective::config_schema(generator)
+                .or_else(|| VueCommentDirective::schema(generator)),
             Self::VueBlockOrder(_) => {
                 VueBlockOrder::config_schema(generator).or_else(|| VueBlockOrder::schema(generator))
             }
@@ -12964,6 +12974,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => "node",
             Self::NodeNoTopLevelAwait(_) => "node",
             Self::VueAttributeHyphenation(_) => "vue",
+            Self::VueCommentDirective(_) => "vue",
             Self::VueBlockOrder(_) => "vue",
             Self::VueComponentDefinitionNameCasing(_) => "vue",
             Self::VueDefineEmitsDeclaration(_) => "vue",
@@ -15254,6 +15265,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run(node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run(node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run(node, ctx),
+            Self::VueCommentDirective(rule) => rule.run(node, ctx),
             Self::VueBlockOrder(rule) => rule.run(node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run(node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run(node, ctx),
@@ -16280,6 +16292,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_once(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_once(ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_once(ctx),
+            Self::VueCommentDirective(rule) => rule.run_once(ctx),
             Self::VueBlockOrder(rule) => rule.run_once(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_once(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_once(ctx),
@@ -17419,6 +17432,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueBlockOrder(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18468,6 +18482,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.should_run(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.should_run(ctx),
             Self::VueAttributeHyphenation(rule) => rule.should_run(ctx),
+            Self::VueCommentDirective(rule) => rule.should_run(ctx),
             Self::VueBlockOrder(rule) => rule.should_run(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.should_run(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.should_run(ctx),
@@ -19849,6 +19864,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::IS_TSGOLINT_RULE,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::IS_TSGOLINT_RULE,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::IS_TSGOLINT_RULE,
+            Self::VueCommentDirective(_) => VueCommentDirective::IS_TSGOLINT_RULE,
             Self::VueBlockOrder(_) => VueBlockOrder::IS_TSGOLINT_RULE,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::IS_TSGOLINT_RULE
@@ -21130,6 +21146,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::VERSION,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::VERSION,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::VERSION,
+            Self::VueCommentDirective(_) => VueCommentDirective::VERSION,
             Self::VueBlockOrder(_) => VueBlockOrder::VERSION,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::VERSION,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::VERSION,
@@ -22392,6 +22409,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::HAS_CONFIG,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::HAS_CONFIG,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::HAS_CONFIG,
+            Self::VueCommentDirective(_) => VueCommentDirective::HAS_CONFIG,
             Self::VueBlockOrder(_) => VueBlockOrder::HAS_CONFIG,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::HAS_CONFIG
@@ -23577,6 +23595,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::INFO,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::INFO,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::INFO,
+            Self::VueCommentDirective(_) => VueCommentDirective::INFO,
             Self::VueBlockOrder(_) => VueBlockOrder::INFO,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::INFO,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::INFO,
@@ -24617,6 +24636,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.types_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.types_info(),
             Self::VueAttributeHyphenation(rule) => rule.types_info(),
+            Self::VueCommentDirective(rule) => rule.types_info(),
             Self::VueBlockOrder(rule) => rule.types_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.types_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.types_info(),
@@ -25630,6 +25650,7 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.run_info(),
             Self::VueAttributeHyphenation(rule) => rule.run_info(),
+            Self::VueCommentDirective(rule) => rule.run_info(),
             Self::VueBlockOrder(rule) => rule.run_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_info(),
@@ -26775,6 +26796,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::NodeNoSync(NodeNoSync::default()),
         RuleEnum::NodeNoTopLevelAwait(NodeNoTopLevelAwait::default()),
         RuleEnum::VueAttributeHyphenation(VueAttributeHyphenation::default()),
+        RuleEnum::VueCommentDirective(VueCommentDirective::default()),
         RuleEnum::VueBlockOrder(VueBlockOrder::default()),
         RuleEnum::VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing::default()),
         RuleEnum::VueDefineEmitsDeclaration(VueDefineEmitsDeclaration::default()),

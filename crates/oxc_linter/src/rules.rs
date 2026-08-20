@@ -916,6 +916,7 @@ pub(crate) mod node {
 pub(crate) mod vue {
     pub mod attribute_hyphenation;
     pub mod block_order;
+    pub mod comment_directive;
     pub mod component_definition_name_casing;
     pub mod define_emits_declaration;
     pub mod define_props_declaration;
