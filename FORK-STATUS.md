@@ -16,12 +16,12 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 103 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
+| **Vue**                    | 104 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
-| **Everything else**        | 1,012 rules, 140 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
+| **Everything else**        | 1,013 rules, 141 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop both tools today. Vue can drop Prettier today, and drop
-ESLint once the twelve rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
+ESLint once the eleven rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
 subject to the tsconfig caveat below.
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -66,22 +66,21 @@ Verified end to end on `svelte-number-format`: all eight Prettier/ESLint dev dep
 
 ## Vue
 
-**Lint — 103 of `eslint-plugin-vue`'s 250 rules.** Most of the 147 absent ones are stylistic rules
+**Lint — 104 of `eslint-plugin-vue`'s 250 rules.** Most of the 146 absent ones are stylistic rules
 no preset enables, but a project is free to enable them, so the number that matters is coverage of
 a config someone actually runs:
 
 | Config resolved for a `.vue` file               | Covered         |
 | :---------------------------------------------- | :-------------- |
-| `@nuxt/eslint-config` (stock, default features) | 169 / 188 (90%) |
-| A production Vue 3 + Nuxt monorepo config       | 173 / 188 (92%) |
-| `eslint-plugin-vue` `flat/recommended` alone    | 93 / 118        |
+| `@nuxt/eslint-config` (stock, default features) | 170 / 188 (90%) |
+| A production Vue 3 + Nuxt monorepo config       | 174 / 188 (93%) |
+| `eslint-plugin-vue` `flat/recommended` alone    | 94 / 118        |
 
-Twelve missing rules are the substance of the gap:
+Eleven missing rules are the substance of the gap:
 
-`no-mutating-props`, `no-ref-as-operand`, `no-template-shadow`, `no-undef-components`,
-`no-unused-components`, `no-unused-vars`, `no-use-computed-property-like-method`,
-`one-component-per-file`, `order-in-components`, `require-explicit-emits`,
-`require-valid-default-prop`, `jsx-uses-vars`.
+`no-mutating-props`, `no-ref-as-operand`, `no-undef-components`, `no-unused-components`,
+`no-unused-vars`, `no-use-computed-property-like-method`, `one-component-per-file`,
+`order-in-components`, `require-explicit-emits`, `require-valid-default-prop`, `jsx-uses-vars`.
 
 A stock Nuxt config additionally wants `attributes-order`, `first-attribute-linebreak`,
 `html-end-tags`, `html-self-closing` and `no-multiple-template-root`, plus core `no-octal` and
@@ -89,12 +88,21 @@ A stock Nuxt config additionally wants `attributes-order`, `first-attribute-line
 engine, which is a project of its own.
 
 **What the gap costs in practice is close to nothing on mature code, and that is not the same as
-nothing.** Enabling the sixteen missing rules under real ESLint across 891 `.vue` files produced
-311 findings — but every one came from `attributes-order` (209), `html-self-closing` (60) and
-`no-multiple-template-root` (25), none of which that project enables. The eleven missing rules it
-_does_ enable found zero violations, because they have been enforced there for years. Switching
-costs no cleanup; it does remove the net, and `no-mutating-props` and `no-ref-as-operand` catch
-genuine Vue bugs.
+nothing.** Enabling the missing rules under real ESLint across 891 `.vue` files produced 311
+findings — but every one came from `attributes-order` (209), `html-self-closing` (60) and
+`no-multiple-template-root` (25), none of which that project enables. The missing rules it _does_
+enable found zero violations, because they have been enforced there for years. Switching costs no
+cleanup; it does remove the net, and `no-mutating-props` and `no-ref-as-operand` catch genuine Vue
+bugs.
+
+`no-template-shadow` is the worked example of what porting one of these takes, and of how it gets
+checked: 21 hand-written cases and 1,602 real `.vue` files across six repositories, diffed
+finding-for-finding against eslint-plugin-vue 10.9.1. Both linters report the same 12 violations at
+the same columns and agree on every other file. One case only that differential could have caught:
+a value binding the same name twice (`v-for="(a, a) in xs"`) is an early error in the grammar
+vue-eslint-parser borrows, so upstream gives the element no variables and reports nothing —
+`oxc_parser` raises early errors from its semantic pass, which these throwaway snippets never run,
+so the duplicate has to be caught explicitly.
 
 **Format — Tier 3.** `.vue` markup still goes to Prettier through NAPI. The `<script>` and
 `<style>` blocks and the directive expressions inside the template are already native. A native
@@ -106,15 +114,15 @@ differences against Prettier 3.9.6.
 
 ## oxlint in general
 
-1,012 rules across 17 plugins, 140 more than upstream at the same merge base (the entire `svelte`
-plugin, and 57 `vue` rules).
+1,013 rules across 17 plugins, 141 more than upstream at the same merge base (the entire `svelte`
+plugin, and 58 `vue` rules).
 
 | plugin       | rules |     | plugin     | rules |
 | :----------- | ----: | :-- | :--------- | ----: |
 | `eslint`     |   187 |     | `jest`     |    60 |
 | `unicorn`    |   138 |     | `jsx_a11y` |    36 |
 | `typescript` |   110 |     | `import`   |    33 |
-| `vue`        |   103 |     | `oxc`      |    27 |
+| `vue`        |   104 |     | `oxc`      |    27 |
 | `react`      |    85 |     | `jsdoc`    |    23 |
 | `svelte`     |    83 |     | `nextjs`   |    21 |
 | `vitest`     |    73 |     | others     |    33 |
@@ -211,10 +219,37 @@ question: run both linters over the same files with `-f json`, reduce each diagn
 ESLint's. It cannot show a missing rule, since a rule that does not run contributes to neither
 side — so always report it next to a coverage figure, never instead of one.
 
+Isolating one rule differs between the two: ESLint takes a config that enables only it, while
+`oxlint` needs its categories switched off explicitly.
+
+```jsonc
+// .oxlintrc.json — `-A all -D <rule>` does NOT work here: the CLI flag
+// re-enables the rule with default options, discarding the config's.
+{
+  "plugins": ["vue"],
+  "categories": {
+    "correctness": "off",
+    "suspicious": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off",
+  },
+  "rules": { "vue/no-template-shadow": ["error", { "allow": ["item"] }] },
+}
+```
+
 ## What is next
 
-1. The twelve Vue rules listed above, `no-template-shadow` first.
+1. The eleven Vue rules listed above.
 2. `attributes-order`, the largest single gap for a stock Nuxt config.
 3. `svelte/valid-compile` as a first-party JS plugin.
 4. A native Vue printer, to move `.vue` off Prettier.
 5. Native Markdown, the last thing keeping Prettier in `oxfmt`'s bundle.
+
+Two test failures are known and pre-existing on `main`, unrelated to any of the above:
+`oxlint::lint::test::lint_svelte_file` (`eslint/no-unassigned-vars` stopped reporting on
+`export let` in a `.svelte` file, so the committed snapshot is stale) and
+`oxlint::lsp::server_linter::test::test_frameworks`. The `lint::suppression` tests that drive
+`oxlint-tsgolint` also fail locally, there because the spawned binary takes a `SIGPIPE`.
