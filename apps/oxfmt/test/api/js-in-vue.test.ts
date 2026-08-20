@@ -21,7 +21,7 @@ describe("Format js-in-vue with prettier-plugin-oxfmt", () => {
 `;
     const result = await format("a.vue", input);
 
-    expect(result.code).toContain("<script lang=\"ts\">\n/**\n * Docs.\n */\n</script>");
+    expect(result.code).toContain('<script lang="ts">\n/**\n * Docs.\n */\n</script>');
     expect(result.errors).toStrictEqual([]);
   });
 
@@ -270,7 +270,7 @@ const a = ;
     expect(result.errors).toStrictEqual([]);
   });
 
-  it("should format <script lang=\"tsx\"> blocks", async () => {
+  it('should format <script lang="tsx"> blocks', async () => {
     const input = `
 <script lang="tsx">
 export default {

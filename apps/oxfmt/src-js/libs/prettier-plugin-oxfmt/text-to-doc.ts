@@ -216,9 +216,7 @@ function detectParentContext(
   switch (parser) {
     case "__js_expression":
     case "__ts_expression":
-      return "__isInHtmlAttribute" in options
-        ? "expression-attribute"
-        : "expression-interpolation";
+      return "__isInHtmlAttribute" in options ? "expression-attribute" : "expression-interpolation";
     // The Vue expression parsers get their own kinds: they enable the
     // Vue 2 filter-sequence layout (`{{ msg | uppercase }}`), which must NOT
     // apply to `__js_expression` positions like the `v-for` right-hand side

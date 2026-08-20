@@ -34,7 +34,7 @@ workspace `Cargo.toml`). Two of its guarantees are what make a printer possible:
   would reject. `format_with_session` refuses outright when it is set: reprinting a guess
   changes what the component means.
 
-A bug found in this crate that turns out to be a *parse* bug belongs upstream in that crate.
+A bug found in this crate that turns out to be a _parse_ bug belongs upstream in that crate.
 Validate a parser change two ways: `cargo run --release --example parse_corpus -- <svelte
 checkout>` for the coverage invariant, and a differential against `svelte/compiler`'s own
 accept/reject verdict **and attribute lists** over the same corpus.
@@ -43,17 +43,17 @@ accept/reject verdict **and attribute lists** over the same corpus.
 
 `print/` mirrors what Prettier's plugin decides, one file per decision:
 
-| file | what it owns |
-| :--- | :--- |
-| `mod.rs` | the top level: section ordering (`svelteSortOrder`), the children dispatch, `write_source` |
-| `children.rs` | `printChildren`: the layout of one sibling list, and `prettier-ignore` |
-| `classify.rs` | block vs inline vs neither, `<pre>` content, raw-text elements |
-| `element.rs` | one element: hug decisions, separators, the open/close tag shapes |
-| `attribute.rs` | attributes, shorthand, quoting, the `class` rules |
-| `text.rs` | a text run as words joined by breaks |
-| `expression.rs` | `{…}`, and the declaration tag `{const …}` |
-| `block.rs` | `{#if}` / `{#each}` / `{#await}` / `{#key}` / `{#snippet}` and the `{@…}` tags |
-| `raw_text.rs` | `<script>` and `<style>`: their tags here, their bodies dispatched |
+| file            | what it owns                                                                               |
+| :-------------- | :----------------------------------------------------------------------------------------- |
+| `mod.rs`        | the top level: section ordering (`svelteSortOrder`), the children dispatch, `write_source` |
+| `children.rs`   | `printChildren`: the layout of one sibling list, and `prettier-ignore`                     |
+| `classify.rs`   | block vs inline vs neither, `<pre>` content, raw-text elements                             |
+| `element.rs`    | one element: hug decisions, separators, the open/close tag shapes                          |
+| `attribute.rs`  | attributes, shorthand, quoting, the `class` rules                                          |
+| `text.rs`       | a text run as words joined by breaks                                                       |
+| `expression.rs` | `{…}`, and the declaration tag `{const …}`                                                 |
+| `block.rs`      | `{#if}` / `{#each}` / `{#await}` / `{#key}` / `{#snippet}` and the `{@…}` tags             |
+| `raw_text.rs`   | `<script>` and `<style>`: their tags here, their bodies dispatched                         |
 
 Two translations are worth knowing before changing anything:
 
@@ -65,7 +65,7 @@ Two translations are worth knowing before changing anything:
   it as not ending in whitespace and lay the next child out accordingly.
 - **A node type is not a display category.** Prettier's `isInlineElement` / `isBlockElement`
   return true only for a `RegularElement`. A component, a `<svelte:…>`, a `<slot>` and a
-  `<title>` are *neither*: the whitespace at their edges is dropped, but they do not force a
+  `<title>` are _neither_: the whitespace at their edges is dropped, but they do not force a
   break. `classify.rs::is_regular_element` is that predicate.
 
 ## Deliberate divergences from `prettier-plugin-svelte`
@@ -78,7 +78,7 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
 - `<svelte:element this="h{n}" />` — Prettier drops the `{n}`. Its own fixture says
   "we don't try to fix this bug".
 - `prop='"'` — Prettier rewrites it as `prop="""`, which no longer parses. A value whose text
-  carries a `"` is quoted with `'` here. A value carrying *both* a `"` and a `{…}` has no
+  carries a `"` is quoted with `'` here. A value carrying _both_ a `"` and a `{…}` has no
   spelling this can produce and keeps Prettier's.
 
 **Reduced ports:**
@@ -92,7 +92,7 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
   which does neither. Canonical spacing already matches.
 - A `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` does not travel with
   it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The
-  *leading* comment does.
+  _leading_ comment does.
 - `@format` / `requirePragma` / `insertPragma`: oxfmt supports these for no language.
 - `svelteSortOrder` must name all four sections. Prettier requires only `options` and silently
   drops whatever is left out, which deletes that section's content rather than moving it.
@@ -105,7 +105,7 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
   `crates/oxc_formatter_css/AGENTS.md`.
 - A `{…}` whose expression breaks continues at the mustache's indent, where Prettier adds one
   level: Prettier prints the expression as a real estree node whose unknown parent makes
-  `printBinaryishExpression` indent, and this goes through the JS *fragment* path, which does
+  `printBinaryishExpression` indent, and this goes through the JS _fragment_ path, which does
   not.
 
 ## Verifying a change
@@ -120,8 +120,8 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
   idempotent is broken however good its conformance number is, and two of this crate's worst
   bugs (a header growing by one space per run, an attribute value gaining a quote) showed up
   this way and no other.
-- Verify an *option* with the option set. The default-config corpus does not exercise
+- Verify an _option_ with the option set. The default-config corpus does not exercise
   `bracketSameLine`, `htmlWhitespaceSensitivity`, or Tailwind sorting at all.
 - `pnpm --filter oxfmt-app test` covers what a corpus cannot: the CLI, the LSP and the API,
-  where a change of *policy* shows up (which files are formatted at all, whether a config key
+  where a change of _policy_ shows up (which files are formatted at all, whether a config key
   gates anything, whether import sorting reaches an embedded `<script>`).

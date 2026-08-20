@@ -225,7 +225,10 @@ describe("textToDoc failure precedence", () => {
       await expect(textToDoc("a++; b++", EXPRESSION_OPTIONS as any)).rejects.toThrow();
       napi.impl = async () => successPayload();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await textToDoc("a++; b++", { ...EXPRESSION_OPTIONS, parser: "__vue_ts_event_binding" } as any);
+      await textToDoc("a++; b++", {
+        ...EXPRESSION_OPTIONS,
+        parser: "__vue_ts_event_binding",
+      } as any);
     });
 
     expect(warnings).toStrictEqual([]);
