@@ -230,6 +230,107 @@ pub fn format_fragment<'a>(
     options: JsFormatOptions,
     context: FragmentContext,
 ) -> Result<FormattedFragment<'a>, OxcDiagnostic> {
+    // A js-in-xxx fragment never owns file envelopes (BOM / front matter).
+    let session = FormatSession::new(allocator, InputKind::Fragment);
+    let (formatted, expression_root) =
+        format_fragment_inner(&session, source_text, source_type, options, context, &ToFormatted)?;
+    Ok(FormattedFragment { formatted, expression_root })
+}
+
+/// As [`format_fragment`], but on a caller-supplied session and returning IR
+/// for a parent document to splice in — the shape a `.svelte` component's
+/// `{…}` needs.
+///
+/// The session must be one derived from the parent's (the dispatcher hands
+/// the child exactly that), so the IR shares the parent's arena and
+/// `GroupId` space.
+///
+/// # Errors
+/// Same as [`format_fragment`].
+pub fn format_fragment_to_ir<'a>(
+    session: &FormatSession<'a>,
+    source_text: &str,
+    source_type: SourceType,
+    options: JsFormatOptions,
+    context: FragmentContext,
+) -> Result<(EmbeddedIr<'a>, Option<ExpressionRootKind>), OxcDiagnostic> {
+    let source_text: &'a str = session.allocator().alloc_str(source_text);
+    format_fragment_inner(session, source_text, source_type, options, context, &ToEmbeddedIr)
+}
+
+/// How a fragment's built content is turned into a result: a printable
+/// document, or IR for a parent to splice. The two differ only in the last
+/// step, and the branch that builds the content is worth having once.
+trait FragmentFinish<'a> {
+    type Output;
+
+    fn finish<F: Format<'a, JsFormatContext<'a>>>(
+        &self,
+        session: &FormatSession<'a>,
+        options: JsFormatOptions,
+        node: &F,
+        source_text: &'a str,
+        source_type: SourceType,
+        comments: &'a [Comment],
+        embed_flags: EmbedFlags,
+    ) -> Self::Output;
+}
+
+struct ToFormatted;
+
+impl<'a> FragmentFinish<'a> for ToFormatted {
+    type Output = Formatted<'a, JsFormatContext<'a>>;
+
+    fn finish<F: Format<'a, JsFormatContext<'a>>>(
+        &self,
+        session: &FormatSession<'a>,
+        options: JsFormatOptions,
+        node: &F,
+        source_text: &'a str,
+        source_type: SourceType,
+        comments: &'a [Comment],
+        embed_flags: EmbedFlags,
+    ) -> Self::Output {
+        format_node(session, options, node, source_text, source_type, comments, embed_flags)
+    }
+}
+
+struct ToEmbeddedIr;
+
+impl<'a> FragmentFinish<'a> for ToEmbeddedIr {
+    type Output = EmbeddedIr<'a>;
+
+    fn finish<F: Format<'a, JsFormatContext<'a>>>(
+        &self,
+        session: &FormatSession<'a>,
+        options: JsFormatOptions,
+        node: &F,
+        source_text: &'a str,
+        source_type: SourceType,
+        comments: &'a [Comment],
+        embed_flags: EmbedFlags,
+    ) -> Self::Output {
+        let context = JsFormatContext::new(source_text, source_type, comments, options)
+            .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
+            .with_embedded_vue_expression(embed_flags.vue_expression)
+            .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
+        formatter::format_embedded(
+            context,
+            session,
+            oxc_formatter_core::Arguments::new(&[oxc_formatter_core::Argument::new(node)]),
+        )
+    }
+}
+
+fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
+    session: &FormatSession<'a>,
+    source_text: &'a str,
+    source_type: SourceType,
+    options: JsFormatOptions,
+    context: FragmentContext,
+    finish: &Finish,
+) -> Result<(Finish::Output, Option<ExpressionRootKind>), OxcDiagnostic> {
+    let allocator = session.allocator();
     // `Expression` receives bare text; wrap it so leading `{` parses as an
     // object literal instead of a block, and a trailing `//` comment cannot
     // swallow the closing delimiter. `preserve_parens` is disabled in
@@ -267,10 +368,6 @@ pub fn format_fragment<'a>(
 
     let mut expression_root = None;
 
-    // A js-in-xxx fragment never owns file envelopes (BOM / front matter)
-    // and never dispatches embedded languages of its own.
-    let session = FormatSession::new(allocator, InputKind::Fragment);
-
     let formatted = match context {
         FragmentContext::FunctionParamsAsBindingLhs | FragmentContext::FunctionParamsAsBinding => {
             let Some(Statement::FunctionDeclaration(func)) = program.body.first() else {
@@ -284,8 +381,8 @@ pub fn format_fragment<'a>(
                 && (1 < params.items.len() || params.rest.is_some());
             let node = AstNode::new(params, AstNodes::Dummy(), allocator);
             let content = FormatFunctionParams::new(&node, with_parens);
-            format_node(
-                &session,
+            finish.finish(
+                session,
                 options,
                 &content,
                 program.source_text,
@@ -305,8 +402,8 @@ pub fn format_fragment<'a>(
             };
             let node = AstNode::new(type_params, AstNodes::Dummy(), allocator);
             let content = FormatTypeParameters::new(&node);
-            format_node(
-                &session,
+            finish.finish(
+                session,
                 options,
                 &content,
                 program.source_text,
@@ -329,8 +426,8 @@ pub fn format_fragment<'a>(
             // the same "root expression" semantics as Prettier's `JsExpressionRoot`.
             let program_node = allocator.alloc(AstNode::new(program, AstNodes::Dummy(), allocator));
             let node = AstNode::new(expression, AstNodes::Program(program_node), allocator);
-            format_node(
-                &session,
+            finish.finish(
+                session,
                 options,
                 &node,
                 program.source_text,
@@ -351,8 +448,8 @@ pub fn format_fragment<'a>(
                 let content = formatter::prelude::format_with(|f| {
                     formatter::trivia::format_dangling_comments(program.span).fmt(f);
                 });
-                format_node(
-                    &session,
+                finish.finish(
+                    session,
                     options,
                     &content,
                     program.source_text,
@@ -379,8 +476,8 @@ pub fn format_fragment<'a>(
                         write!(f, [";"]);
                     }
                 });
-                format_node(
-                    &session,
+                finish.finish(
+                    session,
                     options,
                     &content,
                     program.source_text,
@@ -390,8 +487,8 @@ pub fn format_fragment<'a>(
                 )
             } else {
                 let node = AstNode::new(program, AstNodes::Dummy(), allocator);
-                format_node(
-                    &session,
+                finish.finish(
+                    session,
                     options,
                     &node,
                     program.source_text,
@@ -403,7 +500,7 @@ pub fn format_fragment<'a>(
         }
     };
 
-    Ok(FormattedFragment { formatted, expression_root })
+    Ok((formatted, expression_root))
 }
 
 /// See [`ExpressionRootKind`].

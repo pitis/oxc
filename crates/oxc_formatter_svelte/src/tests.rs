@@ -126,3 +126,17 @@ fn keeps_embedded_bodies_when_nothing_can_format_them() {
         "<style lang=\"stylus\">\n\t.a\n\t\tcolor red\n</style>\n",
     );
 }
+
+/// With no dispatcher there is nothing to format an expression with, so its
+/// text is kept — only the padding inside the braces goes, which is not part
+/// of what the expression means. The formatted path is measured against
+/// `prettier-plugin-svelte` through oxfmt.
+#[test]
+fn keeps_expressions_when_nothing_can_format_them() {
+    check("<div>{  count  }</div>\n", "<div>{count}</div>\n");
+    check("<div foo={  bar  }></div>\n", "<div foo={bar}></div>\n");
+    check("<div {...props}></div>\n", "<div {...props}></div>\n");
+    // An unterminated `{` is left exactly as written; the refusal check has
+    // already run, so this only guards the printer itself.
+    check("<div>{a}</div>\n", "<div>{a}</div>\n");
+}

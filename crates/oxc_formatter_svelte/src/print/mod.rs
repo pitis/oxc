@@ -21,6 +21,7 @@ use self::{
     children::{ChildLayout, Trim, plan_children, plan_some_children},
     classify::{is_empty_text, is_only_collapsible_whitespace},
     element::write_element,
+    expression::{ExpressionPosition, write_expression_tag},
     text::write_text,
 };
 
@@ -28,6 +29,7 @@ mod attribute;
 mod children;
 mod classify;
 mod element;
+mod expression;
 mod raw_text;
 mod text;
 
@@ -268,9 +270,11 @@ fn write_node<'a>(node: &Node<'a>, trim: Trim, f: &mut SvelteFormatter<'_, 'a>) 
         // trim has been applied — a node the layout has taken over entirely
         // must print nothing at all.
         Node::Text(node_text) => write_text(node_text.value, trim, f),
+        Node::Mustache(tag) => {
+            write_expression_tag(tag, ExpressionPosition::Braces, f);
+        }
         // Everything below keeps the source's own spelling until the stage
         // that owns it lands.
-        Node::Mustache(tag) => write_source(tag.span, f),
         Node::Tag(tag) => write_source(tag.span, f),
         Node::Block(block) => write_source(block.span, f),
         Node::Comment(comment) => write_source(comment.span, f),

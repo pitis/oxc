@@ -13,7 +13,10 @@ use svelte_markup_parser::ast::{
     Attribute, AttributeKind, AttributeValue, DirectiveKind, ValuePart,
 };
 
-use super::SvelteFormatter;
+use super::{
+    SvelteFormatter,
+    expression::{ExpressionPosition, write_expression, write_expression_tag},
+};
 
 /// Write one attribute, as written in the source apart from the shorthand
 /// decision.
@@ -44,8 +47,10 @@ pub fn write_attribute<'a>(
                 write!(f, [text(name), token("={"), text(name), token("}")]);
             }
         }
-        AttributeKind::Spread { expression, .. } => {
-            write!(f, [token("{..."), text(expression.trim()), token("}")]);
+        AttributeKind::Spread { expression, expression_span } => {
+            write!(f, token("{..."));
+            write_expression(expression, *expression_span, ExpressionPosition::Braces, f);
+            write!(f, token("}"));
         }
         AttributeKind::Directive(directive) => {
             write!(f, text(directive.raw_name));
@@ -87,16 +92,17 @@ fn is_shorthandable(name: &str, value: &AttributeValue<'_>) -> bool {
 fn write_value<'a>(value: &AttributeValue<'a>, source: &'a str, f: &mut SvelteFormatter<'_, 'a>) {
     // A value that is exactly one `{…}` needs no quotes; anything else is
     // quoted, since removing them could change where the value ends.
-    if value.as_single_expression().is_some() && value.quote == 0 {
-        write!(f, text(slice(source, value.span.start, value.span.end)));
+    if let Some(tag) = value.as_single_expression() {
+        write_expression_tag(tag, ExpressionPosition::Braces, f);
         return;
     }
+    let _ = source;
     write!(f, token("\""));
     for part in &value.parts {
         match part {
             ValuePart::Text(part) => write!(f, text(part.value)),
             ValuePart::Expression(tag) => {
-                write!(f, text(slice(source, tag.span.start, tag.span.end)));
+                write_expression_tag(tag, ExpressionPosition::QuotedAttribute, f);
             }
         }
     }

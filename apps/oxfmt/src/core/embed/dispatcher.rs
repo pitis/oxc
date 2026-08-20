@@ -34,6 +34,10 @@ pub enum NativeLanguage {
     Graphql,
     /// JS/TS, as a `.svelte` component's `<script>` is.
     Js(SourceType),
+    /// A bare JS/TS expression, as a `.svelte` component's `{…}` is.
+    /// The bool is whether it sits inside a quoted attribute, which decides
+    /// the preferred quote style.
+    JsExpression(SourceType, bool),
     /// The fence-derived variant;
     /// the css-in-js typed context overrides it to Scss + placeholders at dispatch time (see the css branch).
     Css(CssVariant),
@@ -96,6 +100,14 @@ pub fn route(language: &str) -> Route {
         "graphql" | "gql" => Route::Native(NativeLanguage::Graphql),
         "js" => Route::Native(NativeLanguage::Js(SourceType::mjs())),
         "ts" => Route::Native(NativeLanguage::Js(SourceType::ts())),
+        "js-expression" => Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), false)),
+        "ts-expression" => Route::Native(NativeLanguage::JsExpression(SourceType::ts(), false)),
+        "js-attribute-expression" => {
+            Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), true))
+        }
+        "ts-attribute-expression" => {
+            Route::Native(NativeLanguage::JsExpression(SourceType::ts(), true))
+        }
         "css" => Route::Native(NativeLanguage::Css(CssVariant::Css)),
         "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss)),
         "less" => Route::Native(NativeLanguage::Css(CssVariant::Less)),
@@ -337,6 +349,37 @@ pub fn build_dispatcher(
                     dispatch_config.js_options(),
                 )
             })),
+            Route::Native(NativeLanguage::JsExpression(source_type, in_html_attribute)) => {
+                Ok(debug_span!("oxfmt::embed::format_to_ir", language = "js-expression").in_scope(
+                    || {
+                        let result = oxc_formatter::format_fragment_to_ir(
+                            session,
+                            text,
+                            source_type,
+                            dispatch_config.js_options(),
+                            oxc_formatter::FragmentContext::Expression {
+                                in_html_attribute,
+                                vue_expression: false,
+                            },
+                        );
+                        match result {
+                            // The root expression kind is deliberately not
+                            // passed back: it exists to feed Prettier's
+                            // `__onHtmlBindingRoot` hug-vs-expand hook, which
+                            // Vue and Angular use and Svelte does not.
+                            Ok((embedded, _expression_root)) => {
+                                DispatchResponse::Formatted(embedded.into())
+                            }
+                            Err(err) => {
+                                debug!(
+                                    "native 'js-expression' format_to_ir failed, part stays as-is: {err}"
+                                );
+                                DispatchResponse::PreserveOriginal
+                            }
+                        }
+                    },
+                ))
+            }
             Route::Native(NativeLanguage::Yaml) => Ok(format_native("yaml", || {
                 oxc_formatter_yaml::format_to_ir(session, text, dispatch_config.yaml_options())
             })),
