@@ -248,8 +248,13 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 4. A native Vue printer, to move `.vue` off Prettier.
 5. Native Markdown, the last thing keeping Prettier in `oxfmt`'s bundle.
 
-Two test failures are known and pre-existing on `main`, unrelated to any of the above:
-`oxlint::lint::test::lint_svelte_file` (`eslint/no-unassigned-vars` stopped reporting on
-`export let` in a `.svelte` file, so the committed snapshot is stale) and
+One test failure is known and pre-existing on `main`, unrelated to any of the above:
 `oxlint::lsp::server_linter::test::test_frameworks`. The `lint::suppression` tests that drive
 `oxlint-tsgolint` also fail locally, there because the spawned binary takes a `SIGPIPE`.
+
+`oxlint::lint::test::lint_svelte_file` used to be listed here too, on the reading that
+`eslint/no-unassigned-vars` had "stopped reporting" on `export let` in a `.svelte` file. That was
+wrong: 51b5719e6d deliberately made the rule skip `.svelte`/`.vue`, because the template can assign
+a binding through `bind:this`/`bind:value`/`v-model` and the script pass cannot see it — the same
+guard, and the same reason, as `prefer-const`. The rule was right and the CLI snapshot was simply
+never regenerated. It has been.
