@@ -5,7 +5,7 @@
 //! of re-implementing them.
 
 use oxc_allocator::Allocator;
-use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Statement};
+use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Program, Statement};
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
 use oxc_span::{SourceType, Span};
@@ -426,7 +426,11 @@ fn find_for_separator(text: &str) -> Option<(usize, usize)> {
 /// front of the `in`/`of` (including one with no `in`/`of` at all, e.g.
 /// `v-for="items"` — upstream's `ALIAS_ITERATOR` simply fails to match and it
 /// reports the missing alias).
-fn v_for_snippet(raw: &str) -> Result<String, &'static str> {
+///
+/// `Ok` also carries the byte offset, within `raw`, of the text the snippet's
+/// [`V_FOR_ALIASES_PREFIX`] is followed by, which is what lets a span parsed
+/// out of the snippet be mapped back onto the file.
+fn v_for_snippet(raw: &str) -> Result<(String, usize), &'static str> {
     if raw.trim().is_empty() {
         return Err("Expected to be '<alias> in <expression>', but got empty");
     }
@@ -441,20 +445,30 @@ fn v_for_snippet(raw: &str) -> Result<String, &'static str> {
     let iterator_raw = &raw[sep_end..];
 
     let trimmed = aliases_raw.trim();
-    let inner = if trimmed.len() >= 2 && trimmed.starts_with('(') && trimmed.ends_with(')') {
-        &trimmed[1..trimmed.len() - 1]
-    } else {
-        aliases_raw
-    };
+    // `inner` is always a subslice of `raw`, so its offset within `raw` is
+    // what maps a parsed alias's span back onto the file — see
+    // [`snippet_bindings`].
+    let (inner, inner_offset) =
+        if trimmed.len() >= 2 && trimmed.starts_with('(') && trimmed.ends_with(')') {
+            let leading = aliases_raw.len() - aliases_raw.trim_start().len();
+            (&trimmed[1..trimmed.len() - 1], leading + 1)
+        } else {
+            (aliases_raw, 0)
+        };
 
     // The `\n` puts the closing `)` on its own line so a trailing `//` line
     // comment in the iterator (`v-for="x in xs // note"`) can't comment it out.
-    // This is not purely cosmetic for [`v_for_alias_names`]: such a value used
-    // to fail to parse and yield *no* aliases, and now yields them, so
+    // This is not purely cosmetic for [`v_for_alias_bindings`]: such a value
+    // used to fail to parse and yield *no* aliases, and now yields them, so
     // [`walk_nodes_with_scope`] sees a wider (correct) scope for the rules
     // built on it — strictly fewer false positives there.
-    Ok(format!("for(let [{inner}]{delimiter}{iterator_raw}\n);"))
+    let snippet = format!("{V_FOR_ALIASES_PREFIX}{inner}]{delimiter}{iterator_raw}\n);");
+    Ok((snippet, inner_offset))
 }
+
+/// What [`v_for_snippet`] puts in front of the alias list. Shared with the
+/// span mapping so the two can't drift apart.
+const V_FOR_ALIASES_PREFIX: &str = "for(let [";
 
 /// Which JavaScript grammar a `<template>` value has to be parsed with, for
 /// [`template_expression_parse_error`] — mirroring vue-eslint-parser's
@@ -515,7 +529,7 @@ pub fn template_expression_parse_error(text: &str, kind: TemplateExpressionKind)
         }
         TemplateExpressionKind::SlotScope => snippet_parse_error(&format!("(\n{text}\n) => 0;")),
         TemplateExpressionKind::For => match v_for_snippet(text) {
-            Ok(snippet) => snippet_parse_error(&snippet),
+            Ok((snippet, _)) => snippet_parse_error(&snippet),
             Err(message) => Some(message.to_string()),
         },
     }
@@ -537,59 +551,127 @@ fn snippet_parse_error(snippet: &str) -> Option<String> {
     }
 }
 
-/// The `v-for` alias *names* declared by a `v-for="<aliases> in/of <expr>"`
-/// value, via the same parse-as-a-real-`for`-statement mechanism as
-/// `valid-v-for`'s `check_for_value` (see there for the full rationale) —
-/// see [`find_for_separator`]'s doc comment for why this particular copy is
-/// shared rather than duplicated. Silently returns nothing on any parse
-/// failure, matching this fork's established silent-on-parse-failure
-/// discipline for template expression parsing.
-fn v_for_alias_names(raw: &str) -> FxHashSet<String> {
-    let mut names = FxHashSet::default();
-    let Ok(snippet) = v_for_snippet(raw) else { return names };
-    let allocator = Allocator::new();
-    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
-    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
-        return names;
-    }
-    let left = match parser_ret.program.body.first() {
-        Some(Statement::ForInStatement(statement)) => &statement.left,
-        Some(Statement::ForOfStatement(statement)) => &statement.left,
-        _ => return names,
-    };
-    let ForStatementLeft::VariableDeclaration(declaration) = left else { return names };
-    let Some(declarator) = declaration.declarations.first() else { return names };
-    let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return names };
-
-    for pattern in array_pattern.elements.iter().flatten() {
-        collect_binding_names(pattern, &mut names);
-    }
-    names
+/// One scope variable a `<template>` element declares — vue-eslint-parser's
+/// `VElement.variables` — as the declared name plus the **file-absolute** span
+/// of the binding identifier that introduces it.
+///
+/// [`walk_nodes_with_scope`] needs only the names, and derives them from
+/// [`element_own_scope_bindings`] so there is one implementation;
+/// `no-template-shadow` reports *at* the declaration, which is what the span
+/// is for.
+#[derive(Debug, Clone)]
+pub struct ScopeBinding {
+    pub name: String,
+    pub span: Span,
 }
 
-fn collect_binding_names(pattern: &BindingPattern<'_>, out: &mut FxHashSet<String>) {
+/// The `v-for` aliases declared by a `v-for="<aliases> in/of <expr>"` value,
+/// via the same parse-as-a-real-`for`-statement mechanism as `valid-v-for`'s
+/// `check_for_value` (see there for the full rationale) — see
+/// [`find_for_separator`]'s doc comment for why this particular copy is shared
+/// rather than duplicated. `base` is the file offset `raw` starts at. Silently
+/// returns nothing on any parse failure, matching this fork's established
+/// silent-on-parse-failure discipline for template expression parsing.
+fn v_for_alias_bindings(raw: &str, base: u32) -> Vec<ScopeBinding> {
+    let Ok((snippet, alias_offset)) = v_for_snippet(raw) else { return Vec::new() };
+    snippet_bindings(&snippet, V_FOR_ALIASES_PREFIX.len(), base, alias_offset, |program| {
+        let left = match program.body.first() {
+            Some(Statement::ForInStatement(statement)) => &statement.left,
+            Some(Statement::ForOfStatement(statement)) => &statement.left,
+            _ => return Vec::new(),
+        };
+        let ForStatementLeft::VariableDeclaration(declaration) = left else { return Vec::new() };
+        let Some(declarator) = declaration.declarations.first() else { return Vec::new() };
+        let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return Vec::new() };
+        let mut identifiers = Vec::new();
+        for pattern in array_pattern.elements.iter().flatten() {
+            collect_binding_identifiers(pattern, &mut identifiers);
+        }
+        identifiers
+    })
+}
+
+/// Parse `snippet`, hand the program to `bindings_of`, and map every span it
+/// returns back onto the file.
+///
+/// Each of these snippets is `<prefix><some text from the file><suffix>`, so a
+/// span inside that text is at `base + text_offset + (span - prefix_len)` in
+/// the file, where `text_offset` is where the text begins within the attribute
+/// value (a `v-for`'s alias list begins after its `(`, a slot-scope pattern
+/// after the whitespace trimmed off its front).
+fn snippet_bindings(
+    snippet: &str,
+    prefix_len: usize,
+    base: u32,
+    text_offset: usize,
+    bindings_of: impl for<'p> FnOnce(&Program<'p>) -> Vec<(String, Span)>,
+) -> Vec<ScopeBinding> {
+    let (Ok(prefix_len), Ok(text_offset)) = (u32::try_from(prefix_len), u32::try_from(text_offset))
+    else {
+        return Vec::new();
+    };
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return Vec::new();
+    }
+    let identifiers = bindings_of(&parser_ret.program);
+    // One value binding the same name twice (`v-for="(a, a) in xs"`,
+    // `v-slot="{ a, b: a }"`) is an early error in the grammar each snippet
+    // borrows — a duplicate lexical declaration, and a duplicate parameter
+    // name in strict mode — so espree rejects the value outright and
+    // vue-eslint-parser gives that element NO variables at all (the error
+    // surfaces through `no-parsing-error` instead). `oxc_parser` reports early
+    // errors from the semantic pass rather than the parse, which these
+    // snippets don't run, so the duplicate is caught here instead.
+    if identifiers
+        .iter()
+        .enumerate()
+        .any(|(index, (name, _))| identifiers[..index].iter().any(|(seen, _)| seen == name))
+    {
+        return Vec::new();
+    }
+    let start = base + text_offset;
+    identifiers
+        .into_iter()
+        .map(|(name, span)| ScopeBinding {
+            name,
+            span: Span::new(
+                start + span.start.saturating_sub(prefix_len),
+                start + span.end.saturating_sub(prefix_len),
+            ),
+        })
+        .collect()
+}
+
+/// Every identifier a binding pattern *binds*, in source order, spanned within
+/// the snippet it was parsed from. Only bound names are collected: a default
+/// value's own expression (e.g. `someGlobal` in `{ b: c = someGlobal }`) is a
+/// reference rather than a declaration, so only an assignment pattern's left
+/// (binding) side is recursed into.
+fn collect_binding_identifiers(pattern: &BindingPattern<'_>, out: &mut Vec<(String, Span)>) {
     match pattern {
         BindingPattern::BindingIdentifier(ident) => {
-            out.insert(ident.name.as_str().to_string());
+            out.push((ident.name.as_str().to_string(), ident.span));
         }
         BindingPattern::ObjectPattern(object) => {
             for property in &object.properties {
-                collect_binding_names(&property.value, out);
+                collect_binding_identifiers(&property.value, out);
             }
             if let Some(rest) = &object.rest {
-                collect_binding_names(&rest.argument, out);
+                collect_binding_identifiers(&rest.argument, out);
             }
         }
         BindingPattern::ArrayPattern(array) => {
             for pattern in array.elements.iter().flatten() {
-                collect_binding_names(pattern, out);
+                collect_binding_identifiers(pattern, out);
             }
             if let Some(rest) = &array.rest {
-                collect_binding_names(&rest.argument, out);
+                collect_binding_identifiers(&rest.argument, out);
             }
         }
         BindingPattern::AssignmentPattern(assignment) => {
-            collect_binding_names(&assignment.left, out);
+            collect_binding_identifiers(&assignment.left, out);
         }
     }
 }
@@ -637,19 +719,37 @@ pub fn walk_nodes_with_scope<'e, 'a>(
 /// from an ancestor): its `v-for` alias(es), plus its slot-scope destructured
 /// parameter(s) — see [`walk_nodes_with_scope`]'s doc comment.
 fn element_own_scope_names(element: &Element<'_>) -> FxHashSet<String> {
-    let mut names = FxHashSet::default();
+    element_own_scope_bindings(element).into_iter().map(|binding| binding.name).collect()
+}
+
+/// Every scope variable declared by `element` itself (not inherited from an
+/// ancestor), in source order and with spans: its `v-for` alias(es) followed
+/// by its slot-scope destructured parameter(s).
+///
+/// This is vue-eslint-parser's `VElement.variables` for one element, which is
+/// what a rule walking the scope stack itself (`no-template-shadow`) reports
+/// on; [`walk_nodes_with_scope`] is the same information collapsed to the set
+/// of names visible at a node, for the rules that only need to know what is
+/// shadowed.
+///
+/// A name declared twice by the same element (`v-for="(a, a) in xs"`) is
+/// listed twice — the duplicate is exactly what `no-template-shadow` reports,
+/// so it must not be collapsed here.
+pub fn element_own_scope_bindings(element: &Element<'_>) -> Vec<ScopeBinding> {
+    let mut bindings = Vec::new();
     if let Some(value) =
         get_directive(element, "for", None).and_then(|attribute| attribute.value.as_ref())
     {
-        names.extend(v_for_alias_names(value.text));
+        bindings.extend(v_for_alias_bindings(value.text, value.span.start));
     }
-    if let Some(pattern_text) = slot_scope_pattern_text(element) {
-        names.extend(slot_scope_names(pattern_text));
+    if let Some((pattern_text, base)) = slot_scope_pattern(element) {
+        bindings.extend(slot_scope_bindings(pattern_text, base));
     }
-    names
+    bindings
 }
 
-/// The raw pattern text of whichever slot-scope-establishing directive or
+/// The raw pattern text — and the file offset it starts at — of whichever
+/// slot-scope-establishing directive or
 /// (deprecated bare) attribute `element` carries, if any: `v-slot`/its
 /// shorthand `#` (any argument, static or dynamic — the *pattern* lives in
 /// the value, not the argument), the deprecated `slot-scope` attribute (any
@@ -661,9 +761,12 @@ fn element_own_scope_names(element: &Element<'_>) -> FxHashSet<String> {
 /// like those two rules — vue-eslint-parser's SFC `getTagName` never
 /// case-folds either the tag name or the attribute name for this
 /// conversion.
-fn slot_scope_pattern_text<'a>(element: &Element<'a>) -> Option<&'a str> {
+fn slot_scope_pattern<'a>(element: &Element<'a>) -> Option<(&'a str, u32)> {
+    let pattern = |attribute: &Attribute<'a>| {
+        attribute.value.as_ref().map(|value| (value.text, value.span.start))
+    };
     if let Some(attribute) = get_directive(element, "slot", None) {
-        return attribute.value.as_ref().map(|value| value.text);
+        return pattern(attribute);
     }
     let is_bare = |attribute: &&Attribute<'a>, name: &str| {
         attribute.directive.is_none() && attribute.name == name
@@ -671,52 +774,53 @@ fn slot_scope_pattern_text<'a>(element: &Element<'a>) -> Option<&'a str> {
     if let Some(attribute) =
         element.attributes.iter().find(|attribute| is_bare(attribute, "slot-scope"))
     {
-        return attribute.value.as_ref().map(|value| value.text);
+        return pattern(attribute);
     }
     if element.name == "template"
         && let Some(attribute) =
             element.attributes.iter().find(|attribute| is_bare(attribute, "scope"))
     {
-        return attribute.value.as_ref().map(|value| value.text);
+        return pattern(attribute);
     }
     None
 }
 
-/// The names bound by a slot-scope pattern — `v-slot`/`#`/`slot-scope`/
+/// The variables bound by a slot-scope pattern — `v-slot`/`#`/`slot-scope`/
 /// `scope`'s value, e.g. `slotProps` or `{ a, b: c = 1, ...rest }` — via the
-/// same "parse as real JS grammar" mechanism as [`v_for_alias_names`]:
+/// same "parse as real JS grammar" mechanism as [`v_for_alias_bindings`]:
 /// wrapped as a single arrow-function parameter (`(<pattern>) => 0`) and
 /// parsed with `oxc_parser`, so identifier binding (a bare identifier, an
 /// object/array pattern with defaults, aliases (`b: c`), and rest elements)
 /// is handled by real `BindingPattern` grammar rather than reimplemented.
-/// Only [`collect_binding_names`]'s *bound* names are collected — a default
-/// value's own expression (e.g. `someGlobal` in `{ b: c = someGlobal }`) is
-/// never treated as a declaration, since `collect_binding_names` only
-/// recurses into an `AssignmentPattern`'s left (binding) side. Silently
-/// empty on any parse failure or a blank pattern, matching this fork's
-/// established silent-on-parse-failure discipline — this also covers a
-/// value-less `v-slot`/`slot-scope` (nothing to parse, no names declared).
-fn slot_scope_names(pattern_text: &str) -> FxHashSet<String> {
-    let mut names = FxHashSet::default();
+/// `base` is the file offset `pattern_text` starts at. Silently empty on any
+/// parse failure or a blank pattern, matching this fork's established
+/// silent-on-parse-failure discipline — this also covers a value-less
+/// `v-slot`/`slot-scope` (nothing to parse, no names declared).
+fn slot_scope_bindings(pattern_text: &str, base: u32) -> Vec<ScopeBinding> {
     let trimmed = pattern_text.trim();
     if trimmed.is_empty() {
-        return names;
+        return Vec::new();
     }
-    let snippet = format!("({trimmed}) => 0;");
-    let allocator = Allocator::new();
-    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
-    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
-        return names;
-    }
-    let Some(Statement::ExpressionStatement(statement)) = parser_ret.program.body.first() else {
-        return names;
-    };
-    let Expression::ArrowFunctionExpression(arrow) = &statement.expression else { return names };
-    for parameter in &arrow.params.items {
-        collect_binding_names(&parameter.pattern, &mut names);
-    }
-    names
+    let leading = pattern_text.len() - pattern_text.trim_start().len();
+    let snippet = format!("{SLOT_SCOPE_PREFIX}{trimmed}) => 0;");
+    snippet_bindings(&snippet, SLOT_SCOPE_PREFIX.len(), base, leading, |program| {
+        let Some(Statement::ExpressionStatement(statement)) = program.body.first() else {
+            return Vec::new();
+        };
+        let Expression::ArrowFunctionExpression(arrow) = &statement.expression else {
+            return Vec::new();
+        };
+        let mut identifiers = Vec::new();
+        for parameter in &arrow.params.items {
+            collect_binding_identifiers(&parameter.pattern, &mut identifiers);
+        }
+        identifiers
+    })
 }
+
+/// What [`slot_scope_bindings`] puts in front of the pattern. Shared with the
+/// span mapping so the two can't drift apart.
+const SLOT_SCOPE_PREFIX: &str = "(";
 
 /// The `(text, absolute span)` of the JS expression a directive's value
 /// represents, for the expression-inspecting template rules

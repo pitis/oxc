@@ -5244,12 +5244,12 @@ impl RuleRunner for crate::rules::vue::attribute_hyphenation::AttributeHyphenati
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
-impl RuleRunner for crate::rules::vue::comment_directive::CommentDirective {
+impl RuleRunner for crate::rules::vue::block_order::BlockOrder {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
-impl RuleRunner for crate::rules::vue::block_order::BlockOrder {
+impl RuleRunner for crate::rules::vue::comment_directive::CommentDirective {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
@@ -5570,6 +5570,11 @@ impl RuleRunner
 }
 
 impl RuleRunner for crate::rules::vue::no_template_key::NoTemplateKey {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::vue::no_template_shadow::NoTemplateShadow {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }

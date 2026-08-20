@@ -287,7 +287,7 @@ fn handle_type_argument<'a>(
     ts_type: &TSType<'a>,
     key_hash: &FxHashSet<String>,
 ) {
-    for_each_define_props_type_signature(ts_type, ctx, &mut |item| {
+    for_each_define_props_type_signature(ts_type, ctx.semantic(), &mut |item| {
         let (key_name, optional, key) = match item {
             TSSignature::TSPropertySignature(prop_sign) => {
                 (prop_sign.key.static_name(), prop_sign.optional, &prop_sign.key)

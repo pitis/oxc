@@ -1,0 +1,80 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-template-shadow): Variable 'i' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:43]
+ 1 │ <template><div v-for="i in 5"><div v-for="i in 5" /></div></template>
+   ·                                           ─
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'item' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:56]
+ 1 │ <template><div v-for="item in items"><span><div v-for="item in items" /></span></div></template>
+   ·                                                        ────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'item' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:52]
+ 1 │ <template><div v-for="item in items"><div v-for="{ item } in others" /></div></template>
+   ·                                                    ────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'value' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:52]
+ 1 │ <template><div v-for="value in items"><div v-for="(value, key) in others" /></div></template>
+   ·                                                    ─────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'item' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:56]
+ 1 │ <template><div v-for="item in items"><MyList v-slot="{ item }" /></div></template>
+   ·                                                        ────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'item' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:58]
+ 1 │ <template><div v-for="item in items"><MyList slot-scope="item" /></div></template>
+   ·                                                          ────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'count' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:23]
+ 1 │ <template><div v-for="count in items" /></template><script setup>const count = 1;</script>
+   ·                       ─────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'msg' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:23]
+ 1 │ <template><div v-for="msg in items" /></template><script setup lang="ts">defineProps<{ msg: string }>();</script>
+   ·                       ───
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'count' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:23]
+ 1 │ <template><div v-for="count in items" /></template><script>export default { props: ['count'] }</script>
+   ·                       ─────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'count' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:23]
+ 1 │ <template><div v-for="count in items" /></template><script>export default { data() { return { count: 1 } } }</script>
+   ·                       ─────
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.
+
+  ⚠ vue(no-template-shadow): Variable 'j' is already declared in the upper scope.
+   ╭─[no_template_shadow.tsx:1:83]
+ 1 │ <template><div v-for="i in 5"><div v-for="i in 5"><div v-for="j in 5"><div v-for="j in 5" /></div></div></div></template>
+   ·                                                                                   ─
+   ╰────
+  help: Rename this variable so it does not shadow the outer one.

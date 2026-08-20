@@ -969,6 +969,7 @@ pub use crate::rules::vue::no_reserved_props::NoReservedProps as VueNoReservedPr
 pub use crate::rules::vue::no_shared_component_data::NoSharedComponentData as VueNoSharedComponentData;
 pub use crate::rules::vue::no_side_effects_in_computed_properties::NoSideEffectsInComputedProperties as VueNoSideEffectsInComputedProperties;
 pub use crate::rules::vue::no_template_key::NoTemplateKey as VueNoTemplateKey;
+pub use crate::rules::vue::no_template_shadow::NoTemplateShadow as VueNoTemplateShadow;
 pub use crate::rules::vue::no_textarea_mustache::NoTextareaMustache as VueNoTextareaMustache;
 pub use crate::rules::vue::no_this_in_before_route_enter::NoThisInBeforeRouteEnter as VueNoThisInBeforeRouteEnter;
 pub use crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor as VueNoUseVIfWithVFor;
@@ -1863,8 +1864,8 @@ pub enum RuleEnum {
     NodeNoSync(NodeNoSync),
     NodeNoTopLevelAwait(NodeNoTopLevelAwait),
     VueAttributeHyphenation(VueAttributeHyphenation),
-    VueCommentDirective(VueCommentDirective),
     VueBlockOrder(VueBlockOrder),
+    VueCommentDirective(VueCommentDirective),
     VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing),
     VueDefineEmitsDeclaration(VueDefineEmitsDeclaration),
     VueDefinePropsDeclaration(VueDefinePropsDeclaration),
@@ -1914,6 +1915,7 @@ pub enum RuleEnum {
     VueNoSharedComponentData(VueNoSharedComponentData),
     VueNoSideEffectsInComputedProperties(VueNoSideEffectsInComputedProperties),
     VueNoTemplateKey(VueNoTemplateKey),
+    VueNoTemplateShadow(VueNoTemplateShadow),
     VueNoTextareaMustache(VueNoTextareaMustache),
     VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter),
     VueNoUseVIfWithVFor(VueNoUseVIfWithVFor),
@@ -2976,9 +2978,9 @@ const NODE_NO_PROCESS_ENV_ID: usize = NODE_NO_PATH_CONCAT_ID + 1usize;
 const NODE_NO_SYNC_ID: usize = NODE_NO_PROCESS_ENV_ID + 1usize;
 const NODE_NO_TOP_LEVEL_AWAIT_ID: usize = NODE_NO_SYNC_ID + 1usize;
 const VUE_ATTRIBUTE_HYPHENATION_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
-const VUE_COMMENT_DIRECTIVE_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
-const VUE_BLOCK_ORDER_ID: usize = VUE_COMMENT_DIRECTIVE_ID + 1usize;
-const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_BLOCK_ORDER_ID + 1usize;
+const VUE_BLOCK_ORDER_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_COMMENT_DIRECTIVE_ID: usize = VUE_BLOCK_ORDER_ID + 1usize;
+const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_COMMENT_DIRECTIVE_ID + 1usize;
 const VUE_DEFINE_EMITS_DECLARATION_ID: usize = VUE_COMPONENT_DEFINITION_NAME_CASING_ID + 1usize;
 const VUE_DEFINE_PROPS_DECLARATION_ID: usize = VUE_DEFINE_EMITS_DECLARATION_ID + 1usize;
 const VUE_DEFINE_PROPS_DESTRUCTURING_ID: usize = VUE_DEFINE_PROPS_DECLARATION_ID + 1usize;
@@ -3039,7 +3041,8 @@ const VUE_NO_SHARED_COMPONENT_DATA_ID: usize = VUE_NO_RESERVED_PROPS_ID + 1usize
 const VUE_NO_SIDE_EFFECTS_IN_COMPUTED_PROPERTIES_ID: usize =
     VUE_NO_SHARED_COMPONENT_DATA_ID + 1usize;
 const VUE_NO_TEMPLATE_KEY_ID: usize = VUE_NO_SIDE_EFFECTS_IN_COMPUTED_PROPERTIES_ID + 1usize;
-const VUE_NO_TEXTAREA_MUSTACHE_ID: usize = VUE_NO_TEMPLATE_KEY_ID + 1usize;
+const VUE_NO_TEMPLATE_SHADOW_ID: usize = VUE_NO_TEMPLATE_KEY_ID + 1usize;
+const VUE_NO_TEXTAREA_MUSTACHE_ID: usize = VUE_NO_TEMPLATE_SHADOW_ID + 1usize;
 const VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID: usize = VUE_NO_TEXTAREA_MUSTACHE_ID + 1usize;
 const VUE_NO_USE_V_IF_WITH_V_FOR_ID: usize = VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID + 1usize;
 const VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID: usize = VUE_NO_USE_V_IF_WITH_V_FOR_ID + 1usize;
@@ -3189,7 +3192,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1010usize] = [
+static RULE_NAMES: [&str; 1011usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4015,8 +4018,8 @@ static RULE_NAMES: [&str; 1010usize] = [
     NodeNoSync::NAME,
     NodeNoTopLevelAwait::NAME,
     VueAttributeHyphenation::NAME,
-    VueCommentDirective::NAME,
     VueBlockOrder::NAME,
+    VueCommentDirective::NAME,
     VueComponentDefinitionNameCasing::NAME,
     VueDefineEmitsDeclaration::NAME,
     VueDefinePropsDeclaration::NAME,
@@ -4066,6 +4069,7 @@ static RULE_NAMES: [&str; 1010usize] = [
     VueNoSharedComponentData::NAME,
     VueNoSideEffectsInComputedProperties::NAME,
     VueNoTemplateKey::NAME,
+    VueNoTemplateShadow::NAME,
     VueNoTextareaMustache::NAME,
     VueNoThisInBeforeRouteEnter::NAME,
     VueNoUseVIfWithVFor::NAME,
@@ -5155,8 +5159,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NODE_NO_SYNC_ID,
             Self::NodeNoTopLevelAwait(_) => NODE_NO_TOP_LEVEL_AWAIT_ID,
             Self::VueAttributeHyphenation(_) => VUE_ATTRIBUTE_HYPHENATION_ID,
-            Self::VueCommentDirective(_) => VUE_COMMENT_DIRECTIVE_ID,
             Self::VueBlockOrder(_) => VUE_BLOCK_ORDER_ID,
+            Self::VueCommentDirective(_) => VUE_COMMENT_DIRECTIVE_ID,
             Self::VueComponentDefinitionNameCasing(_) => VUE_COMPONENT_DEFINITION_NAME_CASING_ID,
             Self::VueDefineEmitsDeclaration(_) => VUE_DEFINE_EMITS_DECLARATION_ID,
             Self::VueDefinePropsDeclaration(_) => VUE_DEFINE_PROPS_DECLARATION_ID,
@@ -5214,6 +5218,7 @@ impl RuleEnum {
                 VUE_NO_SIDE_EFFECTS_IN_COMPUTED_PROPERTIES_ID
             }
             Self::VueNoTemplateKey(_) => VUE_NO_TEMPLATE_KEY_ID,
+            Self::VueNoTemplateShadow(_) => VUE_NO_TEMPLATE_SHADOW_ID,
             Self::VueNoTextareaMustache(_) => VUE_NO_TEXTAREA_MUSTACHE_ID,
             Self::VueNoThisInBeforeRouteEnter(_) => VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID,
             Self::VueNoUseVIfWithVFor(_) => VUE_NO_USE_V_IF_WITH_V_FOR_ID,
@@ -6370,8 +6375,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::CATEGORY,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::CATEGORY,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::CATEGORY,
-            Self::VueCommentDirective(_) => VueCommentDirective::CATEGORY,
             Self::VueBlockOrder(_) => VueBlockOrder::CATEGORY,
+            Self::VueCommentDirective(_) => VueCommentDirective::CATEGORY,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::CATEGORY,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::CATEGORY,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::CATEGORY,
@@ -6437,6 +6442,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::CATEGORY
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::CATEGORY,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::CATEGORY,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::CATEGORY,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::CATEGORY,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::CATEGORY,
@@ -7539,8 +7545,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::FIX,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::FIX,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::FIX,
-            Self::VueCommentDirective(_) => VueCommentDirective::FIX,
             Self::VueBlockOrder(_) => VueBlockOrder::FIX,
+            Self::VueCommentDirective(_) => VueCommentDirective::FIX,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::FIX,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::FIX,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::FIX,
@@ -7596,6 +7602,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::FIX
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::FIX,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::FIX,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::FIX,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::FIX,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::FIX,
@@ -8944,8 +8951,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::documentation(),
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::documentation(),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::documentation(),
-            Self::VueCommentDirective(_) => VueCommentDirective::documentation(),
             Self::VueBlockOrder(_) => VueBlockOrder::documentation(),
+            Self::VueCommentDirective(_) => VueCommentDirective::documentation(),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::documentation()
             }
@@ -9031,6 +9038,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::documentation()
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::documentation(),
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::documentation(),
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::documentation(),
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::documentation(),
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::documentation(),
@@ -11592,11 +11600,11 @@ impl RuleEnum {
                 .or_else(|| NodeNoTopLevelAwait::schema(generator)),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::config_schema(generator)
                 .or_else(|| VueAttributeHyphenation::schema(generator)),
-            Self::VueCommentDirective(_) => VueCommentDirective::config_schema(generator)
-                .or_else(|| VueCommentDirective::schema(generator)),
             Self::VueBlockOrder(_) => {
                 VueBlockOrder::config_schema(generator).or_else(|| VueBlockOrder::schema(generator))
             }
+            Self::VueCommentDirective(_) => VueCommentDirective::config_schema(generator)
+                .or_else(|| VueCommentDirective::schema(generator)),
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::config_schema(generator)
                     .or_else(|| VueComponentDefinitionNameCasing::schema(generator))
@@ -11753,6 +11761,8 @@ impl RuleEnum {
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::config_schema(generator)
                 .or_else(|| VueNoTemplateKey::schema(generator)),
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::config_schema(generator)
+                .or_else(|| VueNoTemplateShadow::schema(generator)),
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::config_schema(generator)
                 .or_else(|| VueNoTextareaMustache::schema(generator)),
             Self::VueNoThisInBeforeRouteEnter(_) => {
@@ -12974,8 +12984,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => "node",
             Self::NodeNoTopLevelAwait(_) => "node",
             Self::VueAttributeHyphenation(_) => "vue",
-            Self::VueCommentDirective(_) => "vue",
             Self::VueBlockOrder(_) => "vue",
+            Self::VueCommentDirective(_) => "vue",
             Self::VueComponentDefinitionNameCasing(_) => "vue",
             Self::VueDefineEmitsDeclaration(_) => "vue",
             Self::VueDefinePropsDeclaration(_) => "vue",
@@ -13025,6 +13035,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(_) => "vue",
             Self::VueNoSideEffectsInComputedProperties(_) => "vue",
             Self::VueNoTemplateKey(_) => "vue",
+            Self::VueNoTemplateShadow(_) => "vue",
             Self::VueNoTextareaMustache(_) => "vue",
             Self::VueNoThisInBeforeRouteEnter(_) => "vue",
             Self::VueNoUseVIfWithVFor(_) => "vue",
@@ -14267,6 +14278,9 @@ impl RuleEnum {
             Self::VueNoReservedProps(_) => {
                 Ok(Self::VueNoReservedProps(VueNoReservedProps::from_configuration(value)?))
             }
+            Self::VueNoTemplateShadow(_) => {
+                Ok(Self::VueNoTemplateShadow(VueNoTemplateShadow::from_configuration(value)?))
+            }
             Self::VueNoUseVIfWithVFor(_) => {
                 Ok(Self::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::from_configuration(value)?))
             }
@@ -15265,8 +15279,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run(node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run(node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run(node, ctx),
-            Self::VueCommentDirective(rule) => rule.run(node, ctx),
             Self::VueBlockOrder(rule) => rule.run(node, ctx),
+            Self::VueCommentDirective(rule) => rule.run(node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run(node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run(node, ctx),
@@ -15316,6 +15330,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(rule) => rule.run(node, ctx),
             Self::VueNoSideEffectsInComputedProperties(rule) => rule.run(node, ctx),
             Self::VueNoTemplateKey(rule) => rule.run(node, ctx),
+            Self::VueNoTemplateShadow(rule) => rule.run(node, ctx),
             Self::VueNoTextareaMustache(rule) => rule.run(node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run(node, ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run(node, ctx),
@@ -16292,8 +16307,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_once(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_once(ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_once(ctx),
-            Self::VueCommentDirective(rule) => rule.run_once(ctx),
             Self::VueBlockOrder(rule) => rule.run_once(ctx),
+            Self::VueCommentDirective(rule) => rule.run_once(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_once(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_once(ctx),
@@ -16343,6 +16358,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(rule) => rule.run_once(ctx),
             Self::VueNoSideEffectsInComputedProperties(rule) => rule.run_once(ctx),
             Self::VueNoTemplateKey(rule) => rule.run_once(ctx),
+            Self::VueNoTemplateShadow(rule) => rule.run_once(ctx),
             Self::VueNoTextareaMustache(rule) => rule.run_once(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_once(ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_once(ctx),
@@ -17432,8 +17448,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
-            Self::VueCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueBlockOrder(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17489,6 +17505,7 @@ impl RuleEnum {
                 rule.run_on_jest_node(jest_node, ctx)
             }
             Self::VueNoTemplateKey(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoTemplateShadow(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoTextareaMustache(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18482,8 +18499,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.should_run(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.should_run(ctx),
             Self::VueAttributeHyphenation(rule) => rule.should_run(ctx),
-            Self::VueCommentDirective(rule) => rule.should_run(ctx),
             Self::VueBlockOrder(rule) => rule.should_run(ctx),
+            Self::VueCommentDirective(rule) => rule.should_run(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.should_run(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.should_run(ctx),
@@ -18533,6 +18550,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(rule) => rule.should_run(ctx),
             Self::VueNoSideEffectsInComputedProperties(rule) => rule.should_run(ctx),
             Self::VueNoTemplateKey(rule) => rule.should_run(ctx),
+            Self::VueNoTemplateShadow(rule) => rule.should_run(ctx),
             Self::VueNoTextareaMustache(rule) => rule.should_run(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.should_run(ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.should_run(ctx),
@@ -19864,8 +19882,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::IS_TSGOLINT_RULE,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::IS_TSGOLINT_RULE,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::IS_TSGOLINT_RULE,
-            Self::VueCommentDirective(_) => VueCommentDirective::IS_TSGOLINT_RULE,
             Self::VueBlockOrder(_) => VueBlockOrder::IS_TSGOLINT_RULE,
+            Self::VueCommentDirective(_) => VueCommentDirective::IS_TSGOLINT_RULE,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::IS_TSGOLINT_RULE
             }
@@ -19951,6 +19969,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::IS_TSGOLINT_RULE
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::IS_TSGOLINT_RULE,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::IS_TSGOLINT_RULE,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::IS_TSGOLINT_RULE,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::IS_TSGOLINT_RULE,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::IS_TSGOLINT_RULE,
@@ -21146,8 +21165,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::VERSION,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::VERSION,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::VERSION,
-            Self::VueCommentDirective(_) => VueCommentDirective::VERSION,
             Self::VueBlockOrder(_) => VueBlockOrder::VERSION,
+            Self::VueCommentDirective(_) => VueCommentDirective::VERSION,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::VERSION,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::VERSION,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::VERSION,
@@ -21213,6 +21232,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::VERSION
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::VERSION,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::VERSION,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::VERSION,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::VERSION,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::VERSION,
@@ -22409,8 +22429,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::HAS_CONFIG,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::HAS_CONFIG,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::HAS_CONFIG,
-            Self::VueCommentDirective(_) => VueCommentDirective::HAS_CONFIG,
             Self::VueBlockOrder(_) => VueBlockOrder::HAS_CONFIG,
+            Self::VueCommentDirective(_) => VueCommentDirective::HAS_CONFIG,
             Self::VueComponentDefinitionNameCasing(_) => {
                 VueComponentDefinitionNameCasing::HAS_CONFIG
             }
@@ -22484,6 +22504,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::HAS_CONFIG
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::HAS_CONFIG,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::HAS_CONFIG,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::HAS_CONFIG,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::HAS_CONFIG,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::HAS_CONFIG,
@@ -23595,8 +23616,8 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::INFO,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::INFO,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::INFO,
-            Self::VueCommentDirective(_) => VueCommentDirective::INFO,
             Self::VueBlockOrder(_) => VueBlockOrder::INFO,
+            Self::VueCommentDirective(_) => VueCommentDirective::INFO,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::INFO,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::INFO,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::INFO,
@@ -23652,6 +23673,7 @@ impl RuleEnum {
                 VueNoSideEffectsInComputedProperties::INFO
             }
             Self::VueNoTemplateKey(_) => VueNoTemplateKey::INFO,
+            Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::INFO,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::INFO,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::INFO,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::INFO,
@@ -24636,8 +24658,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.types_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.types_info(),
             Self::VueAttributeHyphenation(rule) => rule.types_info(),
-            Self::VueCommentDirective(rule) => rule.types_info(),
             Self::VueBlockOrder(rule) => rule.types_info(),
+            Self::VueCommentDirective(rule) => rule.types_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.types_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.types_info(),
@@ -24687,6 +24709,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(rule) => rule.types_info(),
             Self::VueNoSideEffectsInComputedProperties(rule) => rule.types_info(),
             Self::VueNoTemplateKey(rule) => rule.types_info(),
+            Self::VueNoTemplateShadow(rule) => rule.types_info(),
             Self::VueNoTextareaMustache(rule) => rule.types_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.types_info(),
             Self::VueNoUseVIfWithVFor(rule) => rule.types_info(),
@@ -25650,8 +25673,8 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.run_info(),
             Self::VueAttributeHyphenation(rule) => rule.run_info(),
-            Self::VueCommentDirective(rule) => rule.run_info(),
             Self::VueBlockOrder(rule) => rule.run_info(),
+            Self::VueCommentDirective(rule) => rule.run_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.run_info(),
@@ -25701,6 +25724,7 @@ impl RuleEnum {
             Self::VueNoSharedComponentData(rule) => rule.run_info(),
             Self::VueNoSideEffectsInComputedProperties(rule) => rule.run_info(),
             Self::VueNoTemplateKey(rule) => rule.run_info(),
+            Self::VueNoTemplateShadow(rule) => rule.run_info(),
             Self::VueNoTextareaMustache(rule) => rule.run_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_info(),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_info(),
@@ -26796,8 +26820,8 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::NodeNoSync(NodeNoSync::default()),
         RuleEnum::NodeNoTopLevelAwait(NodeNoTopLevelAwait::default()),
         RuleEnum::VueAttributeHyphenation(VueAttributeHyphenation::default()),
-        RuleEnum::VueCommentDirective(VueCommentDirective::default()),
         RuleEnum::VueBlockOrder(VueBlockOrder::default()),
+        RuleEnum::VueCommentDirective(VueCommentDirective::default()),
         RuleEnum::VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing::default()),
         RuleEnum::VueDefineEmitsDeclaration(VueDefineEmitsDeclaration::default()),
         RuleEnum::VueDefinePropsDeclaration(VueDefinePropsDeclaration::default()),
@@ -26853,6 +26877,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
             VueNoSideEffectsInComputedProperties::default(),
         ),
         RuleEnum::VueNoTemplateKey(VueNoTemplateKey::default()),
+        RuleEnum::VueNoTemplateShadow(VueNoTemplateShadow::default()),
         RuleEnum::VueNoTextareaMustache(VueNoTextareaMustache::default()),
         RuleEnum::VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter::default()),
         RuleEnum::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::default()),

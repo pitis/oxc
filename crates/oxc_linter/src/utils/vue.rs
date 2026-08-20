@@ -1,13 +1,19 @@
+use std::borrow::Cow;
+
 use phf::{Set, phf_set};
 
 use oxc_ast::{
     AstKind,
     ast::{
         CallExpression, ExportDefaultDeclarationKind, Expression, IdentifierReference,
-        ObjectExpression, ObjectProperty, ObjectPropertyKind, TSSignature, TSType, TSTypeName,
+        ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKey, Statement, TSSignature,
+        TSType, TSTypeName,
     },
 };
+use oxc_semantic::Semantic;
 use oxc_span::{GetSpan, Span};
+use oxc_syntax::number::ToJsString;
+use rustc_hash::FxHashSet;
 
 use crate::{
     AstNode, ContextSubHost, LintContext, ast_util::get_declaration_from_reference_id,
@@ -243,16 +249,34 @@ pub fn vue_component_options_kind(
     object_node: &AstNode<'_>,
     ctx: &LintContext<'_>,
 ) -> Option<VueComponentObjectKind> {
+    vue_component_options_kind_in(
+        object_node,
+        ctx.semantic(),
+        ctx.file_extension().is_some_and(|extension| extension == "vue"),
+        ctx.frameworks_options(),
+    )
+}
+
+/// [`vue_component_options_kind`] against a bare [`Semantic`], for callers
+/// that hold a [`ContextSubHost`] rather than a rule's [`LintContext`] — the
+/// Vue `<template>` pass, which has to read the component's `<script>`
+/// without ever being a script rule itself.
+pub fn vue_component_options_kind_in(
+    object_node: &AstNode<'_>,
+    semantic: &Semantic<'_>,
+    is_vue_file: bool,
+    framework_options: FrameworkOptions,
+) -> Option<VueComponentObjectKind> {
     let AstKind::ObjectExpression(object_expr) = object_node.kind() else {
         return None;
     };
 
-    ctx.nodes().ancestors(object_node.id()).find_map(|ancestor| match ancestor.kind() {
+    semantic.nodes().ancestors(object_node.id()).find_map(|ancestor| match ancestor.kind() {
         AstKind::ExportDefaultDeclaration(export_default_decl) => {
-            if ctx.file_extension().is_none_or(|ext| ext != "vue") {
+            if !is_vue_file {
                 return None;
             }
-            if ctx.frameworks_options() == FrameworkOptions::VueSetup {
+            if framework_options == FrameworkOptions::VueSetup {
                 return None;
             }
             (export_default_decl.declaration.span() == object_expr.span)
@@ -354,6 +378,39 @@ pub fn is_vue_next_tick_import(ident: &IdentifierReference, ctx: &LintContext<'_
     false
 }
 
+/// Mirrors upstream `getStringLiteralValue`: the prop-name string of a literal
+/// array element. Non-string literals are stringified like JS `String(value)`;
+/// `null` has no name.
+pub fn literal_element_name<'a>(expr: &Expression<'a>) -> Option<Cow<'a, str>> {
+    match expr {
+        Expression::StringLiteral(s) => Some(Cow::Borrowed(s.value.as_str())),
+        Expression::TemplateLiteral(t) => t.single_quasi().map(Into::into),
+        Expression::NumericLiteral(n) => Some(Cow::Owned(n.value.to_js_string())),
+        Expression::BooleanLiteral(b) => {
+            Some(Cow::Borrowed(if b.value { "true" } else { "false" }))
+        }
+        Expression::BigIntLiteral(b) => Some(Cow::Borrowed(b.value.as_str())),
+        Expression::RegExpLiteral(r) => Some(Cow::Owned(r.regex.to_string())),
+        _ => None,
+    }
+}
+
+/// `PropertyKey::static_name` adjusted to upstream `getStaticPropertyName` semantics:
+/// numeric keys are formatted like JS `String(n)` (`1e-7` → "1e-7", not "0.0000001"),
+/// a computed `[true]` key is named "true", and a computed `[null]` key has no name
+/// (upstream's `getStringLiteralValue` bails on `value == null`; a plain `null` key
+/// is an identifier, not this variant).
+pub fn static_key_name<'a>(key: &PropertyKey<'a>) -> Option<Cow<'a, str>> {
+    match key {
+        PropertyKey::NumericLiteral(n) => Some(Cow::Owned(n.value.to_js_string())),
+        PropertyKey::BooleanLiteral(b) => {
+            Some(Cow::Borrowed(if b.value { "true" } else { "false" }))
+        }
+        PropertyKey::NullLiteral(_) => None,
+        _ => key.static_name(),
+    }
+}
+
 /// Finds the first `ObjectProperty` whose static key matches `name` in the given object.
 /// `SpreadElement` entries are skipped.
 pub fn find_property<'a, 'b>(
@@ -372,9 +429,14 @@ pub fn find_property<'a, 'b>(
 /// recursively down to their signatures. `f` receives every `TSSignature`
 /// member (including non-property kinds), leaving the caller to pick out what
 /// it needs.
+///
+/// Takes a [`Semantic`] rather than a [`LintContext`] so the Vue
+/// `<template>` pass, which sees a `<script setup>` block as a
+/// [`ContextSubHost`] and never as a rule context, can resolve prop names the
+/// same way the script-side rules do.
 pub fn for_each_define_props_type_signature<'a>(
     ts_type: &TSType<'a>,
-    ctx: &LintContext<'a>,
+    semantic: &Semantic<'a>,
     f: &mut dyn FnMut(&TSSignature<'a>),
 ) {
     match ts_type {
@@ -385,21 +447,21 @@ pub fn for_each_define_props_type_signature<'a>(
         }
         TSType::TSUnionType(union) => {
             for member in &union.types {
-                for_each_define_props_type_signature(member, ctx, f);
+                for_each_define_props_type_signature(member, semantic, f);
             }
         }
         TSType::TSIntersectionType(intersection) => {
             for member in &intersection.types {
-                for_each_define_props_type_signature(member, ctx, f);
+                for_each_define_props_type_signature(member, semantic, f);
             }
         }
         TSType::TSTypeReference(type_ref) => {
             let TSTypeName::IdentifierReference(ident) = &type_ref.type_name else { return };
-            if !ctx.scoping().get_reference(ident.reference_id()).is_type() {
+            if !semantic.scoping().get_reference(ident.reference_id()).is_type() {
                 return;
             }
             let Some(declaration) =
-                get_declaration_from_reference_id(ident.reference_id(), ctx.semantic())
+                get_declaration_from_reference_id(ident.reference_id(), semantic)
             else {
                 return;
             };
@@ -410,7 +472,7 @@ pub fn for_each_define_props_type_signature<'a>(
                     }
                 }
                 AstKind::TSTypeAliasDeclaration(alias) => {
-                    for_each_define_props_type_signature(&alias.type_annotation, ctx, f);
+                    for_each_define_props_type_signature(&alias.type_annotation, semantic, f);
                 }
                 _ => {}
             }
@@ -550,4 +612,162 @@ pub fn is_vue_computed_call(call: &CallExpression<'_>, ctx: &LintContext<'_>) ->
         }
         scoping.get_root_binding(entry.local_name.name().into()) == Some(symbol_id)
     })
+}
+
+/// The names a `<template>` expression resolves to from the component's own
+/// `<script>` — eslint-plugin-vue's `jsVars`, assembled the way
+/// `no-template-shadow` assembles it.
+///
+/// Two independent halves, exactly as upstream composes them:
+///
+/// - **`<script setup>`**: every binding in the script's module scope, since
+///   `<script setup>` exposes all of them to the template, plus the prop names
+///   `defineProps` declares (template-visible without being module bindings).
+/// - **Any component options object** (`export default {…}`,
+///   `defineComponent({…})`, `new Vue({…})`, …): the keys of its `props`,
+///   `computed`, `data`, `asyncData`, `methods` and `setup` groups.
+///
+/// A top-level `const` in a plain (non-`setup`) `<script>` is deliberately NOT
+/// included. Upstream gates that half on `utils.isScriptSetup`, i.e. on the
+/// *file* having a `<script setup>` block at all, and in an Options API
+/// component such a binding really is invisible to the template.
+///
+/// A file with both block kinds has one [`ContextSubHost`] per block and gets
+/// both halves.
+pub fn vue_template_visible_script_names(hosts: &[ContextSubHost<'_>]) -> FxHashSet<String> {
+    /// Upstream's `GROUP_NAMES` for this rule. Note `asyncData` (Nuxt 2),
+    /// which `no-dupe-keys`' otherwise identical list leaves out.
+    const GROUP_NAMES: [&str; 6] = ["props", "computed", "data", "asyncData", "methods", "setup"];
+
+    let mut names = FxHashSet::default();
+    let is_script_setup =
+        hosts.iter().any(|host| host.framework_options() == FrameworkOptions::VueSetup);
+
+    for host in hosts {
+        let semantic = host.semantic();
+        let framework_options = host.framework_options();
+
+        if is_script_setup {
+            let scoping = semantic.scoping();
+            for (name, _) in scoping.get_bindings(scoping.root_scope_id()) {
+                names.insert(name.to_string());
+            }
+        }
+
+        for node in semantic.nodes() {
+            match node.kind() {
+                AstKind::CallExpression(call)
+                    if framework_options == FrameworkOptions::VueSetup
+                        && matches!(call.callee, Expression::Identifier(_))
+                        && call.callee_name() == Some("defineProps") =>
+                {
+                    collect_define_props_names(call, semantic, &mut names);
+                }
+                AstKind::ObjectExpression(object)
+                    if vue_component_options_kind_in(node, semantic, true, framework_options)
+                        .is_some() =>
+                {
+                    for group in GROUP_NAMES {
+                        let Some(property) = find_property(object, group) else { continue };
+                        collect_group_key_names(&property.value, &mut names);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    names
+}
+
+/// The prop names a `defineProps` call declares, from either its runtime
+/// argument (an object of prop definitions, or an array of prop names) or its
+/// type argument — upstream's `onDefinePropsEnter` `props` list.
+fn collect_define_props_names<'a>(
+    call: &CallExpression<'a>,
+    semantic: &Semantic<'a>,
+    out: &mut FxHashSet<String>,
+) {
+    let Some(argument) = call.arguments.first().and_then(|argument| argument.as_expression())
+    else {
+        let Some(type_arguments) = &call.type_arguments else { return };
+        let Some(first_type) = type_arguments.params.first() else { return };
+        for_each_define_props_type_signature(first_type, semantic, &mut |signature| {
+            let key = match signature {
+                TSSignature::TSPropertySignature(signature) => &signature.key,
+                TSSignature::TSMethodSignature(signature) => &signature.key,
+                _ => return,
+            };
+            if let Some(name) = static_key_name(key) {
+                out.insert(name.into_owned());
+            }
+        });
+        return;
+    };
+    collect_group_key_names(argument, out);
+}
+
+/// The key names one component option group contributes, mirroring upstream's
+/// `iterateProperties` dispatch on the option's value: an array of prop-name
+/// literals, an object of definitions, or a `data()`/`setup()` function whose
+/// returned object literal is what the template sees.
+///
+/// Upstream's getter/setter pairing (`usedGetter`) is not reproduced because
+/// it cannot matter here: it only decides which of two same-named properties
+/// is yielded, and both yield the same name into a set.
+fn collect_group_key_names(value: &Expression<'_>, out: &mut FxHashSet<String>) {
+    // Only unwrap parens: espree has no paren nodes, so upstream sees through
+    // them, while a TS `as`-wrapped value is opaque to upstream and stays
+    // opaque here.
+    match value.without_parentheses() {
+        Expression::ArrayExpression(array) => {
+            for element in &array.elements {
+                let Some(expression) = element.as_expression() else { continue };
+                if let Some(name) = literal_element_name(expression.without_parentheses())
+                    && !name.is_empty()
+                {
+                    out.insert(name.into_owned());
+                }
+            }
+        }
+        Expression::ObjectExpression(object) => {
+            for property in &object.properties {
+                let ObjectPropertyKind::ObjectProperty(property) = property else { continue };
+                if let Some(name) = static_key_name(&property.key)
+                    && !name.is_empty()
+                {
+                    out.insert(name.into_owned());
+                }
+            }
+        }
+        Expression::FunctionExpression(function) => {
+            if let Some(body) = &function.body {
+                collect_returned_object_key_names(&body.statements, out);
+            }
+        }
+        Expression::ArrowFunctionExpression(arrow) => {
+            if arrow.is_expression() {
+                if let Some(expression) = arrow.get_expression()
+                    && let Expression::ObjectExpression(_) = expression.without_parentheses()
+                {
+                    collect_group_key_names(expression, out);
+                }
+            } else if let Some(body) = arrow.get_function_body() {
+                collect_returned_object_key_names(&body.statements, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// The keys of every object literal returned directly from `statements` —
+/// what `data() { return { … } }` contributes.
+fn collect_returned_object_key_names(statements: &[Statement<'_>], out: &mut FxHashSet<String>) {
+    for statement in statements {
+        if let Statement::ReturnStatement(return_statement) = statement
+            && let Some(argument) = &return_statement.argument
+            && matches!(argument.without_parentheses(), Expression::ObjectExpression(_))
+        {
+            collect_group_key_names(argument, out);
+        }
+    }
 }

@@ -157,7 +157,7 @@ fn handle_define_props<'a>(
     if let Some(type_args) = call.type_arguments.as_ref()
         && let Some(first) = type_args.params.first()
     {
-        for_each_define_props_type_signature(first, ctx, &mut |sig| {
+        for_each_define_props_type_signature(first, ctx.semantic(), &mut |sig| {
             check_type_signature(sig, ctx, pc);
         });
     }

@@ -15,14 +15,16 @@ use oxc_diagnostics::OxcDiagnostic;
 use oxc_macros::declare_oxc_lint;
 use oxc_semantic::SymbolId;
 use oxc_span::{GetSpan, Span};
-use oxc_syntax::number::ToJsString;
 
 use crate::{
     AstNode,
     context::LintContext,
     frameworks::FrameworkOptions,
     rule::{DefaultRuleConfig, Rule},
-    utils::{for_each_define_props_type_signature, is_vue_component_options_object},
+    utils::{
+        for_each_define_props_type_signature, is_vue_component_options_object,
+        literal_element_name, static_key_name,
+    },
 };
 
 fn duplicate_key_diagnostic(span: Span, name: &str) -> OxcDiagnostic {
@@ -313,38 +315,6 @@ fn report_or_add<'a>(
     }
 }
 
-/// Mirrors upstream `getStringLiteralValue`: the prop-name string of a literal array element.
-/// Non-string literals are stringified like JS `String(value)`; `null` has no name.
-fn literal_element_name<'a>(expr: &Expression<'a>) -> Option<Cow<'a, str>> {
-    match expr {
-        Expression::StringLiteral(s) => Some(Cow::Borrowed(s.value.as_str())),
-        Expression::TemplateLiteral(t) => t.single_quasi().map(Into::into),
-        Expression::NumericLiteral(n) => Some(Cow::Owned(n.value.to_js_string())),
-        Expression::BooleanLiteral(b) => {
-            Some(Cow::Borrowed(if b.value { "true" } else { "false" }))
-        }
-        Expression::BigIntLiteral(b) => Some(Cow::Borrowed(b.value.as_str())),
-        Expression::RegExpLiteral(r) => Some(Cow::Owned(r.regex.to_string())),
-        _ => None,
-    }
-}
-
-/// `PropertyKey::static_name` adjusted to upstream `getStaticPropertyName` semantics:
-/// numeric keys are formatted like JS `String(n)` (`1e-7` → "1e-7", not "0.0000001"),
-/// a computed `[true]` key is named "true", and a computed `[null]` key has no name
-/// (upstream's `getStringLiteralValue` bails on `value == null`; a plain `null` key
-/// is an identifier, not this variant).
-fn static_key_name<'a>(key: &PropertyKey<'a>) -> Option<Cow<'a, str>> {
-    match key {
-        PropertyKey::NumericLiteral(n) => Some(Cow::Owned(n.value.to_js_string())),
-        PropertyKey::BooleanLiteral(b) => {
-            Some(Cow::Borrowed(if b.value { "true" } else { "false" }))
-        }
-        PropertyKey::NullLiteral(_) => None,
-        _ => key.static_name(),
-    }
-}
-
 // ---- script setup helpers ----
 
 /// Resolve the declarator binding the defineProps result (directly or via `withDefaults`),
@@ -457,7 +427,7 @@ fn collect_ts_type_prop_names<'a>(
 ) {
     let Some(type_params) = &call.type_arguments else { return };
     let Some(first_type) = type_params.params.first() else { return };
-    for_each_define_props_type_signature(first_type, ctx, &mut |sig| {
+    for_each_define_props_type_signature(first_type, ctx.semantic(), &mut |sig| {
         let key = match sig {
             TSSignature::TSPropertySignature(s) => &s.key,
             TSSignature::TSMethodSignature(s) => &s.key,

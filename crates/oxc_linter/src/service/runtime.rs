@@ -670,8 +670,11 @@ impl Runtime {
                         // The template pass is independent of the script
                         // sub-hosts: it must run even for `.vue` files with
                         // no `<script>` block at all.
-                        let mut template_messages =
-                            me.linter.run_vue_template_rules(path, dep.source_text);
+                        let mut template_messages = me.linter.run_vue_template_rules(
+                            path,
+                            dep.source_text,
+                            &context_sub_hosts,
+                        );
                         template_messages
                             .extend(me.linter.run_svelte_template_rules(path, dep.source_text));
                         crate::vue_template::filter_by_script_directives(
@@ -833,7 +836,7 @@ impl Runtime {
                             // See `run_impl`: the template pass also covers
                             // `.vue` files without any `<script>` block.
                             let mut template_messages =
-                                me.linter.run_vue_template_rules(path, source_text);
+                                me.linter.run_vue_template_rules(path, source_text, &context_sub_hosts);
                             template_messages
                                 .extend(me.linter.run_svelte_template_rules(path, source_text));
                             crate::vue_template::filter_by_script_directives(
@@ -989,7 +992,7 @@ impl Runtime {
                         // `.vue` files without any `<script>` block.
                         let mut template_messages = me
                             .linter
-                            .run_vue_template_rules(Path::new(&module.path), source_text);
+                            .run_vue_template_rules(Path::new(&module.path), source_text, &context_sub_hosts);
                         template_messages.extend(
                             me.linter
                                 .run_svelte_template_rules(Path::new(&module.path), source_text),

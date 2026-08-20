@@ -26,11 +26,11 @@
 //!
 //! Not yet supported: fixes.
 
-use std::path::Path;
+use std::{path::Path, rc::Rc};
 
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_span::Span;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use vue_sfc_parser::{Sfc, ast::Comment, ast::Node, parse_sfc, parse_template};
 
 use crate::{
@@ -38,6 +38,7 @@ use crate::{
     context::ContextSubHost,
     fixer::{Message, PossibleFixes},
     rules::RuleEnum,
+    utils::vue_template_visible_script_names,
 };
 
 /// A rule that lints the parsed `<template>` AST of a `.vue` file.
@@ -51,6 +52,15 @@ pub trait VueTemplateRule {
     /// absolute file offsets, and index into `ctx.source_text()` (the whole
     /// `.vue` file). Report through `ctx` with those same spans.
     fn run_on_template<'a>(&self, nodes: &[Node<'a>], ctx: &mut VueTemplateContext<'a>);
+
+    /// Whether this rule reads [`VueTemplateContext::script_names`].
+    ///
+    /// Collecting those means walking every `<script>` block's AST, so it is
+    /// done once per file and only when a rule that asks for it is enabled.
+    /// A rule that returns `false` (the default) always sees an empty set.
+    fn needs_script_names(&self) -> bool {
+        false
+    }
 }
 
 /// A rule that lints the whole `.vue` SFC (its blocks, not a single
@@ -75,6 +85,7 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueRequireVForKey(rule) => Some(rule),
         RuleEnum::VueNoDuplicateAttributes(rule) => Some(rule),
         RuleEnum::VueNoTemplateKey(rule) => Some(rule),
+        RuleEnum::VueNoTemplateShadow(rule) => Some(rule),
         RuleEnum::VueNoTextareaMustache(rule) => Some(rule),
         RuleEnum::VueRequireComponentIs(rule) => Some(rule),
         RuleEnum::VueNoLoneTemplate(rule) => Some(rule),
@@ -143,6 +154,14 @@ fn as_vue_sfc_rule(rule: &RuleEnum) -> Option<&dyn VueSfcRule> {
 pub struct VueTemplateContext<'a> {
     /// The whole `.vue` file source — what the AST spans index into.
     source_text: &'a str,
+    /// The names the component's `<script>` puts in the template's reach, for
+    /// the rules that declare [`VueTemplateRule::needs_script_names`]; empty
+    /// for every other rule, and for a file with no `<script>` block.
+    ///
+    /// Shared rather than borrowed: one set is built per file and each rule's
+    /// context is a fresh struct, so an `Rc` keeps the set out of the
+    /// context's lifetime without copying it per rule.
+    script_names: Rc<FxHashSet<String>>,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
@@ -150,6 +169,14 @@ impl<'a> VueTemplateContext<'a> {
     /// The whole `.vue` file source (what the AST spans are relative to).
     pub fn source_text(&self) -> &'a str {
         self.source_text
+    }
+
+    /// The script-declared names visible to a template expression — see
+    /// [`crate::utils::vue_template_visible_script_names`], whose result this
+    /// is. Empty unless the rule declares
+    /// [`VueTemplateRule::needs_script_names`].
+    pub fn script_names(&self) -> &FxHashSet<String> {
+        &self.script_names
     }
 
     /// Report a violation. Label spans are absolute file offsets, exactly as
@@ -166,7 +193,12 @@ impl Linter {
     /// messages from the script pass (error code, docs URL, severity).
     /// Returns an empty vec for non-`.vue` paths and when no template-capable
     /// or SFC-capable rule is enabled, without parsing anything.
-    pub(crate) fn run_vue_template_rules(&self, path: &Path, source_text: &str) -> Vec<Message> {
+    pub(crate) fn run_vue_template_rules(
+        &self,
+        path: &Path,
+        source_text: &str,
+        script_hosts: &[ContextSubHost<'_>],
+    ) -> Vec<Message> {
         if path.extension().and_then(std::ffi::OsStr::to_str) != Some("vue") {
             return Vec::new();
         }
@@ -227,8 +259,21 @@ impl Linter {
         // its report at the start of the file or at a block's opening tag,
         // both of which come *before* any comment inside a `<template>`, and a
         // directive never reaches backwards.
+        // One walk of the `<script>` ASTs per file, and only when an enabled
+        // rule actually reads the result.
+        let script_names =
+            Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_names()) {
+                vue_template_visible_script_names(script_hosts)
+            } else {
+                FxHashSet::default()
+            });
+
         for (rule, sfc_rule, severity) in &sfc_rules {
-            let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
+            let mut ctx = VueTemplateContext {
+                source_text,
+                script_names: Rc::clone(&script_names),
+                diagnostics: Vec::new(),
+            };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
             let mut diagnostics = ctx.diagnostics;
             retain_unsuppressed(&mut diagnostics, &[&document_directives], rule);
@@ -268,7 +313,11 @@ impl Linter {
             let directives =
                 TemplateCommentDirectives::collect(&nodes, &line_starts, block.content_span.end);
             for (rule, template_rule, severity) in &template_rules {
-                let mut ctx = VueTemplateContext { source_text, diagnostics: Vec::new() };
+                let mut ctx = VueTemplateContext {
+                    source_text,
+                    script_names: Rc::clone(&script_names),
+                    diagnostics: Vec::new(),
+                };
                 template_rule.run_on_template(&nodes, &mut ctx);
                 let mut diagnostics = ctx.diagnostics;
                 retain_unsuppressed(&mut diagnostics, &[&document_directives, &directives], rule);

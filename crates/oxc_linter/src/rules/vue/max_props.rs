@@ -195,7 +195,7 @@ fn get_type_argument_keys<'a>(
     type_argument: &TSType<'a>,
 ) -> FxHashSet<CompactStr> {
     let mut keys = FxHashSet::default();
-    for_each_define_props_type_signature(type_argument, ctx, &mut |signature| {
+    for_each_define_props_type_signature(type_argument, ctx.semantic(), &mut |signature| {
         let name = match signature {
             TSSignature::TSPropertySignature(prop) => prop.key.static_name(),
             TSSignature::TSMethodSignature(method) => method.key.static_name(),

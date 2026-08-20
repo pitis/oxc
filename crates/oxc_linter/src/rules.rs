@@ -966,6 +966,7 @@ pub(crate) mod vue {
     pub mod no_shared_component_data;
     pub mod no_side_effects_in_computed_properties;
     pub mod no_template_key;
+    pub mod no_template_shadow;
     pub mod no_textarea_mustache;
     pub mod no_this_in_before_route_enter;
     pub mod no_use_v_if_with_v_for;

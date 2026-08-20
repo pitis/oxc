@@ -145,7 +145,7 @@ impl PropNameCasing {
         // details).
         let Some(type_arguments) = call.type_arguments.as_deref() else { return };
         let Some(first_type) = type_arguments.params.first() else { return };
-        for_each_define_props_type_signature(first_type, ctx, &mut |signature| {
+        for_each_define_props_type_signature(first_type, ctx.semantic(), &mut |signature| {
             self.check_signature(signature, ctx);
         });
     }

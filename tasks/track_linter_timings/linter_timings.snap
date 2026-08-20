@@ -850,6 +850,7 @@ vue/no-required-prop-with-default                          |  62608
 vue/no-shared-component-data                               |  32492
 vue/no-side-effects-in-computed-properties                 |  94090
 vue/no-template-key                                        |      0
+vue/no-template-shadow                                     |      0
 vue/no-textarea-mustache                                   |      0
 vue/no-use-v-if-with-v-for                                 |      0
 vue/no-useless-template-attributes                         |      0
