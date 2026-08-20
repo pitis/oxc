@@ -313,3 +313,30 @@ fn honours_sort_order_none() {
         "<div>markup</div>\n\n<script>\n\tlet a = 1;\n</script>\n",
     );
 }
+
+/// Any ordering of the four section names, not only the ones that start with
+/// `options`.
+#[test]
+fn parses_every_sort_order() {
+    use crate::print::Section::{Markup, Options, Scripts, Styles};
+    assert_eq!(
+        SortOrder::from_config_str("styles-options-markup-scripts"),
+        Some(SortOrder::Sections([Styles, Options, Markup, Scripts]))
+    );
+    assert_eq!(SortOrder::from_config_str("none"), Some(SortOrder::None));
+    assert_eq!(SortOrder::default().sections(), [Options, Scripts, Markup, Styles]);
+    // A section left out would have its content dropped rather than moved.
+    assert_eq!(SortOrder::from_config_str("options-scripts"), None);
+    assert_eq!(SortOrder::from_config_str("options-options-markup-styles"), None);
+    assert_eq!(SortOrder::from_config_str("options-scripts-markup-nonsense"), None);
+
+    let options = SvelteFormatOptions {
+        sort_order: SortOrder::from_config_str("styles-options-markup-scripts").unwrap(),
+        ..options()
+    };
+    check_with(
+        options,
+        "<script>\n\tlet a = 1;\n</script>\n\n<div>m</div>\n",
+        "<div>m</div>\n\n<script>\n\tlet a = 1;\n</script>\n",
+    );
+}

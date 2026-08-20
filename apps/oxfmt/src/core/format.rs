@@ -4,7 +4,7 @@ use tracing::instrument;
 
 use oxc_allocator::AllocatorPool;
 use oxc_diagnostics::OxcDiagnostic;
-use oxc_formatter::JsFormatOptions;
+use oxc_formatter::{JsFormatOptions, SortImportsOptions};
 use oxc_formatter_core::{CoreFormatOptions, FormatSession, InputKind, SessionServices};
 use oxc_formatter_css::CssFormatOptions;
 use oxc_formatter_graphql::GraphqlFormatOptions;
@@ -93,6 +93,9 @@ pub enum FormatStrategy {
         /// formatters that own them.
         config: Arc<FormatConfig>,
         core: CoreFormatOptions,
+        /// A component's `<script>` holds the file's imports, so this root is
+        /// one of the two that passes import sorting on to its embed.
+        sort_imports: Option<SortImportsOptions>,
         insert_final_newline: bool,
     },
     /// For YAML files formatted by `oxc_formatter_yaml`.
@@ -233,6 +236,7 @@ impl FormatStrategy {
                 format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
                 config: Arc::new(config),
                 core,
+                sort_imports: validated.sort_imports.clone(),
                 insert_final_newline,
             },
             #[cfg(feature = "napi")]
@@ -382,6 +386,7 @@ impl SourceFormatter {
                 format_options,
                 config,
                 core,
+                sort_imports,
                 insert_final_newline,
             } => (
                 self.format_by_oxc_formatter_svelte(
@@ -390,6 +395,7 @@ impl SourceFormatter {
                     *format_options,
                     &config,
                     core,
+                    sort_imports,
                 ),
                 insert_final_newline,
             ),
@@ -471,7 +477,7 @@ impl SourceFormatter {
     ) -> Result<String, OxcDiagnostic> {
         let allocator = self.allocator_pool.get();
         let session = {
-            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, path);
+            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, None, path);
             let services = self.root_services(&dispatch_config);
             FormatSession::with_services(&allocator, InputKind::PhysicalFile, services)
         };
@@ -590,7 +596,7 @@ impl SourceFormatter {
     ) -> Result<String, OxcDiagnostic> {
         let allocator = self.allocator_pool.get();
         let session = {
-            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, path);
+            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, None, path);
             let services = self.root_services(&dispatch_config);
             FormatSession::with_services(&allocator, InputKind::PhysicalFile, services)
         };
@@ -618,10 +624,12 @@ impl SourceFormatter {
         format_options: SvelteFormatOptions,
         config: &Arc<FormatConfig>,
         core: CoreFormatOptions,
+        sort_imports: Option<SortImportsOptions>,
     ) -> Result<String, OxcDiagnostic> {
         let allocator = self.allocator_pool.get();
         let session = {
-            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, path);
+            let dispatch_config =
+                ResolvedDispatchConfig::for_root(config, core, sort_imports, path);
             let services = self.root_services(&dispatch_config);
             FormatSession::with_services(&allocator, InputKind::PhysicalFile, services)
         };
@@ -729,7 +737,7 @@ impl SourceFormatter {
             inject_oxfmt_plugin_payload(&mut prettier_options, config, path);
         }
         if supports_svelte {
-            inject_svelte_plugin_payload(&mut prettier_options, config);
+            inject_svelte_plugin_payload(&mut prettier_options, config, path);
         }
 
         let output =

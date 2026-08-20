@@ -45,54 +45,60 @@ pub enum WhitespaceSensitivity {
 }
 
 /// Where each top-level section goes. Mirrors `prettier-plugin-svelte`'s
-/// `svelteSortOrder`.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+/// `svelteSortOrder`, which is any ordering of the four names joined by `-`.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum SortOrder {
-    /// `options-scripts-markup-styles` (the default).
-    #[default]
-    OptionsScriptsMarkupStyles,
-    /// `options-scripts-styles-markup`.
-    OptionsScriptsStylesMarkup,
-    /// `options-markup-styles-scripts`.
-    OptionsMarkupStylesScripts,
-    /// `options-markup-scripts-styles`.
-    OptionsMarkupScriptsStyles,
-    /// `options-styles-markup-scripts`.
-    OptionsStylesMarkupScripts,
-    /// `options-styles-scripts-markup`.
-    OptionsStylesScriptsMarkup,
+    /// The four sections, in the order they are printed.
+    Sections([crate::print::Section; 4]),
     /// `none` — every section stays where it was written.
     None,
+}
+
+impl Default for SortOrder {
+    fn default() -> Self {
+        use crate::print::Section::{Markup, Options, Scripts, Styles};
+        Self::Sections([Options, Scripts, Markup, Styles])
+    }
 }
 
 impl SortOrder {
     /// The sections in the order they are printed. `None` never reaches
     /// here: it keeps every section where the author put it.
     pub fn sections(self) -> [crate::print::Section; 4] {
-        use crate::print::Section::{Markup, Options, Scripts, Styles};
         match self {
-            Self::OptionsScriptsMarkupStyles | Self::None => [Options, Scripts, Markup, Styles],
-            Self::OptionsScriptsStylesMarkup => [Options, Scripts, Styles, Markup],
-            Self::OptionsMarkupStylesScripts => [Options, Markup, Styles, Scripts],
-            Self::OptionsMarkupScriptsStyles => [Options, Markup, Scripts, Styles],
-            Self::OptionsStylesMarkupScripts => [Options, Styles, Markup, Scripts],
-            Self::OptionsStylesScriptsMarkup => [Options, Styles, Scripts, Markup],
+            Self::Sections(sections) => sections,
+            Self::None => Self::default().sections(),
         }
     }
 
     /// Parse the hyphen-joined spelling the config uses, or `None` when it
     /// names an order that does not exist.
+    ///
+    /// Every section has to be named. Prettier only requires `options` and
+    /// silently drops whatever is left out — which deletes that section's
+    /// content rather than moving it, and is not a formatting decision.
     pub fn from_config_str(value: &str) -> Option<Self> {
-        Some(match value {
-            "options-scripts-markup-styles" => Self::OptionsScriptsMarkupStyles,
-            "options-scripts-styles-markup" => Self::OptionsScriptsStylesMarkup,
-            "options-markup-styles-scripts" => Self::OptionsMarkupStylesScripts,
-            "options-markup-scripts-styles" => Self::OptionsMarkupScriptsStyles,
-            "options-styles-markup-scripts" => Self::OptionsStylesMarkupScripts,
-            "options-styles-scripts-markup" => Self::OptionsStylesScriptsMarkup,
-            "none" => Self::None,
-            _ => return None,
-        })
+        use crate::print::Section::{Markup, Options, Scripts, Styles};
+        if value == "none" {
+            return Some(Self::None);
+        }
+        let mut sections = [Options; 4];
+        let mut count = 0;
+        for part in value.split('-') {
+            let section = match part {
+                "options" => Options,
+                "scripts" => Scripts,
+                "markup" => Markup,
+                "styles" => Styles,
+                _ => return None,
+            };
+            if count == 4 || sections[..count].contains(&section) {
+                return None;
+            }
+            sections[count] = section;
+            count += 1;
+        }
+        (count == 4).then_some(Self::Sections(sections))
     }
 }
 

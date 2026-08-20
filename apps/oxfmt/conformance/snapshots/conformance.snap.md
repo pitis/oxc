@@ -176,6 +176,20 @@
 | [externals/plugin-svelte/long-mustache-value.svelte](diffs/svelte/externals__plugin-svelte__long-mustache-value.svelte.md) | Layout-only: a `{…}` whose expression breaks continues at the mustache's indent, where Prettier adds one level. Prettier prints the expression as a real estree node (whose unknown parent makes `printBinaryishExpression` indent); this goes through the JS *fragment* path, which does not. Never changes meaning |
 | [externals/plugin-svelte/region-markers.svelte](diffs/svelte/externals__plugin-svelte__region-markers.svelte.md) | Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not |
 
+## svelte-in-md
+
+### Option 1: 2/2 (100.00%)
+
+```json
+{"printWidth":80,"svelte":{}}
+```
+
+### Option 2: 2/2 (100.00%)
+
+```json
+{"printWidth":100,"proseWrap":"always","svelte":{}}
+```
+
 ## graphql
 
 ### Option 1: 712/712 (100.00%)

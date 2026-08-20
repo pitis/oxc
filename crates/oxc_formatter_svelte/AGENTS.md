@@ -14,6 +14,11 @@ Prettier compatible `.svelte` formatter (`oxfmt`'s Tier 1 backend), replacing `p
     `<script>` reach `oxc_formatter`, `<style>` reach `oxc_formatter_css`, and `{…}`
     reach the JS expression fragment path
 
+oxfmt reaches it two ways, and both are `format_with_session`: a `.svelte` file is
+`FileKind::OxcFormatterSvelte`, and a ` ```svelte ` code block in Markdown or MDX arrives
+through `jsTextToDoc` with `source_ext: "svelte"`, whose IR is converted to a Prettier `Doc`
+for the Markdown printer to embed (`src-js/libs/prettier-plugin-oxfmt-svelte`).
+
 This crate prints **markup only**. Everything in another language goes out through the
 dispatcher (`DispatchRequest`) and comes back as IR to splice, so there is exactly one
 JavaScript formatter and one CSS formatter in the process.
@@ -89,6 +94,8 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
   it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The
   *leading* comment does.
 - `@format` / `requirePragma` / `insertPragma`: oxfmt supports these for no language.
+- `svelteSortOrder` must name all four sections. Prettier requires only `options` and silently
+  drops whatever is left out, which deletes that section's content rather than moving it.
 
 **Core printer, shared by every oxc formatter (never changes meaning):**
 
@@ -115,3 +122,6 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
   this way and no other.
 - Verify an *option* with the option set. The default-config corpus does not exercise
   `bracketSameLine`, `htmlWhitespaceSensitivity`, or Tailwind sorting at all.
+- `pnpm --filter oxfmt-app test` covers what a corpus cannot: the CLI, the LSP and the API,
+  where a change of *policy* shows up (which files are formatted at all, whether a config key
+  gates anything, whether import sorting reaches an embedded `<script>`).

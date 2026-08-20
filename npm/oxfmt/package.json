@@ -45,13 +45,9 @@
     "tinypool": "2.1.0"
   },
   "peerDependencies": {
-    "svelte": "^5.0.0",
     "vite-plus": "*"
   },
   "peerDependenciesMeta": {
-    "svelte": {
-      "optional": true
-    },
     "vite-plus": {
       "optional": true
     }

@@ -229,18 +229,27 @@ pub fn build_prettier_options(config: &FormatConfig, path: &Path) -> Value {
 
 /// Inject Svelte plugin keys derived from `config.svelte`.
 ///
+/// The plugin behind them is oxfmt's own (`prettier-plugin-oxfmt-svelte`),
+/// which hands the block to `oxc_formatter_svelte`; the option names stay
+/// `prettier-plugin-svelte`'s so a project keeps one spelling.
+///
 /// No-ops when `svelte` is disabled (unset or `false`) — `Bool(true)` falls back to defaults.
 /// The caller gates this on capability (`supports_svelte`), which is now only
 /// `markdown`/`mdx` and their ` ```svelte ` code blocks: a `.svelte` file is
 /// formatted by `oxc_formatter_svelte` and never reaches Prettier.
 ///
 /// See: <https://github.com/sveltejs/prettier-plugin-svelte#options>
-pub fn inject_svelte_plugin_payload(opts: &mut Value, config: &FormatConfig) {
+pub fn inject_svelte_plugin_payload(opts: &mut Value, config: &FormatConfig, path: &Path) {
     let Some(SvelteConfig { sort_order, allow_shorthand, indent_script_and_style }) =
         config.svelte.clone().and_then(SvelteUserConfig::into_config)
     else {
         return;
     };
+    // The parser behind the plugin is `oxc_formatter_svelte`, so it needs the
+    // same payload the JS/TS one does — under a key of its own, because the
+    // JS/TS key is also what tells the host to install the *JavaScript*
+    // plugin, which would then take over a Markdown file's ```js blocks too.
+    inject_payload(opts, config, path, "_oxfmtSveltePluginOptionsJson");
     let map = as_object_mut(opts);
 
     if let Some(v) = sort_order {
@@ -269,6 +278,13 @@ pub fn inject_svelte_plugin_payload(opts: &mut Value, config: &FormatConfig) {
 /// Unreachable in practice because the payload is plainly-serializable data.
 #[cfg(feature = "napi")]
 pub fn inject_oxfmt_plugin_payload(opts: &mut Value, config: &FormatConfig, path: &Path) {
+    inject_payload(opts, config, path, "_oxfmtPluginOptionsJson");
+}
+
+/// The shared body of the two payload injectors: the same JSON under whichever
+/// key the receiving plugin declared.
+#[cfg(feature = "napi")]
+fn inject_payload(opts: &mut Value, config: &FormatConfig, path: &Path, key: &str) {
     #[derive(Serialize)]
     struct Payload<'a> {
         config: &'a FormatConfig,
@@ -277,7 +293,7 @@ pub fn inject_oxfmt_plugin_payload(opts: &mut Value, config: &FormatConfig, path
     let filepath = path.to_string_lossy();
     let payload_json = serde_json::to_string(&Payload { config, filepath: &filepath })
         .expect("oxfmt plugin payload serialization should not fail");
-    as_object_mut(opts).insert("_oxfmtPluginOptionsJson".to_string(), Value::String(payload_json));
+    as_object_mut(opts).insert(key.to_string(), Value::String(payload_json));
 }
 
 // ---

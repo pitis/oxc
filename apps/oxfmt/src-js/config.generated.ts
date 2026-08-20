@@ -250,18 +250,18 @@ export interface Oxfmtrc {
    */
   sortTailwindcss?: SortTailwindcssUserConfig;
   /**
-   * Options for `prettier-plugin-svelte`.
+   * Svelte formatting options.
    *
-   * Pass `true` or an object to enable `.svelte` file formatting,
-   * or `false` (handy in overrides) / omit to disable.
+   * `.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;
+   * this only carries the options, which have the same names and meanings
+   * `prettier-plugin-svelte` gives them.
    * Setting `true` resets to defaults — any options inherited from a parent scope are dropped.
    *
-   * NOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,
-   * but Oxfmt does NOT bundle or auto-install it.
-   * You must install `svelte` yourself in your project, formatting will fail at runtime otherwise.
+   * It does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may
+   * contain.
    *
    * - Languages: Svelte
-   * - Default: Disabled
+   * - Default: options at their defaults, Markdown code blocks disabled
    */
   svelte?: SvelteUserConfig;
   /**
@@ -572,18 +572,18 @@ export interface FormatConfig {
    */
   sortTailwindcss?: SortTailwindcssUserConfig;
   /**
-   * Options for `prettier-plugin-svelte`.
+   * Svelte formatting options.
    *
-   * Pass `true` or an object to enable `.svelte` file formatting,
-   * or `false` (handy in overrides) / omit to disable.
+   * `.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;
+   * this only carries the options, which have the same names and meanings
+   * `prettier-plugin-svelte` gives them.
    * Setting `true` resets to defaults — any options inherited from a parent scope are dropped.
    *
-   * NOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,
-   * but Oxfmt does NOT bundle or auto-install it.
-   * You must install `svelte` yourself in your project, formatting will fail at runtime otherwise.
+   * It does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may
+   * contain.
    *
    * - Languages: Svelte
-   * - Default: Disabled
+   * - Default: options at their defaults, Markdown code blocks disabled
    */
   svelte?: SvelteUserConfig;
   /**

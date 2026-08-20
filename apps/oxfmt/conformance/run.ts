@@ -208,6 +208,18 @@ const categories: Category[] = [
     },
   },
   {
+    // A ` ```svelte ` code block is the one place Prettier still prints a
+    // Svelte component: the Markdown printer asks `textToDoc()` for the
+    // `svelte` parser, which oxfmt answers with `oxc_formatter_svelte`.
+    name: "svelte-in-md",
+    sources: [{ dir: join(FIXTURES_DIR, "edge-cases", "svelte-in-md") }],
+    optionSets: [
+      { printWidth: 80, svelte: {} },
+      { printWidth: 100, proseWrap: "always", svelte: {} },
+    ],
+    notes: {},
+  },
+  {
     name: "graphql",
     sources: [{ dir: join(EXTERNALS_DIR, "gitlab"), ext: ".graphql" }],
     optionSets: [{ printWidth: 80 }, { printWidth: 100 }],

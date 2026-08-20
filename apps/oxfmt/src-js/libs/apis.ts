@@ -95,7 +95,7 @@ export async function formatFile({ code, options }: FormatFileParam): Promise<Fo
   const prettier = CACHES.prettier ?? (await loadPrettier());
 
   // NOTE: Plugins order matters here!
-  // This plugin add `svelte` parser to support for `.svelte` files, and is also needed for `svelte-in-md` to work
+  // This plugin adds the `svelte` parser, which only `svelte-in-md` needs now
   if ("_useSveltePlugin" in options) await setupSveltePlugin(options);
   // Enable Tailwind CSS plugin, this plugin transforms `parsers` already installed by prior plugins
   if ("_useTailwindPlugin" in options) await setupTailwindPlugin(options);
@@ -287,12 +287,16 @@ export async function sortTailwindClasses({
 // ---
 
 /**
- * Load prettier-plugin-svelte to provide the `svelte` parser.
+ * Load the in-house `svelte` parser, which hands the block to
+ * `oxc_formatter_svelte`.
+ *
+ * Only ` ```svelte ` code blocks in Markdown or MDX reach it; a `.svelte` file
+ * is formatted by oxfmt directly and never goes through Prettier.
  */
 async function setupSveltePlugin(options: Options): Promise<void> {
   CACHES.sveltePlugin ??= await loadCached(
     "sveltePlugin",
-    async () => (await import("prettier-plugin-svelte")) as Plugin,
+    async () => (await import("./prettier-plugin-oxfmt-svelte/index")) as Plugin,
   );
   options.plugins ??= [];
   options.plugins.push(CACHES.sveltePlugin);

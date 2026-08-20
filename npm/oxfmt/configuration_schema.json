@@ -171,13 +171,13 @@
       "markdownDescription": "Sort Tailwind CSS classes.\n\nUsing the same algorithm as [prettier-plugin-tailwindcss](https://github.com/tailwindlabs/prettier-plugin-tailwindcss).\nOption names omit the `tailwind` prefix used in the original plugin (e.g., `config` instead of `tailwindConfig`).\nFor details, see each field's documentation.\n\nPass `true` or an object to enable with defaults, or omit/set `false` to disable.\n\n- Languages: JS, JSX, TS, TSX, HTML, Vue, Angular, Handlebars, CSS, SCSS, Less, Svelte\n- Default: Disabled"
     },
     "svelte": {
-      "description": "Options for `prettier-plugin-svelte`.\n\nPass `true` or an object to enable `.svelte` file formatting,\nor `false` (handy in overrides) / omit to disable.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nNOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,\nbut Oxfmt does NOT bundle or auto-install it.\nYou must install `svelte` yourself in your project, formatting will fail at runtime otherwise.\n\n- Languages: Svelte\n- Default: Disabled",
+      "description": "Svelte formatting options.\n\n`.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;\nthis only carries the options, which have the same names and meanings\n`prettier-plugin-svelte` gives them.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nIt does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may\ncontain.\n\n- Languages: Svelte\n- Default: options at their defaults, Markdown code blocks disabled",
       "allOf": [
         {
           "$ref": "#/definitions/SvelteUserConfig"
         }
       ],
-      "markdownDescription": "Options for `prettier-plugin-svelte`.\n\nPass `true` or an object to enable `.svelte` file formatting,\nor `false` (handy in overrides) / omit to disable.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nNOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,\nbut Oxfmt does NOT bundle or auto-install it.\nYou must install `svelte` yourself in your project, formatting will fail at runtime otherwise.\n\n- Languages: Svelte\n- Default: Disabled"
+      "markdownDescription": "Svelte formatting options.\n\n`.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;\nthis only carries the options, which have the same names and meanings\n`prettier-plugin-svelte` gives them.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nIt does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may\ncontain.\n\n- Languages: Svelte\n- Default: options at their defaults, Markdown code blocks disabled"
     },
     "tabWidth": {
       "description": "Specify the number of spaces per indentation-level.\n\n- Languages: All\n- Default: `2`\n- Overrides `.editorconfig.indent_size` (falls back to `.editorconfig.tab_width`)",
@@ -430,13 +430,13 @@
           "markdownDescription": "Sort Tailwind CSS classes.\n\nUsing the same algorithm as [prettier-plugin-tailwindcss](https://github.com/tailwindlabs/prettier-plugin-tailwindcss).\nOption names omit the `tailwind` prefix used in the original plugin (e.g., `config` instead of `tailwindConfig`).\nFor details, see each field's documentation.\n\nPass `true` or an object to enable with defaults, or omit/set `false` to disable.\n\n- Languages: JS, JSX, TS, TSX, HTML, Vue, Angular, Handlebars, CSS, SCSS, Less, Svelte\n- Default: Disabled"
         },
         "svelte": {
-          "description": "Options for `prettier-plugin-svelte`.\n\nPass `true` or an object to enable `.svelte` file formatting,\nor `false` (handy in overrides) / omit to disable.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nNOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,\nbut Oxfmt does NOT bundle or auto-install it.\nYou must install `svelte` yourself in your project, formatting will fail at runtime otherwise.\n\n- Languages: Svelte\n- Default: Disabled",
+          "description": "Svelte formatting options.\n\n`.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;\nthis only carries the options, which have the same names and meanings\n`prettier-plugin-svelte` gives them.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nIt does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may\ncontain.\n\n- Languages: Svelte\n- Default: options at their defaults, Markdown code blocks disabled",
           "allOf": [
             {
               "$ref": "#/definitions/SvelteUserConfig"
             }
           ],
-          "markdownDescription": "Options for `prettier-plugin-svelte`.\n\nPass `true` or an object to enable `.svelte` file formatting,\nor `false` (handy in overrides) / omit to disable.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nNOTE: `prettier-plugin-svelte` requires the `svelte` package (`svelte/compiler`) at runtime,\nbut Oxfmt does NOT bundle or auto-install it.\nYou must install `svelte` yourself in your project, formatting will fail at runtime otherwise.\n\n- Languages: Svelte\n- Default: Disabled"
+          "markdownDescription": "Svelte formatting options.\n\n`.svelte` files are formatted by `oxc_formatter_svelte` and need nothing enabled;\nthis only carries the options, which have the same names and meanings\n`prettier-plugin-svelte` gives them.\nSetting `true` resets to defaults — any options inherited from a parent scope are dropped.\n\nIt does still enable one thing: the ` ```svelte ` code blocks a Markdown or MDX file may\ncontain.\n\n- Languages: Svelte\n- Default: options at their defaults, Markdown code blocks disabled"
         },
         "tabWidth": {
           "description": "Specify the number of spaces per indentation-level.\n\n- Languages: All\n- Default: `2`\n- Overrides `.editorconfig.indent_size` (falls back to `.editorconfig.tab_width`)",

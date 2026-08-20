@@ -80,8 +80,9 @@ NOTE: Rust written formatters never fall back to Prettier, since they exist to r
 
 `.svelte` is Tier 1: `oxc_formatter_svelte` prints the markup, and the `<script>`, `<style>` and `{…}` inside it reach `oxc_formatter` / `oxc_formatter_css` through the dispatcher.
 It therefore works in the pure Rust build like any other native language, and needs no config key to be enabled.
-`prettier-plugin-svelte` remains bundled for one thing only: the ` ```svelte ` code blocks a Markdown or MDX file may contain, which are Prettier's to print.
-The `svelte` config key still gates *that* (`is_svelte_enabled`) and still carries the printer's options (`sortOrder`, `allowShorthand`, `indentScriptAndStyle`), which both printers read.
+A ` ```svelte ` code block in Markdown or MDX is the one place Prettier still asks for a Svelte component, and it gets the same formatter: `src-js/libs/prettier-plugin-oxfmt-svelte` registers the `svelte` language and parser, and its `parse` hands the block to `oxc_formatter_svelte` through `jsTextToDoc` with `source_ext: "svelte"`.
+The `svelte` config key gates that block (`is_svelte_enabled`) and carries the printer's options (`sortOrder`, `allowShorthand`, `indentScriptAndStyle`).
+`prettier-plugin-svelte` is therefore gone from the bundle and from the runtime dependencies (it stays a devDependency: the conformance harness uses it as the oracle), and with it the `svelte` optional peer dependency — nothing in oxfmt needs `svelte/compiler` any more.
 
 ### Embedded language formatting
 

@@ -160,7 +160,7 @@ fn neighbour_section(nodes: &[Node<'_>], index: usize) -> Section {
 }
 
 /// One of the four groups a component's top level splits into.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Section {
     Options,
     Scripts,

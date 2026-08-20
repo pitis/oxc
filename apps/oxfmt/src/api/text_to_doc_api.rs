@@ -6,7 +6,7 @@ use tracing::{instrument, warn};
 
 use oxc_allocator::Allocator;
 use oxc_formatter::FragmentContext;
-use oxc_formatter_core::{FormatSession, InputKind};
+use oxc_formatter_core::{FormatElement, FormatSession, InputKind};
 use oxc_span::SourceType;
 
 use crate::{
@@ -14,6 +14,7 @@ use crate::{
         EmbeddedCallbackResolved, ExternalServices, JsFormatEmbeddedCb, JsFormatEmbeddedDocCb,
         JsFormatFileCb, JsSortTailwindClassesCb,
         embed::{self, dispatcher::ResolvedDispatchConfig},
+        options::to_oxc_formatter_svelte,
         oxfmtrc::FormatConfig,
         resolve_for_embedded_js,
     },
@@ -124,12 +125,39 @@ pub fn run(
     // so there is no parse retry here: a block
     // that fails to parse under its declared grammar is left unformatted
     // (`textToDoc()` error → Prettier keeps the original text).
+    // A `.svelte` code block is a whole component, not a JS/TS snippet: it has
+    // no parse grammar to select and no fragment kind, so it goes straight to
+    // its own formatter.
+    if source_ext == "svelte" {
+        let result = run_svelte(
+            source_text,
+            oxfmt_plugin_options_json,
+            format_file_cb,
+            format_embedded_cb,
+            format_embedded_doc_cb,
+            sort_tailwind_classes_cb,
+        );
+        return Some(match result {
+            Ok(doc_json) => match serde_json::to_string(&doc_json) {
+                Ok(json) => json,
+                Err(err) => failure_payload(
+                    &EmbedFailure::internal(format!("Doc JSON serialization failed: {err}")),
+                    parent_context,
+                    None,
+                ),
+            },
+            Err(failure) => failure_payload(&failure, parent_context, None),
+        });
+    }
+
     let source_type = match source_ext {
         "jsx" => SourceType::unambiguous().with_jsx(true),
         "ts" => SourceType::ts(),
         "tsx" => SourceType::tsx(),
         _ => {
-            unreachable!("text-to-doc.ts should pass `source_ext` as one of 'jsx', 'ts', or 'tsx'")
+            unreachable!(
+                "text-to-doc.ts should pass `source_ext` as one of 'jsx', 'ts', 'tsx' or 'svelte'"
+            )
         }
     };
 
@@ -289,7 +317,7 @@ fn format_full(
 
     // Per-language options (and the Prettier options JSON with the Tailwind payload)
     // are mapped lazily at dispatch time; `core` was validated during resolution.
-    let dispatch_config = ResolvedDispatchConfig::for_root(&config, core, &parent_filepath);
+    let dispatch_config = ResolvedDispatchConfig::for_root(&config, core, None, &parent_filepath);
 
     let services = embed::services::for_root(external_services, &dispatch_config);
 
@@ -317,6 +345,94 @@ fn format_full(
             EmbedFailure::internal(format!("Formatter IR to Prettier Doc conversion failed: {err}"))
         },
     )
+}
+
+// ---
+
+/// A whole `.svelte` component embedded in another document — the ` ```svelte `
+/// code block a Markdown or MDX file may contain.
+///
+/// Same shape as [`run_full`], with `oxc_formatter_svelte` in place of the JS
+/// formatter: the same services, so a `<script>` inside the block still reaches
+/// `oxc_formatter` and a `<style>` still reaches `oxc_formatter_css`.
+#[instrument(level = "debug", name = "oxfmt::text_to_doc::svelte", skip_all)]
+fn run_svelte(
+    source_text: &str,
+    oxfmt_plugin_options_json: &str,
+    format_file_cb: JsFormatFileCb,
+    format_embedded_cb: JsFormatEmbeddedCb,
+    format_embedded_doc_cb: JsFormatEmbeddedDocCb,
+    sort_tailwind_classes_cb: JsSortTailwindClassesCb,
+) -> Result<Value, EmbedFailure> {
+    let external_services = ExternalServices::new(
+        format_file_cb,
+        format_embedded_cb,
+        format_embedded_doc_cb,
+        sort_tailwind_classes_cb,
+    );
+    // The TSFNs must be released on every exit path, including the failure ones.
+    let result = format_svelte(&external_services, source_text, oxfmt_plugin_options_json);
+    external_services.cleanup();
+    result
+}
+
+fn format_svelte(
+    external_services: &ExternalServices,
+    source_text: &str,
+    oxfmt_plugin_options_json: &str,
+) -> Result<Value, EmbedFailure> {
+    let (config, parent_filepath) = parse_payload(oxfmt_plugin_options_json)?;
+    // `resolve_for_embedded_js` is the shared validation gate for an embedded
+    // payload, not a JS-only step; only its `format_options` are unused here.
+    let EmbeddedCallbackResolved { format_options: js_options, config, core, parent_filepath } =
+        resolve_for_embedded_js(config, parent_filepath).map_err(|err| {
+            EmbedFailure::internal(format!(
+                "`_oxfmtPluginOptionsJson` carries invalid config: {err}"
+            ))
+        })?;
+
+    let format_options = to_oxc_formatter_svelte(&config, core);
+    // A component's `<script>` holds its imports, in a code block as much as
+    // in a file of its own.
+    let dispatch_config = ResolvedDispatchConfig::for_root(
+        &config,
+        core,
+        js_options.sort_imports.clone(),
+        &parent_filepath,
+    );
+    let services = embed::services::for_root(external_services, &dispatch_config);
+
+    let allocator = Allocator::default();
+    let session = FormatSession::with_services(
+        &allocator,
+        // A code block is a complete document the host passes as embedded
+        // input, never the owner of file envelopes (BOM / front matter).
+        InputKind::VirtualDocument,
+        services,
+    );
+    let formatted = match tokio::task::block_in_place(|| {
+        oxc_formatter_svelte::format_with_session(&session, source_text, format_options)
+    }) {
+        Ok(formatted) => formatted,
+        // The only failure is markup the Svelte compiler would reject, which
+        // Prettier then leaves as the author wrote it.
+        Err(err) => return Err(EmbedFailure::Syntax(format!("{err}"))),
+    };
+
+    let (elements, sorted_tailwind_classes) =
+        formatted.into_final_document().into_elements_and_tailwind_classes();
+
+    // A component ends with the newline a file wants; a code block does not,
+    // because the Markdown printer writes the fence's own line after this doc.
+    let mut end = elements.len();
+    while end > 0 && matches!(elements[end - 1], FormatElement::Line(_)) {
+        end -= 1;
+    }
+
+    to_prettier_doc::format_elements_to_prettier_doc(&elements[..end], &sorted_tailwind_classes)
+        .map_err(|err| {
+            EmbedFailure::internal(format!("Formatter IR to Prettier Doc conversion failed: {err}"))
+        })
 }
 
 // ---

@@ -64,24 +64,37 @@ input { color: red; }
   });
 
   describe("Gating", () => {
-    it("should error on `.svelte` without `svelte` option", async () => {
+    // `.svelte` is formatted by `oxc_formatter_svelte`, so there is nothing to
+    // enable: the `svelte` key only carries options, and only a ```svelte code
+    // block in Markdown still depends on it being set.
+    it("should format `.svelte` with no `svelte` option at all", async () => {
       const input = `<script>let count = $state(0);</script>
 <p>{count}</p>
 `;
       const result = await format("App.svelte", input);
-      expect(result.code).toBe(input); // unchanged
-      expect(result.errors.length).toBe(1);
-      expect(result.errors[0].message).toMatch(/Cannot format `\.svelte`/);
+      const enabled = await format("App.svelte", input, { svelte: {} });
+      expect(result.errors).toStrictEqual([]);
+      expect(result.code).toBe(enabled.code);
+      expect(result.code).not.toBe(input);
     });
 
-    it("should error on `.svelte` with `svelte: false` (explicitly disabled)", async () => {
+    it("should format `.svelte` with `svelte: false`", async () => {
       const input = `<script>let count = $state(0);</script>
 <p>{count}</p>
 `;
       const result = await format("App.svelte", input, { svelte: false });
+      const enabled = await format("App.svelte", input, { svelte: {} });
+      expect(result.errors).toStrictEqual([]);
+      expect(result.code).toBe(enabled.code);
+    });
+
+    it("should refuse markup the Svelte compiler would reject", async () => {
+      const input = `<div>unclosed
+`;
+      const result = await format("App.svelte", input);
       expect(result.code).toBe(input); // unchanged
       expect(result.errors.length).toBe(1);
-      expect(result.errors[0].message).toMatch(/Cannot format `\.svelte`/);
+      expect(result.errors[0].message).toMatch(/not well-formed/);
     });
   });
 
@@ -103,27 +116,24 @@ const y={c:3,d:4};
       expect(result.code).toMatchSnapshot();
     });
 
-    // `prettier-plugin-svelte` does not handle this...
-    // https://github.com/sveltejs/prettier-plugin-svelte/issues/456
-    it("should currently error with `embeddedLanguageFormatting: 'off'` (known limitation)", async () => {
-      // The plugin dumps the offending AST node via `console.error` before throwing
-      // https://github.com/sveltejs/prettier-plugin-svelte/blob/c4b7844961d0b937ab1eab2c8323d40a9422ac30/src/print/index.ts#L725
-      const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      try {
-        const input = `<script>
+    // `prettier-plugin-svelte` threw on this ("unknown node type: Script",
+    // https://github.com/sveltejs/prettier-plugin-svelte/issues/456). The
+    // native printer has nothing to throw: with no dispatcher installed, the
+    // `<script>` body is simply left as the author wrote it.
+    it("should keep `<script>` as-is with `embeddedLanguageFormatting: 'off'`", async () => {
+      const input = `<script>
 const x={a:1,b:2};
 </script>
-<p>{x.a}</p>
+<p    >{x.a}</p>
 `;
-        const result = await format("App.svelte", input, {
-          svelte: {},
-          embeddedLanguageFormatting: "off",
-        });
-        expect(result.errors.length).toBeGreaterThan(0);
-        expect(result.errors[0].message).toMatch(/unknown node type: Script/);
-      } finally {
-        errSpy.mockRestore();
-      }
+      const result = await format("App.svelte", input, {
+        svelte: {},
+        embeddedLanguageFormatting: "off",
+      });
+      expect(result.errors).toStrictEqual([]);
+      // The body keeps its spelling; the markup around it is still formatted.
+      expect(result.code).toContain("const x={a:1,b:2};");
+      expect(result.code).toContain("<p>{x.a}</p>");
     });
 
     it('should sort imports inside `<script lang="ts">`', async () => {
@@ -154,7 +164,7 @@ let n: number = $state(0);
   describe("Template section", () => {
     it("should sort Tailwind classes in template attributes (within `{#each}` block)", async () => {
       // Embedding the attribute inside an `{#each}` block also incidentally
-      // exercises Svelte block markup formatting via `prettier-plugin-svelte`.
+      // exercises Svelte block markup formatting.
       const input = `<script>let items = $state([1,2,3]);</script>
 {#each items as n}
 <div class="p-4 flex bg-red-500 text-white">{n}</div>

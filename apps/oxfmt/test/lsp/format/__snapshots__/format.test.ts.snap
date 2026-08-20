@@ -32,8 +32,11 @@ file://<fixture>/format/test.svelte
 <button onclick={()=>count++}>{count}</button>
 
 --- AFTER ----------
-<script>let   count=$state(0);</script>
-<button onclick={()=>count++}>{count}</button>
+<script>
+  let count = $state(0);
+</script>
+
+<button onclick={() => count++}>{count}</button>
 
 --------------------"
 `;

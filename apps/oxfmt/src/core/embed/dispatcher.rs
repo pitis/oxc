@@ -8,7 +8,7 @@ use std::sync::{Arc, OnceLock};
 
 use tracing::{debug, debug_span};
 
-use oxc_formatter::{CssInJsTemplate, JsFormatOptions};
+use oxc_formatter::{CssInJsTemplate, JsFormatOptions, SortImportsOptions};
 use oxc_formatter_core::{
     CoreFormatOptions, DispatchRequest, DispatchResponse, EmbeddedIr, FormatDispatcher,
     FormatSession,
@@ -143,6 +143,9 @@ pub struct ResolvedDispatchConfig {
     /// Core options validated once by the config-resolution gate (`options::validate`).
     /// Holding them pre-validated is what lets the per-language mappers be infallible.
     core: CoreFormatOptions,
+    /// Import sorting for an embedded `<script>`, which only a root whose
+    /// file *is* that script passes on. See [`Self::js_options`].
+    sort_imports: Option<SortImportsOptions>,
     graphql: OnceLock<GraphqlFormatOptions>,
     js: OnceLock<JsFormatOptions>,
     /// One cell per [`CssVariant`]: JSDoc fences dispatch css/scss/less as-is, while css-in-js always uses Scss.
@@ -175,10 +178,15 @@ impl ResolvedDispatchConfig {
     /// `core` is the pre-validated bundle carried from the config-resolution gate (`options::validate`);
     /// it never gets re-derived here.
     /// Private so [`Self::for_root`] stays the only construction recipe.
-    fn new(config: Arc<FormatConfig>, core: CoreFormatOptions) -> Self {
+    fn new(
+        config: Arc<FormatConfig>,
+        core: CoreFormatOptions,
+        sort_imports: Option<SortImportsOptions>,
+    ) -> Self {
         Self {
             config,
             core,
+            sort_imports,
             graphql: OnceLock::new(),
             js: OnceLock::new(),
             css: [OnceLock::new(), OnceLock::new(), OnceLock::new()],
@@ -195,9 +203,10 @@ impl ResolvedDispatchConfig {
     pub fn for_root(
         config: &Arc<FormatConfig>,
         core: CoreFormatOptions,
+        sort_imports: Option<SortImportsOptions>,
         path: &std::path::Path,
     ) -> Arc<Self> {
-        let dispatch_config = Self::new(Arc::clone(config), core);
+        let dispatch_config = Self::new(Arc::clone(config), core, sort_imports);
         #[cfg(feature = "napi")]
         let dispatch_config = dispatch_config.with_path(path.to_path_buf());
         #[cfg(not(feature = "napi"))]
@@ -235,11 +244,17 @@ impl ResolvedDispatchConfig {
         *cell.get_or_init(|| to_oxc_formatter_css(&self.config, self.core, variant))
     }
 
-    /// Options for an embedded `<script>`. Import sorting is deliberately
-    /// not passed on: it is a whole-file transform the host owns, and a
-    /// component's script is not the file.
+    /// Options for an embedded `<script>`.
+    ///
+    /// Import sorting is a whole-*module* transform, so it is passed on only
+    /// by a root that says its embedded script is the module: a `.svelte`
+    /// component's, whose `<script>` holds the file's only imports. A CSS
+    /// file's css-in-js and a Markdown fence pass `None` — there is no module
+    /// there to sort.
     pub fn js_options(&self) -> JsFormatOptions {
-        self.js.get_or_init(|| to_oxc_formatter(&self.config, self.core, None)).clone()
+        self.js
+            .get_or_init(|| to_oxc_formatter(&self.config, self.core, self.sort_imports.clone()))
+            .clone()
     }
 
     pub fn yaml_options(&self) -> YamlFormatOptions {
@@ -454,6 +469,7 @@ mod tests {
         Arc::new(ResolvedDispatchConfig::new(
             Arc::new(FormatConfig::default()),
             CoreFormatOptions::default(),
+            None,
         ))
     }
 

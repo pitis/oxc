@@ -8,7 +8,7 @@
 
 use cow_utils::CowUtils;
 use oxc_formatter_core::{
-    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, InputKind,
+    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, FormatElement, InputKind,
     builders::{
         block_indent, dedent, group, hard_line_break, indent, soft_line_break,
         soft_line_break_or_space, text, token,
@@ -96,7 +96,14 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
         return;
     };
 
-    let ir = payload.into_doc(f.context_mut());
+    let mut ir = payload.into_doc(f.context_mut());
+    // A whole-program IR ends with the newline a *file* wants. Here the tag
+    // supplies it, and leaving both makes the break ambiguous: it sits between
+    // the end of the indent and the close tag, and whoever resolves the pair
+    // decides which indentation `</script>` lands on.
+    while matches!(ir.last(), Some(FormatElement::Line(_))) {
+        ir.pop();
+    }
     let content = WriteElements(std::cell::RefCell::new(Some(ir)));
     if options.indent_script_and_style.is_enabled() {
         write!(f, block_indent(&content));
