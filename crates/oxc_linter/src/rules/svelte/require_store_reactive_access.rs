@@ -234,7 +234,8 @@ impl Checker<'_> {
                                 self.check_value_parts(value, Some(false));
                             }
                         }
-                        AttributeKind::Plain { value: None, .. } => {}
+                        AttributeKind::Plain { value: None, .. }
+                        | AttributeKind::Comment { .. } => {}
                         AttributeKind::Shorthand { name, name_span } => {
                             if !accepts_store {
                                 self.check_name(name, *name_span, false);

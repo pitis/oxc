@@ -81,7 +81,10 @@ impl SvelteTemplateRule for NoSpacesAroundEqualSignsInAttribute {
                         attribute.span.start + directive.raw_name.len() as u32
                     }
                     // Shorthand and spread attributes have no `=`.
-                    AttributeKind::Shorthand { .. } | AttributeKind::Spread { .. } => continue,
+                    // None of these is a `name=value` pair.
+                    AttributeKind::Shorthand { .. }
+                    | AttributeKind::Spread { .. }
+                    | AttributeKind::Comment { .. } => continue,
                 };
                 let mut position = key_end as usize;
                 let mut has_whitespace = false;

@@ -152,7 +152,7 @@ impl SvelteTemplateRule for HtmlClosingBracketNewLine {
             {
                 diagnostics.push(diagnostic);
             }
-            if let Some(end_tag) = svelte_end_tag_span(element, source)
+            if let Some(end_tag) = svelte_end_tag_span(element)
                 && let Some(diagnostic) = self.check(end_tag, 1, false, true, source)
             {
                 diagnostics.push(diagnostic);

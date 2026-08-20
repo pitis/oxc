@@ -285,8 +285,9 @@ fn is_empty(element: &Element<'_>) -> bool {
 }
 
 // Upstream's own tables, matched exactly so the classification agrees. The
-// void list is a superset of the markup parser's, which leaves out the two
-// elements HTML has since removed.
+// void list differs from the markup parser's by `menuitem`, which
+// eslint-plugin-svelte counts as void and the Svelte compiler does not; the
+// rule follows eslint-plugin-svelte.
 static VOID_ELEMENTS: phf::Set<&'static str> = phf::phf_set! {
     "area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "menuitem",
     "meta", "param", "source", "track", "wbr",

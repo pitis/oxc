@@ -166,21 +166,10 @@ pub fn svelte_start_tag_span(element: &Element<'_>) -> Span {
 }
 
 /// The span of an element's closing tag, `</name>` included, or `None` when
-/// it has none — a self-closing or void element, or one the parser had to
-/// recover because the tag was missing.
-///
-/// The element's span ends at the closing tag's `>`, and the only thing
-/// between that and the tag's `<` is the name and whitespace, so scanning
-/// back for `<` finds the tag exactly.
-pub fn svelte_end_tag_span(element: &Element<'_>, source_text: &str) -> Option<Span> {
-    if element.self_closing || element.is_void || element.unclosed {
-        return None;
-    }
-    let end = element.span.end as usize;
-    let start = source_text.get(..end)?.rfind('<')?;
-    let start = u32::try_from(start).ok()?;
-    // A tag that starts before the element's own content is not a closing tag.
-    (start >= element.open_tag_end).then(|| Span::new(start, element.span.end))
+/// it has none — a self-closing or void element, or one whose tag was
+/// omitted.
+pub fn svelte_end_tag_span(element: &Element<'_>) -> Option<Span> {
+    element.close_tag_span
 }
 
 /// One `<script>` block of a `.svelte` file, located for on-demand parsing

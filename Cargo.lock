@@ -3745,8 +3745,8 @@ dependencies = [
 
 [[package]]
 name = "svelte_markup_parser"
-version = "0.1.0"
-source = "git+https://github.com/pitis/svelte-markup-parser?tag=v0.1.0#7699289b452be66f5dcd8564bddc83bdae0c6437"
+version = "0.2.0"
+source = "git+https://github.com/pitis/svelte-markup-parser?tag=v0.2.0#f7a1676524b41139b1cd9144df6d224ba42b1036"
 dependencies = [
  "oxc_span",
 ]

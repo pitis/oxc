@@ -129,7 +129,7 @@ impl SvelteTemplateRule for HtmlClosingBracketSpacing {
             if let Some(diagnostic) = check(expected, start_tag, source) {
                 diagnostics.push(diagnostic);
             }
-            if let Some(end_tag) = svelte_end_tag_span(element, source)
+            if let Some(end_tag) = svelte_end_tag_span(element)
                 && let Some(diagnostic) = check(self.end_tag, end_tag, source)
             {
                 diagnostics.push(diagnostic);

@@ -121,11 +121,9 @@ declare_oxc_lint!(
     ///
     /// ### Deviations from `eslint-plugin-svelte`
     ///
-    /// - Upstream rewrites the spacing; the Svelte markup pass reports only.
-    /// - The markup parser does not carry spans for a block's `{:…}` and
-    ///   `{/…}` markers, so they are located in the source between the
-    ///   surrounding nodes. A block the parser had to recover because its
-    ///   `{/…}` was missing therefore has no closing marker to check.
+    /// Upstream rewrites the spacing; the Svelte markup pass reports only.
+    /// A block the parser had to recover because its `{/…}` was missing has
+    /// no closing marker to check.
     MustacheSpacing,
     svelte,
     style,
@@ -174,7 +172,8 @@ impl SvelteTemplateRule for MustacheSpacing {
                                 check_value(value, source, self.directive_expressions, &mut out);
                             }
                         }
-                        AttributeKind::Plain { .. } => {}
+                        // A comment between attributes has no `{…}`.
+                        AttributeKind::Plain { .. } | AttributeKind::Comment { .. } => {}
                     }
                 }
             }
@@ -195,14 +194,8 @@ impl SvelteTemplateRule for MustacheSpacing {
                     }
                     BlockKind::Each(each) => {
                         check_braces(each.header_span, source, opening, closing, true, &mut out);
-                        if each.fallback.is_some() {
-                            let from = each
-                                .children
-                                .last()
-                                .map_or(each.header_span.end, |child| child.span().end);
-                            if let Some(marker) = find_branch_marker(source, from, "else") {
-                                check_braces(marker, source, opening, closing, false, &mut out);
-                            }
+                        if let Some(marker) = each.fallback_header_span {
+                            check_braces(marker, source, opening, closing, false, &mut out);
                         }
                     }
                     BlockKind::Await(await_block) => {
@@ -214,28 +207,17 @@ impl SvelteTemplateRule for MustacheSpacing {
                             true,
                             &mut out,
                         );
-                        let mut cursor = await_block
-                            .pending
-                            .last()
-                            .map_or(await_block.header_span.end, |child| child.span().end);
-                        for (children, keyword) in [
-                            (&await_block.then_children, "then"),
-                            (&await_block.catch_children, "catch"),
+                        for (marker, pattern) in [
+                            (await_block.then_header_span, &await_block.then_pattern),
+                            (await_block.catch_header_span, &await_block.catch_pattern),
                         ] {
-                            let Some(children) = children else { continue };
-                            if let Some(marker) = find_branch_marker(source, cursor, keyword) {
-                                if marker_has_expression(marker, source, keyword) {
-                                    check_braces(marker, source, opening, closing, true, &mut out);
-                                } else {
-                                    // A bare `{:then}` binds nothing, and
-                                    // upstream then leaves its closing brace
-                                    // unchecked entirely.
-                                    check_opening_only(marker, source, opening, &mut out);
-                                }
-                                cursor = marker.end;
-                            }
-                            if let Some(child) = children.last() {
-                                cursor = child.span().end;
+                            let Some(marker) = marker else { continue };
+                            if pattern.is_some_and(|slot| !slot.text.trim().is_empty()) {
+                                check_braces(marker, source, opening, closing, true, &mut out);
+                            } else {
+                                // A bare `{:then}` binds nothing, and upstream
+                                // then leaves its closing brace unchecked.
+                                check_opening_only(marker, source, opening, &mut out);
                             }
                         }
                     }
@@ -249,7 +231,7 @@ impl SvelteTemplateRule for MustacheSpacing {
                         check_braces(unknown.header_span, source, opening, closing, true, &mut out);
                     }
                 }
-                if let Some(marker) = closing_marker(block.span, block.unclosed, source) {
+                if let Some(marker) = block.close_span {
                     check_braces(marker, source, opening, closing, false, &mut out);
                 }
             }
@@ -337,54 +319,6 @@ fn push_opening(span: Span, leading: usize, opening: Spacing, out: &mut Vec<OxcD
         }
         _ => {}
     }
-}
-
-/// The `{:keyword …}` marker starting at or after `from`, when the next brace
-/// in the source is one.
-fn find_branch_marker(source: &str, from: u32, keyword: &str) -> Option<Span> {
-    let rest = source.get(from as usize..)?;
-    let open = from + u32::try_from(rest.find('{')?).ok()?;
-    let inner = source.get(open as usize + 1..)?;
-    if !inner.trim_start().strip_prefix(':').is_some_and(|it| it.starts_with(keyword)) {
-        return None;
-    }
-    matching_brace(source, open).map(|close| Span::new(open, close + 1))
-}
-
-/// Whether a `{:then …}` / `{:catch …}` marker actually binds anything.
-fn marker_has_expression(marker: Span, source: &str, keyword: &str) -> bool {
-    let Some(text) = source.get(marker.start as usize + 1..marker.end as usize - 1) else {
-        return false;
-    };
-    text.trim().trim_start_matches(':').trim_start().len() > keyword.len()
-}
-
-/// The block's `{/…}` marker, found by scanning back from its end.
-fn closing_marker(block: Span, unclosed: bool, source: &str) -> Option<Span> {
-    if unclosed {
-        return None;
-    }
-    let text = source.get(..block.end as usize)?;
-    let open = u32::try_from(text.rfind('{')?).ok()?;
-    (open >= block.start).then(|| Span::new(open, block.end))
-}
-
-/// The offset of the `}` that closes the brace at `open`.
-fn matching_brace(source: &str, open: u32) -> Option<u32> {
-    let mut depth = 0u32;
-    for (index, byte) in source.get(open as usize..)?.bytes().enumerate() {
-        match byte {
-            b'{' => depth += 1,
-            b'}' => {
-                depth -= 1;
-                if depth == 0 {
-                    return u32::try_from(index).ok().map(|index| open + index);
-                }
-            }
-            _ => {}
-        }
-    }
-    None
 }
 
 #[cfg(test)]

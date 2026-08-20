@@ -239,6 +239,8 @@ fn collect_markup_identifiers<'a>(nodes: &[Node<'a>], out: &mut FxHashSet<&'a st
                             }
                         }
                     }
+                    // A comment between attributes references nothing.
+                    AttributeKind::Comment { .. } => {}
                     AttributeKind::Shorthand { name, .. } => {
                         out.insert(name);
                     }
