@@ -962,6 +962,7 @@ pub use crate::rules::vue::no_lifecycle_after_await::NoLifecycleAfterAwait as Vu
 pub use crate::rules::vue::no_lone_template::NoLoneTemplate as VueNoLoneTemplate;
 pub use crate::rules::vue::no_multiple_slot_args::NoMultipleSlotArgs as VueNoMultipleSlotArgs;
 pub use crate::rules::vue::no_parsing_error::NoParsingError as VueNoParsingError;
+pub use crate::rules::vue::no_ref_as_operand::NoRefAsOperand as VueNoRefAsOperand;
 pub use crate::rules::vue::no_required_prop_with_default::NoRequiredPropWithDefault as VueNoRequiredPropWithDefault;
 pub use crate::rules::vue::no_reserved_component_names::NoReservedComponentNames as VueNoReservedComponentNames;
 pub use crate::rules::vue::no_reserved_keys::NoReservedKeys as VueNoReservedKeys;
@@ -1908,6 +1909,7 @@ pub enum RuleEnum {
     VueNoLoneTemplate(VueNoLoneTemplate),
     VueNoMultipleSlotArgs(VueNoMultipleSlotArgs),
     VueNoParsingError(VueNoParsingError),
+    VueNoRefAsOperand(VueNoRefAsOperand),
     VueNoRequiredPropWithDefault(VueNoRequiredPropWithDefault),
     VueNoReservedComponentNames(VueNoReservedComponentNames),
     VueNoReservedKeys(VueNoReservedKeys),
@@ -3033,7 +3035,8 @@ const VUE_NO_LIFECYCLE_AFTER_AWAIT_ID: usize = VUE_NO_IMPORT_COMPILER_MACROS_ID 
 const VUE_NO_LONE_TEMPLATE_ID: usize = VUE_NO_LIFECYCLE_AFTER_AWAIT_ID + 1usize;
 const VUE_NO_MULTIPLE_SLOT_ARGS_ID: usize = VUE_NO_LONE_TEMPLATE_ID + 1usize;
 const VUE_NO_PARSING_ERROR_ID: usize = VUE_NO_MULTIPLE_SLOT_ARGS_ID + 1usize;
-const VUE_NO_REQUIRED_PROP_WITH_DEFAULT_ID: usize = VUE_NO_PARSING_ERROR_ID + 1usize;
+const VUE_NO_REF_AS_OPERAND_ID: usize = VUE_NO_PARSING_ERROR_ID + 1usize;
+const VUE_NO_REQUIRED_PROP_WITH_DEFAULT_ID: usize = VUE_NO_REF_AS_OPERAND_ID + 1usize;
 const VUE_NO_RESERVED_COMPONENT_NAMES_ID: usize = VUE_NO_REQUIRED_PROP_WITH_DEFAULT_ID + 1usize;
 const VUE_NO_RESERVED_KEYS_ID: usize = VUE_NO_RESERVED_COMPONENT_NAMES_ID + 1usize;
 const VUE_NO_RESERVED_PROPS_ID: usize = VUE_NO_RESERVED_KEYS_ID + 1usize;
@@ -3192,7 +3195,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1011usize] = [
+static RULE_NAMES: [&str; 1012usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4062,6 +4065,7 @@ static RULE_NAMES: [&str; 1011usize] = [
     VueNoLoneTemplate::NAME,
     VueNoMultipleSlotArgs::NAME,
     VueNoParsingError::NAME,
+    VueNoRefAsOperand::NAME,
     VueNoRequiredPropWithDefault::NAME,
     VueNoReservedComponentNames::NAME,
     VueNoReservedKeys::NAME,
@@ -5209,6 +5213,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VUE_NO_LONE_TEMPLATE_ID,
             Self::VueNoMultipleSlotArgs(_) => VUE_NO_MULTIPLE_SLOT_ARGS_ID,
             Self::VueNoParsingError(_) => VUE_NO_PARSING_ERROR_ID,
+            Self::VueNoRefAsOperand(_) => VUE_NO_REF_AS_OPERAND_ID,
             Self::VueNoRequiredPropWithDefault(_) => VUE_NO_REQUIRED_PROP_WITH_DEFAULT_ID,
             Self::VueNoReservedComponentNames(_) => VUE_NO_RESERVED_COMPONENT_NAMES_ID,
             Self::VueNoReservedKeys(_) => VUE_NO_RESERVED_KEYS_ID,
@@ -6433,6 +6438,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::CATEGORY,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::CATEGORY,
             Self::VueNoParsingError(_) => VueNoParsingError::CATEGORY,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::CATEGORY,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::CATEGORY,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::CATEGORY,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::CATEGORY,
@@ -7593,6 +7599,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::FIX,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::FIX,
             Self::VueNoParsingError(_) => VueNoParsingError::FIX,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::FIX,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::FIX,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::FIX,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::FIX,
@@ -9029,6 +9036,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::documentation(),
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::documentation(),
             Self::VueNoParsingError(_) => VueNoParsingError::documentation(),
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::documentation(),
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::documentation(),
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::documentation(),
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::documentation(),
@@ -11741,6 +11749,8 @@ impl RuleEnum {
                 .or_else(|| VueNoMultipleSlotArgs::schema(generator)),
             Self::VueNoParsingError(_) => VueNoParsingError::config_schema(generator)
                 .or_else(|| VueNoParsingError::schema(generator)),
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::config_schema(generator)
+                .or_else(|| VueNoRefAsOperand::schema(generator)),
             Self::VueNoRequiredPropWithDefault(_) => {
                 VueNoRequiredPropWithDefault::config_schema(generator)
                     .or_else(|| VueNoRequiredPropWithDefault::schema(generator))
@@ -13028,6 +13038,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => "vue",
             Self::VueNoMultipleSlotArgs(_) => "vue",
             Self::VueNoParsingError(_) => "vue",
+            Self::VueNoRefAsOperand(_) => "vue",
             Self::VueNoRequiredPropWithDefault(_) => "vue",
             Self::VueNoReservedComponentNames(_) => "vue",
             Self::VueNoReservedKeys(_) => "vue",
@@ -15323,6 +15334,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.run(node, ctx),
             Self::VueNoMultipleSlotArgs(rule) => rule.run(node, ctx),
             Self::VueNoParsingError(rule) => rule.run(node, ctx),
+            Self::VueNoRefAsOperand(rule) => rule.run(node, ctx),
             Self::VueNoRequiredPropWithDefault(rule) => rule.run(node, ctx),
             Self::VueNoReservedComponentNames(rule) => rule.run(node, ctx),
             Self::VueNoReservedKeys(rule) => rule.run(node, ctx),
@@ -16351,6 +16363,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.run_once(ctx),
             Self::VueNoMultipleSlotArgs(rule) => rule.run_once(ctx),
             Self::VueNoParsingError(rule) => rule.run_once(ctx),
+            Self::VueNoRefAsOperand(rule) => rule.run_once(ctx),
             Self::VueNoRequiredPropWithDefault(rule) => rule.run_once(ctx),
             Self::VueNoReservedComponentNames(rule) => rule.run_once(ctx),
             Self::VueNoReservedKeys(rule) => rule.run_once(ctx),
@@ -17496,6 +17509,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoMultipleSlotArgs(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoParsingError(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoRefAsOperand(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoRequiredPropWithDefault(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoReservedComponentNames(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoReservedKeys(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18543,6 +18557,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.should_run(ctx),
             Self::VueNoMultipleSlotArgs(rule) => rule.should_run(ctx),
             Self::VueNoParsingError(rule) => rule.should_run(ctx),
+            Self::VueNoRefAsOperand(rule) => rule.should_run(ctx),
             Self::VueNoRequiredPropWithDefault(rule) => rule.should_run(ctx),
             Self::VueNoReservedComponentNames(rule) => rule.should_run(ctx),
             Self::VueNoReservedKeys(rule) => rule.should_run(ctx),
@@ -19960,6 +19975,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::IS_TSGOLINT_RULE,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::IS_TSGOLINT_RULE,
             Self::VueNoParsingError(_) => VueNoParsingError::IS_TSGOLINT_RULE,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::IS_TSGOLINT_RULE,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::IS_TSGOLINT_RULE,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::IS_TSGOLINT_RULE,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::IS_TSGOLINT_RULE,
@@ -21223,6 +21239,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::VERSION,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::VERSION,
             Self::VueNoParsingError(_) => VueNoParsingError::VERSION,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::VERSION,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::VERSION,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::VERSION,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::VERSION,
@@ -22495,6 +22512,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::HAS_CONFIG,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::HAS_CONFIG,
             Self::VueNoParsingError(_) => VueNoParsingError::HAS_CONFIG,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::HAS_CONFIG,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::HAS_CONFIG,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::HAS_CONFIG,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::HAS_CONFIG,
@@ -23664,6 +23682,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(_) => VueNoLoneTemplate::INFO,
             Self::VueNoMultipleSlotArgs(_) => VueNoMultipleSlotArgs::INFO,
             Self::VueNoParsingError(_) => VueNoParsingError::INFO,
+            Self::VueNoRefAsOperand(_) => VueNoRefAsOperand::INFO,
             Self::VueNoRequiredPropWithDefault(_) => VueNoRequiredPropWithDefault::INFO,
             Self::VueNoReservedComponentNames(_) => VueNoReservedComponentNames::INFO,
             Self::VueNoReservedKeys(_) => VueNoReservedKeys::INFO,
@@ -24702,6 +24721,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.types_info(),
             Self::VueNoMultipleSlotArgs(rule) => rule.types_info(),
             Self::VueNoParsingError(rule) => rule.types_info(),
+            Self::VueNoRefAsOperand(rule) => rule.types_info(),
             Self::VueNoRequiredPropWithDefault(rule) => rule.types_info(),
             Self::VueNoReservedComponentNames(rule) => rule.types_info(),
             Self::VueNoReservedKeys(rule) => rule.types_info(),
@@ -25717,6 +25737,7 @@ impl RuleEnum {
             Self::VueNoLoneTemplate(rule) => rule.run_info(),
             Self::VueNoMultipleSlotArgs(rule) => rule.run_info(),
             Self::VueNoParsingError(rule) => rule.run_info(),
+            Self::VueNoRefAsOperand(rule) => rule.run_info(),
             Self::VueNoRequiredPropWithDefault(rule) => rule.run_info(),
             Self::VueNoReservedComponentNames(rule) => rule.run_info(),
             Self::VueNoReservedKeys(rule) => rule.run_info(),
@@ -26868,6 +26889,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoLoneTemplate(VueNoLoneTemplate::default()),
         RuleEnum::VueNoMultipleSlotArgs(VueNoMultipleSlotArgs::default()),
         RuleEnum::VueNoParsingError(VueNoParsingError::default()),
+        RuleEnum::VueNoRefAsOperand(VueNoRefAsOperand::default()),
         RuleEnum::VueNoRequiredPropWithDefault(VueNoRequiredPropWithDefault::default()),
         RuleEnum::VueNoReservedComponentNames(VueNoReservedComponentNames::default()),
         RuleEnum::VueNoReservedKeys(VueNoReservedKeys::default()),

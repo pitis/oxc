@@ -7,7 +7,7 @@ outright, rather than running them alongside. Svelte first, then Vue/Nuxt, then 
 Nothing here is submitted upstream; the upstream repository is read-only from this fork.
 
 Everything below is measured, not estimated. Every figure names the command that produced it, so
-a stale number can be re-derived rather than trusted. Figures were last taken **2026-08-20**
+a stale number can be re-derived rather than trusted. Figures were last taken **2026-08-21**
 against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.9.1 and
 `eslint-plugin-svelte` 3.23.0.
 
@@ -16,12 +16,12 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 104 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
+| **Vue**                    | 105 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
-| **Everything else**        | 1,013 rules, 141 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
+| **Everything else**        | 1,014 rules, 142 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop both tools today. Vue can drop Prettier today, and drop
-ESLint once the eleven rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
+ESLint once the ten rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
 subject to the tsconfig caveat below.
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -66,7 +66,7 @@ Verified end to end on `svelte-number-format`: all eight Prettier/ESLint dev dep
 
 ## Vue
 
-**Lint — 104 of `eslint-plugin-vue`'s 250 rules.** Most of the 146 absent ones are stylistic rules
+**Lint — 105 of `eslint-plugin-vue`'s 250 rules.** Most of the 145 absent ones are stylistic rules
 no preset enables, but a project is free to enable them, so the number that matters is coverage of
 a config someone actually runs:
 
@@ -76,11 +76,11 @@ a config someone actually runs:
 | A production Vue 3 + Nuxt monorepo config       | 174 / 188 (93%) |
 | `eslint-plugin-vue` `flat/recommended` alone    | 94 / 118        |
 
-Eleven missing rules are the substance of the gap:
+Ten missing rules are the substance of the gap:
 
-`no-mutating-props`, `no-ref-as-operand`, `no-undef-components`, `no-unused-components`,
-`no-unused-vars`, `no-use-computed-property-like-method`, `one-component-per-file`,
-`order-in-components`, `require-explicit-emits`, `require-valid-default-prop`, `jsx-uses-vars`.
+`no-mutating-props`, `no-undef-components`, `no-unused-components`, `no-unused-vars`,
+`no-use-computed-property-like-method`, `one-component-per-file`, `order-in-components`,
+`require-explicit-emits`, `require-valid-default-prop`, `jsx-uses-vars`.
 
 A stock Nuxt config additionally wants `attributes-order`, `first-attribute-linebreak`,
 `html-end-tags`, `html-self-closing` and `no-multiple-template-root`, plus core `no-octal` and
@@ -92,8 +92,7 @@ nothing.** Enabling the missing rules under real ESLint across 891 `.vue` files 
 findings — but every one came from `attributes-order` (209), `html-self-closing` (60) and
 `no-multiple-template-root` (25), none of which that project enables. The missing rules it _does_
 enable found zero violations, because they have been enforced there for years. Switching costs no
-cleanup; it does remove the net, and `no-mutating-props` and `no-ref-as-operand` catch genuine Vue
-bugs.
+cleanup; it does remove the net, and `no-mutating-props` catches genuine Vue bugs.
 
 `no-template-shadow` is the worked example of what porting one of these takes, and of how it gets
 checked: 21 hand-written cases and 1,602 real `.vue` files across six repositories, diffed
@@ -103,6 +102,44 @@ a value binding the same name twice (`v-for="(a, a) in xs"`) is an early error i
 vue-eslint-parser borrows, so upstream gives the element no variables and reports nothing —
 `oxc_parser` raises early errors from its semantic pass, which these throwaway snippets never run,
 so the duplicate has to be caught explicitly.
+
+`no-ref-as-operand` is the second worked example, and it is where the verification method had to
+get sharper. Both linters report **zero** findings across the 1,602 real `.vue` files — true, and
+almost worthless: a rule that never fires agrees trivially with a rule that never fires, and that
+result would have been identical had the port done nothing at all. Two things were needed to
+measure anything.
+
+First, a **positive control**: ten hand-written `.vue` files covering every branch — each factory
+under its own name, both `defineModel` spellings, the Options API `setup(props, ctx)` and
+`setup(props, { emit })` emit paths, auto-imported (`globals`-declared) `ref`, and files that must
+stay silent. 20 findings, 20 shared, no divergence.
+
+Second, a **mutation of the real corpus**: strip `.value` from every `.vue` file that has it (752
+files) and diff again. That produces ~5,800 induced violations in real component code rather than
+in hand-written snippets, and it is what actually found the bugs — three rounds of them.
+
+|                   |                                    files | eslint | oxlint |    shared |
+| :---------------- | ---------------------------------------: | -----: | -----: | --------: |
+| real corpus       |                                    1,602 |      0 |      0 |         0 |
+| positive control  |                                       10 |     20 |     20 |    **20** |
+| `.value` stripped | 752 (36 unparseable by eslint, excluded) |  5,774 |  5,774 | **5,764** |
+
+The 10 remaining differences are in two files, and neither is a rule-level divergence:
+
+- `QrPreviewCard.vue` — both find the same nine violations, but vue-eslint-parser reports them
+  **33 lines off** in a file that has both a `<script>` and a `<script setup>` block. Deleting the
+  first block makes the two agree exactly, so oxlint's positions are the correct ones.
+- `PhoenixUserDetailsPanel.vue` — one finding two columns apart, on a line containing an em dash.
+  oxlint counts columns in UTF-8 bytes where ESLint counts characters. Reproduced with core
+  `eslint(no-debugger)`, so it is a linter-wide convention, not this rule.
+
+Three real bugs came out of that mutation run, all in the same area: what happens when a ref is
+copied into another variable. Upstream re-registers _every_ reference of a binding each time it
+reaches it, so the outcome depends on processing order — and the order is the **import-specifier**
+order, not the factory order, which means `import { computed, ref }` and `import { ref, computed }`
+genuinely disagree about the same code. On top of that, `defineChain` decides reportability, and a
+global `_processedIds` set makes the _first_ source to reach an identifier the winner. All three
+are reproduced, with the reasoning recorded on `register` and `define_sites` in the rule.
 
 **Format — Tier 3.** `.vue` markup still goes to Prettier through NAPI. The `<script>` and
 `<style>` blocks and the directive expressions inside the template are already native. A native
@@ -114,15 +151,15 @@ differences against Prettier 3.9.6.
 
 ## oxlint in general
 
-1,013 rules across 17 plugins, 141 more than upstream at the same merge base (the entire `svelte`
-plugin, and 58 `vue` rules).
+1,014 rules across 17 plugins, 142 more than upstream at the same merge base (the entire `svelte`
+plugin, and 59 `vue` rules).
 
 | plugin       | rules |     | plugin     | rules |
 | :----------- | ----: | :-- | :--------- | ----: |
 | `eslint`     |   187 |     | `jest`     |    60 |
 | `unicorn`    |   138 |     | `jsx_a11y` |    36 |
 | `typescript` |   110 |     | `import`   |    33 |
-| `vue`        |   104 |     | `oxc`      |    27 |
+| `vue`        |   105 |     | `oxc`      |    27 |
 | `react`      |    85 |     | `jsdoc`    |    23 |
 | `svelte`     |    83 |     | `nextjs`   |    21 |
 | `vitest`     |    73 |     | others     |    33 |
@@ -242,7 +279,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 
 ## What is next
 
-1. The eleven Vue rules listed above.
+1. The ten Vue rules listed above.
 2. `attributes-order`, the largest single gap for a stock Nuxt config.
 3. `svelte/valid-compile` as a first-party JS plugin.
 4. A native Vue printer, to move `.vue` off Prettier.

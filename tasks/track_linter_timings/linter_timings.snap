@@ -846,6 +846,7 @@ vue/no-duplicate-attributes                                |      0
 vue/no-import-compiler-macros                              |    103
 vue/no-lone-template                                       |      0
 vue/no-parsing-error                                       |      0
+vue/no-ref-as-operand                                      |      7
 vue/no-required-prop-with-default                          |  62608
 vue/no-shared-component-data                               |  32492
 vue/no-side-effects-in-computed-properties                 |  94090
