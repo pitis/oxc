@@ -9,7 +9,9 @@ use oxc_formatter_core::{
     builders::{text, token},
     write,
 };
-use svelte_markup_parser::ast::{Attribute, AttributeKind, AttributeValue, ValuePart};
+use svelte_markup_parser::ast::{
+    Attribute, AttributeKind, AttributeValue, DirectiveKind, ValuePart,
+};
 
 use super::SvelteFormatter;
 
@@ -45,10 +47,31 @@ pub fn write_attribute<'a>(
         AttributeKind::Spread { expression, .. } => {
             write!(f, [token("{..."), text(expression.trim()), token("}")]);
         }
-        AttributeKind::Comment { .. } | AttributeKind::Directive(_) => {
-            // Directives and attribute comments keep their exact spelling:
-            // the modifier list, the shorthand form and the comment body are
-            // all the author's, and none of them is reflowed.
+        AttributeKind::Directive(directive) => {
+            write!(f, text(directive.raw_name));
+            let Some(value) = &directive.value else { return };
+            // `bind:`, `class:`, `style:` and `let:` drop a value that just
+            // names the same thing the directive does.
+            if allow_shorthand
+                && matches!(
+                    directive.kind,
+                    DirectiveKind::Bind
+                        | DirectiveKind::Class
+                        | DirectiveKind::Style
+                        | DirectiveKind::Let
+                )
+                && value
+                    .as_single_expression()
+                    .is_some_and(|tag| tag.expression.trim() == directive.name)
+            {
+                return;
+            }
+            write!(f, token("="));
+            write_value(value, source, f);
+        }
+        AttributeKind::Comment { .. } => {
+            // A comment between attributes is the author's prose; it keeps
+            // its exact spelling.
             write!(f, text(source_of(source, attribute)));
         }
     }

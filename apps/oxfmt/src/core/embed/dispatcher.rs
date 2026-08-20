@@ -8,7 +8,7 @@ use std::sync::{Arc, OnceLock};
 
 use tracing::{debug, debug_span};
 
-use oxc_formatter::CssInJsTemplate;
+use oxc_formatter::{CssInJsTemplate, JsFormatOptions};
 use oxc_formatter_core::{
     CoreFormatOptions, DispatchRequest, DispatchResponse, EmbeddedIr, FormatDispatcher,
     FormatSession,
@@ -18,10 +18,11 @@ use oxc_formatter_css::{CssFormatOptions, CssVariant};
 use oxc_formatter_graphql::GraphqlFormatOptions;
 use oxc_formatter_json::{JsonFormatOptions, JsonVariant};
 use oxc_formatter_yaml::YamlFormatOptions;
+use oxc_span::SourceType;
 
 use crate::core::{
     options::{
-        to_oxc_formatter_css, to_oxc_formatter_graphql, to_oxc_formatter_json,
+        to_oxc_formatter, to_oxc_formatter_css, to_oxc_formatter_graphql, to_oxc_formatter_json,
         to_oxc_formatter_yaml,
     },
     oxfmtrc::FormatConfig,
@@ -31,6 +32,8 @@ use crate::core::{
 /// a request/fence language routed to [`Route::Native`] parses to its Rust formatter branch here.
 pub enum NativeLanguage {
     Graphql,
+    /// JS/TS, as a `.svelte` component's `<script>` is.
+    Js(SourceType),
     /// The fence-derived variant;
     /// the css-in-js typed context overrides it to Scss + placeholders at dispatch time (see the css branch).
     Css(CssVariant),
@@ -91,6 +94,8 @@ pub enum Route {
 pub fn route(language: &str) -> Route {
     match language {
         "graphql" | "gql" => Route::Native(NativeLanguage::Graphql),
+        "js" => Route::Native(NativeLanguage::Js(SourceType::mjs())),
+        "ts" => Route::Native(NativeLanguage::Js(SourceType::ts())),
         "css" => Route::Native(NativeLanguage::Css(CssVariant::Css)),
         "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss)),
         "less" => Route::Native(NativeLanguage::Css(CssVariant::Less)),
@@ -120,6 +125,7 @@ pub struct ResolvedDispatchConfig {
     /// Holding them pre-validated is what lets the per-language mappers be infallible.
     core: CoreFormatOptions,
     graphql: OnceLock<GraphqlFormatOptions>,
+    js: OnceLock<JsFormatOptions>,
     /// One cell per [`CssVariant`]: JSDoc fences dispatch css/scss/less as-is, while css-in-js always uses Scss.
     css: [OnceLock<CssFormatOptions>; 3],
     yaml: OnceLock<YamlFormatOptions>,
@@ -155,6 +161,7 @@ impl ResolvedDispatchConfig {
             config,
             core,
             graphql: OnceLock::new(),
+            js: OnceLock::new(),
             css: [OnceLock::new(), OnceLock::new(), OnceLock::new()],
             yaml: OnceLock::new(),
             json: [OnceLock::new(), OnceLock::new(), OnceLock::new()],
@@ -207,6 +214,13 @@ impl ResolvedDispatchConfig {
             CssVariant::Less => &self.css[2],
         };
         *cell.get_or_init(|| to_oxc_formatter_css(&self.config, self.core, variant))
+    }
+
+    /// Options for an embedded `<script>`. Import sorting is deliberately
+    /// not passed on: it is a whole-file transform the host owns, and a
+    /// component's script is not the file.
+    pub fn js_options(&self) -> JsFormatOptions {
+        self.js.get_or_init(|| to_oxc_formatter(&self.config, self.core, None)).clone()
     }
 
     pub fn yaml_options(&self) -> YamlFormatOptions {
@@ -315,6 +329,14 @@ pub fn build_dispatcher(
                     )
                 }))
             }
+            Route::Native(NativeLanguage::Js(source_type)) => Ok(format_native("js", || {
+                oxc_formatter::format_to_ir(
+                    session,
+                    text,
+                    source_type,
+                    dispatch_config.js_options(),
+                )
+            })),
             Route::Native(NativeLanguage::Yaml) => Ok(format_native("yaml", || {
                 oxc_formatter_yaml::format_to_ir(session, text, dispatch_config.yaml_options())
             })),

@@ -23,6 +23,7 @@ use super::{
         ends_with_collapsible_whitespace, is_block_tag, is_empty, is_pre_tag, is_raw_text_element,
         starts_with_collapsible_whitespace, starts_with_line_breaks,
     },
+    raw_text::write_raw_text_element,
     write_children, write_source,
 };
 
@@ -33,10 +34,16 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
     let children = &element.children;
     let empty = is_empty(children);
 
-    // A raw-text element (`<script>`, `<style>`) keeps its body exactly as
-    // written until the embedded formatters take it over.
-    if is_raw_text_element(element) || is_pre_tag(element) {
+    // `<pre>` and `<textarea>` render their own whitespace, so their content
+    // is not the printer's to lay out.
+    if is_pre_tag(element) {
         write_source(element.span, f);
+        return;
+    }
+    // A `<script>` or `<style>` body is another language; it goes to the
+    // formatter that owns it.
+    if is_raw_text_element(element) {
+        write_raw_text_element(element, f);
         return;
     }
 

@@ -28,6 +28,7 @@ mod attribute;
 mod children;
 mod classify;
 mod element;
+mod raw_text;
 mod text;
 
 pub type SvelteFormatter<'buf, 'a> = Formatter<'buf, 'a, SvelteFormatContext<'a>>;
@@ -36,8 +37,7 @@ pub type SvelteFormatter<'buf, 'a> = Formatter<'buf, 'a, SvelteFormatContext<'a>
 ///
 /// The file's own edges are not content: whatever whitespace sits before the
 /// first node and after the last is dropped, and the single trailing newline
-/// is written by the caller. A forced break is dropped for the same reason —
-/// there is no enclosing group at this level for it to expand.
+/// is written by the caller.
 pub fn write_root<'a>(nodes: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
     let order = f.options().sort_order;
     if order == SortOrder::None {
@@ -194,6 +194,9 @@ fn write_root_of<'a>(nodes: &[Node<'a>], indices: &[usize], f: &mut SvelteFormat
     let plan = plan_some_children(nodes, indices, &trims);
     for (index, layout) in &plan.entries {
         write_child(&nodes[*index], *layout, f);
+    }
+    if plan.force_break {
+        write!(f, expand_parent());
     }
 }
 

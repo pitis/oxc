@@ -102,3 +102,27 @@ fn refuses_markup_that_is_not_well_formed() {
 fn drops_a_space_that_would_start_a_line() {
     check("<div>text <p>block</p> text</div>\n", "<div>\n\ttext <p>block</p>\n\ttext\n</div>\n");
 }
+
+/// Directives drop a value that only repeats their own name.
+#[test]
+fn shortens_directives() {
+    check("<input bind:value={value} />\n", "<input bind:value />\n");
+    check("<div class:active={active}></div>\n", "<div class:active></div>\n");
+    check("<div class:active={other}></div>\n", "<div class:active={other}></div>\n");
+}
+
+/// `format` builds a session with no services, so there is nothing to hand a
+/// `<script>` or `<style>` body to and it stays exactly as written. The
+/// embedded path — where oxfmt installs a dispatcher and the body reaches
+/// `oxc_formatter` / `oxc_formatter_css` — is measured against
+/// `prettier-plugin-svelte` through oxfmt itself.
+#[test]
+fn keeps_embedded_bodies_when_nothing_can_format_them() {
+    check("<script>\n\tlet   a=1\n</script>\n", "<script>\n\tlet   a=1\n</script>\n");
+    check("<style>\n\t.a{color:red}\n</style>\n", "<style>\n\t.a{color:red}\n</style>\n");
+    // A language nothing here formats is never touched either.
+    check(
+        "<style lang=\"stylus\">\n\t.a\n\t\tcolor red\n</style>\n",
+        "<style lang=\"stylus\">\n\t.a\n\t\tcolor red\n</style>\n",
+    );
+}

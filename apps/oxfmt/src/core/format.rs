@@ -92,6 +92,11 @@ pub enum FormatStrategy {
     OxcFormatterSvelte {
         path: Arc<Path>,
         format_options: Box<SvelteFormatOptions>,
+        /// `config` + `core` build the dispatch config for the root's
+        /// session, which is what lets `<script>` and `<style>` reach the
+        /// formatters that own them.
+        config: Arc<FormatConfig>,
+        core: CoreFormatOptions,
         insert_final_newline: bool,
     },
     /// For YAML files formatted by `oxc_formatter_yaml`.
@@ -237,6 +242,8 @@ impl FormatStrategy {
                 Self::OxcFormatterSvelte {
                     path,
                     format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
+                    config: Arc::new(config),
+                    core,
                     insert_final_newline,
                 }
             }
@@ -382,8 +389,20 @@ impl SourceFormatter {
                 ),
                 insert_final_newline,
             ),
-            FormatStrategy::OxcFormatterSvelte { path, format_options, insert_final_newline } => (
-                self.format_by_oxc_formatter_svelte(source_text, &path, *format_options),
+            FormatStrategy::OxcFormatterSvelte {
+                path,
+                format_options,
+                config,
+                core,
+                insert_final_newline,
+            } => (
+                self.format_by_oxc_formatter_svelte(
+                    source_text,
+                    &path,
+                    *format_options,
+                    &config,
+                    core,
+                ),
                 insert_final_newline,
             ),
             FormatStrategy::OxcFormatterYaml { path, format_options, insert_final_newline } => (
@@ -609,9 +628,17 @@ impl SourceFormatter {
         source_text: &str,
         path: &Path,
         format_options: SvelteFormatOptions,
+        config: &Arc<FormatConfig>,
+        core: CoreFormatOptions,
     ) -> Result<String, OxcDiagnostic> {
         let allocator = self.allocator_pool.get();
-        let formatted = oxc_formatter_svelte::format(&allocator, source_text, format_options)?;
+        let session = {
+            let dispatch_config = ResolvedDispatchConfig::for_root(config, core, path);
+            let services = self.root_services(&dispatch_config);
+            FormatSession::with_services(&allocator, InputKind::PhysicalFile, services)
+        };
+        let formatted =
+            oxc_formatter_svelte::format_with_session(&session, source_text, format_options)?;
         let printed = formatted.print().map_err(|err| {
             OxcDiagnostic::error(format!(
                 "Failed to print formatted Svelte: {}\n{err}",

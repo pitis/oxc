@@ -2155,6 +2155,7 @@ dependencies = [
 name = "oxc_formatter_svelte"
 version = "0.64.0"
 dependencies = [
+ "cow-utils",
  "oxc_allocator",
  "oxc_diagnostics",
  "oxc_formatter_core",

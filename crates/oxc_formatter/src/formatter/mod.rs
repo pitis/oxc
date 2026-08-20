@@ -65,3 +65,26 @@ pub fn format<'ast>(
 
     Formatted::new(ir, context)
 }
+
+/// As [`format`], but returning the raw IR for a parent document to splice in.
+///
+/// Unlike [`format`], the Tailwind classes are NOT sorted here: the parent
+/// document owns the batch sort, and re-indexes these into its own class
+/// space (`DispatchPayload::into_doc`).
+pub fn format_embedded<'ast>(
+    context: JsFormatContext<'ast>,
+    session: &FormatSession<'ast>,
+    arguments: Arguments<'_, 'ast, JsFormatContext<'ast>>,
+) -> oxc_formatter_core::EmbeddedIr<'ast> {
+    let capacity = (context.source_text().len() * 2) / 5;
+
+    let mut state = FormatState::new_with_session(context, session.clone());
+    let mut buffer = VecBuffer::with_capacity(capacity, &mut state);
+
+    buffer.write_fmt(arguments);
+
+    let elements = buffer.into_vec();
+    let tailwind_classes = state.context_mut().take_tailwind_classes();
+
+    oxc_formatter_core::EmbeddedIr { ir: elements, tailwind_classes }
+}

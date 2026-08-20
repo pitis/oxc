@@ -1,7 +1,7 @@
 use oxc_allocator::Allocator;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_formatter_core::{
-    Buffer, Document, Format, FormatState, Formatted, VecBuffer,
+    Buffer, Document, Format, FormatSession, FormatState, Formatted, InputKind, VecBuffer,
     builders::{hard_line_break, text},
     write,
 };
@@ -26,6 +26,28 @@ pub fn format<'a>(
     source_text: &str,
     options: SvelteFormatOptions,
 ) -> Result<Formatted<'a, SvelteFormatContext<'a>>, OxcDiagnostic> {
+    // Compatibility wrapper: a service-less session, so `<script>` and
+    // `<style>` stay as-is. Hosts that install services (oxfmt) use
+    // [`format_with_session`].
+    format_with_session(
+        &FormatSession::new(allocator, InputKind::PhysicalFile),
+        source_text,
+        options,
+    )
+}
+
+/// Like [`format()`], but on a caller-supplied [`FormatSession`] — the one
+/// carrying the host's services, which is what lets a component's
+/// `<script>` and `<style>` reach the formatters that own them.
+///
+/// # Errors
+/// Same as [`format()`].
+pub fn format_with_session<'a>(
+    session: &FormatSession<'a>,
+    source_text: &str,
+    options: SvelteFormatOptions,
+) -> Result<Formatted<'a, SvelteFormatContext<'a>>, OxcDiagnostic> {
+    let allocator = session.allocator();
     let (has_bom, source_text) = oxc_formatter_core::spec::split_bom(source_text);
     // The printer re-applies the configured line ending, and `text` rejects a
     // lone `\r`, so normalize before anything looks at the source.
@@ -41,7 +63,7 @@ pub fn format<'a>(
     }
 
     let context = SvelteFormatContext::new(options, source);
-    let mut state = FormatState::new(context, allocator);
+    let mut state = FormatState::new_with_session(context, session.clone());
     let capacity = (source.len() * 3 / 10).max(1024);
     let mut buffer = VecBuffer::with_capacity(capacity, &mut state);
 

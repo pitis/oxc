@@ -29,6 +29,6 @@ mod tests;
 
 pub use crate::{
     context::SvelteFormatContext,
-    format::format,
+    format::{format, format_with_session},
     options::{AllowShorthand, IndentScriptAndStyle, SortOrder, SvelteFormatOptions},
 };

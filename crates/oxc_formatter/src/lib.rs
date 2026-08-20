@@ -17,7 +17,7 @@ use oxc_allocator::Allocator;
 use oxc_ast::Comment;
 use oxc_ast::ast::*;
 use oxc_diagnostics::OxcDiagnostic;
-use oxc_formatter_core::{FormatSession, Formatted, InputKind};
+use oxc_formatter_core::{EmbeddedIr, FormatSession, Formatted, InputKind};
 use oxc_parser::{ParseOptions, Parser, ParserReturn};
 use oxc_span::SourceType;
 
@@ -176,6 +176,42 @@ pub fn format_with_session<'a>(
 ) -> Result<Formatted<'a, JsFormatContext<'a>>, OxcDiagnostic> {
     let program = parse(session.allocator(), source_text, source_type)?;
     Ok(format_program_with_session(session, program, options))
+}
+
+/// Parse `source_text` as a JS/TS program and build the formatter IR for
+/// embedding into another formatter's document — a `.svelte` component's
+/// `<script>`, say.
+///
+/// Unlike [`format()`], this:
+/// - allocates from the session's shared arena and `GroupId` space, so the
+///   IR lives as long as the parent's document and its group ids cannot
+///   collide with the parent's
+/// - emits neither a BOM nor the trailing newline (the parent owns the
+///   surrounding layout)
+///
+/// The returned [`EmbeddedIr`] carries the pre-sort Tailwind classes its
+/// `TailwindClass(index)` elements refer to; the parent document owns the
+/// batch sort and re-indexes them (`DispatchPayload::into_doc`).
+///
+/// # Errors
+/// Same as [`format()`]: the first parse error.
+pub fn format_to_ir<'a>(
+    session: &FormatSession<'a>,
+    source_text: &str,
+    source_type: SourceType,
+    options: JsFormatOptions,
+) -> Result<EmbeddedIr<'a>, OxcDiagnostic> {
+    let allocator = session.allocator();
+    let source_text: &'a str = allocator.alloc_str(source_text);
+    let program = parse(allocator, source_text, source_type)?;
+    let node = AstNode::new(program, AstNodes::Dummy(), allocator);
+    let context =
+        JsFormatContext::new(program.source_text, program.source_type, &program.comments, options);
+    Ok(formatter::format_embedded(
+        context,
+        session,
+        oxc_formatter_core::Arguments::new(&[oxc_formatter_core::Argument::new(&node)]),
+    ))
 }
 
 /// Format a pre-wrapped JS/TS-in-xxx fragment from source text.
