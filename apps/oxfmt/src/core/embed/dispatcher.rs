@@ -99,14 +99,21 @@ pub fn route(language: &str) -> Route {
     match language {
         "graphql" | "gql" => Route::Native(NativeLanguage::Graphql),
         "js" => Route::Native(NativeLanguage::Js(SourceType::mjs())),
-        "ts" => Route::Native(NativeLanguage::Js(SourceType::ts())),
+        // `.with_module(true)` rather than the default unambiguous kind: an
+        // embedded body or expression comes from a component, which is always
+        // a module, and a fragment of one rarely carries the `import` that
+        // would let the parser work that out for itself. Without it `await x`
+        // parses as a call on an identifier named `await`.
+        "ts" => Route::Native(NativeLanguage::Js(SourceType::ts().with_module(true))),
         "js-expression" => Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), false)),
-        "ts-expression" => Route::Native(NativeLanguage::JsExpression(SourceType::ts(), false)),
+        "ts-expression" => {
+            Route::Native(NativeLanguage::JsExpression(SourceType::ts().with_module(true), false))
+        }
         "js-attribute-expression" => {
             Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), true))
         }
         "ts-attribute-expression" => {
-            Route::Native(NativeLanguage::JsExpression(SourceType::ts(), true))
+            Route::Native(NativeLanguage::JsExpression(SourceType::ts().with_module(true), true))
         }
         "css" => Route::Native(NativeLanguage::Css(CssVariant::Css)),
         "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss)),
