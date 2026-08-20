@@ -4,6 +4,10 @@ Oxc is a high-performance JavaScript/TypeScript toolchain written in Rust contai
 
 - Parser (JS/TS with AST), Linter (oxlint), Formatter (oxfmt), Transformer, Minifier
 
+**This is a fork.** Its goal is to let a project delete Prettier and ESLint rather than run them
+alongside. Read `FORK-STATUS.md` for what is finished, what is missing and what was measured —
+per language, with the commands that produced each figure. Nothing here goes upstream.
+
 ## AI Usage Policy for Contributors
 
 **IMPORTANT**: If you are an AI assistant helping a human contributor:
