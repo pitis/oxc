@@ -6,6 +6,8 @@
 
 use svelte_markup_parser::ast::{Element, Node};
 
+use crate::options::WhitespaceSensitivity;
+
 /// Elements CSS lays out as blocks, so surrounding whitespace does not show.
 ///
 /// `prettier-plugin-svelte`'s own list, which is MDN's block-level elements.
@@ -48,26 +50,34 @@ static BLOCK_ELEMENTS: [&str; 33] = [
 /// Whether the node is a plain HTML element laid out as a block.
 ///
 /// Components, `<svelte:*>` elements, blocks, text and tags are all `false`:
-/// only a known block-level HTML tag qualifies, which is what makes
-/// whitespace around it insignificant.
-pub fn is_block_element(node: &Node<'_>) -> bool {
+/// only a plain HTML tag qualifies, which is what makes whitespace around it
+/// insignificant.
+pub fn is_block_element(node: &Node<'_>, sensitivity: WhitespaceSensitivity) -> bool {
     let Node::Element(element) = node else { return false };
-    is_block_tag(element)
+    is_block_tag(element, sensitivity)
 }
 
-pub fn is_block_tag(element: &Element<'_>) -> bool {
-    is_plain_html(element) && BLOCK_ELEMENTS.contains(&element.name)
+pub fn is_block_tag(element: &Element<'_>, sensitivity: WhitespaceSensitivity) -> bool {
+    is_plain_html(element)
+        && match sensitivity {
+            // Every element's surrounding whitespace matters, so none of them
+            // may be moved onto a line of its own.
+            WhitespaceSensitivity::Strict => false,
+            // None of it does, so all of them may be.
+            WhitespaceSensitivity::Ignore => true,
+            WhitespaceSensitivity::Css => BLOCK_ELEMENTS.contains(&element.name),
+        }
 }
 
 /// Whether the node is a plain HTML element laid out inline, where the
 /// whitespace on either side of it is part of the rendered text.
-pub fn is_inline_element(node: &Node<'_>) -> bool {
+pub fn is_inline_element(node: &Node<'_>, sensitivity: WhitespaceSensitivity) -> bool {
     let Node::Element(element) = node else { return false };
-    is_inline_tag(element)
+    is_inline_tag(element, sensitivity)
 }
 
-pub fn is_inline_tag(element: &Element<'_>) -> bool {
-    is_plain_html(element) && !BLOCK_ELEMENTS.contains(&element.name)
+pub fn is_inline_tag(element: &Element<'_>, sensitivity: WhitespaceSensitivity) -> bool {
+    is_plain_html(element) && !is_block_tag(element, sensitivity)
 }
 
 /// `<svelte:boundary>`, whose content never hugs its tags: its children are

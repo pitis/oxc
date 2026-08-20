@@ -14,10 +14,12 @@
 
 use svelte_markup_parser::ast::Node;
 
+use crate::options::WhitespaceSensitivity;
+
 use super::classify::{
-    ends_with_collapsible_whitespace, ends_with_line_breaks, is_block_element, is_inline_element,
-    is_only_collapsible_whitespace, starts_with_collapsible_whitespace, starts_with_line_breaks,
-    trimmed,
+    ends_with_collapsible_whitespace, ends_with_line_breaks, is_block_element, is_empty_text,
+    is_inline_element, is_only_collapsible_whitespace, starts_with_collapsible_whitespace,
+    starts_with_line_breaks, trimmed,
 };
 
 /// How much of a text child's own whitespace the surrounding layout has
@@ -31,6 +33,12 @@ pub struct Trim {
 /// What the layout puts around one child.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ChildLayout {
+    /// The child is the last thing inside a block element, so nothing renders
+    /// after it and `bracketSameLine` may keep its `>` on the previous line.
+    pub last_in_block_parent: bool,
+    /// The child is kept exactly as written: a `prettier-ignore` before it,
+    /// or an enclosing `prettier-ignore-start` range.
+    pub verbatim: bool,
     /// A `softline` before the child, so a block breaks onto its own line.
     pub softline_before: bool,
     /// A `softline` after it, for the same reason.
@@ -63,9 +71,21 @@ impl ChildrenPlan {
 
 /// Decide the layout of `children`, honouring trims the caller has already
 /// applied to the first and last child.
-pub fn plan_children(children: &[Node<'_>], outer: &[Trim]) -> ChildrenPlan {
+pub fn plan_children(children: &[Node<'_>], outer: &[Trim], context: PlanContext) -> ChildrenPlan {
     let all: Vec<usize> = (0..children.len()).collect();
-    plan_some_children(children, &all, outer)
+    plan_some_children(children, &all, outer, context)
+}
+
+/// What the enclosing layout tells the plan about these children.
+#[derive(Debug, Clone, Copy)]
+pub struct PlanContext {
+    pub sensitivity: WhitespaceSensitivity,
+    /// Whether the parent is a block element, which decides whether the last
+    /// child may keep a `bracketSameLine` `>` on the line before it.
+    pub parent_is_block: bool,
+    /// Whether these are the component's own top-level nodes, which is where
+    /// a `prettier-ignore-start` range is recognised.
+    pub top_level: bool,
 }
 
 /// As [`plan_children`], over a chosen subset of the children — the top-level
@@ -75,7 +95,9 @@ pub fn plan_some_children(
     children: &[Node<'_>],
     candidates: &[usize],
     outer: &[Trim],
+    context: PlanContext,
 ) -> ChildrenPlan {
+    let sensitivity = context.sensitivity;
     let trim_of = |index: usize| outer.get(index).copied().unwrap_or_default();
     // Text that is empty once the caller's trims are applied is not a child
     // at all; every index below is into this list, and `entries` carries the
@@ -114,18 +136,20 @@ pub fn plan_some_children(
                 &prepared,
                 &mut layouts,
                 position,
+                sensitivity,
                 &mut previous_text_gave_up_whitespace,
             );
-        } else if is_block_element(node) {
+        } else if is_block_element(node, sensitivity) {
             plan_block_child(
                 children,
                 &prepared,
                 &mut layouts,
                 position,
+                sensitivity,
                 previous_text_gave_up_whitespace,
             );
             previous_text_gave_up_whitespace = false;
-        } else if is_inline_element(node) {
+        } else if is_inline_element(node, sensitivity) {
             layouts[position].hug_previous_whitespace = previous_text_gave_up_whitespace;
             previous_text_gave_up_whitespace = false;
         } else {
@@ -134,10 +158,66 @@ pub fn plan_some_children(
     }
 
     // More than one child with a block among them can never sit on one line.
-    plan.force_break =
-        prepared.len() > 1 && prepared.iter().any(|&index| is_block_element(&children[index]));
+    plan.force_break = prepared.len() > 1
+        && prepared.iter().any(|&index| is_block_element(&children[index], sensitivity));
+    if context.parent_is_block
+        && let Some(last) = layouts.last_mut()
+    {
+        last.last_in_block_parent = true;
+    }
+    mark_ignored(children, &prepared, &mut layouts, context.top_level);
     plan.entries = prepared.into_iter().zip(layouts).collect();
     plan
+}
+
+/// Flag the children a `prettier-ignore` covers.
+///
+/// `<!-- prettier-ignore -->` covers the next child that is printed at all;
+/// `<!-- prettier-ignore-start -->` covers everything up to its `-end`, and
+/// only among the component's top-level nodes, which is where Prettier
+/// recognises the pair.
+fn mark_ignored(
+    children: &[Node<'_>],
+    prepared: &[usize],
+    layouts: &mut [ChildLayout],
+    top_level: bool,
+) {
+    let mut ignore_next = false;
+    let mut in_range = false;
+    for (position, &index) in prepared.iter().enumerate() {
+        let node = &children[index];
+        let directive = ignore_directive(node);
+        if top_level && directive == Some(Directive::Start) {
+            in_range = true;
+        } else if top_level && directive == Some(Directive::End) {
+            in_range = false;
+        } else if directive == Some(Directive::Next) {
+            ignore_next = true;
+        } else if is_empty_text(node) {
+            // The whitespace between the directive and what it covers is not
+            // what it covers.
+        } else if ignore_next || in_range {
+            layouts[position].verbatim = true;
+            ignore_next = false;
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Directive {
+    Next,
+    Start,
+    End,
+}
+
+fn ignore_directive(node: &Node<'_>) -> Option<Directive> {
+    let Node::Comment(comment) = node else { return None };
+    match comment.content.trim() {
+        "prettier-ignore" => Some(Directive::Next),
+        "prettier-ignore-start" => Some(Directive::Start),
+        "prettier-ignore-end" => Some(Directive::End),
+        _ => None,
+    }
 }
 
 /// The text of the child at `position`, as trimmed so far, or `None` when it
@@ -160,6 +240,7 @@ fn plan_block_child(
     prepared: &[usize],
     layouts: &mut [ChildLayout],
     position: usize,
+    sensitivity: WhitespaceSensitivity,
     previous_text_gave_up_whitespace: bool,
 ) {
     if let Some(previous_position) = position.checked_sub(1) {
@@ -168,7 +249,7 @@ fn plan_block_child(
             value_at(children, prepared, layouts, previous_position)
                 .is_some_and(ends_with_collapsible_whitespace);
         let previous_is_text = matches!(previous, Node::Text(_));
-        if !is_block_element(previous)
+        if !is_block_element(previous, sensitivity)
             && (!previous_is_text
                 || previous_text_gave_up_whitespace
                 || !previous_ends_with_whitespace)
@@ -187,7 +268,7 @@ fn plan_block_child(
                 // so that element lands on its own line when things break.
                 let followed_by_inline = prepared
                     .get(position + 2)
-                    .is_some_and(|&index| is_inline_element(&children[index]));
+                    .is_some_and(|&index| is_inline_element(&children[index], sensitivity));
                 (!is_only_collapsible_whitespace(value) || followed_by_inline)
                     && !starts_with_line_breaks(value, 1)
             }
@@ -206,6 +287,7 @@ fn plan_text_child(
     prepared: &[usize],
     layouts: &mut [ChildLayout],
     position: usize,
+    sensitivity: WhitespaceSensitivity,
     previous_text_gave_up_whitespace: &mut bool,
 ) {
     *previous_text_gave_up_whitespace = false;
@@ -222,11 +304,11 @@ fn plan_text_child(
     let is_empty = is_only_collapsible_whitespace(value);
 
     if starts_with_collapsible_whitespace(value) && !is_empty {
-        if is_inline_element(previous) && !starts_with_line_breaks(value, 1) {
+        if is_inline_element(previous, sensitivity) && !starts_with_line_breaks(value, 1) {
             layouts[position].trim.left = true;
             layouts[position - 1].trailing_line = true;
         }
-        if is_block_element(previous) && !starts_with_line_breaks(value, 1) {
+        if is_block_element(previous, sensitivity) && !starts_with_line_breaks(value, 1) {
             layouts[position].trim.left = true;
         }
     }
@@ -234,12 +316,12 @@ fn plan_text_child(
     // Re-read: the left trim above may have consumed the whole run.
     let Some(value) = value_at(children, prepared, layouts, position) else { return };
     if ends_with_collapsible_whitespace(value) {
-        if is_inline_element(next) && !ends_with_line_breaks(value, 1) {
-            *previous_text_gave_up_whitespace = !is_block_element(previous);
+        if is_inline_element(next, sensitivity) && !ends_with_line_breaks(value, 1) {
+            *previous_text_gave_up_whitespace = !is_block_element(previous, sensitivity);
             layouts[position].trim.right = true;
         }
-        if is_block_element(next) && !ends_with_line_breaks(value, 2) {
-            *previous_text_gave_up_whitespace = !is_block_element(previous);
+        if is_block_element(next, sensitivity) && !ends_with_line_breaks(value, 2) {
+            *previous_text_gave_up_whitespace = !is_block_element(previous, sensitivity);
             layouts[position].trim.right = true;
         }
     }

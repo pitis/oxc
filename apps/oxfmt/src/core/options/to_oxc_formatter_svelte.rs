@@ -1,7 +1,7 @@
 use oxc_formatter_core::{CoreFormatOptions, FormatOptions};
-use oxc_formatter_svelte::{SortOrder, SvelteFormatOptions};
+use oxc_formatter_svelte::{SortOrder, SvelteFormatOptions, WhitespaceSensitivity};
 
-use super::super::oxfmtrc::{FormatConfig, SvelteUserConfig};
+use super::super::oxfmtrc::{FormatConfig, HtmlWhitespaceSensitivityConfig, SvelteUserConfig};
 
 /// Convert `FormatConfig` into `SvelteFormatOptions` for `oxc_formatter_svelte`.
 ///
@@ -18,6 +18,22 @@ pub fn to_oxc_formatter_svelte(
 ) -> SvelteFormatOptions {
     let mut options = SvelteFormatOptions::default();
     options.apply_core(core_options);
+
+    // [Prettier] htmlWhitespaceSensitivity: "css" | "strict" | "ignore"
+    if let Some(sensitivity) = config.html_whitespace_sensitivity {
+        options.whitespace_sensitivity = match sensitivity {
+            HtmlWhitespaceSensitivityConfig::Css => WhitespaceSensitivity::Css,
+            HtmlWhitespaceSensitivityConfig::Strict => WhitespaceSensitivity::Strict,
+            HtmlWhitespaceSensitivityConfig::Ignore => WhitespaceSensitivity::Ignore,
+        };
+    }
+    // [Prettier] bracketSameLine: boolean
+    if let Some(same_line) = config.bracket_same_line {
+        options.bracket_same_line = same_line.into();
+    }
+    // [Oxfmt] sortTailwindcss: the collection is only worth its allocation
+    // when something is going to sort the result.
+    options.sort_tailwind_classes = config.is_tailwind_enabled();
 
     let Some(svelte) = config.svelte.clone().and_then(SvelteUserConfig::into_config) else {
         return options;

@@ -19,7 +19,7 @@ use crate::options::SortOrder;
 
 use self::{
     block::{write_block, write_tag},
-    children::{ChildLayout, Trim, plan_children, plan_some_children},
+    children::{ChildLayout, PlanContext, Trim, plan_children, plan_some_children},
     classify::{is_empty_text, is_only_collapsible_whitespace},
     element::write_element,
     expression::write_mustache,
@@ -167,7 +167,7 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatRoot<'_, 'a> {
                     if position > 0 {
                         write!(f, empty_line());
                     }
-                    write_node(&self.nodes[*index], Trim::default(), f);
+                    write_node(&self.nodes[*index], ChildLayout::default(), f);
                 }
             }
         }
@@ -177,6 +177,16 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatRoot<'_, 'a> {
 fn write_root_nodes<'a>(nodes: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
     let all: Vec<usize> = (0..nodes.len()).collect();
     write_root_of(nodes, &all, f);
+}
+
+/// The plan context for the component's top level: no parent element, and
+/// where a `prettier-ignore-start` range is recognised.
+fn root_context(f: &SvelteFormatter<'_, '_>) -> PlanContext {
+    PlanContext {
+        sensitivity: f.options().whitespace_sensitivity,
+        parent_is_block: false,
+        top_level: true,
+    }
 }
 
 /// Print the given root nodes, dropping the whitespace at either end of the
@@ -195,7 +205,7 @@ fn write_root_of<'a>(nodes: &[Node<'a>], indices: &[usize], f: &mut SvelteFormat
     for &index in indices.iter().skip(last_position) {
         trims[index].right = true;
     }
-    let plan = plan_some_children(nodes, indices, &trims);
+    let plan = plan_some_children(nodes, indices, &trims, root_context(f));
     for (index, layout) in &plan.entries {
         write_child(&nodes[*index], *layout, f);
     }
@@ -205,24 +215,29 @@ fn write_root_of<'a>(nodes: &[Node<'a>], indices: &[usize], f: &mut SvelteFormat
 }
 
 /// Print a run of sibling nodes, laid out by [`plan_children`].
-pub fn write_children<'a>(children: &[Node<'a>], outer: &[Trim], f: &mut SvelteFormatter<'_, 'a>) {
-    write_planned(children, outer, true, f);
-}
-
-fn write_planned<'a>(
+///
+/// `parent_is_block` is whether the element these belong to is a block one;
+/// a Svelte block's branch passes `false`, matching Prettier, whose check
+/// reaches for an *element* two levels up.
+pub fn write_children<'a>(
     children: &[Node<'a>],
     outer: &[Trim],
-    keep_force_break: bool,
+    parent_is_block: bool,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
-    let plan = plan_children(children, outer);
+    let context = PlanContext {
+        sensitivity: f.options().whitespace_sensitivity,
+        parent_is_block,
+        top_level: false,
+    };
+    let plan = plan_children(children, outer, context);
     if plan.is_empty() {
         return;
     }
     for (index, layout) in &plan.entries {
         write_child(&children[*index], *layout, f);
     }
-    if plan.force_break && keep_force_break {
+    if plan.force_break {
         // At least one block among several children: the content can never
         // sit on one line.
         write!(f, expand_parent());
@@ -239,7 +254,7 @@ fn write_child<'a>(node: &Node<'a>, layout: ChildLayout, f: &mut SvelteFormatter
         // content wraps.
         write!(f, group(&FormatNode { node, layout }));
     } else {
-        write_node(node, layout.trim, f);
+        write_node(node, layout, f);
     }
 
     if layout.softline_after {
@@ -258,16 +273,23 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatNode<'_, 'a> {
         if self.layout.hug_previous_whitespace {
             write!(f, soft_line_break_or_space());
         }
-        write_node(self.node, self.layout.trim, f);
+        write_node(self.node, self.layout, f);
         if self.layout.trailing_line {
             write!(f, soft_line_break_or_space());
         }
     }
 }
 
-fn write_node<'a>(node: &Node<'a>, trim: Trim, f: &mut SvelteFormatter<'_, 'a>) {
+fn write_node<'a>(node: &Node<'a>, layout: ChildLayout, f: &mut SvelteFormatter<'_, 'a>) {
+    if layout.verbatim {
+        // Under a `prettier-ignore`: the author has said what this should
+        // look like, so it keeps every byte of it.
+        write_source(node.span(), f);
+        return;
+    }
+    let trim = layout.trim;
     match node {
-        Node::Element(element) => write_element(element, f),
+        Node::Element(element) => write_element(element, layout.last_in_block_parent, f),
         // `write_text` handles the whitespace-only case itself, once the
         // trim has been applied — a node the layout has taken over entirely
         // must print nothing at all.

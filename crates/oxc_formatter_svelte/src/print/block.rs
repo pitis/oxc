@@ -280,7 +280,7 @@ fn write_branch<'a>(children: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
             write!(
                 f,
                 group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
-                    write_children(children, &trims, f);
+                    write_children(children, &trims, false, f);
                 }))
             );
         }))

@@ -5,7 +5,7 @@
 //! shorthand form and where the printer may break between attributes.
 
 use oxc_formatter_core::{
-    Buffer,
+    Buffer, FormatElement, TailwindCollector,
     builders::{text, token},
     write,
 };
@@ -38,7 +38,7 @@ pub fn write_attribute<'a>(
                 return;
             }
             write!(f, [text(name), token("=")]);
-            write_value(value, source, f);
+            write_value(value, *name == "class", f);
         }
         AttributeKind::Shorthand { name, .. } => {
             // `{@attach expr}` is an attachment, not a shorthand: the parser
@@ -81,7 +81,9 @@ pub fn write_attribute<'a>(
                 return;
             }
             write!(f, token("="));
-            write_value(value, source, f);
+            // `class:foo={…}` names one class; it is not a class *list*, and
+            // `prettier-plugin-tailwindcss` does not sort it either.
+            write_value(value, false, f);
         }
         AttributeKind::Comment { .. } => {
             // A comment between attributes is the author's prose; it keeps
@@ -108,14 +110,16 @@ fn is_shorthandable(name: &str, value: &AttributeValue<'_>) -> bool {
 
 /// Write the value after `=`, keeping its quoting as written unless it has
 /// none to keep.
-fn write_value<'a>(value: &AttributeValue<'a>, source: &'a str, f: &mut SvelteFormatter<'_, 'a>) {
+///
+/// `class_list` marks the value as one whose text is a list of Tailwind
+/// classes to be sorted.
+fn write_value<'a>(value: &AttributeValue<'a>, class_list: bool, f: &mut SvelteFormatter<'_, 'a>) {
     // A value that is exactly one `{…}` needs no quotes; anything else is
     // quoted, since removing them could change where the value ends.
     if let Some(tag) = value.as_single_expression() {
         write_expression_tag(tag, ExpressionPosition::Braces, f);
         return;
     }
-    let _ = source;
     // `"` unless the value contains one, in which case `'`. Prettier writes
     // `"` either way, which turns `prop='"'` into `prop=""" ` — markup that
     // no longer parses. Divergence recorded in `keeps_a_value_that_is_quoted`.
@@ -123,13 +127,33 @@ fn write_value<'a>(value: &AttributeValue<'a>, source: &'a str, f: &mut SvelteFo
     write!(f, quote);
     for part in &value.parts {
         match part {
-            ValuePart::Text(part) => write!(f, text(part.value)),
+            ValuePart::Text(part) => {
+                if !class_list || !write_tailwind_classes(part.value, f) {
+                    write!(f, text(part.value));
+                }
+            }
             ValuePart::Expression(tag) => {
                 write_expression_tag(tag, ExpressionPosition::QuotedAttribute, f);
             }
         }
     }
     write!(f, quote);
+}
+
+/// Register a `class` attribute's text as one sortable list, and write the
+/// placeholder the host's sorter fills in. Returns whether it did.
+///
+/// Only a value that is *all* text: `prettier-plugin-tailwindcss` sorts each
+/// text run of a mixed `class="a {x} b"` with its boundary words held in
+/// place, and the sorter this talks to takes a whole list with no way to say
+/// which end of it is half a class name.
+fn write_tailwind_classes<'a>(classes: &'a str, f: &mut SvelteFormatter<'_, 'a>) -> bool {
+    if !f.options().sort_tailwind_classes || classes.trim().is_empty() {
+        return false;
+    }
+    let index = f.context_mut().add_class(classes.to_string());
+    f.write_element(FormatElement::TailwindClass(index));
+    true
 }
 
 /// Whether the value's literal text carries a `"`, which the surrounding

@@ -3,9 +3,12 @@
 
 use oxc_allocator::Allocator;
 
-use oxc_formatter_core::IndentStyle;
+use oxc_formatter_core::{IndentStyle, LineWidth};
 
-use crate::{format, options::SvelteFormatOptions};
+use crate::{
+    format,
+    options::{SortOrder, SvelteFormatOptions, WhitespaceSensitivity},
+};
 
 /// Every expectation below is written with tabs, so the tests read as the
 /// files they describe.
@@ -13,14 +16,22 @@ fn options() -> SvelteFormatOptions {
     SvelteFormatOptions { indent_style: IndentStyle::Tab, ..SvelteFormatOptions::default() }
 }
 
-fn run(source: &str) -> Result<String, String> {
+fn run_with(options: SvelteFormatOptions, source: &str) -> Result<String, String> {
     let allocator = Allocator::new();
-    let formatted = format(&allocator, source, options()).map_err(|error| error.to_string())?;
+    let formatted = format(&allocator, source, options).map_err(|error| error.to_string())?;
     formatted.print().map(oxc_formatter_core::Printed::into_code).map_err(|error| error.to_string())
+}
+
+fn run(source: &str) -> Result<String, String> {
+    run_with(options(), source)
 }
 
 fn check(source: &str, expected: &str) {
     assert_eq!(run(source).as_deref(), Ok(expected), "for {source:?}");
+}
+
+fn check_with(options: SvelteFormatOptions, source: &str, expected: &str) {
+    assert_eq!(run_with(options, source).as_deref(), Ok(expected), "for {source:?}");
 }
 
 #[test]
@@ -102,9 +113,11 @@ fn refuses_markup_that_is_not_well_formed() {
 
 /// Known divergence from `prettier-plugin-svelte`, kept here so a change in
 /// it is noticed: Prettier writes ` text` after a block element, keeping the
-/// space that begins the text run; this printer drops a space that would
-/// land at the start of a line, because it has no end-of-line trimming pass
-/// to take it away again. The rendered HTML is the same either way.
+/// space that begins the text run. The shared printer drops a space that
+/// would land at the start of a line (`LineMode::SoftOrSpace` only sets a
+/// pending space when the line already has something on it), so this is core
+/// behaviour every oxc formatter shares rather than anything decided here.
+/// The rendered HTML is the same either way.
 #[test]
 fn drops_a_space_that_would_start_a_line() {
     check("<div>text <p>block</p> text</div>\n", "<div>\n\ttext <p>block</p>\n\ttext\n</div>\n");
@@ -209,4 +222,94 @@ fn keeps_expressions_when_nothing_can_format_them() {
     // An unterminated `{` is left exactly as written; the refusal check has
     // already run, so this only guards the printer itself.
     check("<div>{a}</div>\n", "<div>{a}</div>\n");
+}
+
+/// `<!-- prettier-ignore -->` keeps the next node exactly as written, and the
+/// `-start` / `-end` pair keeps everything between them.
+#[test]
+fn honours_prettier_ignore() {
+    check(
+        "<!-- prettier-ignore -->\n<div   a   >x   y</div>\n",
+        "<!-- prettier-ignore -->\n<div   a   >x   y</div>\n",
+    );
+    check("<div   a   >x   y</div>\n", "<div a>x y</div>\n");
+    check(
+        "<!-- prettier-ignore-start -->\n<div  a  ></div>\n<span  b  ></span>\n<!-- prettier-ignore-end -->\n",
+        "<!-- prettier-ignore-start -->\n<div  a  ></div>\n<span  b  ></span>\n<!-- prettier-ignore-end -->\n",
+    );
+    // Nested, where only the single-node form is recognised.
+    check(
+        "<section>\n\t<!-- prettier-ignore -->\n\t<p   >a   b</p>\n\t<p   >c   d</p>\n</section>\n",
+        "<section>\n\t<!-- prettier-ignore -->\n\t<p   >a   b</p>\n\t<p>c d</p>\n</section>\n",
+    );
+}
+
+/// An inline element whose content is only whitespace still renders that
+/// whitespace, so it is kept.
+#[test]
+fn keeps_the_space_inside_an_empty_inline_element() {
+    check("a<span> </span>b\n", "a<span> </span>b\n");
+    check("a<span></span>b\n", "a<span></span>b\n");
+    // Around a block element it renders nothing, so it goes.
+    check("a<div> </div>b\n", "a\n<div></div>\nb\n");
+}
+
+/// `bracketSameLine` keeps a tag's `>` on the last attribute's line.
+#[test]
+fn honours_bracket_same_line() {
+    // Narrow enough that the attribute list has to break either way, so what
+    // is being measured is only where the `>` lands.
+    let narrow = SvelteFormatOptions { line_width: LineWidth::try_from(80).unwrap(), ..options() };
+    let options = SvelteFormatOptions { bracket_same_line: true.into(), ..narrow };
+    let source = "<div id=\"a\" class=\"b\" role=\"c\" tabindex=\"0\" data-one=\"1\" data-two=\"2\" data-three=\"3\" aria-label=\"x\">t</div>\n";
+    check_with(
+        options,
+        source,
+        "<div\n\tid=\"a\"\n\tclass=\"b\"\n\trole=\"c\"\n\ttabindex=\"0\"\n\tdata-one=\"1\"\n\tdata-two=\"2\"\n\tdata-three=\"3\"\n\taria-label=\"x\">\n\tt\n</div>\n",
+    );
+    // Without it the `>` goes onto a line of its own.
+    check_with(
+        narrow,
+        source,
+        "<div\n\tid=\"a\"\n\tclass=\"b\"\n\trole=\"c\"\n\ttabindex=\"0\"\n\tdata-one=\"1\"\n\tdata-two=\"2\"\n\tdata-three=\"3\"\n\taria-label=\"x\"\n>\n\tt\n</div>\n",
+    );
+    // A self-closing tag puts `/>` after a space rather than on its own line.
+    let long = "<input id=\"a\" class=\"b\" role=\"c\" tabindex=\"0\" data-one=\"1\" data-two=\"2\" data-three=\"3\" aria-label=\"x\" />\n";
+    let formatted = run_with(options, long).expect("formats");
+    assert!(formatted.ends_with("\taria-label=\"x\" />\n"), "{formatted}");
+}
+
+/// `htmlWhitespaceSensitivity` decides which elements' surrounding whitespace
+/// is allowed to become a line break.
+#[test]
+fn honours_whitespace_sensitivity() {
+    let strict =
+        SvelteFormatOptions { whitespace_sensitivity: WhitespaceSensitivity::Strict, ..options() };
+    let ignore =
+        SvelteFormatOptions { whitespace_sensitivity: WhitespaceSensitivity::Ignore, ..options() };
+    // With `css`, whitespace shows inside a `<span>` and not inside a
+    // `<div>`, so only the span keeps it.
+    check("<span> a </span>\n", "<span> a </span>\n");
+    check("<div> a </div>\n", "<div>a</div>\n");
+    // `strict` says all of it shows, so the span's stays whatever the
+    // element is.
+    check_with(strict, "<span> a </span>\n", "<span> a </span>\n");
+    check_with(strict, "a <span>b</span> c\n", "a <span>b</span> c\n");
+    // `ignore` says none of it does, so even an inline element's goes and it
+    // may be laid out on its own line.
+    check_with(ignore, "<span> a </span>\n", "<span>a</span>\n");
+    // (Prettier writes ` c` on the last line; see
+    // `drops_a_space_that_would_start_a_line`.)
+    check_with(ignore, "a <span>b</span> c\n", "a <span>b</span>\nc\n");
+}
+
+/// `sortOrder: "none"` leaves every top-level section where it was written.
+#[test]
+fn honours_sort_order_none() {
+    let options = SvelteFormatOptions { sort_order: SortOrder::None, ..options() };
+    check_with(
+        options,
+        "<div>markup</div>\n\n<script>\n\tlet a = 1;\n</script>\n",
+        "<div>markup</div>\n\n<script>\n\tlet a = 1;\n</script>\n",
+    );
 }

@@ -8,29 +8,35 @@
 use oxc_formatter_core::{
     Buffer,
     builders::{
-        dedent, group, hard_line_break, indent, soft_line_break, soft_line_break_or_space, text,
-        token,
+        dedent, group, hard_line_break, indent, soft_line_break, soft_line_break_or_space, space,
+        text, token,
     },
     write,
 };
 use oxc_span::Span;
 use svelte_markup_parser::ast::{Element, Node};
 
+use crate::options::WhitespaceSensitivity;
+
 use super::{
     SvelteFormatter,
     attribute::write_attribute,
     children::Trim,
     classify::{
-        ends_with_collapsible_whitespace, is_block_tag, is_boundary, is_empty, is_inline_tag,
-        is_pre_content, is_raw_text_element, starts_with_collapsible_whitespace,
-        starts_with_line_breaks,
+        ends_with_collapsible_whitespace, is_block_tag, is_boundary, is_collapsible_whitespace,
+        is_empty, is_inline_tag, is_pre_content, is_raw_text_element,
+        starts_with_collapsible_whitespace, starts_with_line_breaks,
     },
     format_with,
     raw_text::write_raw_text_element,
     write_children, write_source,
 };
 
-pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>) {
+pub fn write_element<'a>(
+    element: &Element<'a>,
+    last_in_block_parent: bool,
+    f: &mut SvelteFormatter<'_, 'a>,
+) {
     let source = f.context().source_text().as_str();
     let options = *f.options();
     let name = element.name;
@@ -50,9 +56,12 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
     // `<pre>` and `<textarea>` render their own whitespace, so their content
     // is not the printer's to lay out. The tag around it still is.
     let pre = is_pre_content(element);
+    let sensitivity = options.whitespace_sensitivity;
+    let bracket_same_line = options.bracket_same_line.is_enabled();
+    let block = is_block_tag(element, sensitivity);
     // Inside one of those, nothing is an inline element: there is no layout
     // decision left to make about the whitespace.
-    let inline = is_inline_tag(element) && !pre;
+    let inline = is_inline_tag(element, sensitivity) && !pre;
 
     if self_closing {
         write!(
@@ -66,19 +75,26 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
                             write!(f, soft_line_break_or_space());
                             write_attribute(attribute, source, allow_shorthand, f);
                         }
-                        write!(f, dedent(&soft_line_break_or_space()));
+                        if !bracket_same_line {
+                            write!(f, dedent(&soft_line_break_or_space()));
+                        }
                     })))
                 );
                 // Every self-closing tag is normalized to `<x />`, including a
                 // void element the author wrote as `<br>`.
+                if bracket_same_line {
+                    write!(f, space());
+                }
                 write!(f, token("/>"));
             }))
         );
         return;
     }
 
-    let hug_start = should_hug_start(element);
-    let hug_end = should_hug_end(element);
+    let hug_start = should_hug_start(element, sensitivity);
+    let hug_end = should_hug_end(element, sensitivity);
+    let omit_softline_before_close =
+        bracket_same_line && (!hugs_next_node(element, source) || last_in_block_parent);
 
     // The element's own layout owns the whitespace at the very start and end
     // of its content, so the first and last child must not print it again.
@@ -127,7 +143,7 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
                     write!(f, soft_line_break_or_space());
                     write_attribute(attribute, source, allow_shorthand, f);
                 }
-                if (!hug_start || empty) && !pre {
+                if (!hug_start || empty) && !pre && !bracket_same_line {
                     write!(f, dedent(&soft_line_break()));
                 }
             })))
@@ -142,14 +158,25 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
             write_pre_children(children, f);
             return;
         }
-        write_children(children, &trims, f);
+        write_children(children, &trims, block, f);
     });
 
     if empty {
+        // An inline element whose only content is whitespace still renders
+        // that whitespace, so it keeps a break that can become a space.
+        // Otherwise there is nothing between the tags, and `bracketSameLine`
+        // is what decides whether the close tag starts a line of its own.
+        let inline_whitespace = inline
+            && matches!(children.first(), Some(Node::Text(text)) if starts_with_collapsible_whitespace(text.value));
         write!(
             f,
             group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
                 write!(f, [&open_tag, token(">")]);
+                if inline_whitespace {
+                    write!(f, soft_line_break_or_space());
+                } else if bracket_same_line {
+                    write!(f, soft_line_break());
+                }
                 write_close_tag(name, f);
             }))
         );
@@ -176,7 +203,7 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
                         );
                     })))
                 );
-                write!(f, [soft_line_break(), token(">")]);
+                write_close_bracket(omit_softline_before_close, f);
             }))
         );
         return;
@@ -223,7 +250,7 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
                         );
                     }))
                 );
-                write!(f, [soft_line_break(), token(">")]);
+                write_close_bracket(omit_softline_before_close, f);
             }))
         );
         return;
@@ -248,6 +275,25 @@ pub fn write_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter<'_, 'a>)
 
 fn write_close_tag<'a>(name: &'a str, f: &mut SvelteFormatter<'_, 'a>) {
     write!(f, [token("</"), text(name), token(">")]);
+}
+
+/// The `>` of a close tag whose name hugged the content, on its own line
+/// unless `bracketSameLine` says it may stay where it is.
+fn write_close_bracket(omit_softline: bool, f: &mut SvelteFormatter<'_, '_>) {
+    if !omit_softline {
+        write!(f, soft_line_break());
+    }
+    write!(f, token(">"));
+}
+
+/// Whether what follows the element begins right against it, with no
+/// whitespace to absorb a break. The end of the component counts as a gap.
+fn hugs_next_node(element: &Element<'_>, source: &str) -> bool {
+    let after = &source[(element.span.end as usize).min(source.len())..];
+    match after.bytes().next() {
+        None => false,
+        Some(byte) => !is_collapsible_whitespace(byte),
+    }
 }
 
 /// The content of a `<pre>` or `<textarea>`, exactly as written.
@@ -283,19 +329,28 @@ impl Separator {
 
 /// Whether the open tag hugs its first child: there is no whitespace after
 /// `>`, so a break there would add a space that renders.
-fn should_hug_start(element: &Element<'_>) -> bool {
-    if is_boundary(element) || is_block_tag(element) {
+fn should_hug_start(element: &Element<'_>, sensitivity: WhitespaceSensitivity) -> bool {
+    if is_boundary(element) || is_block_tag(element, sensitivity) {
         return false;
     }
     let Some(first) = element.children.first() else { return true };
+    // With the whitespace declared insignificant there is nothing to hug: the
+    // content goes on its own line whatever the author wrote. The check comes
+    // after the empty case, which Prettier still hugs.
+    if sensitivity == WhitespaceSensitivity::Ignore {
+        return false;
+    }
     !matches!(first, Node::Text(text) if starts_with_collapsible_whitespace(text.value))
 }
 
 /// The mirror of [`should_hug_start`], for the closing tag.
-fn should_hug_end(element: &Element<'_>) -> bool {
-    if is_boundary(element) || is_block_tag(element) {
+fn should_hug_end(element: &Element<'_>, sensitivity: WhitespaceSensitivity) -> bool {
+    if is_boundary(element) || is_block_tag(element, sensitivity) {
         return false;
     }
     let Some(last) = element.children.last() else { return true };
+    if sensitivity == WhitespaceSensitivity::Ignore {
+        return false;
+    }
     !matches!(last, Node::Text(text) if ends_with_collapsible_whitespace(text.value))
 }
