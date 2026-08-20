@@ -44,6 +44,20 @@ pub enum SortOrder {
 }
 
 impl SortOrder {
+    /// The sections in the order they are printed. `None` never reaches
+    /// here: it keeps every section where the author put it.
+    pub fn sections(self) -> [crate::print::Section; 4] {
+        use crate::print::Section::{Markup, Options, Scripts, Styles};
+        match self {
+            Self::OptionsScriptsMarkupStyles | Self::None => [Options, Scripts, Markup, Styles],
+            Self::OptionsScriptsStylesMarkup => [Options, Scripts, Styles, Markup],
+            Self::OptionsMarkupStylesScripts => [Options, Markup, Styles, Scripts],
+            Self::OptionsMarkupScriptsStyles => [Options, Markup, Scripts, Styles],
+            Self::OptionsStylesMarkupScripts => [Options, Styles, Markup, Scripts],
+            Self::OptionsStylesScriptsMarkup => [Options, Styles, Scripts, Markup],
+        }
+    }
+
     /// Parse the hyphen-joined spelling the config uses, or `None` when it
     /// names an order that does not exist.
     pub fn from_config_str(value: &str) -> Option<Self> {

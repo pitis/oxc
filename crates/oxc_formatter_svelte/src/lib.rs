@@ -22,7 +22,7 @@
 mod context;
 mod format;
 mod options;
-mod print;
+pub(crate) mod print;
 
 #[cfg(test)]
 mod tests;

@@ -1,11 +1,17 @@
 use oxc_allocator::Allocator;
 use oxc_diagnostics::OxcDiagnostic;
 use oxc_formatter_core::{
-    Buffer, Document, Format, FormatState, Formatted, VecBuffer, builders::text, write,
+    Buffer, Document, Format, FormatState, Formatted, VecBuffer,
+    builders::{hard_line_break, text},
+    write,
 };
 use svelte_markup_parser::{ParseResult, ast::Node, parse};
 
-use crate::{context::SvelteFormatContext, options::SvelteFormatOptions, print::SvelteFormatter};
+use crate::{
+    context::SvelteFormatContext,
+    options::SvelteFormatOptions,
+    print::{SvelteFormatter, write_root},
+};
 
 /// Parse `source_text` as a Svelte component and build its formatter IR.
 ///
@@ -39,7 +45,7 @@ pub fn format<'a>(
     let capacity = (source.len() * 3 / 10).max(1024);
     let mut buffer = VecBuffer::with_capacity(capacity, &mut state);
 
-    write!(&mut buffer, FormatSvelteRoot { nodes: &nodes, source, has_bom });
+    write!(&mut buffer, FormatSvelteRoot { nodes: &nodes, has_bom });
 
     let elements = buffer.into_vec();
     let context = state.into_context();
@@ -52,9 +58,7 @@ pub fn format<'a>(
 /// `'n` is the borrow of the node tree, which only has to outlive the IR
 /// build; `'a` is the arena the source and the IR live in.
 struct FormatSvelteRoot<'n, 'a> {
-    #[expect(dead_code, reason = "the printer grows onto this in S2")]
     nodes: &'n [Node<'a>],
-    source: &'a str,
     has_bom: bool,
 }
 
@@ -63,9 +67,8 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatSvelteRoot<'_, 'a> {
         if self.has_bom {
             write!(f, text("\u{feff}"));
         }
-        // S1 re-emits the component verbatim: the pipeline is live end to
-        // end, and every later stage replaces a piece of this with real
-        // printing. A multiline `text` prints its own newlines literally.
-        write!(f, text(self.source));
+        write_root(self.nodes, f);
+        // POSIX convention: a formatted file ends with a newline.
+        write!(f, hard_line_break());
     }
 }
