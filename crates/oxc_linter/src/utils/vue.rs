@@ -5,9 +5,9 @@ use phf::{Set, phf_set};
 use oxc_ast::{
     AstKind,
     ast::{
-        CallExpression, ExportDefaultDeclarationKind, Expression, IdentifierReference,
-        ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKey, Statement, TSSignature,
-        TSType, TSTypeName,
+        BindingPattern, CallExpression, ExportDefaultDeclarationKind, Expression,
+        IdentifierReference, ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKey,
+        Statement, TSSignature, TSType, TSTypeName,
     },
 };
 use oxc_semantic::Semantic;
@@ -423,6 +423,19 @@ pub fn find_property<'a, 'b>(
     })
 }
 
+/// The prop names a component options object declares — upstream's
+/// `getComponentPropsFromOptions`, reduced to the names, which is all its
+/// callers here need. Covers both spellings the option accepts: an array of
+/// name literals and an object of definitions. Any other value (a spread, an
+/// identifier, a call) declares props this linter cannot see, and yields none.
+pub fn vue_component_prop_names(object: &ObjectExpression<'_>) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    if let Some(property) = find_property(object, "props") {
+        collect_group_key_names(&property.value, &mut names);
+    }
+    names
+}
+
 /// Walks a `defineProps<T>()` type argument and invokes `f` for every member
 /// signature it contains, mirroring eslint-plugin-vue's `flattenTypeNodes`:
 /// unions, intersections and `interface`/`type` references are resolved
@@ -612,6 +625,164 @@ pub fn is_vue_computed_call(call: &CallExpression<'_>, ctx: &LintContext<'_>) ->
         }
         scoping.get_root_binding(entry.local_name.name().into()) == Some(symbol_id)
     })
+}
+
+/// The props a `.vue` file's `<script>` blocks declare, as the template half
+/// of `no-mutating-props` needs them: the prop names, plus the name the
+/// `defineProps()` result was bound to (`const props = defineProps()` → the
+/// template's `props.foo` is a prop access rather than a plain reference).
+#[derive(Debug, Default, Clone)]
+pub struct VueScriptProps {
+    /// Prop names, filtered the way upstream's `onDefinePropsEnter` filters
+    /// them: a prop whose name is also a template global or a module-scope
+    /// binding is shadowed in the template and so cannot be reached there.
+    pub names: FxHashSet<String>,
+    /// `const props = defineProps(…)` — the binding the whole props object
+    /// lands in, if it has one.
+    pub object_name: Option<String>,
+}
+
+/// Vue's `globalsWhitelist` (`@vue/shared`), which a template resolves before
+/// it resolves a prop of the same name.
+const VUE_TEMPLATE_GLOBALS: [&str; 24] = [
+    "Infinity",
+    "undefined",
+    "NaN",
+    "isFinite",
+    "isNaN",
+    "parseFloat",
+    "parseInt",
+    "decodeURI",
+    "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+    "Math",
+    "Number",
+    "Date",
+    "Array",
+    "Object",
+    "Boolean",
+    "String",
+    "RegExp",
+    "Map",
+    "Set",
+    "JSON",
+    "Intl",
+    "BigInt",
+];
+
+/// Collect [`VueScriptProps`] from every `<script>` block of one file.
+///
+/// Both prop sources are unioned — a `<script setup>` block's `defineProps`
+/// and a component options object's `props` option — because a file declares
+/// one component and upstream ends up reading whichever of the two it saw.
+pub fn vue_template_script_props(hosts: &[ContextSubHost<'_>]) -> VueScriptProps {
+    let mut props = VueScriptProps::default();
+    for host in hosts {
+        let semantic = host.semantic();
+        let framework_options = host.framework_options();
+        let is_setup = framework_options == FrameworkOptions::VueSetup;
+
+        for node in semantic.nodes() {
+            match node.kind() {
+                AstKind::CallExpression(call)
+                    if is_setup
+                        && matches!(call.callee, Expression::Identifier(_))
+                        && call.callee_name() == Some("defineProps") =>
+                {
+                    let mut names = FxHashSet::default();
+                    collect_define_props_names(call, semantic, &mut names);
+                    let scoping = semantic.scoping();
+                    let mut module_bindings: FxHashSet<&str> = FxHashSet::default();
+                    for (name, _) in scoping.get_bindings(scoping.root_scope_id()) {
+                        module_bindings.insert(name);
+                    }
+                    props.names.extend(names.into_iter().filter(|name| {
+                        !VUE_TEMPLATE_GLOBALS.contains(&name.as_str())
+                            && !module_bindings.contains(name.as_str())
+                    }));
+                    collect_define_props_binding(call, semantic, &mut props);
+                }
+                AstKind::ObjectExpression(object)
+                    if vue_component_options_kind_in(node, semantic, true, framework_options)
+                        .is_some() =>
+                {
+                    if let Some(property) = find_property(object, "props") {
+                        collect_group_key_names(&property.value, &mut props.names);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    props
+}
+
+/// The binding a `defineProps()` call's result lands in, looking through
+/// `withDefaults(...)`, and — for the destructured form — the local names it
+/// unpacks, which upstream adds to the prop set.
+fn collect_define_props_binding<'a>(
+    call: &CallExpression<'a>,
+    semantic: &Semantic<'a>,
+    props: &mut VueScriptProps,
+) {
+    let nodes = semantic.nodes();
+    let Some(call_node) = nodes
+        .iter()
+        .find(|node| matches!(node.kind(), AstKind::CallExpression(c) if c.span == call.span))
+    else {
+        return;
+    };
+    let mut target = call_node;
+    if let AstKind::CallExpression(outer) = nodes.parent_kind(call_node.id())
+        && outer.callee_name() == Some("withDefaults")
+        && outer.arguments.first().is_some_and(|first| first.span() == call.span)
+    {
+        target = nodes.parent_node(call_node.id());
+    }
+    let AstKind::VariableDeclarator(declarator) = nodes.parent_kind(target.id()) else { return };
+    if declarator.init.as_ref().is_none_or(|init| init.span() != target.span()) {
+        return;
+    }
+    match &declarator.id {
+        BindingPattern::BindingIdentifier(ident) => {
+            props.object_name = Some(ident.name.to_string());
+        }
+        // `const { foo, bar = 1 } = defineProps()` — the local names are prop
+        // names too, and upstream adds them back *after* the module-binding
+        // filter above, which would otherwise remove every one of them: a
+        // destructured prop is itself a module-scope binding.
+        pattern => collect_bound_names(pattern, &mut props.names),
+    }
+}
+
+/// Every name a binding pattern binds, looking through defaults, nesting and
+/// rest elements — upstream's `iteratePatternProperties`, reduced to the names.
+fn collect_bound_names(pattern: &BindingPattern<'_>, out: &mut FxHashSet<String>) {
+    match pattern {
+        BindingPattern::BindingIdentifier(ident) => {
+            out.insert(ident.name.to_string());
+        }
+        BindingPattern::AssignmentPattern(assignment) => {
+            collect_bound_names(&assignment.left, out);
+        }
+        BindingPattern::ObjectPattern(object) => {
+            for property in &object.properties {
+                collect_bound_names(&property.value, out);
+            }
+            if let Some(rest) = &object.rest {
+                collect_bound_names(&rest.argument, out);
+            }
+        }
+        BindingPattern::ArrayPattern(array) => {
+            for element in array.elements.iter().flatten() {
+                collect_bound_names(element, out);
+            }
+            if let Some(rest) = &array.rest {
+                collect_bound_names(&rest.argument, out);
+            }
+        }
+    }
 }
 
 /// The names a `<template>` expression resolves to from the component's own

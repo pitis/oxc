@@ -958,6 +958,7 @@ pub(crate) mod vue {
     pub mod no_lifecycle_after_await;
     pub mod no_lone_template;
     pub mod no_multiple_slot_args;
+    pub mod no_mutating_props;
     pub mod no_parsing_error;
     pub mod no_ref_as_operand;
     pub mod no_required_prop_with_default;

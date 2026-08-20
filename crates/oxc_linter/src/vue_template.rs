@@ -38,7 +38,7 @@ use crate::{
     context::ContextSubHost,
     fixer::{Message, PossibleFixes},
     rules::RuleEnum,
-    utils::vue_template_visible_script_names,
+    utils::{VueScriptProps, vue_template_script_props, vue_template_visible_script_names},
 };
 
 /// A rule that lints the parsed `<template>` AST of a `.vue` file.
@@ -59,6 +59,16 @@ pub trait VueTemplateRule {
     /// done once per file and only when a rule that asks for it is enabled.
     /// A rule that returns `false` (the default) always sees an empty set.
     fn needs_script_names(&self) -> bool {
+        false
+    }
+
+    /// Whether this rule reads [`VueTemplateContext::script_props`].
+    ///
+    /// Gated for the same reason as [`Self::needs_script_names`]: collecting
+    /// them walks every `<script>` block's AST, so it happens once per file
+    /// and only when an enabled rule asks. A rule that returns `false` (the
+    /// default) always sees an empty set.
+    fn needs_script_props(&self) -> bool {
         false
     }
 }
@@ -86,6 +96,7 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueNoDuplicateAttributes(rule) => Some(rule),
         RuleEnum::VueNoTemplateKey(rule) => Some(rule),
         RuleEnum::VueNoTemplateShadow(rule) => Some(rule),
+        RuleEnum::VueNoMutatingProps(rule) => Some(rule),
         RuleEnum::VueNoTextareaMustache(rule) => Some(rule),
         RuleEnum::VueRequireComponentIs(rule) => Some(rule),
         RuleEnum::VueNoLoneTemplate(rule) => Some(rule),
@@ -162,6 +173,9 @@ pub struct VueTemplateContext<'a> {
     /// context is a fresh struct, so an `Rc` keeps the set out of the
     /// context's lifetime without copying it per rule.
     script_names: Rc<FxHashSet<String>>,
+    /// The component's props, for the rules that declare
+    /// [`VueTemplateRule::needs_script_props`]; empty for every other rule.
+    script_props: Rc<VueScriptProps>,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
@@ -177,6 +191,13 @@ impl<'a> VueTemplateContext<'a> {
     /// [`VueTemplateRule::needs_script_names`].
     pub fn script_names(&self) -> &FxHashSet<String> {
         &self.script_names
+    }
+
+    /// The component's own props — see
+    /// [`crate::utils::vue_template_script_props`], whose result this is.
+    /// Empty unless the rule declares [`VueTemplateRule::needs_script_props`].
+    pub fn script_props(&self) -> &VueScriptProps {
+        &self.script_props
     }
 
     /// Report a violation. Label spans are absolute file offsets, exactly as
@@ -261,6 +282,12 @@ impl Linter {
         // directive never reaches backwards.
         // One walk of the `<script>` ASTs per file, and only when an enabled
         // rule actually reads the result.
+        let script_props =
+            Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_props()) {
+                vue_template_script_props(script_hosts)
+            } else {
+                VueScriptProps::default()
+            });
         let script_names =
             Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_names()) {
                 vue_template_visible_script_names(script_hosts)
@@ -272,6 +299,7 @@ impl Linter {
             let mut ctx = VueTemplateContext {
                 source_text,
                 script_names: Rc::clone(&script_names),
+                script_props: Rc::clone(&script_props),
                 diagnostics: Vec::new(),
             };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
@@ -316,6 +344,7 @@ impl Linter {
                 let mut ctx = VueTemplateContext {
                     source_text,
                     script_names: Rc::clone(&script_names),
+                    script_props: Rc::clone(&script_props),
                     diagnostics: Vec::new(),
                 };
                 template_rule.run_on_template(&nodes, &mut ctx);

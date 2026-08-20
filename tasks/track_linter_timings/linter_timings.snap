@@ -845,6 +845,7 @@ vue/no-dupe-v-else-if                                      |      0
 vue/no-duplicate-attributes                                |      0
 vue/no-import-compiler-macros                              |    103
 vue/no-lone-template                                       |      0
+vue/no-mutating-props                                      |  87123
 vue/no-parsing-error                                       |      0
 vue/no-ref-as-operand                                      |      7
 vue/no-required-prop-with-default                          |  62608

@@ -16,12 +16,12 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 105 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
+| **Vue**                    | 106 / 250 rules; a stock Nuxt config is **90%** covered       | Prettier, via NAPI (Tier 3)                           |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
-| **Everything else**        | 1,014 rules, 142 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
+| **Everything else**        | 1,015 rules, 143 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop both tools today. Vue can drop Prettier today, and drop
-ESLint once the ten rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
+ESLint once the nine rules in [Vue](#vue) land. Node/NestJS backends can drop both today**,
 subject to the tsconfig caveat below.
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -29,7 +29,7 @@ its config names a rule it does not implement.**
 
 ```
 Failed to parse oxlint configuration file.
-  x Rule 'no-mutating-props' not found in plugin 'vue'
+  x Rule 'no-unused-components' not found in plugin 'vue'
 ```
 
 So there is no mechanical translation of an `eslint.config.mjs`. Each project needs an
@@ -66,7 +66,7 @@ Verified end to end on `svelte-number-format`: all eight Prettier/ESLint dev dep
 
 ## Vue
 
-**Lint — 105 of `eslint-plugin-vue`'s 250 rules.** Most of the 145 absent ones are stylistic rules
+**Lint — 106 of `eslint-plugin-vue`'s 250 rules.** Most of the 144 absent ones are stylistic rules
 no preset enables, but a project is free to enable them, so the number that matters is coverage of
 a config someone actually runs:
 
@@ -76,9 +76,9 @@ a config someone actually runs:
 | A production Vue 3 + Nuxt monorepo config       | 174 / 188 (93%) |
 | `eslint-plugin-vue` `flat/recommended` alone    | 94 / 118        |
 
-Ten missing rules are the substance of the gap:
+Nine missing rules are the substance of the gap:
 
-`no-mutating-props`, `no-undef-components`, `no-unused-components`, `no-unused-vars`,
+`no-undef-components`, `no-unused-components`, `no-unused-vars`,
 `no-use-computed-property-like-method`, `one-component-per-file`, `order-in-components`,
 `require-explicit-emits`, `require-valid-default-prop`, `jsx-uses-vars`.
 
@@ -92,7 +92,7 @@ nothing.** Enabling the missing rules under real ESLint across 891 `.vue` files 
 findings — but every one came from `attributes-order` (209), `html-self-closing` (60) and
 `no-multiple-template-root` (25), none of which that project enables. The missing rules it _does_
 enable found zero violations, because they have been enforced there for years. Switching costs no
-cleanup; it does remove the net, and `no-mutating-props` catches genuine Vue bugs.
+cleanup; it does remove the net.
 
 `no-template-shadow` is the worked example of what porting one of these takes, and of how it gets
 checked: 21 hand-written cases and 1,602 real `.vue` files across six repositories, diffed
@@ -141,6 +141,36 @@ genuinely disagree about the same code. On top of that, `defineChain` decides re
 global `_processedIds` set makes the _first_ source to reach an identifier the winner. All three
 are reproduced, with the reasoning recorded on `register` and `define_sites` in the rule.
 
+`no-mutating-props` is the third, and the first rule here that spans both passes: an ordinary
+`Rule` for the `<script>` half (`this.foo`, `setup(props)`, `defineProps` destructuring) and a
+`VueTemplateRule` for the template half, joined by a new `needs_script_props()` hook that hands
+the template the component's own prop names. Nothing forbade a rule doing both; no rule had.
+
+Its verification needed a mutation that produces _prop_ mutations, and there is a neat one:
+rewrite every `:attr="expr"` binding to `:attr.sync="expr"`. `.sync` is two-way, so any binding
+whose expression roots at a prop becomes a reported mutation — real prop names, real expressions,
+one token changed, 11,602 bindings across 1,397 files.
+
+|                                        | files | eslint | oxlint |    shared |
+| :------------------------------------- | ----: | -----: | -----: | --------: |
+| real corpus, unmodified                | 1,602 |      0 |      0 |         0 |
+| upstream's own suite (default options) |    42 |     71 |     71 |    **71** |
+| upstream's own suite (`shallowOnly`)   |     2 |     10 |     10 |    **10** |
+| `:attr` → `:attr.sync`                 | 1,397 |  1,232 |  1,232 | **1,232** |
+
+100% on all three, message text included. The mutation run is what earned it: the first pass sat
+at 97.33%, and both defects it exposed were in prop _discovery_ rather than in mutation detection,
+which is where the risk actually lives on real code.
+
+- A prop destructured **with a default** (`const { quantity = 5 } = defineProps<Props>()`) was
+  lost. Upstream drops prop names that are also module-scope bindings, then adds the destructured
+  names back; a destructured prop is always a module-scope binding, so implementing only the first
+  half silently deletes every defaulted prop. 31 missed findings.
+- `:src.sync="currentSrc!"` was reported when it should not be. Upstream's `getMemberChaining`
+  unwraps optional chaining and (implicitly) parentheses, but not TypeScript wrappers, so a
+  `TSNonNullExpression` root stops it. `get_inner_expression()` unwraps all three and must not be
+  used here — the same parens-yes/TS-no distinction `no-ref-as-operand` needs.
+
 **Format — Tier 3.** `.vue` markup still goes to Prettier through NAPI. The `<script>` and
 `<style>` blocks and the directive expressions inside the template are already native. A native
 Vue printer would be the same shape of work as `oxc_formatter_svelte`, on top of the sibling
@@ -151,15 +181,15 @@ differences against Prettier 3.9.6.
 
 ## oxlint in general
 
-1,014 rules across 17 plugins, 142 more than upstream at the same merge base (the entire `svelte`
-plugin, and 59 `vue` rules).
+1,015 rules across 17 plugins, 143 more than upstream at the same merge base (the entire `svelte`
+plugin, and 60 `vue` rules).
 
 | plugin       | rules |     | plugin     | rules |
 | :----------- | ----: | :-- | :--------- | ----: |
 | `eslint`     |   187 |     | `jest`     |    60 |
 | `unicorn`    |   138 |     | `jsx_a11y` |    36 |
 | `typescript` |   110 |     | `import`   |    33 |
-| `vue`        |   105 |     | `oxc`      |    27 |
+| `vue`        |   106 |     | `oxc`      |    27 |
 | `react`      |    85 |     | `jsdoc`    |    23 |
 | `svelte`     |    83 |     | `nextjs`   |    21 |
 | `vitest`     |    73 |     | others     |    33 |
@@ -279,7 +309,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 
 ## What is next
 
-1. The ten Vue rules listed above.
+1. The nine Vue rules listed above.
 2. `attributes-order`, the largest single gap for a stock Nuxt config.
 3. `svelte/valid-compile` as a first-party JS plugin.
 4. A native Vue printer, to move `.vue` off Prettier.

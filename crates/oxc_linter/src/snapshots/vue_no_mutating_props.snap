@@ -1,0 +1,546 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "items" prop.
+   ╭─[no_mutating_props.tsx:5:7]
+ 4 │     openModal() {
+ 5 │       ++this.items
+   ·       ────────────
+ 6 │       this.todo.type = 'completed'
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "todo" prop.
+   ╭─[no_mutating_props.tsx:6:7]
+ 5 │       ++this.items
+ 6 │       this.todo.type = 'completed'
+   ·       ────────────────────────────
+ 7 │       this.items.push('something')
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "items" prop.
+   ╭─[no_mutating_props.tsx:7:7]
+ 6 │       this.todo.type = 'completed'
+ 7 │       this.items.push('something')
+   ·       ────────────────────────────
+ 8 │       delete this.todo.type
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "todo" prop.
+   ╭─[no_mutating_props.tsx:8:7]
+ 7 │       this.items.push('something')
+ 8 │       delete this.todo.type
+   ·       ─────────────────────
+ 9 │     }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "foo" prop.
+   ╭─[no_mutating_props.tsx:5:7]
+ 4 │     openModal() {
+ 5 │       this?.foo?.push?.('something')
+   ·       ──────────────────────────────
+ 6 │       ;(this?.bar)?.push?.('something')
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "bar" prop.
+   ╭─[no_mutating_props.tsx:6:8]
+ 5 │       this?.foo?.push?.('something')
+ 6 │       ;(this?.bar)?.push?.('something')
+   ·        ────────────────────────────────
+ 7 │       ;(this?.baz?.push)?.('something')
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "baz" prop.
+   ╭─[no_mutating_props.tsx:7:8]
+ 6 │       ;(this?.bar)?.push?.('something')
+ 7 │       ;(this?.baz?.push)?.('something')
+   ·        ────────────────────────────────
+ 8 │     }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:5]
+ 2 │   setup(props) {
+ 3 │     props.a ++
+   ·     ──────────
+ 4 │     props.b = 1
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "b" prop.
+   ╭─[no_mutating_props.tsx:4:5]
+ 3 │     props.a ++
+ 4 │     props.b = 1
+   ·     ───────────
+ 5 │     props.c.push(1)
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:5:5]
+ 4 │     props.b = 1
+ 5 │     props.c.push(1)
+   ·     ───────────────
+ 6 │     delete props.d
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "d" prop.
+   ╭─[no_mutating_props.tsx:6:5]
+ 5 │     props.c.push(1)
+ 6 │     delete props.d
+   ·     ──────────────
+ 7 │   }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:5]
+ 2 │   setup({a,b,c, d: [e, , f]}) {
+ 3 │     a.foo ++
+   ·     ────────
+ 4 │     b.foo = 1
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "b" prop.
+   ╭─[no_mutating_props.tsx:4:5]
+ 3 │     a.foo ++
+ 4 │     b.foo = 1
+   ·     ─────────
+ 5 │     c.push(1)
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:5:5]
+ 4 │     b.foo = 1
+ 5 │     c.push(1)
+   ·     ─────────
+ 6 │     c.x.push(1)
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:6:5]
+ 5 │     c.push(1)
+ 6 │     c.x.push(1)
+   ·     ───────────
+ 7 │     delete c.y
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:7:5]
+ 6 │     c.x.push(1)
+ 7 │     delete c.y
+   ·     ──────────
+ 8 │     e.foo++
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "d" prop.
+   ╭─[no_mutating_props.tsx:8:5]
+ 7 │     delete c.y
+ 8 │     e.foo++
+   ·     ───────
+ 9 │     f.foo++
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "d" prop.
+    ╭─[no_mutating_props.tsx:9:5]
+  8 │     e.foo++
+  9 │     f.foo++
+    ·     ───────
+ 10 │   }
+    ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:5]
+ 2 │   setup({a: foo, b: [...bar], c: baz = 1}) {
+ 3 │     foo.x ++
+   ·     ────────
+ 4 │     delete foo.y
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:4:5]
+ 3 │     foo.x ++
+ 4 │     delete foo.y
+   ·     ────────────
+ 5 │     bar.x = 1
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "b" prop.
+   ╭─[no_mutating_props.tsx:5:5]
+ 4 │     delete foo.y
+ 5 │     bar.x = 1
+   ·     ─────────
+ 6 │     baz.push(1)
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:6:5]
+ 5 │     bar.x = 1
+ 6 │     baz.push(1)
+   ·     ───────────
+ 7 │   }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:5]
+ 2 │   setup({...props}) {
+ 3 │     props.a ++
+   ·     ──────────
+ 4 │     props.b = 1
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "b" prop.
+   ╭─[no_mutating_props.tsx:4:5]
+ 3 │     props.a ++
+ 4 │     props.b = 1
+   ·     ───────────
+ 5 │     props.c.push(1)
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "c" prop.
+   ╭─[no_mutating_props.tsx:5:5]
+ 4 │     props.b = 1
+ 5 │     props.c.push(1)
+   ·     ───────────────
+ 6 │     delete props.d
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "d" prop.
+   ╭─[no_mutating_props.tsx:6:5]
+ 5 │     props.c.push(1)
+ 6 │     delete props.d
+   ·     ──────────────
+ 7 │   }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "[a]" prop.
+   ╭─[no_mutating_props.tsx:1:41]
+ 1 │ <script>export default { setup(props) { props[a] ++ } }</script>
+   ·                                         ───────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "[a]" prop.
+   ╭─[no_mutating_props.tsx:1:44]
+ 1 │ <script>export default { setup({[a]: c}) { c.foo ++ } }</script>
+   ·                                            ────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:2:1]
+ 1 │ <script setup>const props = defineProps({ value: String })
+ 2 │ props.value++</script>
+   · ─────────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:2:1]
+ 1 │ <script setup>const {value} = defineProps({ value: Object })
+ 2 │ value.value++</script>
+   · ─────────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:2:1]
+ 1 │ <script setup lang="ts">const props = withDefaults(defineProps<Props>(), { msg: 'hello' })
+ 2 │ props.value++</script>
+   · ─────────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:5]
+ 2 │   setup(props) {
+ 3 │     props.a ++
+   ·     ──────────
+ 4 │     function foo() { props.a ++ }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:4:22]
+ 3 │     props.a ++
+ 4 │     function foo() { props.a ++ }
+   ·                      ──────────
+ 5 │   }
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "todo" prop.
+   ╭─[no_mutating_props.tsx:1:60]
+ 1 │ <script>export default { props: ['todo'], methods: { m() { Object.assign(this.todo, {}) } } }</script>
+   ·                                                            ────────────────────────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:2:1]
+ 1 │ <script setup>const props = defineProps({ value: Object })
+ 2 │ props.value = 1
+   · ───────────────
+ 3 │ props.value.x = 1</script>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop1" prop.
+   ╭─[no_mutating_props.tsx:2:14]
+ 1 │ <template><div>
+ 2 │   <div v-if="prop1 = [1, 2]"></div>
+   ·              ──────────────
+ 3 │   <div v-if="prop2++"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop2" prop.
+   ╭─[no_mutating_props.tsx:3:14]
+ 2 │   <div v-if="prop1 = [1, 2]"></div>
+ 3 │   <div v-if="prop2++"></div>
+   ·              ───────
+ 4 │   <div v-text="prop3.shift()"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop3" prop.
+   ╭─[no_mutating_props.tsx:4:16]
+ 3 │   <div v-if="prop2++"></div>
+ 4 │   <div v-text="prop3.shift()"></div>
+   ·                ─────────────
+ 5 │   <div v-text="prop4.slice(0).shift()"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop5" prop.
+   ╭─[no_mutating_props.tsx:6:14]
+ 5 │   <div v-text="prop4.slice(0).shift()"></div>
+ 6 │   <div v-if="this.prop5 = [1, 2] && this.someProp"></div>
+   ·              ────────────────────────────────────
+ 7 │   <div v-if="this.prop6++ && this.someProp < 10"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop6" prop.
+   ╭─[no_mutating_props.tsx:7:14]
+ 6 │   <div v-if="this.prop5 = [1, 2] && this.someProp"></div>
+ 7 │   <div v-if="this.prop6++ && this.someProp < 10"></div>
+   ·              ────────────
+ 8 │   <div v-text="this.prop7.shift()"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop7" prop.
+   ╭─[no_mutating_props.tsx:8:16]
+ 7 │   <div v-if="this.prop6++ && this.someProp < 10"></div>
+ 8 │   <div v-text="this.prop7.shift()"></div>
+   ·                ──────────────────
+ 9 │   <div v-if="delete prop9.a"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop9" prop.
+    ╭─[no_mutating_props.tsx:9:14]
+  8 │   <div v-text="this.prop7.shift()"></div>
+  9 │   <div v-if="delete prop9.a"></div>
+    ·              ──────────────
+ 10 │ </div></template><script>export default { props: ['prop1','prop2','prop3','prop4','prop5','prop6','prop7','prop9'] }</script>
+    ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop1" prop.
+   ╭─[no_mutating_props.tsx:2:16]
+ 1 │ <template><div>
+ 2 │   <div v-text="prop1?.shift?.()"></div>
+   ·                ────────────────
+ 3 │   <div v-text="(prop2?.shift)?.()"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop2" prop.
+   ╭─[no_mutating_props.tsx:3:16]
+ 2 │   <div v-text="prop1?.shift?.()"></div>
+ 3 │   <div v-text="(prop2?.shift)?.()"></div>
+   ·                ──────────────────
+ 4 │   <div v-text="(this?.prop3)?.shift?.()"></div>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop3" prop.
+   ╭─[no_mutating_props.tsx:4:16]
+ 3 │   <div v-text="(prop2?.shift)?.()"></div>
+ 4 │   <div v-text="(this?.prop3)?.shift?.()"></div>
+   ·                ────────────────────────
+ 5 │ </div></template><script>export default { props: ['prop1','prop2','prop3'] }</script>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop1" prop.
+   ╭─[no_mutating_props.tsx:2:19]
+ 1 │ <template><div>
+ 2 │   <input v-model="prop1.text">
+   ·                   ──────────
+ 3 │   <input v-model="prop2">
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop2" prop.
+   ╭─[no_mutating_props.tsx:3:19]
+ 2 │   <input v-model="prop1.text">
+ 3 │   <input v-model="prop2">
+   ·                   ─────
+ 4 │   <input v-model="this.prop3.text">
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop3" prop.
+   ╭─[no_mutating_props.tsx:4:19]
+ 3 │   <input v-model="prop2">
+ 4 │   <input v-model="this.prop3.text">
+   ·                   ───────────────
+ 5 │   <input v-model="this.prop4">
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop4" prop.
+   ╭─[no_mutating_props.tsx:5:19]
+ 4 │   <input v-model="this.prop3.text">
+ 5 │   <input v-model="this.prop4">
+   ·                   ──────────
+ 6 │ </div></template><script>export default { props: ['prop1','prop2','prop3','prop4'] }</script>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop" prop.
+   ╭─[no_mutating_props.tsx:1:101]
+ 1 │ <template><div><template v-for="(prop, i) of data"><input v-model="prop"></template><input v-model="prop"></div></template><script>export default { props: ['prop'] }</script>
+   ·                                                                                                     ────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop" prop.
+   ╭─[no_mutating_props.tsx:1:63]
+ 1 │ <template><div><template v-for="prop of data"><input v-model="this.prop"><div v-text="prop.shift()"></div><div v-text="this.prop.shift()"></div></template></div></template><script>export default { props: ['prop'] }</script>
+   ·                                                               ─────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop" prop.
+   ╭─[no_mutating_props.tsx:1:120]
+ 1 │ <template><div><template v-for="prop of data"><input v-model="this.prop"><div v-text="prop.shift()"></div><div v-text="this.prop.shift()"></div></template></div></template><script>export default { props: ['prop'] }</script>
+   ·                                                                                                                        ─────────────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop" prop.
+   ╭─[no_mutating_props.tsx:2:28]
+ 1 │ <template><div>
+ 2 │   <MyComponent :data.sync="this.prop" />
+   ·                            ─────────
+ 3 │   <MyComponent :data.sync="prop" />
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "prop" prop.
+   ╭─[no_mutating_props.tsx:3:28]
+ 2 │   <MyComponent :data.sync="this.prop" />
+ 3 │   <MyComponent :data.sync="prop" />
+   ·                            ────
+ 4 │   <MyComponent :data="this.prop" />
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "[foo]" prop.
+   ╭─[no_mutating_props.tsx:1:77]
+ 1 │ <script setup>const props = defineProps()</script><template><input v-model="props[foo]"></template>
+   ·                                                                             ──────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:1:27]
+ 1 │ <template><input v-model="value"><input v-model="props.value"></template><script setup>const props = defineProps({ value: String })</script>
+   ·                           ─────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "value" prop.
+   ╭─[no_mutating_props.tsx:1:50]
+ 1 │ <template><input v-model="value"><input v-model="props.value"></template><script setup>const props = defineProps({ value: String })</script>
+   ·                                                  ───────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "quantity" prop.
+   ╭─[no_mutating_props.tsx:1:33]
+ 1 │ <template><Comp :quantity.sync="quantity" :sender.sync="sender" /></template><script setup lang="ts">interface Props { quantity?: number; sender: string }
+   ·                                 ────────
+ 2 │ const { sender, quantity = 5 } = defineProps<Props>()</script>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "sender" prop.
+   ╭─[no_mutating_props.tsx:1:57]
+ 1 │ <template><Comp :quantity.sync="quantity" :sender.sync="sender" /></template><script setup lang="ts">interface Props { quantity?: number; sender: string }
+   ·                                                         ──────
+ 2 │ const { sender, quantity = 5 } = defineProps<Props>()</script>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:9:1]
+ 8 │ </template><script setup>const props = defineProps({ a: Number, b: Array })
+ 9 │ props.a ++</script>
+   · ──────────
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:2:19]
+ 1 │ <template>
+ 2 │   <button @click="props.a ++"/>
+   ·                   ──────────
+ 3 │   <button @click="a ++"/>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:3:19]
+ 2 │   <button @click="props.a ++"/>
+ 3 │   <button @click="a ++"/>
+   ·                   ────
+ 4 │   <button @click="props.b.push(1)"/>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
+
+  ⚠ vue(no-mutating-props): Unexpected mutation of "a" prop.
+   ╭─[no_mutating_props.tsx:6:19]
+ 5 │   <button @click="b.push(1)"/>
+ 6 │   <input v-model="props.a"/>
+   ·                   ───────
+ 7 │   <input v-model="props.a.b"/>
+   ╰────
+  help: Emit an event and let the parent own this value, or copy it into local state.
