@@ -96,7 +96,7 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
         return;
     };
 
-    let mut ir = payload.into_doc(f.context_mut());
+    let mut ir = payload.into_doc();
     // A whole-program IR ends with the newline a *file* wants. Here the tag
     // supplies it, and leaving both makes the break ambiguous: it sits between
     // the end of the indent and the close tag, and whoever resolves the pair

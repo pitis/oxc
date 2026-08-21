@@ -158,7 +158,7 @@ pub fn write_expression<'a>(
     // `__onHtmlBindingRoot` hook — `prettier-plugin-svelte` does not: its
     // `{…}` is the expression's doc between two braces, and the expression's
     // own groups decide where it breaks.
-    let mut ir = payload.into_doc(f.context_mut());
+    let mut ir = payload.into_doc();
     match position {
         // A block header is one line however long it gets: the expression
         // that decides what a `{#each}` iterates reads as part of the marker,

@@ -71,8 +71,8 @@ pub fn format_with_session<'a>(
     write!(&mut buffer, FormatVueRoot { tree: &tree, has_bom });
 
     let elements = buffer.into_vec();
-    let mut context = state.into_context();
-    let tailwind_classes = context.take_tailwind_classes();
+    let context = state.into_context();
+    let tailwind_classes = session.take_tailwind_classes();
     let sorted = session.sort_tailwind_classes(tailwind_classes);
 
     Ok(Formatted::new(Document::new(elements, sorted), context))

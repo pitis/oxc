@@ -141,11 +141,6 @@ impl std::fmt::Debug for JsFormatContext<'_> {
 
 /// Lets embedded children's classes merge into this context's index space
 /// (`DispatchPayload::into_doc` at each embed site).
-impl oxc_formatter_core::TailwindCollector for JsFormatContext<'_> {
-    fn add_class(&mut self, class: String) -> usize {
-        self.add_tailwind_class(class)
-    }
-}
 
 impl oxc_formatter_core::FormatContext for JsFormatContext<'_> {
     type Options = JsFormatOptions;
@@ -272,19 +267,6 @@ impl<'ast> JsFormatContext<'ast> {
 
     pub fn is_quote_needed(&self) -> bool {
         *self.quote_needed_stack.last().unwrap_or(&false)
-    }
-
-    /// Add a Tailwind CSS class string found in JSX attributes.
-    /// Returns the index where the class was stored.
-    pub fn add_tailwind_class(&mut self, class: String) -> usize {
-        let index = self.tailwind_classes.len();
-        self.tailwind_classes.push(class);
-        index
-    }
-
-    /// Take all collected Tailwind classes, clearing the internal storage.
-    pub fn take_tailwind_classes(&mut self) -> Vec<String> {
-        mem::take(&mut self.tailwind_classes)
     }
 
     /// Set the collected Tailwind CSS classes.

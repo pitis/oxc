@@ -70,13 +70,13 @@ pub fn format_with_session<'a>(
     write!(&mut buffer, FormatSvelteRoot { nodes: &nodes, has_bom });
 
     let elements = buffer.into_vec();
-    let mut context = state.into_context();
+    let context = state.into_context();
 
     // The classes this document's own markup registered, plus the ones a
     // `<style>` or `<script>` child handed over when its IR was remapped into
     // this index space. Sorting is the host's: with no sorter installed they
     // come back in the order they were collected.
-    let tailwind_classes = context.take_tailwind_classes();
+    let tailwind_classes = session.take_tailwind_classes();
     let sorted = session.sort_tailwind_classes(tailwind_classes);
 
     Ok(Formatted::new(Document::new(elements, sorted), context))

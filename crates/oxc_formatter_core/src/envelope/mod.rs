@@ -9,7 +9,7 @@
 use oxc_allocator::ArenaVec;
 
 use crate::{
-    Buffer as _, BufferExtensions as _, FormatContext, FormatElement, Formatter, TailwindCollector,
+    Buffer as _, BufferExtensions as _, FormatContext, FormatElement, Formatter,
     builders::{hard_line_break, text},
     dispatch_fragment_ir,
     spec::FrontMatter,
@@ -35,7 +35,7 @@ pub fn write_front_matter<'a, C>(
     embeddable_languages: &[&str],
     f: &mut Formatter<'_, 'a, C>,
 ) where
-    C: FormatContext + TailwindCollector,
+    C: FormatContext,
 {
     let language = fm.language();
     if embeddable_languages.contains(&language) {

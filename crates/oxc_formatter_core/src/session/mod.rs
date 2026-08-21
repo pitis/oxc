@@ -2,7 +2,7 @@
 
 pub mod embedded;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use oxc_allocator::Allocator;
 
@@ -84,6 +84,16 @@ pub struct FormatSession<'a> {
     allocator: &'a Allocator,
     group_id_builder: Arc<UniqueGroupIdBuilder>,
     services: SessionServices,
+    /// Pre-sort class strings that `FormatElement::TailwindClass(index)`
+    /// indexes into, shared with every embedded child exactly as the `GroupId`
+    /// space is.
+    ///
+    /// Sharing it is what makes a child's indices already correct in the
+    /// parent's document. The alternative — each formatter collecting from
+    /// zero and the parent renumbering on merge — cannot renumber an index
+    /// that sits inside an `Interned` subtree, because those are shared arena
+    /// slices with no owner to rewrite through.
+    tailwind_classes: Arc<Mutex<Vec<String>>>,
     input_kind: InputKind,
     dispatch_depth: u8,
 }
@@ -108,6 +118,7 @@ impl<'a> FormatSession<'a> {
             allocator,
             group_id_builder: Arc::new(UniqueGroupIdBuilder::default()),
             services,
+            tailwind_classes: Arc::new(Mutex::new(Vec::new())),
             input_kind,
             dispatch_depth: 0,
         }
@@ -122,6 +133,7 @@ impl<'a> FormatSession<'a> {
         Self {
             allocator: self.allocator,
             group_id_builder: Arc::clone(&self.group_id_builder),
+            tailwind_classes: Arc::clone(&self.tailwind_classes),
             services: self.services.clone(),
             input_kind,
             dispatch_depth: self.dispatch_depth + 1,
@@ -178,12 +190,13 @@ impl<'a> FormatSession<'a> {
         printer_options: PrinterOptions,
     ) -> Result<Option<String>, String> {
         let text_len = request.text.len();
-        let DispatchResponse::Formatted(DispatchPayload { doc, tailwind_classes, .. }) =
-            self.dispatch(request)?
+        let DispatchResponse::Formatted(DispatchPayload { doc, .. }) = self.dispatch(request)?
         else {
             return Ok(None);
         };
-        let tailwind_classes = self.sort_tailwind_classes(tailwind_classes);
+        // This session is a fence's own root, so what the child collected into
+        // it is exactly what this document references.
+        let tailwind_classes = self.sort_tailwind_classes(self.take_tailwind_classes());
 
         let code = Document::new(doc, tailwind_classes)
             .print(text_len, printer_options)
@@ -202,6 +215,27 @@ impl<'a> FormatSession<'a> {
     #[inline]
     pub fn group_id_builder(&self) -> &UniqueGroupIdBuilder {
         &self.group_id_builder
+    }
+
+    /// Registers a pre-sort class string and returns the index a
+    /// `FormatElement::TailwindClass` should carry.
+    ///
+    /// The index is valid in the whole run's document, not just the formatter
+    /// that asked, so an embedded child's elements need no renumbering when
+    /// its IR is spliced into its parent's.
+    pub fn add_tailwind_class(&self, class: String) -> usize {
+        let mut classes =
+            self.tailwind_classes.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        classes.push(class);
+        classes.len() - 1
+    }
+
+    /// Takes the run's collected classes, leaving the collector empty. Called
+    /// once, by whoever finalizes the document those indices belong to.
+    pub fn take_tailwind_classes(&self) -> Vec<String> {
+        let mut classes =
+            self.tailwind_classes.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        std::mem::take(&mut *classes)
     }
 
     /// Envelope semantics of the input this session formats.
@@ -259,7 +293,6 @@ mod tests {
         let dispatcher: FormatDispatcher = Arc::new(|ctx, _request| {
             Ok(DispatchResponse::Formatted(DispatchPayload {
                 doc: oxc_allocator::ArenaVec::new_in(&ctx.allocator()),
-                tailwind_classes: Vec::new(),
                 child_context: None,
             }))
         });
@@ -282,7 +315,6 @@ mod tests {
         let dispatcher: FormatDispatcher = Arc::new(|ctx, _request| {
             Ok(DispatchResponse::Formatted(DispatchPayload {
                 doc: oxc_allocator::ArenaVec::new_in(&ctx.allocator()),
-                tailwind_classes: Vec::new(),
                 child_context: None,
             }))
         });

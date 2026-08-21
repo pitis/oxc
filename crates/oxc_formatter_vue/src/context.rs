@@ -1,6 +1,6 @@
 use rustc_hash::FxHashSet;
 
-use oxc_formatter_core::{FormatContext, SourceText, TailwindCollector};
+use oxc_formatter_core::{FormatContext, SourceText};
 
 use crate::options::VueFormatOptions;
 
@@ -13,9 +13,6 @@ const SNIPPET_MAX_LENGTH: usize = 60;
 pub struct VueFormatContext<'a> {
     options: VueFormatOptions,
     source_text: SourceText<'a>,
-    /// Tailwind classes a dispatched child collected, in this document's
-    /// index space.
-    tailwind_classes: Vec<String>,
     /// Fragments that failed to parse, in the order they were met, each with
     /// the message that would report it.
     syntax_failures: Vec<(String, String)>,
@@ -29,7 +26,6 @@ impl<'a> VueFormatContext<'a> {
         Self {
             options,
             source_text: SourceText::new(source_code),
-            tailwind_classes: Vec::new(),
             syntax_failures: Vec::new(),
             formatted_fragments: FxHashSet::default(),
         }
@@ -39,11 +35,6 @@ impl<'a> VueFormatContext<'a> {
     /// straight into `text(…)` without being copied.
     pub fn source_text(&self) -> SourceText<'a> {
         self.source_text
-    }
-
-    /// Take the collected classes for the document to sort.
-    pub fn take_tailwind_classes(&mut self) -> Vec<String> {
-        std::mem::take(&mut self.tailwind_classes)
     }
 
     /// Record that a fragment could not be formatted, so the user hears about
@@ -93,14 +84,6 @@ fn snippet(source: &str) -> String {
         format!("{cut}...")
     } else {
         single_line
-    }
-}
-
-/// Lets a dispatched child's classes remap into this document's index space.
-impl TailwindCollector for VueFormatContext<'_> {
-    fn add_class(&mut self, class: String) -> usize {
-        self.tailwind_classes.push(class);
-        self.tailwind_classes.len() - 1
     }
 }
 

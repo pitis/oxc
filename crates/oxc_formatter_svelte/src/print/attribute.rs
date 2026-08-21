@@ -7,7 +7,7 @@
 use std::borrow::Cow;
 
 use oxc_formatter_core::{
-    Buffer, FormatElement, TailwindCollector,
+    Buffer, FormatElement,
     builders::{expand_parent, text, token},
     write,
 };
@@ -274,7 +274,7 @@ fn write_tailwind_classes<'a>(classes: &'a str, f: &mut SvelteFormatter<'_, 'a>)
     if !f.options().sort_tailwind_classes || classes.trim().is_empty() {
         return false;
     }
-    let index = f.context_mut().add_class(classes.to_string());
+    let index = f.session().add_tailwind_class(classes.to_string());
     f.write_element(FormatElement::TailwindClass(index));
     true
 }

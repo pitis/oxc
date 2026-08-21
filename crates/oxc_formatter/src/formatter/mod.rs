@@ -56,9 +56,9 @@ pub fn format<'ast>(
     buffer.write_fmt(arguments);
 
     let elements = buffer.into_vec();
-    let mut context = state.into_context();
+    let context = state.into_context();
 
-    let tailwind_classes = context.take_tailwind_classes();
+    let tailwind_classes = session.take_tailwind_classes();
     let sorted_tailwind_classes = session.sort_tailwind_classes(tailwind_classes);
 
     let ir = Document::new(elements, sorted_tailwind_classes);
@@ -83,8 +83,7 @@ pub fn format_embedded<'ast>(
 
     buffer.write_fmt(arguments);
 
-    let elements = buffer.into_vec();
-    let tailwind_classes = state.context_mut().take_tailwind_classes();
-
-    oxc_formatter_core::EmbeddedIr { ir: elements, tailwind_classes }
+    // The classes stay in the session: they are indexed in the ROOT
+    // document's space, and the root is what takes and sorts them.
+    oxc_formatter_core::EmbeddedIr { ir: buffer.into_vec() }
 }

@@ -1,4 +1,4 @@
-use oxc_formatter_core::{FormatContext, SourceText, TailwindCollector};
+use oxc_formatter_core::{FormatContext, SourceText};
 
 use crate::{
     comments::{Comments, CssComment},
@@ -20,9 +20,6 @@ pub struct CssFormatContext<'a> {
     /// or an HTML `style` attribute's value. Gates both placeholder handling
     /// and the attribute layout.
     kind: CssFragmentKind,
-    /// Pre-sort `@apply` class strings indexed by `FormatElement::TailwindClass`.
-    /// Sorting happens in one host-supplied batch after IR construction.
-    tailwind_classes: Vec<String>,
 }
 
 impl<'a> CssFormatContext<'a> {
@@ -39,21 +36,7 @@ impl<'a> CssFormatContext<'a> {
             in_less_detached: std::cell::Cell::new(false),
             in_icss_rule: std::cell::Cell::new(false),
             kind,
-            tailwind_classes: Vec::new(),
         }
-    }
-
-    /// Register an `@apply` class string for batch sorting,
-    /// returning its `FormatElement::TailwindClass` index.
-    pub fn add_tailwind_class(&mut self, class: String) -> usize {
-        let index = self.tailwind_classes.len();
-        self.tailwind_classes.push(class);
-        index
-    }
-
-    /// Takes the collected class strings, leaving an empty list.
-    pub fn take_tailwind_classes(&mut self) -> Vec<String> {
-        std::mem::take(&mut self.tailwind_classes)
     }
 
     /// Whether the source may contain css-in-js `${}` placeholder markers.
@@ -87,13 +70,6 @@ impl<'a> CssFormatContext<'a> {
 }
 
 /// Lets a dispatched child's classes remap into this host's index space (`DispatchPayload::into_doc`).
-/// A YAML front matter child returns none today, but the cross-language contract holds for any future child.
-impl TailwindCollector for CssFormatContext<'_> {
-    fn add_class(&mut self, class: String) -> usize {
-        self.add_tailwind_class(class)
-    }
-}
-
 impl FormatContext for CssFormatContext<'_> {
     type Options = CssFormatOptions;
 

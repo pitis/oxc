@@ -82,9 +82,9 @@ pub fn format_with_session<'a>(
     write!(&mut buffer, FormatCssRoot { stylesheet: &stylesheet, has_bom, front_matter });
 
     let elements = buffer.into_vec();
-    let mut context = state.into_context();
+    let context = state.into_context();
 
-    let tailwind_classes = context.take_tailwind_classes();
+    let tailwind_classes = session.take_tailwind_classes();
     let sorted_tailwind_classes = session.sort_tailwind_classes(tailwind_classes);
 
     let ir = Document::new(elements, sorted_tailwind_classes);
@@ -139,10 +139,9 @@ pub fn format_to_ir<'a>(
         FormatCssEmbedded { stylesheet: &stylesheet, front_matter: prepared.front_matter }
     );
 
-    let elements = buffer.into_vec();
-    let tailwind_classes = state.context_mut().take_tailwind_classes();
-
-    Ok(EmbeddedIr { ir: elements, tailwind_classes })
+    // The classes stay in the session: they are indexed in the ROOT
+    // document's space, and the root is what takes and sorts them.
+    Ok(EmbeddedIr { ir: buffer.into_vec() })
 }
 
 /// Normalized arena source, its front matter (when present),

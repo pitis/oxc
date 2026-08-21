@@ -164,7 +164,7 @@ pub fn dispatch<'a>(
         .as_ref()
         .and_then(|context| context.downcast_ref::<ExpressionHugsDelimiters>())
         .is_none_or(|hugs| hugs.0);
-    Some(Fragment { ir: payload.into_doc(f.context_mut()), hugs })
+    Some(Fragment { ir: payload.into_doc(), hugs })
 }
 
 /// A formatted fragment, with the layout answer its language gave.

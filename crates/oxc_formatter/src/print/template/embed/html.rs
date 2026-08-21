@@ -72,7 +72,7 @@ pub(super) fn format_html_doc<'a>(
         // Remap is a no-op today (the Prettier Doc path never carries classes),
         // but the boundary contract is "merge at every embed site".
         // A Rust HTML formatter collecting `class` attributes will rely on this.
-        let ir = result.into_doc(f.context_mut());
+        let ir = result.into_doc();
 
         // Re-escape template chars in `Text` runs:
         // the IR is reinserted into a JS template literal built from `.cooked` values.
@@ -134,7 +134,7 @@ pub(super) fn format_html_doc<'a>(
         return false;
     };
     // See the Phase 0 note: remap is no-op today, load-bearing once `oxc_formatter_html` lands
-    let ir = result.into_doc(f.context_mut());
+    let ir = result.into_doc();
 
     // Validate before formatting any expression.
     // Formatting consumes comment state,
