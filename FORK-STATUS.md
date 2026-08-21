@@ -277,10 +277,40 @@ worked around, because the fix belongs in the printer every language shares.
 Note that finishing Vue does _not_ by itself remove Prettier from `oxfmt`'s bundle: Markdown,
 HTML, Angular and Handlebars still need it.
 
+**End to end on one production repo, at that repo's own config.** The corpus figure above uses
+Prettier's defaults for every file, which is the weaker claim: it shows the printer matches
+Prettier-at-defaults, not that switching a real project would be a no-op. Re-run against
+`chatlyn-ui`'s own `.prettierrc.mjs`, resolved per directory the way Prettier resolves it —
+which matters, because `apps/webchat` has a second config setting `printWidth: 120` and
+`vueIndentScriptAndStyle: true` — all **891 / 891 files are byte-identical**, and formatting
+twice changes nothing.
+
+Two things that only showed up by doing it that way, both worth keeping in mind for the next
+repo:
+
+- A single flat scratch directory scored 93.6%, and 11 of those 57 differences were the harness
+  applying one `printWidth` to files whose own config sets another. **Match the config
+  per-directory, not per-run.**
+- Against the Prettier the repo actually has pinned — 3.8.3 — four files differ, all one
+  TypeScript union layout. That is not a defect: Prettier changed it in 3.9, and this fork's
+  union printer deliberately follows 3.9 (see the header of
+  `crates/oxc_formatter/src/print/union_type.rs`). Prettier 3.9.6 produces exactly what the fork
+  produces. A project switching from an older Prettier will see that reformat once.
+
+`prettier-plugin-organize-imports`, which the repo also runs, changes none of the 891 files —
+its imports are already ordered — so it is not a blocker here, though a repo where it does reorder
+would need `oxfmt`'s own import sorting turned on.
+
+**On idempotency:** three files in the 1,602 change on a second pass. All three change under
+Prettier too, at the same lines, in the same direction, and this printer's second pass is
+byte-identical to Prettier's second pass. So the instability is Prettier's own layout, faithfully
+reproduced, rather than something to fix here.
+
 The first run of this measurement said 20.8%, and the difference was not the printer: `oxfmt`
 defaults to `printWidth` 100 and Prettier to 80, so the two were formatting to different widths.
 That is the same trap recorded under [oxfmt in general](#oxfmt-in-general); it is worth
-re-reading before trusting any formatter comparison.
+re-reading before trusting any formatter comparison — and the flat-directory mistake above is the
+same trap wearing a different hat.
 
 Verified on three production repos — 2,059, 2,735 and 2,530 files — with **zero** formatting
 differences against Prettier 3.9.6.
