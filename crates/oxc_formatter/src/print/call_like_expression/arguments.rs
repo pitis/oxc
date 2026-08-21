@@ -11,7 +11,8 @@ use crate::{
         Comments, JoinBuilderJsExt as _, JsFormatContext, JsFormatter, JsFormatterExt as _,
         prelude::{
             FormatElements, best_fitting_variant, empty_line, expand_parent, format_once,
-            format_with, group, soft_block_indent, soft_line_break_or_space, space,
+            format_with, group, soft_block_indent, soft_line_break_or_space,
+            soft_space_or_block_indent, space,
         },
         trivia::format_dangling_comments,
     },
@@ -208,6 +209,15 @@ pub fn is_function_composition_args(args: &[Argument<'_>]) -> bool {
     false
 }
 
+/// The variant where every argument is on a line of its own.
+///
+/// The breaks around the list are `line`s rather than soft ones, as Prettier's
+/// `allArgsBrokenOut` writes them. The two are the same here — this group is
+/// always expanded, and either kind breaks then — until something flattens the
+/// document, which is what a Svelte block header does: `{#each xs.filter(…) as
+/// y}` is one line however long, and a `line` flattens to a space where a soft
+/// one flattens to nothing. Prettier's own flattening reaches this variant and
+/// comes back with `filter( (c) => … )`.
 fn format_all_elements_broken_out<'a, 'b>(
     node: &'b AstNode<'a, ArenaVec<'a, Argument<'a>>>,
     elements: impl Iterator<Item = (Option<FormatElement<'a>>, usize)>,
@@ -218,7 +228,7 @@ fn format_all_elements_broken_out<'a, 'b>(
         buffer,
         [group(&format_args!(
             "(",
-            soft_block_indent(&format_once(move |f| {
+            soft_space_or_block_indent(&format_once(move |f| {
                 for (index, (element, lines_before)) in elements.into_iter().enumerate() {
                     if let Some(element) = element {
                         if index > 0 {
@@ -244,6 +254,8 @@ fn format_all_elements_broken_out<'a, 'b>(
     );
 }
 
+/// As [`format_all_elements_broken_out`], for arguments that have not been
+/// formatted yet. See there for why the breaks are `line`s.
 fn format_all_args_broken_out<'a, 'b>(
     node: &'b AstNode<'a, ArenaVec<'a, Argument<'a>>>,
     expand: bool,
@@ -254,7 +266,7 @@ fn format_all_args_broken_out<'a, 'b>(
         buffer,
         [group(&format_args!(
             "(",
-            soft_block_indent(&format_with(move |f| {
+            soft_space_or_block_indent(&format_with(move |f| {
                 for (index, argument) in node.iter().enumerate() {
                     if index > 0 {
                         match f.lines_before(argument.span()) {

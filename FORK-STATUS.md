@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.5%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.6%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-99.5% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+99.6% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -82,13 +82,13 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
 | `huntabyte/bits-ui`        |   617 |     617 (100.0%) |
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1667 (99.2%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1670 (99.3%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1845 (98.9%) |
-| **Total**                  |  6673 | **6637 (99.5%)** |
+| `windmill-labs/windmill`   |  1866 |     1851 (99.2%) |
+| **Total**                  |  6673 | **6646 (99.6%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
-below 98.9%, where the first measurement had **windmill — the one large application —
+below 99.2%, where the first measurement had **windmill — the one large application —
 at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
@@ -135,6 +135,16 @@ Reading Prettier's doc directly — `prettier.__debug.printToDoc` with the plugi
 more than reading its source for questions like this. The plugin's `openingTag` builder is the same
 shape as this printer's, and the difference was entirely in what followed it.
 
+**A flattened call keeps the room the broken form would have used**, worth 9 more files. A block
+header is one line however long it gets, so its expression is flattened — and a call whose
+arguments do not fit is a `BestFitting` whose last variant puts every argument on a line of its
+own. Prettier writes the breaks around that list as `line`s; this printer wrote them as soft ones.
+The two are the same wherever that variant is actually used, because it is always expanded and
+either kind breaks then. They differ only under flattening, where a `line` becomes a space and a
+soft one becomes nothing — so Prettier comes back with `filter( (c) => … )` and this printer came
+back with `filter((c) => …)`. The conformance suite is unchanged by the swap, which is what
+confirms the two are otherwise interchangeable.
+
 **Inlineness turned out to be the wrong test** for it, worth 17 more files. `<span>` borrows and
 `<div>` does not, and both readings of that fit the pair — but what the plugin actually asks is
 whether the element hugs its content on both sides, and an element hugs unless it is a block. A
@@ -177,7 +187,7 @@ printer edits except for one Svelte fixture that now passes. That is the evidenc
 were not carrying anything: they only ever differed for a separator with no break in it, which is a
 shape only text produces.
 
-What is left has no dominant class: 36 files, and the largest cluster among them is small enough
+What is left has no dominant class: 27 files, and the largest cluster among them is small enough
 that each is its own investigation.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
@@ -726,7 +736,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 36 files with no dominant class, so this is
+1. **The long tail of Svelte layout differences** — 27 files with no dominant class, so this is
    many small investigations rather than one. Worth doing only against the corpus, a cluster at a
    time. About half are still whole-file re-wraps, identical once whitespace is normalised, which
    is where any remaining fill difference would show.

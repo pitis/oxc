@@ -3,6 +3,8 @@
 	let items: { name: string }[] = [];
 	let promise = Promise.resolve(1);
 	let longlonglonglongName = { anotherLongProperty: { andAnotherOne: 'value' } };
+	let customisationByComponent: { components: string[]; link?: string }[] = [];
+	let type = 'button';
 </script>
 
 <!-- A block header is one line however long it gets: the expression that
@@ -29,3 +31,11 @@
 {#key longlonglonglongName.anotherLongProperty.andAnotherOne + longlonglonglongName.anotherLongProperty.andAnotherOne}
 	<span>keyed</span>
 {/key}
+
+<!-- Flattening a call that does not fit reaches the variant with every
+     argument on a line of its own, whose breaks are spaces once flattened —
+     so the parentheses come back with the room the broken form would have
+     used. Prettier's own flattening lands there too. -->
+{#each customisationByComponent.filter((c) => c.components.includes(type)) as customisation (customisation.components.join('-'))}
+	<span>{customisation.link}</span>
+{/each}
