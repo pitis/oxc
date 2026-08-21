@@ -185,12 +185,14 @@ fn pre_content_is_kept_exactly() {
     check(source, source);
 }
 
+/// With no formatter to hand the expression to, an interpolation is kept
+/// exactly as written rather than half-tidied — the spacing is the author's
+/// until something can actually parse it. `{{x}}` becoming `{{ x }}` is the
+/// formatted path, covered end to end in `oxfmt`.
 #[test]
-fn an_interpolation_gets_one_space_inside_its_braces() {
-    check(
-        "<template>\n  <div>{{x}}</div>\n</template>\n",
-        "<template>\n  <div>{{ x }}</div>\n</template>\n",
-    );
+fn an_interpolation_is_kept_as_written_with_no_formatter_for_it() {
+    let source = "<template>\n  <div>{{x}}</div>\n</template>\n";
+    check(source, source);
 }
 
 /// A `"` inside a value would close the attribute early, so it is written as

@@ -148,12 +148,27 @@ pub fn route(language: &str) -> Route {
         // literal. A `v-if` value is NOT one of those: it routes to
         // `ts-attribute-expression`, exactly as Prettier sends it to
         // `__ts_expression`.
+        //
+        // Each comes in two flavours, because which one a template gets is
+        // decided by the component's own `<script lang>`, exactly as Prettier
+        // decides it. It is not only about `as` casts being left alone: TS and
+        // JS disagree on what `foo < bar > (baz)` even is — a call with type
+        // arguments, or two comparisons — so parsing a plain-JS component's
+        // template as TypeScript can change the layout of valid JavaScript.
         "vue-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
             FragmentContext::Expression { in_html_attribute: false, vue_expression: true },
         )),
+        "vue-js-expression" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: true },
+        )),
         "vue-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: true },
+        )),
+        "vue-js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
             FragmentContext::Expression { in_html_attribute: true, vue_expression: true },
         )),
         // `@click="count++; log()"`, which is statements rather than one
@@ -161,16 +176,28 @@ pub fn route(language: &str) -> Route {
         "vue-event-handler" => {
             Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::EventHandlerStatements))
         }
+        "vue-js-event-handler" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
+            FragmentContext::EventHandlerStatements,
+        )),
         // `v-slot="{ item }"` and `<script setup="…">`: a binding list, which
         // the caller wraps as `function _(…) {}`.
         "vue-binding-params" => Route::Native(NativeLanguage::JsFragment(
             ts(),
             FragmentContext::FunctionParamsAsBinding,
         )),
+        "vue-js-binding-params" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
+            FragmentContext::FunctionParamsAsBinding,
+        )),
         // The left of `v-for="(item, index) in items"`, which is a binding
         // list whose parentheses are forced when it declares more than one.
         "vue-v-for-left" => Route::Native(NativeLanguage::JsFragment(
             ts(),
+            FragmentContext::FunctionParamsAsBindingLhs,
+        )),
+        "vue-js-v-for-left" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
             FragmentContext::FunctionParamsAsBindingLhs,
         )),
         // `<script setup generic="T extends object">`, wrapped by the caller

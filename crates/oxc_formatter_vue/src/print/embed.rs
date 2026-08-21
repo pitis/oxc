@@ -15,7 +15,10 @@ use oxc_allocator::ArenaVec;
 use oxc_formatter_core::{
     Buffer, BufferExtensions, DispatchRequest, DispatchResponse, ExpressionHugsDelimiters,
     FormatElement, InputKind,
-    builders::{expand_parent, indent, soft_line_break_or_space, space, text},
+    builders::{
+        empty_line, expand_parent, hard_line_break, indent, literal_line_break,
+        soft_line_break_or_space, space, text,
+    },
     write,
 };
 
@@ -147,13 +150,21 @@ pub fn write_script_like_text<'a>(
 /// interpolation has borrowed a delimiter — there is nowhere to break there.
 pub fn write_interpolation_text<'a>(tree: &Tree<'_, 'a>, id: NodeId, f: &mut VueFormatter<'_, 'a>) {
     let value = tree.node(id).value;
+    let language = tree.script_flavour().interpolation();
+    let Some(fragment) = dispatch(language, value, value, f) else {
+        // Nothing parsed it, so it is not an expression — it is text, and the
+        // author's own spacing is all the meaning it has left. Reflowing it
+        // would be inventing a layout for something this printer does not
+        // understand.
+        write_unparsed_interpolation(value, f);
+        return;
+    };
+
+    let expression = Doc(std::cell::RefCell::new(Some(fragment.ir)));
     write!(
         f,
         indent(&format_with(|f: &mut VueFormatter<'_, 'a>| {
-            write!(f, soft_line_break_or_space());
-            if !write_formatted("vue-expression", value, f) {
-                write!(f, text(value.trim()));
-            }
+            write!(f, [soft_line_break_or_space(), &expression]);
         }))
     );
 
@@ -166,6 +177,62 @@ pub fn write_interpolation_text<'a>(tree: &Tree<'_, 'a>, id: NodeId, f: &mut Vue
         write!(f, space());
     } else {
         write!(f, soft_line_break_or_space());
+    }
+}
+
+/// An interpolation whose contents are not an expression, kept exactly.
+///
+/// The lines are literal, so the indentation the author wrote survives
+/// whatever the surrounding markup is indented to. The one newline that ends
+/// the value is dropped and re-supplied as an ordinary break, which is what
+/// puts the closing `}}` at the element's indent rather than at column zero.
+fn write_unparsed_interpolation<'a>(value: &'a str, f: &mut VueFormatter<'_, 'a>) {
+    let (body, ended_with_line) = without_trailing_line(value);
+    let mut lines: Vec<&str> = body.split('\n').collect();
+    // A value ending in a blank line would otherwise emit a break of its own
+    // and then the closing one, and the printer starts a new line only once
+    // per line of output — the two would collapse and the blank line vanish.
+    // One `empty_line` says what both were for.
+    let ends_blank = ended_with_line && lines.last() == Some(&"");
+    if ends_blank {
+        lines.pop();
+    }
+
+    for (index, line) in lines.iter().enumerate() {
+        if index > 0 {
+            write!(f, literal_line_break());
+        }
+        if !line.is_empty() {
+            write!(f, text(line));
+        }
+    }
+
+    if ends_blank {
+        write!(f, empty_line());
+    } else if ended_with_line {
+        write!(f, hard_line_break());
+    }
+}
+
+/// Split off a trailing newline and the horizontal whitespace after it.
+fn without_trailing_line(value: &str) -> (&str, bool) {
+    let head = value.trim_end_matches([' ', '\t', '\r', '\u{c}']);
+    match head.strip_suffix('\n') {
+        Some(rest) => (rest, true),
+        None => (value, false),
+    }
+}
+
+/// A child document's IR, written once into whatever position the layout puts
+/// it. The builders take their content by reference and may format it more
+/// than once while measuring, so the elements move out on the first write.
+struct Doc<'a>(std::cell::RefCell<Option<ArenaVec<'a, FormatElement<'a>>>>);
+
+impl<'a> oxc_formatter_core::Format<'a, crate::context::VueFormatContext<'a>> for Doc<'a> {
+    fn fmt(&self, f: &mut VueFormatter<'_, 'a>) {
+        if let Some(elements) = self.0.borrow_mut().take() {
+            f.write_elements(elements);
+        }
     }
 }
 

@@ -113,11 +113,12 @@ fn value_printer(
     // `:prop` gets the Vue expression flavour; a plain `v-if` does not, which
     // is Prettier's distinction between `__vue_expression` and
     // `__ts_expression` and decides whether a string literal hugs the quotes.
+    let flavour = tree.script_flavour();
     if name.starts_with(':') || name.starts_with('.') || name.starts_with("v-bind:") {
-        return Some(ValuePrinter::Expression("vue-attribute-expression"));
+        return Some(ValuePrinter::Expression(flavour.bound_attribute()));
     }
     if name.starts_with("v-") {
-        return Some(ValuePrinter::Expression("ts-attribute-expression"));
+        return Some(ValuePrinter::Expression(flavour.attribute_expression()));
     }
     None
 }
@@ -179,15 +180,17 @@ fn write_printed_value<'a>(
         // statements when it does not parse as one — which is what keeps
         // `@click="doThing($event)"` a call rather than a statement list.
         ValuePrinter::EventHandler => {
-            let value = dispatch("ts-attribute-expression", raw, raw, f)
-                .or_else(|| dispatch("vue-event-handler", raw, raw, f));
+            let flavour = tree.script_flavour();
+            let value = dispatch(flavour.attribute_expression(), raw, raw, f)
+                .or_else(|| dispatch(flavour.event_handler(), raw, raw, f));
             let Some(value) = value else { return false };
             write_value_doc(value, f);
             true
         }
         ValuePrinter::Bindings => {
             let wrapped = f.allocator().alloc_str(&format!("function _({raw}) {{}}"));
-            let Some(value) = dispatch("vue-binding-params", wrapped, raw, f) else { return false };
+            let language = tree.script_flavour().binding_params();
+            let Some(value) = dispatch(language, wrapped, raw, f) else { return false };
             write_value_doc(value, f);
             true
         }
@@ -197,19 +200,21 @@ fn write_printed_value<'a>(
             write_value_doc(value, f);
             true
         }
-        ValuePrinter::VFor => write_v_for(raw, f),
+        ValuePrinter::VFor => write_v_for(tree, raw, f),
     }
 }
 
 /// `v-for="(item, index) in items"`: a binding list, a keyword, and an
 /// expression, each laid out on its own.
-fn write_v_for<'a>(raw: &'a str, f: &mut VueFormatter<'_, 'a>) -> bool {
+fn write_v_for<'a>(tree: &Tree<'_, 'a>, raw: &'a str, f: &mut VueFormatter<'_, 'a>) -> bool {
+    let flavour = tree.script_flavour();
     let Some(parsed) = parse_v_for(raw) else { return false };
     let wrapped = f.allocator().alloc_str(&format!("function _({}) {{}}", parsed.left));
-    let Some(left) = dispatch("vue-v-for-left", wrapped, parsed.left.as_str(), f) else {
+    let Some(left) = dispatch(flavour.v_for_left(), wrapped, parsed.left.as_str(), f) else {
         return false;
     };
-    let Some(right) = dispatch("ts-attribute-expression", parsed.right, parsed.right, f) else {
+    let Some(right) = dispatch(flavour.attribute_expression(), parsed.right, parsed.right, f)
+    else {
         return false;
     };
 

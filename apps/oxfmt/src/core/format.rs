@@ -978,6 +978,18 @@ mod tests {
                 "<script type=\"text/x-template\">\n<div>  x</div>\n</script>\n",
                 "<script type=\"text/x-template\">\n<div>  x</div>\n</script>\n",
             ),
+            // Which grammar a template expression is read in is the
+            // component's own `<script lang>` to decide. A TypeScript
+            // component formats a cast; a JavaScript one leaves it alone,
+            // because it is not JavaScript.
+            (
+                "<template>\n  <p>{{ (  x as  Foo  ).y }}</p>\n</template>\n<script lang=\"ts\"></script>\n",
+                "<template>\n  <p>{{ (x as Foo).y }}</p>\n</template>\n<script lang=\"ts\"></script>\n",
+            ),
+            (
+                "<template>\n  <p>{{ (  x as  Foo  ).y }}</p>\n</template>\n<script></script>\n",
+                "<template>\n  <p>{{ (  x as  Foo  ).y }}</p>\n</template>\n<script></script>\n",
+            ),
             // The blocks' own bodies go to the formatters that own them.
             (
                 "<script setup lang=\"ts\">\nconst  a=1\n</script>\n",

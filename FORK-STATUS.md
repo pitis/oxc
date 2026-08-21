@@ -280,7 +280,7 @@ was made the default — and Prettier's **own** Vue fixtures put it back:
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
 | 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
-| `js-in-vue` conformance (428) |  427 (99.77%) |  424 (**99.1%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |  426 (**99.5%**) |
 
 Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
 `:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
@@ -301,17 +301,33 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-Five remain: always-TypeScript template expressions where Prettier keys off the script's own
-`lang` (1); a malformed interpolation that should be preserved (1); and three real-world files
-from `vue-vben-admin` that have not been looked at.
+**Three remain, and none of them is this printer's.** They are worth naming, because "not ours"
+is a claim that has to be checkable:
 
-Closed so far: the attribute-value escaping (1); a blank line that blocks nothing could format
-gained after their open tag, because the unformatted body was spliced back raw instead of going
-through the text path that trims it (5); parser inference, which now reads `type` as well as
-`lang` and only defaults a `<script>` to JavaScript when it declares neither (3); and the
-raw-text rule above (4). Both `lang` and `type` follow Prettier's JavaScript truthiness, where
-`lang=""` declares nothing at all — getting that wrong turned a plain `<script lang="">` into an
-unformattable one, which the same conformance run caught in the same minute.
+| Fixture                  | Cause                                                                                                                                                                                                                                                                                                                |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api-component.vue`      | Fails on the Prettier path too — it _is_ the 1 in 427/428. `oxc_formatter` drops the disambiguating comma in `<T = any,>`, reproducible in a plain `.ts` file.                                                                                                                                                       |
+| `slogan.vue`             | `oxc_formatter_core` measures a tab as `indentWidth` columns; Prettier's `string-width` treats it, like any control character, as zero. Upstream's deliberate choice, with a test asserting it (`from_text_uses_indent_width_for_tabs`). Only ever breaks a line early.                                              |
+| `preferences-drawer.vue` | `oxc-css-parser` parses a selector argument only for `not`/`is`/`where`/`matches`/`has`/`global`; `:deep()`, `:slotted()` and `:v-deep()` — the Vue scoped-style pseudo-classes — fall through as opaque tokens and print verbatim, so `[role='x']` keeps its quotes where Prettier normalises them. External crate. |
+
+The last two are the only ones a Vue project would notice, and neither produces invalid output.
+
+Closed: the attribute-value escaping (1); a blank line that blocks nothing could format gained
+after their open tag, because the unformatted body was spliced back raw instead of going through
+the text path that trims it (5); parser inference, which now reads `type` as well as `lang` and
+only defaults a `<script>` to JavaScript when it declares neither (3); the raw-text rule above
+(4); an interpolation that is not an expression, which is now kept exactly rather than reflowed
+into a shape this printer invented for it (1); and the grammar template expressions are read in
+(1).
+
+That last one reads like fidelity and is not. A component says with its `<script lang>` which
+grammar its template is in, and reading a plain-JavaScript component's template as TypeScript is
+not a harmless superset: the two disagree about whether `foo < bar > (baz)` is a call with type
+arguments or two comparisons, so it can change the layout of valid JavaScript.
+
+Both `lang` and `type` follow Prettier's JavaScript truthiness, where `lang=""` declares nothing at
+all — getting that wrong turned a plain `<script lang="">` into an unformattable one, which the
+same conformance run caught in the same minute.
 
 **A Tailwind bug this work found and fixed, in the layer every language shares.** Merging an
 embedded child's IR used to renumber its `TailwindClass` indices into the parent's space, and that

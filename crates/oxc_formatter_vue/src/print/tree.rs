@@ -26,6 +26,55 @@ use super::classify::{
 
 pub type NodeId = usize;
 
+/// The grammar a component's template expressions are parsed in, which its
+/// `<script lang>` decides.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ScriptFlavour {
+    JavaScript,
+    TypeScript,
+}
+
+impl ScriptFlavour {
+    /// A `{{ … }}` interpolation.
+    pub fn interpolation(self) -> &'static str {
+        self.pick("vue-expression", "vue-js-expression")
+    }
+
+    /// A `:prop` / `v-bind` value, which gets the Vue expression flavour.
+    pub fn bound_attribute(self) -> &'static str {
+        self.pick("vue-attribute-expression", "vue-js-attribute-expression")
+    }
+
+    /// A `v-if` value and a `v-for`'s right-hand side — a plain expression
+    /// rather than a Vue one, which is Prettier's distinction.
+    pub fn attribute_expression(self) -> &'static str {
+        self.pick("ts-attribute-expression", "js-attribute-expression")
+    }
+
+    /// An `@click` value that did not parse as one expression.
+    pub fn event_handler(self) -> &'static str {
+        self.pick("vue-event-handler", "vue-js-event-handler")
+    }
+
+    /// A `v-slot` value: the parameters a slot declares.
+    pub fn binding_params(self) -> &'static str {
+        self.pick("vue-binding-params", "vue-js-binding-params")
+    }
+
+    /// The left of a `v-for`, whose parentheses are forced when it declares
+    /// more than one name.
+    pub fn v_for_left(self) -> &'static str {
+        self.pick("vue-v-for-left", "vue-js-v-for-left")
+    }
+
+    fn pick(self, typescript: &'static str, javascript: &'static str) -> &'static str {
+        match self {
+            Self::TypeScript => typescript,
+            Self::JavaScript => javascript,
+        }
+    }
+}
+
 /// The document itself, which every other node descends from.
 pub const ROOT: NodeId = 0;
 
@@ -150,6 +199,9 @@ pub struct Tree<'n, 'a> {
     /// between these two nodes" questions the layout asks.
     line_starts: Vec<u32>,
     parser_is_vue_sfc: bool,
+    /// Whether the component declares a TypeScript `<script>`, which is what
+    /// decides the grammar its *template* expressions are read in.
+    typescript_script: bool,
 }
 
 impl<'n, 'a> Tree<'n, 'a> {
@@ -166,6 +218,7 @@ impl<'n, 'a> Tree<'n, 'a> {
             source,
             line_starts: line_starts(source),
             parser_is_vue_sfc: true,
+            typescript_script: false,
         };
         let children = tree.add_nodes(root_nodes, ROOT);
         tree.nodes[ROOT].children = children;
@@ -178,7 +231,32 @@ impl<'n, 'a> Tree<'n, 'a> {
         tree.add_is_self_closing();
         tree.add_is_space_sensitive();
         tree.merge_simple_element_into_text(allocator);
+        tree.typescript_script = tree.has_typescript_script();
         tree
+    }
+
+    /// Whether any of the component's `<script>` blocks declares `lang="ts"`.
+    ///
+    /// Deliberately only `ts` and `typescript`, matching Prettier: a
+    /// `lang="tsx"` block does *not* make the template TypeScript.
+    fn has_typescript_script(&self) -> bool {
+        self.nodes[ROOT].children.iter().any(|child| {
+            self.is_vue_sfc_block(*child)
+                && self.nodes[*child].name() == "script"
+                && self.nodes[*child]
+                    .declared_attribute_value("lang")
+                    .is_some_and(|lang| matches!(lang, "ts" | "typescript"))
+        })
+    }
+
+    /// Which grammar a template expression is read in.
+    ///
+    /// A component says so with its `<script lang>`, and the answer reaches
+    /// every `{{ … }}` and every directive value in the template. Reading a
+    /// plain-JavaScript component's template as TypeScript is not a harmless
+    /// superset: the two disagree about what `foo < bar > (baz)` is.
+    pub fn script_flavour(&self) -> ScriptFlavour {
+        if self.typescript_script { ScriptFlavour::TypeScript } else { ScriptFlavour::JavaScript }
     }
 
     pub fn source(&self) -> &'a str {
