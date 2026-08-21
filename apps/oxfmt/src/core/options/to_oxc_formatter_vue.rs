@@ -33,6 +33,10 @@ pub fn to_oxc_formatter_vue(
     if let Some(indent) = config.vue_indent_script_and_style {
         options.indent_script_and_style = indent;
     }
+    // [Prettier] singleAttributePerLine: boolean
+    if let Some(per_line) = config.single_attribute_per_line {
+        options.single_attribute_per_line = per_line;
+    }
     // [Oxfmt] sortTailwindcss: the collection is only worth its allocation
     // when something is going to sort the result.
     options.sort_tailwind_classes = config.is_tailwind_enabled();

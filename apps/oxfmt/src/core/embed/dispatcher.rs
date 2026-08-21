@@ -8,10 +8,12 @@ use std::sync::{Arc, OnceLock};
 
 use tracing::{debug, debug_span};
 
-use oxc_formatter::{CssInJsTemplate, JsFormatOptions, SortImportsOptions};
+use oxc_formatter::{
+    CssInJsTemplate, ExpressionRootKind, FragmentContext, JsFormatOptions, SortImportsOptions,
+};
 use oxc_formatter_core::{
-    CoreFormatOptions, DispatchRequest, DispatchResponse, EmbeddedIr, FormatDispatcher,
-    FormatSession,
+    CoreFormatOptions, DispatchPayload, DispatchRequest, DispatchResponse, EmbeddedIr,
+    ExpressionHugsDelimiters, FormatDispatcher, FormatSession,
 };
 use oxc_formatter_core::{FormatOptions, PrinterOptions};
 use oxc_formatter_css::{CssFormatOptions, CssVariant};
@@ -34,10 +36,12 @@ pub enum NativeLanguage {
     Graphql,
     /// JS/TS, as a `.svelte` component's `<script>` is.
     Js(SourceType),
-    /// A bare JS/TS expression, as a `.svelte` component's `{…}` is.
-    /// The bool is whether it sits inside a quoted attribute, which decides
-    /// the preferred quote style.
-    JsExpression(SourceType, bool),
+    /// A piece of JS/TS that is not a whole program: a `.svelte` component's
+    /// `{…}`, a `.vue` component's `{{ … }}` or `:prop` value, the parameter
+    /// list a `v-slot` declares. The [`FragmentContext`] says which, and
+    /// carries its own input contract — some of them expect the caller to
+    /// have wrapped the text already.
+    JsFragment(SourceType, FragmentContext),
     /// The fence-derived variant;
     /// the css-in-js typed context overrides it to Scss + placeholders at dispatch time (see the css branch).
     Css(CssVariant),
@@ -105,15 +109,63 @@ pub fn route(language: &str) -> Route {
         // would let the parser work that out for itself. Without it `await x`
         // parses as a call on an identifier named `await`.
         "ts" => Route::Native(NativeLanguage::Js(SourceType::ts().with_module(true))),
-        "js-expression" => Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), false)),
-        "ts-expression" => {
-            Route::Native(NativeLanguage::JsExpression(SourceType::ts().with_module(true), false))
+        "js-expression" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: false },
+        )),
+        "ts-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: false },
+        )),
+        "js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
+            SourceType::mjs(),
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: false },
+        )),
+        "ts-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: false },
+        )),
+        // The `.vue` family. Always TypeScript: a template may carry `as`
+        // casts and non-null assertions whether or not its `<script>` declares
+        // `lang="ts"`, and TS is a superset of what plain JavaScript allows
+        // there.
+        //
+        // `vue-expression` and `vue-attribute-expression` are Prettier's
+        // `__vue_expression` — a `{{ … }}` interpolation and a `:prop` value,
+        // which get the Vue 2 filter layout for a top-level `|` chain and hug
+        // their delimiters when the expression is a template or string
+        // literal. A `v-if` value is NOT one of those: it routes to
+        // `ts-attribute-expression`, exactly as Prettier sends it to
+        // `__ts_expression`.
+        "vue-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression { in_html_attribute: false, vue_expression: true },
+        )),
+        "vue-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression { in_html_attribute: true, vue_expression: true },
+        )),
+        // `@click="count++; log()"`, which is statements rather than one
+        // expression.
+        "vue-event-handler" => {
+            Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::EventHandlerStatements))
         }
-        "js-attribute-expression" => {
-            Route::Native(NativeLanguage::JsExpression(SourceType::mjs(), true))
-        }
-        "ts-attribute-expression" => {
-            Route::Native(NativeLanguage::JsExpression(SourceType::ts().with_module(true), true))
+        // `v-slot="{ item }"` and `<script setup="…">`: a binding list, which
+        // the caller wraps as `function _(…) {}`.
+        "vue-binding-params" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::FunctionParamsAsBinding,
+        )),
+        // The left of `v-for="(item, index) in items"`, which is a binding
+        // list whose parentheses are forced when it declares more than one.
+        "vue-v-for-left" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::FunctionParamsAsBindingLhs,
+        )),
+        // `<script setup generic="T extends object">`, wrapped by the caller
+        // as `type T<…> = any`.
+        "vue-generic" => {
+            Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::TypeParameters))
         }
         "css" => Route::Native(NativeLanguage::Css(CssVariant::Css)),
         "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss)),
@@ -371,30 +423,32 @@ pub fn build_dispatcher(
                     dispatch_config.js_options(),
                 )
             })),
-            Route::Native(NativeLanguage::JsExpression(source_type, in_html_attribute)) => {
-                Ok(debug_span!("oxfmt::embed::format_to_ir", language = "js-expression").in_scope(
+            Route::Native(NativeLanguage::JsFragment(source_type, context)) => {
+                Ok(debug_span!("oxfmt::embed::format_to_ir", language = "js-fragment").in_scope(
                     || {
                         let result = oxc_formatter::format_fragment_to_ir(
                             session,
                             text,
                             source_type,
                             dispatch_config.js_options(),
-                            oxc_formatter::FragmentContext::Expression {
-                                in_html_attribute,
-                                vue_expression: false,
-                            },
+                            context,
                         );
                         match result {
-                            // The root expression kind is deliberately not
-                            // passed back: it exists to feed Prettier's
-                            // `__onHtmlBindingRoot` hug-vs-expand hook, which
-                            // Vue and Angular use and Svelte does not.
-                            Ok((embedded, _expression_root)) => {
-                                DispatchResponse::Formatted(embedded.into())
+                            Ok((embedded, expression_root)) => {
+                                // The hug-vs-expand answer Prettier gets from
+                                // its `__onHtmlBindingRoot` hook. Svelte
+                                // ignores it; Vue's attribute and
+                                // interpolation layouts turn on it.
+                                let mut payload = DispatchPayload::from(embedded);
+                                payload.child_context = Some(Box::new(hugs_delimiters(
+                                    expression_root,
+                                    context,
+                                )));
+                                DispatchResponse::Formatted(payload)
                             }
                             Err(err) => {
                                 debug!(
-                                    "native 'js-expression' format_to_ir failed, part stays as-is: {err}"
+                                    "native 'js-fragment' format_to_ir failed, part stays as-is: {err}"
                                 );
                                 DispatchResponse::PreserveOriginal
                             }
@@ -434,6 +488,39 @@ pub fn build_dispatcher(
             }
         }
     })
+}
+
+/// TypeScript in module mode, which is what every embedded JS fragment from a
+/// component is: it comes from a module, and a fragment of one rarely carries
+/// the `import` that would let the parser work that out for itself. Without it
+/// `await x` parses as a call on an identifier named `await`.
+fn ts() -> SourceType {
+    SourceType::ts().with_module(true)
+}
+
+/// Whether the fragment's own brackets can stand in for the break its host
+/// would otherwise put around it — Prettier's `shouldHugJsExpression`.
+///
+/// A template or string literal only hugs for the Vue expression flavour,
+/// where the value really is inside quotes; object and array literals hug
+/// everywhere.
+fn hugs_delimiters(
+    root: Option<ExpressionRootKind>,
+    context: FragmentContext,
+) -> ExpressionHugsDelimiters {
+    let Some(root) = root else {
+        // A context that is not an expression never reaches Prettier's hook,
+        // leaving its `shouldHug` at the `true` it starts as.
+        return ExpressionHugsDelimiters(true);
+    };
+    let hugs = match root {
+        ExpressionRootKind::ObjectExpression | ExpressionRootKind::ArrayExpression => true,
+        ExpressionRootKind::TemplateLiteral | ExpressionRootKind::StringLiteral => {
+            matches!(context, FragmentContext::Expression { vue_expression: true, .. })
+        }
+        ExpressionRootKind::Other => false,
+    };
+    ExpressionHugsDelimiters(hugs)
 }
 
 /// Runs one native branch: a parse failure is a deliberate skip

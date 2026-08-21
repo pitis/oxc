@@ -168,6 +168,23 @@ fn has_nested_tailwind_class(elements: &[FormatElement<'_>]) -> bool {
     elements.iter().any(descends)
 }
 
+/// Child→parent datum for an embedded *expression*: whether its own brackets
+/// can stand in for the break the host would otherwise put around it.
+///
+/// A markup host that embeds an expression in a delimited position — an HTML
+/// attribute value, a template interpolation — has two layouts to choose
+/// between. An object or array literal already opens and closes with a
+/// bracket the reader can hang the indentation on, so it "hugs" the
+/// delimiters; anything else needs the host to supply an indented break of
+/// its own. Only the language that parsed the fragment can tell the two
+/// apart, so it answers here, through [`DispatchPayload::child_context`].
+///
+/// This is Prettier's `shouldHugJsExpression`. The dispatcher decides it
+/// rather than the embed site because the answer also depends on which parser
+/// flavour the request named.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ExpressionHugsDelimiters(pub bool);
+
 /// Dispatches one embedded fragment and consumes the result into the parent.
 ///
 /// `InputKind::Fragment` + the [`DispatchPayload::into_doc`] Tailwind merge in one place,

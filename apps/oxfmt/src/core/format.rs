@@ -864,6 +864,73 @@ mod tests {
         }
     }
 
+    /// Format a `.vue` file through the native printer, with the dispatcher
+    /// installed — which is what the JavaScript inside a template needs.
+    fn format_vue(source: &str) -> String {
+        let config = FormatConfig::default();
+        let validated = validate(&config).expect("default-ish config must validate");
+        let kind = FileKind::OxcFormatterVue { path: Arc::from(Path::new("test.vue")) };
+        let strategy = FormatStrategy::from_format_config(config, &validated, kind);
+        let formatter = SourceFormatter::new(1);
+        #[cfg(feature = "napi")]
+        let formatter =
+            formatter.with_external_services(Some(crate::core::ExternalServices::dummy()));
+        match formatter.format(source, strategy) {
+            FormatResult::Success { code, .. } => code,
+            FormatResult::Error(errors) => panic!("format failed: {errors:?}"),
+        }
+    }
+
+    /// Every expectation is Prettier 3.9.6's own output for the same input.
+    ///
+    /// These live here rather than in `oxc_formatter_vue` because each one
+    /// depends on the dispatcher: an attribute value, an interpolation and a
+    /// `<script>` body are all other languages, and the crate on its own has
+    /// nobody to hand them to.
+    #[test]
+    fn a_vue_template_reaches_the_formatters_its_pieces_belong_to() {
+        for (source, expected) in [
+            // An interpolation is an expression, not text.
+            (
+                "<template>\n  <div>{{x}}</div>\n</template>\n",
+                "<template>\n  <div>{{ x }}</div>\n</template>\n",
+            ),
+            // `:prop` values likewise.
+            (
+                "<template>\n  <div :title=\"a?b:c\" />\n</template>\n",
+                "<template>\n  <div :title=\"a ? b : c\" />\n</template>\n",
+            ),
+            (
+                "<template>\n  <div :class=\"{a:true,b:false}\" />\n</template>\n",
+                "<template>\n  <div :class=\"{ a: true, b: false }\" />\n</template>\n",
+            ),
+            // `v-for` is a grammar of its own: a binding list, a keyword, an
+            // expression.
+            (
+                "<template>\n  <li v-for=\"( item ,index ) in  items\">{{item}}</li>\n</template>\n",
+                "<template>\n  <li v-for=\"(item, index) in items\">{{ item }}</li>\n</template>\n",
+            ),
+            // An event handler is an expression when it parses as one.
+            (
+                "<template>\n  <button @click=\"doThing( $event )\">x</button>\n</template>\n",
+                "<template>\n  <button @click=\"doThing($event)\">x</button>\n</template>\n",
+            ),
+            // `v-slot` declares parameters.
+            (
+                "<template>\n  <List v-slot=\"{ item,index }\">{{item}}</List>\n</template>\n",
+                "<template>\n  <List v-slot=\"{ item, index }\">{{ item }}</List>\n</template>\n",
+            ),
+            // The blocks' own bodies go to the formatters that own them.
+            (
+                "<script setup lang=\"ts\">\nconst  a=1\n</script>\n",
+                "<script setup lang=\"ts\">\nconst a = 1;\n</script>\n",
+            ),
+            ("<style>\na{color:  red}\n</style>\n", "<style>\na {\n  color: red;\n}\n</style>\n"),
+        ] {
+            assert_eq!(format_vue(source), expected, "input: {source:?}");
+        }
+    }
+
     /// The JS root carries the registry dispatcher in every build,
     /// so native xxx-in-js formats without Prettier.
     #[test]

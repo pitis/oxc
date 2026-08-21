@@ -22,6 +22,10 @@ pub struct VueFormatOptions {
     /// Whether a tag's `>` stays on the last attribute's line instead of
     /// going onto one of its own. Prettier's `bracketSameLine`.
     pub bracket_same_line: bool,
+    /// Whether a tag with more than one attribute always puts each on its own
+    /// line. Prettier's `singleAttributePerLine`, default off. The
+    /// component's own block tags are exempt, as they are for Prettier.
+    pub single_attribute_per_line: bool,
     /// Whether the host sorts Tailwind classes, which is what decides whether
     /// a `class` attribute is worth collecting.
     pub sort_tailwind_classes: bool,

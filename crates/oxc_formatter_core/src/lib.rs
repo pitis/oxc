@@ -48,8 +48,8 @@ pub use printer::{PrintResult, PrintWidth, Printed, PrinterOptions};
 // which is what makes print-without-finalize unrepresentable outside core.
 pub(crate) use printer::Printer;
 pub use session::embedded::{
-    DispatchPayload, DispatchRequest, DispatchResponse, EmbeddedIr, FormatDispatcher,
-    TailwindCollector, dispatch_fragment_ir,
+    DispatchPayload, DispatchRequest, DispatchResponse, EmbeddedIr, ExpressionHugsDelimiters,
+    FormatDispatcher, TailwindCollector, dispatch_fragment_ir,
 };
 pub use session::{FormatSession, InputKind, SessionServices, StringEmbedder, TailwindSorter};
 pub use source::{SourceText, SpanCursor};

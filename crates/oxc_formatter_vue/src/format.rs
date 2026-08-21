@@ -5,12 +5,12 @@ use oxc_formatter_core::{
     builders::{hard_line_break, text},
     write,
 };
-use vue_sfc_parser::{Sfc, parse_sfc};
+use vue_sfc_parser::{ast::Node, parse_template};
 
 use crate::{
     context::VueFormatContext,
     options::VueFormatOptions,
-    print::{VueFormatter, write_root},
+    print::{VueFormatter, tree::Tree, write_root},
 };
 
 /// Parse `source_text` as a Vue single-file component and build its IR.
@@ -52,19 +52,23 @@ pub fn format_with_session<'a>(
     let source_text = oxc_formatter_core::normalize_newlines(source_text, ['\r']);
     let source: &'a str = allocator.alloc_str(&source_text);
 
-    let sfc = parse_sfc(source);
-    if let Some(reason) = not_well_formed(&sfc) {
+    // A `.vue` file is a tiny HTML document, so the markup parser is what
+    // splits it into blocks too — one parse, and every span is already
+    // file-relative.
+    let nodes = parse_template(source, 0);
+    if let Some(reason) = not_well_formed(&nodes) {
         return Err(OxcDiagnostic::error(format!(
             "Cannot format: {reason}, and reformatting it would change what it means."
         )));
     }
+    let tree = Tree::build_sfc(&nodes, source, &options, allocator);
 
     let context = VueFormatContext::new(options, source);
     let mut state = FormatState::new_with_session(context, session.clone());
     let capacity = (source.len() * 3 / 10).max(1024);
     let mut buffer = VecBuffer::with_capacity(capacity, &mut state);
 
-    write!(&mut buffer, FormatVueRoot { sfc: &sfc, has_bom });
+    write!(&mut buffer, FormatVueRoot { tree: &tree, has_bom });
 
     let elements = buffer.into_vec();
     let mut context = state.into_context();
@@ -75,19 +79,22 @@ pub fn format_with_session<'a>(
 }
 
 /// Why this component cannot be safely reprinted, if it cannot.
-fn not_well_formed(sfc: &Sfc<'_>) -> Option<&'static str> {
-    if sfc.blocks.iter().any(|block| block.unclosed) {
-        return Some("a top-level block is never closed");
-    }
-    None
+///
+/// The parser recovers rather than failing, so a file it had to guess at is
+/// refused instead of being rewritten from that guess.
+fn not_well_formed(nodes: &[Node<'_>]) -> Option<&'static str> {
+    nodes
+        .iter()
+        .any(|node| matches!(node, Node::Element(element) if element.unclosed))
+        .then_some("a top-level block is never closed")
 }
 
 /// The whole component.
 ///
-/// `'n` is the borrow of the parsed SFC, which only has to outlive the IR
+/// `'n` is the borrow of the parsed markup, which only has to outlive the IR
 /// build; `'a` is the arena the source and the IR live in.
 struct FormatVueRoot<'n, 'a> {
-    sfc: &'n Sfc<'a>,
+    tree: &'n Tree<'n, 'a>,
     has_bom: bool,
 }
 
@@ -96,7 +103,7 @@ impl<'a> Format<'a, VueFormatContext<'a>> for FormatVueRoot<'_, 'a> {
         if self.has_bom {
             write!(f, text("\u{feff}"));
         }
-        write_root(self.sfc, f);
+        write_root(self.tree, f);
         // POSIX convention: a formatted file ends with a newline.
         write!(f, hard_line_break());
     }

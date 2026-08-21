@@ -1,137 +1,106 @@
-//! The SFC printer.
+//! The component printer.
 //!
-//! Stage 1 prints the component's top-level blocks — their tags, their order,
-//! the blank line between them — and hands `<script>` and `<style>` bodies to
-//! the formatters that own those languages. The `<template>` body is passed
-//! through as written; printing the markup itself is stage 2.
+//! A `.vue` file is one HTML document whose top-level elements happen to be
+//! blocks, so it is printed as one: the same markup rules apply to
+//! `<template>`'s contents and to the `<script>` tag around a program. What
+//! each block's *body* is written in is another language's business, and goes
+//! through the session's dispatcher (see [`embed`]).
+//!
+//! The layout follows Prettier's HTML printer, whose central idea is in
+//! [`tag`]: where whitespace is significant a break cannot go between two
+//! nodes, so the tag delimiters move instead.
 
-use cow_utils::CowUtils;
 use oxc_formatter_core::{
-    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, FormatElement, Formatter,
-    InputKind,
-    builders::{block_indent, empty_line, hard_line_break, text, token},
+    Buffer, Format, Formatter,
+    builders::{group, text},
     write,
 };
 use oxc_span::Span;
-use vue_sfc_parser::{Sfc, ast::Attribute};
 
 use crate::context::VueFormatContext;
 
+use self::{
+    children::write_children,
+    element::write_element,
+    embed::{element_language, write_interpolation_text, write_script_like_text},
+    tag::{
+        write_closing_tag_end, write_closing_tag_suffix, write_opening_tag_prefix,
+        write_opening_tag_start,
+    },
+    text::write_text,
+    tree::{Kind, NodeId, ROOT, Tree},
+};
+
+mod attribute;
+mod children;
+pub mod classify;
+mod element;
+mod embed;
+mod tag;
+mod text;
+pub mod tree;
+
 pub type VueFormatter<'buf, 'a> = Formatter<'buf, 'a, VueFormatContext<'a>>;
 
-/// Print the whole component: every top-level block, in the order it was
-/// written, separated by one blank line — which is what Prettier does for a
-/// `.vue` file.
-pub fn write_root<'a>(sfc: &Sfc<'a>, f: &mut VueFormatter<'_, 'a>) {
-    let mut first = true;
-    for block in &sfc.blocks {
-        if !first {
-            write!(f, empty_line());
+/// Print the whole component.
+pub fn write_root<'a>(tree: &Tree<'_, 'a>, f: &mut VueFormatter<'_, 'a>) {
+    write!(f, group(&format_with(|f: &mut VueFormatter<'_, 'a>| write_children(tree, ROOT, f))));
+}
+
+/// Print one node, whatever it is.
+pub fn write_node<'a>(tree: &Tree<'_, 'a>, id: NodeId, f: &mut VueFormatter<'_, 'a>) {
+    let node = tree.node(id);
+    match node.kind {
+        Kind::Root => write_children(tree, id, f),
+        Kind::Element => write_element(tree, id, f),
+        Kind::Interpolation => {
+            write_opening_tag_start(tree, id, f);
+            for child in &node.children {
+                write_node(tree, *child, f);
+            }
+            write_closing_tag_end(tree, id, f);
         }
-        first = false;
-        write_block(block, f);
-    }
-}
-
-fn write_block<'a>(block: &vue_sfc_parser::SfcBlock<'a>, f: &mut VueFormatter<'_, 'a>) {
-    write!(f, [token("<"), text(block.name)]);
-    for attribute in &block.attributes {
-        write!(f, token(" "));
-        write_attribute(attribute, f);
-    }
-    write!(f, token(">"));
-
-    write_block_body(block, f);
-
-    write!(f, [token("</"), text(block.name), token(">")]);
-}
-
-/// A block's attribute, printed rather than copied so spacing and quoting are
-/// normalized: Prettier always writes a value in double quotes.
-fn write_attribute<'a>(attribute: &Attribute<'a>, f: &mut VueFormatter<'_, 'a>) {
-    write!(f, text(attribute.name));
-    if let Some(value) = &attribute.value {
-        write!(f, [token("=\""), text(value.text), token("\"")]);
-    }
-}
-
-fn write_block_body<'a>(block: &vue_sfc_parser::SfcBlock<'a>, f: &mut VueFormatter<'_, 'a>) {
-    let body = block.content;
-    // Nothing between the tags at all, so they meet.
-    if body.trim().is_empty() {
-        if !body.is_empty() {
-            write!(f, hard_line_break());
+        Kind::Text => {
+            let parent = node.parent.expect("a text node always has a parent");
+            if tree.node(parent).kind == Kind::Interpolation {
+                write_interpolation_text(tree, id, f);
+            } else if tree.is_script_like(parent) {
+                write_script_like_text(tree, id, element_language(tree, parent), f);
+            } else {
+                write_text(tree, id, f);
+            }
         }
-        return;
-    }
-
-    let Some(language) = language_of(block) else {
-        write_verbatim(block.content_span, f);
-        return;
-    };
-
-    let response = f.session().dispatch(DispatchRequest {
-        language,
-        text: body,
-        input_kind: InputKind::Fragment,
-        parent_context: None,
-    });
-    let Ok(DispatchResponse::Formatted(payload)) = response else {
-        write_verbatim(block.content_span, f);
-        return;
-    };
-
-    let mut ir = payload.into_doc(f.context_mut());
-    // A whole-program IR ends with the newline a *file* wants; here the close
-    // tag supplies it.
-    while matches!(ir.last(), Some(FormatElement::Line(_))) {
-        ir.pop();
-    }
-    let content = WriteElements(std::cell::RefCell::new(Some(ir)));
-    if f.options().indent_script_and_style {
-        write!(f, block_indent(&content));
-    } else {
-        write!(f, [hard_line_break(), &content, hard_line_break()]);
+        // A comment is the author's prose; it keeps every byte of its
+        // spelling, and only the delimiters around it may move.
+        Kind::Comment => {
+            write_opening_tag_prefix(tree, id, f);
+            write_source(tree, node.span, f);
+            write_closing_tag_suffix(tree, id, f);
+        }
+        Kind::Raw => write_source(tree, node.span, f),
     }
 }
 
-/// The language a block's body is written in, or `None` when nothing here
-/// owns it — including `<template>`, whose markup stage 2 will print.
-fn language_of(block: &vue_sfc_parser::SfcBlock<'_>) -> Option<&'static str> {
-    let lang = block.lang().unwrap_or("").cow_to_ascii_lowercase();
-    match block.name {
-        "script" => match lang.as_ref() {
-            "" | "js" | "javascript" => Some("js"),
-            "ts" | "typescript" => Some("ts"),
-            "jsx" => Some("jsx"),
-            "tsx" => Some("tsx"),
-            _ => None,
-        },
-        "style" => match lang.as_ref() {
-            "" | "css" | "postcss" | "pcss" => Some("css"),
-            "scss" => Some("scss"),
-            "less" => Some("less"),
-            _ => None,
-        },
-        _ => None,
-    }
+fn write_source<'a>(tree: &Tree<'_, 'a>, span: Span, f: &mut VueFormatter<'_, 'a>) {
+    write!(f, text(tree.text(span)));
 }
 
-/// Keep a span byte for byte.
-fn write_verbatim(span: Span, f: &mut VueFormatter<'_, '_>) {
-    let source = f.context().source_text();
-    write!(f, text(&source.as_str()[span.start as usize..span.end as usize]));
+/// A [`Format`] from a closure, so a layout reads as the shape it produces
+/// rather than as buffer plumbing.
+pub fn format_with<'a, F>(closure: F) -> FormatWith<F>
+where
+    F: Fn(&mut VueFormatter<'_, 'a>),
+{
+    FormatWith(closure)
 }
 
-/// The child's IR, written once into whatever position the layout puts it.
-struct WriteElements<'a>(
-    std::cell::RefCell<Option<oxc_allocator::ArenaVec<'a, FormatElement<'a>>>>,
-);
+pub struct FormatWith<F>(F);
 
-impl<'a> Format<'a, VueFormatContext<'a>> for WriteElements<'a> {
+impl<'a, F> Format<'a, VueFormatContext<'a>> for FormatWith<F>
+where
+    F: Fn(&mut VueFormatter<'_, 'a>),
+{
     fn fmt(&self, f: &mut VueFormatter<'_, 'a>) {
-        if let Some(elements) = self.0.borrow_mut().take() {
-            f.write_elements(elements);
-        }
+        (self.0)(f);
     }
 }

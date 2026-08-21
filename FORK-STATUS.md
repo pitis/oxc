@@ -16,7 +16,7 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer started (36%)       |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer at 99.7%            |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
@@ -237,40 +237,50 @@ declaration produced 554 findings in real templates. It caught one real defect �
 block exposes the binding `defineEmits()` returns to the template, so `@x="emit('y')"` is an emit
 call just as `$emit('y')` is, and looking only for `$emit` missed it.
 
-**Format — Tier 3, with a native printer started.** By default `.vue` still goes to Prettier
+**Format — Tier 3, with a native printer at 99.7%.** By default `.vue` still goes to Prettier
 through NAPI, and that is what every existing project's output depends on. `oxc_formatter_vue`
-now exists alongside it, opt-in behind `OXFMT_NATIVE_VUE=1`, built on the sibling
-`vue_sfc_parser` crate in the same shape as `oxc_formatter_svelte`.
+exists alongside it, opt-in behind `OXFMT_NATIVE_VUE=1`, built on the sibling `vue_sfc_parser`
+crate.
 
-What it does today is the SFC skeleton: block order, the blank line between blocks, tag and
-attribute normalisation, and handing `<script>` to `oxc_formatter` and `<style>` to
-`oxc_formatter_css` through the existing dispatcher. The `<template>` body is still passed
-through byte for byte.
+It is a port of Prettier's own HTML printer rather than of `prettier-plugin-svelte`, because
+that is what a `.vue` file actually goes through: `oxc_formatter_svelte`'s architecture carried
+over, its layout rules did not. The whole file is printed as one HTML document — the SFC's
+top-level blocks are just its root elements — over a preprocessed node tree that mirrors
+Prettier's own pipeline (whitespace extraction, CSS display, space sensitivity), and every
+embedded language goes out through the existing dispatcher: `<script>` to `oxc_formatter`,
+`<style>` to `oxc_formatter_css`, and each `{{ … }}`, `:prop`, `@click`, `v-for` and `v-slot`
+value to the JS formatter under the fragment context Prettier uses for it.
 
 Measured against Prettier 3.9.6 over the same 1,602 `.vue` files, at matched `printWidth`:
 
-|                                         | files |  byte-identical |
-| :-------------------------------------- | ----: | --------------: |
-| native printer, template passed through | 1,602 | 576 (**36.0%**) |
+|                                    | files |    byte-identical |
+| :--------------------------------- | ----: | ----------------: |
+| SFC skeleton, template as written  | 1,602 |   576 (**36.0%**) |
+| \+ the markup printer              | 1,602 | 1,233 (**77.0%**) |
+| \+ attribute and expression values | 1,602 | 1,597 (**99.7%**) |
 
-That 36.0% is exactly the arithmetic ceiling for this stage, and the match is not approximate:
-Prettier reshapes the template in 1,024 of the 1,602 files and leaves it alone in 576 — and the
-576 it leaves alone are precisely the 576 that come out byte-identical. Every file whose markup
-needs no reshaping is already correct, so the whole of the remaining gap is the template printer
-and none of it is block-level.
+Speed, for scale: 1,602 files in 50ms, against a NAPI round-trip per file today.
+
+**The five files that differ all differ for one reason**: the `style` attribute. Prettier sends
+its value to the CSS printer, which drops the trailing `;` and normalises the spacing;
+`oxc_formatter_css` has no declaration-list entry point yet, so the value is kept as written.
+That is the whole remaining gap — a feature in another crate, not a layout defect here.
+
+**One known deviation, and it is in the shared printer, not in this crate.** `oxc_formatter_core`
+records a group's print mode while _measuring_ whether an earlier group fits; Prettier's `fits`
+never writes to its group-mode map. A conditional keyed on a not-yet-printed group therefore
+resolves to "broken" here and to "flat" in Prettier, which can move a line break to a different —
+equally valid, identically rendering — position. It cost one corpus file before the hug layout
+was settled in advance where the tag provably cannot break (`element.rs`); it is not otherwise
+worked around, because the fix belongs in the printer every language shares.
+
+Note that finishing Vue does _not_ by itself remove Prettier from `oxfmt`'s bundle: Markdown,
+HTML, Angular and Handlebars still need it.
 
 The first run of this measurement said 20.8%, and the difference was not the printer: `oxfmt`
 defaults to `printWidth` 100 and Prettier to 80, so the two were formatting to different widths.
 That is the same trap recorded under [oxfmt in general](#oxfmt-in-general); it is worth
 re-reading before trusting any formatter comparison.
-
-Speed, for scale: 1,602 files in 60ms, against a NAPI round-trip per file today.
-
-**What remains** is Prettier's HTML printer semantics for the `<template>` body — whitespace
-sensitivity by CSS display, inline formatting contexts, `fill`-based text wrapping, attribute
-breaking. That is the large half, and it is what `oxc_formatter_svelte`'s 3,180 lines are the
-analogue of. Note that finishing it does _not_ by itself remove Prettier from `oxfmt`'s bundle:
-Markdown still needs it.
 
 Verified on three production repos — 2,059, 2,735 and 2,530 files — with **zero** formatting
 differences against Prettier 3.9.6.
@@ -324,16 +334,16 @@ making them.
 
 ## oxfmt in general
 
-| Language                                          | Implementation                                                                          |
-| :------------------------------------------------ | :-------------------------------------------------------------------------------------- |
-| JS, TS, JSX, TSX                                  | `oxc_formatter`                                                                         |
-| JSON, JSONC, `package.json`                       | `oxc_formatter_json`                                                                    |
-| CSS, SCSS, Less                                   | `oxc_formatter_css`                                                                     |
-| YAML                                              | `oxc_formatter_yaml`                                                                    |
-| GraphQL                                           | `oxc_formatter_graphql`                                                                 |
-| **Svelte**                                        | `oxc_formatter_svelte`                                                                  |
-| TOML                                              | taplo (Rust)                                                                            |
-| **Vue, HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI (Vue: native printer in progress, `OXFMT_NATIVE_VUE=1`) |
+| Language                                          | Implementation                                                                       |
+| :------------------------------------------------ | :----------------------------------------------------------------------------------- |
+| JS, TS, JSX, TSX                                  | `oxc_formatter`                                                                      |
+| JSON, JSONC, `package.json`                       | `oxc_formatter_json`                                                                 |
+| CSS, SCSS, Less                                   | `oxc_formatter_css`                                                                  |
+| YAML                                              | `oxc_formatter_yaml`                                                                 |
+| GraphQL                                           | `oxc_formatter_graphql`                                                              |
+| **Svelte**                                        | `oxc_formatter_svelte`                                                               |
+| TOML                                              | taplo (Rust)                                                                         |
+| **Vue, HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI (Vue: native printer at 99.7%, `OXFMT_NATIVE_VUE=1`) |
 
 Prettier is still bundled inside `oxfmt`'s own `dist/` for that last row, so a project's manifest
 can be Prettier-free even where Prettier code still runs. Removing the bundle means writing native
