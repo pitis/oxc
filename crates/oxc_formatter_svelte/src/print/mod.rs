@@ -23,7 +23,7 @@ use crate::options::SortOrder;
 use self::{
     block::{write_block, write_tag},
     children::{ChildLayout, PlanContext, Trim, plan_children, plan_some_children},
-    classify::{is_empty_text, is_only_collapsible_whitespace},
+    classify::{is_empty_text, is_only_collapsible_whitespace, trimmed},
     element::write_element,
     expression::write_mustache,
     text::write_text,
@@ -281,6 +281,14 @@ pub fn write_children<'a>(
     in_pre: bool,
     f: &mut SvelteFormatter<'_, 'a>,
 ) {
+    // Under a `<pre>` there is no layout to decide: the whitespace the author
+    // wrote is what renders, so nothing goes between the children and the
+    // text keeps every byte. This is reached through a block's branches — the
+    // element's own children take the same path from [`write_pre_nodes`].
+    if f.context().is_in_pre() {
+        write_pre_nodes(children, outer, f);
+        return;
+    }
     let context = PlanContext {
         sensitivity: f.options().whitespace_sensitivity,
         parent_is_block,
@@ -298,6 +306,31 @@ pub fn write_children<'a>(
         // At least one block among several children: the content can never
         // sit on one line.
         write!(f, expand_parent());
+    }
+}
+
+/// Print a run of sibling nodes inside a `<pre>`: the text as written, and
+/// everything else printed as usual.
+///
+/// Only text renders as written. A tag, a `{…}` or a block marker is markup
+/// the browser never shows, so reshaping one changes nothing on the page —
+/// which is why Prettier lays them out here as it does anywhere else.
+/// The trims still apply: a block's branch takes the whitespace at its own
+/// edges and prints it as the break before its markers, inside a `<pre>` as
+/// anywhere else. Only the layout *between* the children is given up.
+pub fn write_pre_nodes<'a>(children: &[Node<'a>], outer: &[Trim], f: &mut SvelteFormatter<'_, 'a>) {
+    let layout = ChildLayout { in_pre: true, ..ChildLayout::default() };
+    for (index, child) in children.iter().enumerate() {
+        match child {
+            Node::Text(node_text) => {
+                let trim = outer.get(index).copied().unwrap_or_default();
+                let value = trimmed(node_text.value, trim.left, trim.right);
+                if !value.is_empty() {
+                    write!(f, text(value));
+                }
+            }
+            other => write_node(other, layout, f),
+        }
     }
 }
 

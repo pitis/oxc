@@ -20,7 +20,7 @@ use crate::options::WhitespaceSensitivity;
 use super::{
     SvelteFormatter,
     attribute::{AttributeContext, write_attribute},
-    children::{ChildLayout, Trim},
+    children::Trim,
     classify::{
         ends_with_collapsible_whitespace, is_block_tag, is_boundary, is_collapsible_whitespace,
         is_empty, is_inline_tag, is_pre_content, is_raw_text_element, is_regular_element,
@@ -28,7 +28,7 @@ use super::{
     },
     format_with,
     raw_text::write_raw_text_element,
-    write_children, write_source,
+    write_children,
 };
 
 pub fn write_element<'a>(
@@ -348,13 +348,12 @@ fn hugs_next_node(element: &Element<'_>, source: &str) -> bool {
 /// the browser never shows, so reshaping one changes nothing on the page —
 /// which is why Prettier lays them out here as it does anywhere else.
 fn write_pre_children<'a>(children: &[Node<'a>], f: &mut SvelteFormatter<'_, 'a>) {
-    let layout = ChildLayout { in_pre: true, ..ChildLayout::default() };
-    for child in children {
-        match child {
-            Node::Text(text) => write_source(text.span, f),
-            other => super::write_node(other, layout, f),
-        }
-    }
+    // A block inside the `<pre>` is reached through its own branches, which
+    // know nothing about the element they are under. The flag is what carries
+    // that across, so their text renders as written too.
+    let outer = f.context().set_in_pre(true);
+    super::write_pre_nodes(children, &[], f);
+    f.context().set_in_pre(outer);
 }
 
 /// What goes between a tag and its content when the content does not hug it.
