@@ -12,6 +12,20 @@
   class="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 ></div>
 
+<!-- Hugging is the test, not inlineness: a component is neither an inline nor
+     a block element, and it borrows. A `<textarea>` hugs too, but it renders
+     its own whitespace, so its opening tag carries no break for the attributes
+     to dedent to and they break on their own. -->
+<Skeleton class="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+></Skeleton>
+<textarea rows="4" placeholder="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" id="value"
+></textarea>
+
+<!-- An element that hugs neither side borrows nothing: its content is
+     whitespace, which it renders, so the tags keep a break between them. -->
+<Skeleton class="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"> </Skeleton>
+
 <!-- Both fit outright and stay put. -->
 <span class="short" title="New"></span>
 <div class="short"></div>
+<Skeleton class="short"></Skeleton>

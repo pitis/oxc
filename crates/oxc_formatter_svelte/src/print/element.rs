@@ -183,22 +183,29 @@ pub fn write_element<'a>(
                 } else if bracket_same_line {
                     write!(f, [token(">"), soft_line_break()]);
                     write_close_tag(name, f);
-                } else if inline {
-                    // An inline element renders the whitespace between its
-                    // tags, so the closing tag borrows the opening `>` rather
-                    // than let a break introduce any — and the two then travel
-                    // together in a group of their own behind the break.
+                } else if hug_start && hug_end {
+                    // An element that hugs its content on both sides renders
+                    // the whitespace between its tags, so the closing tag
+                    // borrows the opening `>` rather than let a break
+                    // introduce any — and the two then travel together in a
+                    // group of their own behind the break.
                     //
                     // That group is also what lets the attributes stay on the
                     // tag's line: once the element has broken, measuring the
                     // attribute list stops at this break instead of running on
                     // into `></span>` and counting eight characters that were
-                    // never going to share the line. A block element borrows
+                    // never going to share the line. A block element hugs
                     // nothing, so its `>` follows the attributes directly and
                     // the measurement is right without any of this. Prettier
                     // draws exactly this distinction — `group([softline,
                     // group([">", "</span"])])` for `<span>`, a plain `">",
                     // "</div>"` for `<div>`.
+                    //
+                    // Hugging, not inlineness, is the test: a component is
+                    // neither inline nor block, and it borrows. So does a
+                    // `<textarea>`, and so does every element once
+                    // `htmlWhitespaceSensitivity` is `strict` and nothing is
+                    // a block any more.
                     write!(
                         f,
                         group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {

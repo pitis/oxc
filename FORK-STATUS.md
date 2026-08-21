@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.2%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.5%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-99.2% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+99.5% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -80,15 +80,15 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | Repository                 | Files |        Identical |
 | :------------------------- | ----: | ---------------: |
 | `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
-| `huntabyte/bits-ui`        |   617 |      616 (99.8%) |
+| `huntabyte/bits-ui`        |   617 |     617 (100.0%) |
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1656 (98.5%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1667 (99.2%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1840 (98.6%) |
-| **Total**                  |  6673 | **6620 (99.2%)** |
+| `windmill-labs/windmill`   |  1866 |     1845 (98.9%) |
+| **Total**                  |  6673 | **6637 (99.5%)** |
 
-Neither tool failed on any of them. Read the spread rather than the total: every repository now
-sits at 98.5% or better, where the first measurement had **windmill — the one large application —
+Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
+below 98.9%, where the first measurement had **windmill — the one large application —
 at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
@@ -135,6 +135,15 @@ Reading Prettier's doc directly — `prettier.__debug.printToDoc` with the plugi
 more than reading its source for questions like this. The plugin's `openingTag` builder is the same
 shape as this printer's, and the difference was entirely in what followed it.
 
+**Inlineness turned out to be the wrong test** for it, worth 17 more files. `<span>` borrows and
+`<div>` does not, and both readings of that fit the pair — but what the plugin actually asks is
+whether the element hugs its content on both sides, and an element hugs unless it is a block. A
+component is neither inline nor block, so it hugs and borrows; so does every element once
+`htmlWhitespaceSensitivity` is `strict` and nothing is a block any more. Prettier prints
+`<Skeleton class="…"` with its attributes on the tag line and `></Skeleton>` beneath, exactly as it
+does for `<span>`. Two elements picked as a contrasting pair are not enough to name the rule that
+separates them; the third kind is what settled it.
+
 **A text run that follows a sibling wraps late**, worth 94 files and 97.5% → 99.2%. This one is a
 Prettier behaviour that reads as a bug, and matching it is still the job. A run of text is printed
 by filling a sequence of words and the breaks between them, and the decision at each break is made
@@ -168,7 +177,7 @@ printer edits except for one Svelte fixture that now passes. That is the evidenc
 were not carrying anything: they only ever differed for a separator with no break in it, which is a
 shape only text produces.
 
-What is left has no dominant class: 53 files, and the largest cluster among them is small enough
+What is left has no dominant class: 36 files, and the largest cluster among them is small enough
 that each is its own investigation.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
@@ -717,7 +726,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 53 files with no dominant class, so this is
+1. **The long tail of Svelte layout differences** — 36 files with no dominant class, so this is
    many small investigations rather than one. Worth doing only against the corpus, a cluster at a
    time. About half are still whole-file re-wraps, identical once whitespace is normalised, which
    is where any remaining fill difference would show.
