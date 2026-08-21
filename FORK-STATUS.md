@@ -280,7 +280,7 @@ was made the default — and Prettier's **own** Vue fixtures put it back for a w
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
 | 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
-| `js-in-vue` conformance (428) |  427 (99.77%) |  426 (**99.5%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |  427 (**99.8%**) |
 
 Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
 `:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
@@ -301,19 +301,28 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-**Three remain, and none of them is this printer's.** They are worth naming, because "not ours"
-is a claim that has to be checkable:
+**Two remain, and neither is this printer's.** They are worth naming, because "not ours" is a
+claim that has to be checkable:
 
-| Fixture                  | Cause                                                                                                                                                                                                                                                                                                                |
-| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api-component.vue`      | Fails on the Prettier path too — it _is_ the 1 in 427/428. `oxc_formatter` drops the disambiguating comma in `<T = any,>`, reproducible in a plain `.ts` file.                                                                                                                                                       |
-| `slogan.vue`             | `oxc_formatter_core` measures a tab as `indentWidth` columns; Prettier's `string-width` treats it, like any control character, as zero. Upstream's deliberate choice, with a test asserting it (`from_text_uses_indent_width_for_tabs`). Only ever breaks a line early.                                              |
-| `preferences-drawer.vue` | `oxc-css-parser` parses a selector argument only for `not`/`is`/`where`/`matches`/`has`/`global`; `:deep()`, `:slotted()` and `:v-deep()` — the Vue scoped-style pseudo-classes — fall through as opaque tokens and print verbatim, so `[role='x']` keeps its quotes where Prettier normalises them. External crate. |
+| Fixture             | Cause                                                                                                                                                                                                                                                                   |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api-component.vue` | Fails on the Prettier path too — it _is_ the 1 in 427/428. `oxc_formatter` drops the disambiguating comma in `<T = any,>`, reproducible in a plain `.ts` file.                                                                                                          |
+| `slogan.vue`        | `oxc_formatter_core` measures a tab as `indentWidth` columns; Prettier's `string-width` treats it, like any control character, as zero. Upstream's deliberate choice, with a test asserting it (`from_text_uses_indent_width_for_tabs`). Only ever breaks a line early. |
 
-The last two are the only ones a Vue project would notice, and neither produces invalid output —
-which is what made the default defensible the second time. Switching costs exactly those two
-files' worth of difference: a line broken early where the source had tabs, and an attribute
-selector inside `:deep()` keeping the quotes it was written with.
+At `printWidth` 80 that is **level with the Prettier path**, which fails the same one fixture and
+no others; `slogan.vue` costs the second option set its extra point, since whether a tab pushes a
+line over the margin depends on the margin.
+
+`preferences-drawer.vue` used to be a third. `oxc-css-parser` parses a pseudo-class argument as a
+selector only for `not`/`is`/`where`/`matches`/`has`/`global` and hands back opaque tokens for
+everything else, so `:deep(...)` printed byte for byte — no combinator spacing, no comma spacing,
+no quote or case normalisation. In a Vue project that is most of a scoped stylesheet, since
+`:deep()` and `:slotted()` are how a component reaches outside its own scope. Prettier's parser
+has no such list, so `oxc_formatter_css` now re-parses any argument the parser could not read as a
+selector and prints it as one when that succeeds; an argument that is not a selector still prints
+verbatim. The parser is handed the argument preceded by its own offset in spaces, so its spans are
+real-source offsets — the selector printer reads the source through those spans throughout, and
+spans from a bare substring would point it at the wrong bytes.
 
 Closed: the attribute-value escaping (1); a blank line that blocks nothing could format gained
 after their open tag, because the unformatted body was spliced back raw instead of going through

@@ -11,6 +11,7 @@ use oxc_css_parser::ast::{
     PseudoClassSelector, PseudoClassSelectorArgKind, PseudoElementSelector,
     PseudoElementSelectorArgKind, SelectorList, SimpleSelector, TypeSelector, WqName,
 };
+use oxc_css_parser::{ParserBuilder, ParserOptions};
 
 use oxc_formatter_core::{
     Buffer, FormatElement, arena_cow_str,
@@ -18,6 +19,9 @@ use oxc_formatter_core::{
     write,
 };
 
+use oxc_span::Span;
+
+use crate::options::CssVariant;
 use crate::{
     TEMPLATE_PLACEHOLDER_PREFIX, TEMPLATE_PLACEHOLDER_SUFFIX, comments,
     format::to_span,
@@ -429,6 +433,53 @@ fn write_pseudo_class<'a>(pseudo: &PseudoClassSelector<'a>, f: &mut CssFormatter
     }
 }
 
+/// Parse a pseudo-class argument as the selector list it is, and print it.
+/// Returns whether that worked; a `false` leaves nothing written.
+///
+/// The parser only parses an argument as a selector for a fixed list of names
+/// — `:not`, `:is`, `:where`, `:matches`, `:has`, `:global` — and hands back
+/// opaque tokens for everything else. Prettier's parser has no such list: it
+/// reads any unknown pseudo-class's argument as a selector, so `:deep(...)`
+/// and `:host(...)` get the same spacing, quoting and case normalisation as
+/// `:not(...)`. Re-parsing here is how that is recovered without a fixed list
+/// of our own, which would just be the same bug with different names on it.
+///
+/// `:deep()` and `:slotted()` are the reason it matters: they are how a Vue
+/// component reaches outside its scoped styles, so in a Vue project they wrap
+/// a large share of all selectors, and every one of them was printing byte for
+/// byte.
+///
+/// The parser is handed the argument preceded by its own offset in spaces, so
+/// every span it produces is a real-source offset. That matters because the
+/// selector printer reads the source through those spans throughout — an
+/// attribute's value, an identifier's spelling, a pseudo's name — and spans
+/// from a bare substring would point it at the wrong bytes.
+fn write_reparsed_selector_list<'a>(span: Span, f: &mut CssFormatter<'_, 'a>) -> bool {
+    let allocator = f.allocator();
+    let argument = f.context().source_text().text_for(&span);
+    let mut padded = String::with_capacity(span.start as usize + argument.len());
+    padded.extend(std::iter::repeat_n(' ', span.start as usize));
+    padded.push_str(argument);
+    let padded: &'a str = allocator.alloc_str(&padded);
+
+    let mut parser = ParserBuilder::new(allocator, padded)
+        .syntax(f.options().variant.to_css_syntax())
+        .options(ParserOptions {
+            template_placeholder: None,
+            try_parsing_value_in_custom_property: true,
+            allow_postcss_simple_vars: matches!(f.options().variant, CssVariant::Css),
+        })
+        .build();
+    let Ok(list) = parser.parse::<SelectorList<'a>>() else { return false };
+    // A selector the parser had to recover from is one it did not understand;
+    // printing from that reading could change which elements it matches.
+    if !parser.recoverable_errors().is_empty() {
+        return false;
+    }
+    write_selector_list_inline(&list, f);
+    true
+}
+
 /// The breakable parens around pseudo args:
 /// inline when they fit, own-line parens + indented args on overflow.
 /// Shared with the statement-position `&:extend(...)` (less.rs),
@@ -483,14 +534,17 @@ fn write_pseudo_class_arg<'a>(kind: &PseudoClassSelectorArgKind<'a>, f: &mut Css
         PseudoClassSelectorArgKind::LessExtendList(list) => {
             less::write_less_extend_list(list, f);
         }
-        // Number, LanguageRangeList, TokenSeq:
-        // print the source verbatim (normalized below where needed).
-        // They are kept verbatim because `postcss-selector-parser` tokenizes them as opaque strings
-        // and Prettier emits them raw (matching that keeps `:lang(...)` etc.)
-        // byte-identical to Prettier output.
-        // Real-world usage is rare enough that the consistency cost is negligible.
+        // Number, LanguageRangeList, TokenSeq.
+        //
+        // A `TokenSeq` is usually a selector the parser had no name for, so it
+        // gets one more chance below; anything that is not one — and the
+        // kinds that never were, like `:lang(...)`'s language ranges — falls
+        // through to the source verbatim.
         _ => {
             let span = to_span(kind.span());
+            if write_reparsed_selector_list(span, f) {
+                return;
+            }
             write!(f, text(source.text_for(&span)));
         }
     }

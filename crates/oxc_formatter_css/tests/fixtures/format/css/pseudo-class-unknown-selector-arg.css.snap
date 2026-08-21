@@ -1,0 +1,102 @@
+---
+source: crates/oxc_formatter_css/tests/fixtures/mod.rs
+---
+==================== Input ====================
+/* The parser parses an argument as a selector only for a fixed list of names;
+   Prettier's has no such list, so an unknown pseudo-class's argument is a
+   selector too. `:deep()` and `:slotted()` are why it matters — a Vue
+   component's scoped styles are mostly wrapped in them. */
+:deep(.a   >   .b) {
+  top: 0;
+}
+:deep(.a,.b) {
+  top: 0;
+}
+:deep(.a[role='x']) {
+  top: 0;
+}
+:deep(.a::BEFORE) {
+  top: 0;
+}
+:slotted(.a   .b) {
+  top: 0;
+}
+:host(.a   .b) {
+  top: 0;
+}
+:unknown-thing(.a   >   .b) {
+  top: 0;
+}
+/* Not a selector: kept exactly, rather than guessed at. */
+:deep(>>> ??? garbage) {
+  top: 0;
+}
+
+==================== Output ====================
+------------------
+{ printWidth: 80 }
+------------------
+/* The parser parses an argument as a selector only for a fixed list of names;
+   Prettier's has no such list, so an unknown pseudo-class's argument is a
+   selector too. `:deep()` and `:slotted()` are why it matters — a Vue
+   component's scoped styles are mostly wrapped in them. */
+:deep(.a > .b) {
+  top: 0;
+}
+:deep(.a, .b) {
+  top: 0;
+}
+:deep(.a[role="x"]) {
+  top: 0;
+}
+:deep(.a::before) {
+  top: 0;
+}
+:slotted(.a .b) {
+  top: 0;
+}
+:host(.a .b) {
+  top: 0;
+}
+:unknown-thing(.a > .b) {
+  top: 0;
+}
+/* Not a selector: kept exactly, rather than guessed at. */
+:deep(>>> ??? garbage) {
+  top: 0;
+}
+
+-------------------
+{ printWidth: 100 }
+-------------------
+/* The parser parses an argument as a selector only for a fixed list of names;
+   Prettier's has no such list, so an unknown pseudo-class's argument is a
+   selector too. `:deep()` and `:slotted()` are why it matters — a Vue
+   component's scoped styles are mostly wrapped in them. */
+:deep(.a > .b) {
+  top: 0;
+}
+:deep(.a, .b) {
+  top: 0;
+}
+:deep(.a[role="x"]) {
+  top: 0;
+}
+:deep(.a::before) {
+  top: 0;
+}
+:slotted(.a .b) {
+  top: 0;
+}
+:host(.a .b) {
+  top: 0;
+}
+:unknown-thing(.a > .b) {
+  top: 0;
+}
+/* Not a selector: kept exactly, rather than guessed at. */
+:deep(>>> ??? garbage) {
+  top: 0;
+}
+
+===================== End =====================
