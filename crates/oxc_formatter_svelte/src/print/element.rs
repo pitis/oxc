@@ -176,13 +176,46 @@ pub fn write_element<'a>(
         write!(
             f,
             group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
-                write!(f, [&open_tag, token(">")]);
+                write!(f, &open_tag);
                 if inline_whitespace {
-                    write!(f, soft_line_break_or_space());
+                    write!(f, [token(">"), soft_line_break_or_space()]);
+                    write_close_tag(name, f);
                 } else if bracket_same_line {
-                    write!(f, soft_line_break());
+                    write!(f, [token(">"), soft_line_break()]);
+                    write_close_tag(name, f);
+                } else if inline {
+                    // An inline element renders the whitespace between its
+                    // tags, so the closing tag borrows the opening `>` rather
+                    // than let a break introduce any — and the two then travel
+                    // together in a group of their own behind the break.
+                    //
+                    // That group is also what lets the attributes stay on the
+                    // tag's line: once the element has broken, measuring the
+                    // attribute list stops at this break instead of running on
+                    // into `></span>` and counting eight characters that were
+                    // never going to share the line. A block element borrows
+                    // nothing, so its `>` follows the attributes directly and
+                    // the measurement is right without any of this. Prettier
+                    // draws exactly this distinction — `group([softline,
+                    // group([">", "</span"])])` for `<span>`, a plain `">",
+                    // "</div>"` for `<div>`.
+                    write!(
+                        f,
+                        group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
+                            write!(f, soft_line_break());
+                            write!(
+                                f,
+                                group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
+                                    write!(f, [token(">"), token("</"), text(name)]);
+                                }))
+                            );
+                        }))
+                    );
+                    write!(f, token(">"));
+                } else {
+                    write!(f, token(">"));
+                    write_close_tag(name, f);
                 }
-                write_close_tag(name, f);
             }))
         );
         return;

@@ -142,7 +142,7 @@
 
 ## svelte
 
-### Option 1: 81/84 (96.43%)
+### Option 1: 82/85 (96.47%)
 
 ```json
 {"printWidth":80,"svelte":{}}
@@ -154,7 +154,7 @@
 | [externals/plugin-svelte/each-await-block-destructuring.svelte](diffs/svelte/externals__plugin-svelte__each-await-block-destructuring.svelte.md) | Reduced port: an `{#each … as PATTERN}` / `{:then PATTERN}` binding keeps its spelling. Prettier re-serializes it with a bespoke pattern printer (`expandNode`) that preserves literal spelling and never breaks; the fragment path here would reach it through the estree printer, which does neither. Canonical spacing already matches. See crates/oxc_formatter_svelte/AGENTS.md |
 | [externals/plugin-svelte/region-markers.svelte](diffs/svelte/externals__plugin-svelte__region-markers.svelte.md) | Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not |
 
-### Option 2: 80/84 (95.24%)
+### Option 2: 81/85 (95.29%)
 
 ```json
 {"printWidth":120,"singleQuote":true,"htmlWhitespaceSensitivity":"ignore","bracketSameLine":true,"svelteIndentScriptAndStyle":true,"svelteSortOrder":"options-scripts-styles-markup","svelte":{"indentScriptAndStyle":true,"sortOrder":"options-scripts-styles-markup"}}
