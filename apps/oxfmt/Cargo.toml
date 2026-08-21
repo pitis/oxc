@@ -36,6 +36,7 @@ oxc_formatter_css = { workspace = true }
 oxc_formatter_graphql = { workspace = true }
 oxc_formatter_json = { workspace = true }
 oxc_formatter_svelte = { workspace = true }
+oxc_formatter_vue = { workspace = true }
 oxc_formatter_yaml = { workspace = true }
 oxc_language_server = { workspace = true }
 oxc_napi = { workspace = true }

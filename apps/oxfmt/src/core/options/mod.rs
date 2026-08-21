@@ -21,6 +21,7 @@ mod to_oxc_formatter_css;
 mod to_oxc_formatter_graphql;
 mod to_oxc_formatter_json;
 mod to_oxc_formatter_svelte;
+mod to_oxc_formatter_vue;
 mod to_oxc_formatter_yaml;
 mod to_oxc_toml;
 #[cfg(feature = "napi")]
@@ -32,6 +33,7 @@ pub use to_oxc_formatter_css::to_oxc_formatter_css;
 pub use to_oxc_formatter_graphql::to_oxc_formatter_graphql;
 pub use to_oxc_formatter_json::{to_oxc_formatter_json, to_sort_package_json};
 pub use to_oxc_formatter_svelte::to_oxc_formatter_svelte;
+pub use to_oxc_formatter_vue::to_oxc_formatter_vue;
 pub use to_oxc_formatter_yaml::to_oxc_formatter_yaml;
 pub use to_oxc_toml::to_oxc_toml;
 #[cfg(feature = "napi")]

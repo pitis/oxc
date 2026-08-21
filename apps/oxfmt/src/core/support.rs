@@ -74,6 +74,13 @@ pub fn classify_file_kind(path: Arc<Path>) -> Option<FileKind> {
     if extension == Some("svelte") {
         return Some(FileKind::OxcFormatterSvelte { path });
     }
+    // A `.vue` component can be formatted by `oxc_formatter_vue`, which is
+    // pure Rust. The native printer does not yet reproduce Prettier's markup
+    // layout, so it is opt-in: without the switch `.vue` keeps going to
+    // Prettier, which is what every existing project's output depends on.
+    if extension == Some("vue") && native_vue_enabled() {
+        return Some(FileKind::OxcFormatterVue { path });
+    }
 
     // Prettier-delegated files are only supported with the `napi` feature
     #[cfg(feature = "napi")]
@@ -102,25 +109,49 @@ pub fn classify_file_kind(path: Arc<Path>) -> Option<FileKind> {
 pub enum FileKind {
     /// JS/TS files formatted by `oxc_formatter`.
     /// `supports_tailwind` is not needed, always enabled for JS/TS files.
-    OxcFormatter { path: Arc<Path>, source_type: SourceType },
+    OxcFormatter {
+        path: Arc<Path>,
+        source_type: SourceType,
+    },
     /// JSON (and JSON-like) files formatted by `oxc_formatter_json`.
-    OxcFormatterJson { path: Arc<Path>, variant: JsonVariant },
+    OxcFormatterJson {
+        path: Arc<Path>,
+        variant: JsonVariant,
+    },
     /// `package.json` is special: sorted by `sort-package-json` then formatted
     /// by `oxc_formatter_json` with the `json-stringify` variant.
-    OxcFormatterJsonPackageJson { path: Arc<Path> },
+    OxcFormatterJsonPackageJson {
+        path: Arc<Path>,
+    },
     /// GraphQL files formatted by `oxc_formatter_graphql`.
-    OxcFormatterGraphql { path: Arc<Path> },
+    OxcFormatterGraphql {
+        path: Arc<Path>,
+    },
     /// CSS/SCSS/Less files formatted by `oxc_formatter_css`.
-    OxcFormatterCss { path: Arc<Path>, variant: CssVariant },
+    OxcFormatterCss {
+        path: Arc<Path>,
+        variant: CssVariant,
+    },
     /// `.svelte` components formatted by `oxc_formatter_svelte`.
-    OxcFormatterSvelte { path: Arc<Path> },
+    OxcFormatterSvelte {
+        path: Arc<Path>,
+    },
+    OxcFormatterVue {
+        path: Arc<Path>,
+    },
     /// YAML files formatted by `oxc_formatter_yaml`.
-    OxcFormatterYaml { path: Arc<Path> },
+    OxcFormatterYaml {
+        path: Arc<Path>,
+    },
     /// Files like `.prettierrc`:
     /// mirroring Prettier's yaml embed, they are formatted as JSON first, then fall back to YAML if that fails.
-    OxcFormatterYamlRc { path: Arc<Path> },
+    OxcFormatterYamlRc {
+        path: Arc<Path>,
+    },
     /// TOML files formatted by taplo (Pure Rust).
-    OxfmtToml { path: Arc<Path> },
+    OxfmtToml {
+        path: Arc<Path>,
+    },
     /// Files formatted by delegating to Prettier (Tier 3/4).
     ///
     /// `supports_tailwind` / `supports_oxfmt` / `supports_svelte` are capability
@@ -146,6 +177,7 @@ impl FileKind {
             | Self::OxcFormatterGraphql { path }
             | Self::OxcFormatterCss { path, .. }
             | Self::OxcFormatterSvelte { path }
+            | Self::OxcFormatterVue { path }
             | Self::OxcFormatterYaml { path }
             | Self::OxcFormatterYamlRc { path }
             | Self::OxfmtToml { path } => path,
@@ -183,6 +215,12 @@ static OXFMT_PARSERS: phf::Set<&'static str> = phf_set! {
 /// Parsers(files) that benefit from `prettier-plugin-svelte`.
 ///
 /// Only the ` ```svelte ` code blocks a Markdown or MDX file may contain:
+/// Whether the native Vue printer is switched on. Opt-in while it is being
+/// brought to parity with Prettier; see `crates/oxc_formatter_vue`.
+fn native_vue_enabled() -> bool {
+    std::env::var_os("OXFMT_NATIVE_VUE").is_some_and(|value| value == "1")
+}
+
 /// a `.svelte` file itself is [`FileKind::OxcFormatterSvelte`] and never
 /// reaches Prettier.
 #[cfg(feature = "napi")]

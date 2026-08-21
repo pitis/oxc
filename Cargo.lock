@@ -2181,6 +2181,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxc_formatter_vue"
+version = "0.64.0"
+dependencies = [
+ "cow-utils",
+ "oxc_allocator",
+ "oxc_diagnostics",
+ "oxc_formatter_core",
+ "oxc_span",
+ "vue_sfc_parser",
+]
+
+[[package]]
 name = "oxc_formatter_yaml"
 version = "0.64.0"
 dependencies = [
@@ -2919,6 +2931,7 @@ dependencies = [
  "oxc_formatter_graphql",
  "oxc_formatter_json",
  "oxc_formatter_svelte",
+ "oxc_formatter_vue",
  "oxc_formatter_yaml",
  "oxc_language_server",
  "oxc_napi",

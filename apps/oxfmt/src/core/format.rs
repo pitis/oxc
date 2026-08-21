@@ -10,6 +10,7 @@ use oxc_formatter_css::CssFormatOptions;
 use oxc_formatter_graphql::GraphqlFormatOptions;
 use oxc_formatter_json::{JsonFormatOptions, JsonVariant};
 use oxc_formatter_svelte::SvelteFormatOptions;
+use oxc_formatter_vue::VueFormatOptions;
 use oxc_formatter_yaml::YamlFormatOptions;
 use oxc_span::SourceType;
 use oxc_toml::Options as TomlFormatterOptions;
@@ -23,8 +24,8 @@ use super::{
     embed::dispatcher::ResolvedDispatchConfig,
     options::{
         ValidatedOptions, to_oxc_formatter, to_oxc_formatter_css, to_oxc_formatter_graphql,
-        to_oxc_formatter_json, to_oxc_formatter_svelte, to_oxc_formatter_yaml, to_oxc_toml,
-        to_sort_package_json,
+        to_oxc_formatter_json, to_oxc_formatter_svelte, to_oxc_formatter_vue,
+        to_oxc_formatter_yaml, to_oxc_toml, to_sort_package_json,
     },
     oxfmtrc::FormatConfig,
     support::FileKind,
@@ -98,6 +99,20 @@ pub enum FormatStrategy {
         sort_imports: Option<SortImportsOptions>,
         insert_final_newline: bool,
     },
+    /// For `.vue` files formatted by `oxc_formatter_vue`.
+    OxcFormatterVue {
+        path: Arc<Path>,
+        format_options: Box<VueFormatOptions>,
+        /// `config` + `core` build the dispatch config for the root's
+        /// session, which is what lets `<script>` and `<style>` reach the
+        /// formatters that own them.
+        config: Arc<FormatConfig>,
+        core: CoreFormatOptions,
+        /// A component's `<script>` holds the file's imports, so this root
+        /// passes import sorting on to its embed.
+        sort_imports: Option<SortImportsOptions>,
+        insert_final_newline: bool,
+    },
     /// For YAML files formatted by `oxc_formatter_yaml`.
     OxcFormatterYaml {
         path: Arc<Path>,
@@ -144,6 +159,7 @@ impl FormatStrategy {
             | Self::OxcFormatterGraphql { path, .. }
             | Self::OxcFormatterCss { path, .. }
             | Self::OxcFormatterSvelte { path, .. }
+            | Self::OxcFormatterVue { path, .. }
             | Self::OxcFormatterYaml { path, .. }
             | Self::OxcFormatterYamlRc { path, .. }
             | Self::OxfmtToml { path, .. } => path,
@@ -234,6 +250,14 @@ impl FormatStrategy {
             FileKind::OxcFormatterSvelte { path } => Self::OxcFormatterSvelte {
                 path,
                 format_options: Box::new(to_oxc_formatter_svelte(&config, core)),
+                config: Arc::new(config),
+                core,
+                sort_imports: validated.sort_imports.clone(),
+                insert_final_newline,
+            },
+            FileKind::OxcFormatterVue { path } => Self::OxcFormatterVue {
+                path,
+                format_options: Box::new(to_oxc_formatter_vue(&config, core)),
                 config: Arc::new(config),
                 core,
                 sort_imports: validated.sort_imports.clone(),
@@ -390,6 +414,24 @@ impl SourceFormatter {
                 insert_final_newline,
             } => (
                 self.format_by_oxc_formatter_svelte(
+                    source_text,
+                    &path,
+                    *format_options,
+                    &config,
+                    core,
+                    sort_imports,
+                ),
+                insert_final_newline,
+            ),
+            FormatStrategy::OxcFormatterVue {
+                path,
+                format_options,
+                config,
+                core,
+                sort_imports,
+                insert_final_newline,
+            } => (
+                self.format_by_oxc_formatter_vue(
                     source_text,
                     &path,
                     *format_options,
@@ -638,6 +680,35 @@ impl SourceFormatter {
         let printed = formatted.print().map_err(|err| {
             OxcDiagnostic::error(format!(
                 "Failed to print formatted Svelte: {}\n{err}",
+                path.display()
+            ))
+        })?;
+        Ok(printed.into_code())
+    }
+
+    /// Format a Vue single-file component using `oxc_formatter_vue`.
+    #[instrument(level = "debug", name = "oxfmt::format::oxc_formatter_vue", skip_all)]
+    fn format_by_oxc_formatter_vue(
+        &self,
+        source_text: &str,
+        path: &Path,
+        format_options: VueFormatOptions,
+        config: &Arc<FormatConfig>,
+        core: CoreFormatOptions,
+        sort_imports: Option<SortImportsOptions>,
+    ) -> Result<String, OxcDiagnostic> {
+        let allocator = self.allocator_pool.get();
+        let session = {
+            let dispatch_config =
+                ResolvedDispatchConfig::for_root(config, core, sort_imports, path);
+            let services = self.root_services(&dispatch_config);
+            FormatSession::with_services(&allocator, InputKind::PhysicalFile, services)
+        };
+        let formatted =
+            oxc_formatter_vue::format_with_session(&session, source_text, format_options)?;
+        let printed = formatted.print().map_err(|err| {
+            OxcDiagnostic::error(format!(
+                "Failed to print formatted Vue: {}\n{err}",
                 path.display()
             ))
         })?;
