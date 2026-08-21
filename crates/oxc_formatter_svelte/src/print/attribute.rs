@@ -28,6 +28,13 @@ pub struct AttributeContext {
     /// Whether the element is a plain HTML tag, which is the only place the
     /// `class` attribute's whitespace is tidied.
     pub regular_element: bool,
+    /// Whether a `{…}` in a value is literal text rather than an expression.
+    ///
+    /// Svelte does not interpolate in a `<script>` or `<style>` tag's
+    /// attributes, so `generics="Item extends { label?: string }"` is a type
+    /// and not an object, and laying it out is laying out prose. Only the
+    /// quoting is still normalized, which is what Prettier does here too.
+    pub literal_values: bool,
 }
 
 /// Write one attribute, as written in the source apart from the shorthand
@@ -46,6 +53,11 @@ pub fn write_attribute<'a>(
                 write!(f, text(name));
                 return;
             };
+            if context.literal_values {
+                write!(f, [text(name), token("=")]);
+                write_literal_value(value, source, f);
+                return;
+            }
             if allow_shorthand && is_shorthandable(name, value) {
                 write!(f, [token("{"), text(name), token("}")]);
                 return;
@@ -142,6 +154,25 @@ impl ClassAttribute {
     fn of(name: &str, context: AttributeContext) -> Self {
         let sortable = name == "class";
         Self { sortable, tidy_whitespace: sortable && context.regular_element }
+    }
+}
+
+/// Write a value whose `{…}` are text: every byte of it, quoted.
+///
+/// The quote is still chosen rather than kept, which is what Prettier does
+/// for these too — `lang='ts'` comes back `lang="ts"`.
+fn write_literal_value<'a>(
+    value: &AttributeValue<'a>,
+    source: &'a str,
+    f: &mut SvelteFormatter<'_, 'a>,
+) {
+    let text_value = slice(source, value.span.start, value.span.end);
+    let quote = if text_value.contains('"') { token("'") } else { token("\"") };
+    write!(f, [quote, text(text_value), quote]);
+    // A value the author spread over lines takes the attribute list with it:
+    // the newline is inside a text token the printer cannot see.
+    if text_value.contains('\n') {
+        write!(f, expand_parent());
     }
 }
 

@@ -39,6 +39,10 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
     let attribute_context = AttributeContext {
         allow_shorthand: options.allow_shorthand.is_enabled(),
         regular_element: true,
+        // Svelte does not interpolate here: a `{…}` in a `<script>` or
+        // `<style>` tag's attribute is text, and `generics="Item extends
+        // { label?: string }"` is a type rather than an object.
+        literal_values: true,
     };
     let body_text = &source[body.start as usize..body.end as usize];
 

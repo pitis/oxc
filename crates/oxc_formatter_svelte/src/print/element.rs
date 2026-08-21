@@ -55,6 +55,7 @@ pub fn write_element<'a>(
     let attribute_context = AttributeContext {
         allow_shorthand: options.allow_shorthand.is_enabled(),
         regular_element: is_regular_element(element),
+        literal_values: false,
     };
     // `<pre>` and `<textarea>` render their own whitespace, so their content
     // is not the printer's to lay out. The tag around it still is.
