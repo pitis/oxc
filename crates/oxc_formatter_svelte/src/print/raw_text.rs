@@ -9,6 +9,7 @@
 use cow_utils::CowUtils;
 use oxc_formatter_core::{
     Buffer, BufferExtensions, DispatchRequest, DispatchResponse, Format, FormatElement, InputKind,
+    ScriptInComponentFile,
     builders::{
         block_indent, dedent, group, hard_line_break, indent, soft_line_break,
         soft_line_break_or_space, text, token,
@@ -88,7 +89,8 @@ pub fn write_raw_text_element<'a>(element: &Element<'a>, f: &mut SvelteFormatter
         language,
         text: body_text,
         input_kind: InputKind::Fragment,
-        parent_context: None,
+        // A `<script>` is not a file of its own — see [`ScriptInComponentFile`].
+        parent_context: Some(&ScriptInComponentFile),
     });
     let Ok(DispatchResponse::Formatted(payload)) = response else {
         write_verbatim_body(body, f);

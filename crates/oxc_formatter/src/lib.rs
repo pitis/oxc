@@ -99,6 +99,28 @@ pub enum FragmentContext {
     EventHandlerStatements,
 }
 
+/// Whether a lone type parameter here needs a trailing comma to tell
+/// `<T>() => {}` apart from JSX.
+///
+/// In a `.ts` file it never does: JSX cannot appear there, so `<T>` is
+/// unambiguous. In a `.tsx` file it does, and the source type says so.
+///
+/// The awkward case is a `<script lang="ts">` inside a component. JSX cannot
+/// appear there either — `lang="tsx"` is how you ask for it — but Prettier
+/// decides this from the *file's* extension rather than the script's, and a
+/// `.vue` file is not a `.ts` file. So it writes the comma, and matching that
+/// is what this exists for. A Markdown ` ```ts ` fence is not affected:
+/// Prettier gives that a `.ts` filepath of its own.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum TypeParameterAmbiguity {
+    /// The file is unambiguously TypeScript; a lone type parameter stands on
+    /// its own.
+    #[default]
+    None,
+    /// A lone type parameter is written `<T,>`.
+    NeedsTrailingComma,
+}
+
 /// Classification of the root node of a [`FragmentContext::Expression`] fragment.
 ///
 /// Embedders need this for Prettier's hug-vs-expand layout decision
@@ -200,13 +222,15 @@ pub fn format_to_ir<'a>(
     source_text: &str,
     source_type: SourceType,
     options: JsFormatOptions,
+    type_parameters: TypeParameterAmbiguity,
 ) -> Result<EmbeddedIr<'a>, OxcDiagnostic> {
     let allocator = session.allocator();
     let source_text: &'a str = allocator.alloc_str(source_text);
     let program = parse(allocator, source_text, source_type)?;
     let node = AstNode::new(program, AstNodes::Dummy(), allocator);
     let context =
-        JsFormatContext::new(program.source_text, program.source_type, &program.comments, options);
+        JsFormatContext::new(program.source_text, program.source_type, &program.comments, options)
+            .with_type_parameter_ambiguity(type_parameters);
     Ok(formatter::format_embedded(
         context,
         session,

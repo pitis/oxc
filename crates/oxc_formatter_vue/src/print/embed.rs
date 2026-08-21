@@ -14,7 +14,7 @@ use cow_utils::CowUtils;
 use oxc_allocator::ArenaVec;
 use oxc_formatter_core::{
     Buffer, BufferExtensions, DispatchRequest, DispatchResponse, ExpressionHugsDelimiters,
-    FormatElement, InputKind,
+    FormatElement, InputKind, ScriptInComponentFile,
     builders::{
         empty_line, expand_parent, hard_line_break, indent, literal_line_break,
         soft_line_break_or_space, space, text,
@@ -124,7 +124,7 @@ pub fn write_script_like_text<'a>(
 ) {
     let value = tree.node(id).value;
     let formatted = language
-        .and_then(|language| dispatch(language, value, value, f))
+        .and_then(|language| dispatch_script(language, value, value, f))
         .map(|fragment| fragment.ir)
         .filter(|ir| !ir.is_empty());
     let Some(mut ir) = formatted else {
@@ -272,6 +272,28 @@ pub fn dispatch<'a>(
     snippet: &str,
     f: &mut VueFormatter<'_, 'a>,
 ) -> Option<Fragment<'a>> {
+    dispatch_with(language, source, snippet, None, f)
+}
+
+/// Like [`dispatch`], for a `<script>` block: the same request, plus the one
+/// thing a block knows that a fragment does not — that it lives in a component
+/// file rather than a file of its own. See [`ScriptInComponentFile`].
+pub fn dispatch_script<'a>(
+    language: &'static str,
+    source: &str,
+    snippet: &str,
+    f: &mut VueFormatter<'_, 'a>,
+) -> Option<Fragment<'a>> {
+    dispatch_with(language, source, snippet, Some(&ScriptInComponentFile), f)
+}
+
+fn dispatch_with<'a>(
+    language: &'static str,
+    source: &str,
+    snippet: &str,
+    parent_context: Option<&dyn std::any::Any>,
+    f: &mut VueFormatter<'_, 'a>,
+) -> Option<Fragment<'a>> {
     if source.trim().is_empty() {
         return None;
     }
@@ -279,7 +301,7 @@ pub fn dispatch<'a>(
         language,
         text: source,
         input_kind: InputKind::Fragment,
-        parent_context: None,
+        parent_context,
     });
     let Ok(DispatchResponse::Formatted(payload)) = response else {
         if let Some(context) = warning_context(language) {

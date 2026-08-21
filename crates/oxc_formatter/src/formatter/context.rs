@@ -3,7 +3,7 @@ use oxc_formatter_core::{FormatElement, SourceText};
 use oxc_span::{GetSpan, SourceType, Span};
 use rustc_hash::FxHashMap;
 
-use crate::options::JsFormatOptions;
+use crate::{TypeParameterAmbiguity, options::JsFormatOptions};
 
 use super::Comments;
 
@@ -115,6 +115,10 @@ pub struct JsFormatContext<'ast> {
     /// for top-level `|` chains (`{{ msg | uppercase }}`), which Prettier prints
     /// with the line break before the operator.
     embedded_vue_expression: bool,
+    /// Whether a lone type parameter needs a disambiguating trailing comma —
+    /// see [`crate::TypeParameterAmbiguity`]. Set by the embedded entry point,
+    /// since it is a fact about the *host file*, not about this source.
+    type_parameters: TypeParameterAmbiguity,
 
     /// Whether the formatted code sits inside an HTML `{{ ... }}` interpolation,
     /// mirroring Prettier's `__isInHtmlInterpolation`. With `bracketSpacing:
@@ -172,6 +176,7 @@ impl<'ast> JsFormatContext<'ast> {
             tailwind_context_stack: Vec::new(),
             embedded_in_html_attribute: false,
             embedded_vue_expression: false,
+            type_parameters: TypeParameterAmbiguity::default(),
             embedded_in_html_interpolation: false,
         }
     }
@@ -198,6 +203,18 @@ impl<'ast> JsFormatContext<'ast> {
     /// See the `embedded_vue_expression` field.
     pub fn embedded_vue_expression(&self) -> bool {
         self.embedded_vue_expression
+    }
+
+    /// See [`TypeParameterAmbiguity`].
+    #[must_use]
+    pub fn with_type_parameter_ambiguity(mut self, ambiguity: TypeParameterAmbiguity) -> Self {
+        self.type_parameters = ambiguity;
+        self
+    }
+
+    /// See [`TypeParameterAmbiguity`].
+    pub fn type_parameters(&self) -> TypeParameterAmbiguity {
+        self.type_parameters
     }
 
     /// See the `embedded_in_html_interpolation` field.

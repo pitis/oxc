@@ -55,11 +55,11 @@ and `{…}` inside it reach `oxc_formatter` and `oxc_formatter_css` through the 
 `svelte` optional peer dependency — nothing in `oxfmt` needs `svelte/compiler` any more. A
 ` ```svelte ` block inside Markdown or MDX gets the same formatter.
 
-Conformance runs `prettier-plugin-svelte`'s own 80-fixture suite against **real Prettier** as the
-oracle, currently 76/80, with each remaining difference recorded as a deliberate divergence in
-`crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer this category used
-`prettier-plugin-svelte` as both implementation and oracle and reported 80/80, which measured
-nothing.
+Conformance runs `prettier-plugin-svelte`'s own fixture suite, plus edge cases of this fork's own,
+against **real Prettier** as the oracle — currently 77/81, with each remaining difference recorded
+as a deliberate divergence in `crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer
+this category used `prettier-plugin-svelte` as both implementation and oracle and reported 80/80,
+which measured nothing.
 
 Verified end to end on `svelte-number-format`: all eight Prettier/ESLint dev dependencies removed,
 `svelte` and `svelte-check` kept, verdicts byte-for-byte identical, roughly 290× faster on lint.
@@ -280,7 +280,7 @@ was made the default — and Prettier's **own** Vue fixtures put it back for a w
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
 | 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
-| `js-in-vue` conformance (428) |  427 (99.77%) |  427 (**99.8%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |   428 (**100%**) |
 
 Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
 `:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
@@ -301,12 +301,38 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-**One remains, and it is not this printer's.** `api-component.vue` fails on the Prettier path too
-— it _is_ the 1 in 427/428: `oxc_formatter` drops the disambiguating comma in `<T = any,>`,
-reproducible in a plain `.ts` file. At both option sets the native printer is now **level with the
-Prettier path**, failing that fixture and no others.
+**None remain: js-in-vue is 428/428 at both option sets.** The last one, `api-component.vue`, was
+never this printer's — `oxc_formatter` dropped the disambiguating comma in `<T = any,>() => {}`.
 
-Two used to keep it company, and both were in shared code rather than here.
+An earlier revision of this file said that difference was reproducible in a plain `.ts` file. **It
+is not**, and finding that out is what settled the rest. Prettier decides the comma from the
+_file's_ extension rather than the script's, so all four of these hold the same TypeScript and only
+two keep it:
+
+| host                                | Prettier     |
+| :---------------------------------- | :----------- |
+| `a.ts`                              | `<T = any>`  |
+| a ` ```ts ` fence in Markdown       | `<T = any>`  |
+| `<script lang="ts">` in a `.vue`    | `<T = any,>` |
+| `<script lang="ts">` in a `.svelte` | `<T = any,>` |
+
+oxfmt's standalone `.ts` output was therefore right all along. "Embedded ⇒ force the comma" would
+have been wrong too: a Markdown fence _is_ embedded and does not get it, because Prettier formats
+it under a `.ts` filepath of its own. Only a component script differs, so only a component script
+can be the thing that says so.
+
+Upstream oxc diverges here knowingly — the rule's own doc comment names ts-in-vue, and argues that
+dropping the comma should key on the grammar the source is consumed as rather than on the host's
+path. That is the better rule. It is not the rule the world's Prettier-formatted code is written
+to, and a file carrying `<T = any,>` today would silently lose a character on its first oxfmt run,
+so the fork honours the wart instead. A `<script>` now tells the JS formatter it is not a file of
+its own through `parent_context`, the dispatcher channel that already existed for parent→child
+facts (`ScriptInComponentFile`); the JS side receives it as
+`TypeParameterAmbiguity::NeedsTrailingComma`. Markdown is untouched, because its fences never send
+it. The Svelte half was verified against prettier-plugin-svelte 4.1.1 rather than assumed from Vue,
+and it keeps the comma the same way.
+
+Two others used to keep that fixture company, and both were in shared code rather than here.
 
 `slogan.vue` was `oxc_formatter_core` expanding a tab to `indentWidth` columns when measuring
 text. Prettier measures through `string-width`, which strips control characters, so a tab there

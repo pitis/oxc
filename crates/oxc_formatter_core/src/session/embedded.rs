@@ -123,6 +123,21 @@ impl<'a> DispatchPayload<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ExpressionHugsDelimiters(pub bool);
 
+/// Parent→child datum for a component's `<script>`: that the script is part
+/// of a component file rather than a file of its own.
+///
+/// Almost nothing should depend on this — a `<script lang="ts">` is the same
+/// TypeScript wherever it lives. The one thing that does is the trailing comma
+/// of a lone type parameter, which Prettier keys on the *file's* extension:
+/// `<T,>() => {}` keeps its comma in a `.vue` file and loses it in a `.ts`
+/// file, though neither can contain JSX. Matching that is why the fact has to
+/// travel at all.
+///
+/// It deliberately does not travel for a Markdown ` ```ts ` fence, which
+/// Prettier formats under a `.ts` filepath of its own.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ScriptInComponentFile;
+
 /// Dispatches one embedded fragment and hands its IR to the caller.
 ///
 /// `None` covers [`DispatchResponse::PreserveOriginal`] and operational errors alike;

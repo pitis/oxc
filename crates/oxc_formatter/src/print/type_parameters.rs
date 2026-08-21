@@ -4,6 +4,7 @@ use oxc_formatter_core::{Buffer, Format, GroupId};
 use oxc_span::FileExtension;
 
 use crate::{
+    TypeParameterAmbiguity,
     ast_nodes::{AstNode, AstNodes},
     format_args,
     formatter::{
@@ -90,10 +91,11 @@ impl<'a> Format<'a, JsFormatContext<'a>> for AstNode<'a, ArenaVec<'a, TSTypePara
 /// - JSX sources parse a bare `<T>` as a JSX element opener
 /// - `.mts`/`.cts` reserve the constraint-less form at the grammar level (TS7060)
 ///
-/// Prettier's `shouldForceTrailingComma` instead sniffs the file path
-/// and keeps the comma in every non-`.ts` host, including plain-TS embedded scripts (e.g. ts-in-vue).
-/// This is a deliberate divergence: removal is keyed on the grammar the source is consumed as,
-/// not on the host file's path, so plain-TS sources behave identically wherever they live.
+/// Prettier's `shouldForceTrailingComma` instead sniffs the file path, and keeps
+/// the comma in every host that is not literally a `.ts` file — including a
+/// `<script lang="ts">`, where JSX cannot appear either. That is a wart, but it
+/// is the output real code is formatted to, so a component's script says so
+/// through [`TypeParameterAmbiguity`] and this honours it.
 fn should_force_trailing_comma_for_arrow_function(
     params: &AstNode<'_, ArenaVec<'_, TSTypeParameter<'_>>>,
     f: &JsFormatter<'_, '_>,
@@ -116,6 +118,7 @@ fn should_force_trailing_comma_for_arrow_function(
     let source_type = f.context().source_type();
     source_type.is_jsx()
         || matches!(source_type.extension(), Some(FileExtension::Mts | FileExtension::Cts))
+        || f.context().type_parameters() == TypeParameterAmbiguity::NeedsTrailingComma
 }
 
 #[derive(Default)]

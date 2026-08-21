@@ -1,24 +1,16 @@
 ## js-in-vue
 
-### Option 1: 427/428 (99.77%)
+### Option 1: 428/428 (100.00%)
 
 ```json
 {"printWidth":80}
 ```
 
-| File | Note |
-| :--- | :--- |
-| [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma removed in ts-in-vue as like plain `.ts`, intentional divergence: Prettier keeps in ts-in-xxx, but not in ts-in-md and also plain `.ts`. It is only required for `.tsx` and `.mts|cts` |
-
-### Option 2: 427/428 (99.77%)
+### Option 2: 428/428 (100.00%)
 
 ```json
 {"printWidth":100,"vueIndentScriptAndStyle":true,"singleQuote":true}
 ```
-
-| File | Note |
-| :--- | :--- |
-| [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma removed in ts-in-vue as like plain `.ts`, intentional divergence: Prettier keeps in ts-in-xxx, but not in ts-in-md and also plain `.ts`. It is only required for `.tsx` and `.mts|cts` |
 
 ## gql-in-js
 
@@ -150,7 +142,7 @@
 
 ## svelte
 
-### Option 1: 76/80 (95.00%)
+### Option 1: 77/81 (95.06%)
 
 ```json
 {"printWidth":80,"svelte":{}}
@@ -163,7 +155,7 @@
 | [externals/plugin-svelte/long-mustache-value.svelte](diffs/svelte/externals__plugin-svelte__long-mustache-value.svelte.md) | Layout-only: a `{…}` whose expression breaks continues at the mustache's indent, where Prettier adds one level. Prettier prints the expression as a real estree node (whose unknown parent makes `printBinaryishExpression` indent); this goes through the JS *fragment* path, which does not. Never changes meaning |
 | [externals/plugin-svelte/region-markers.svelte](diffs/svelte/externals__plugin-svelte__region-markers.svelte.md) | Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not |
 
-### Option 2: 76/80 (95.00%)
+### Option 2: 77/81 (95.06%)
 
 ```json
 {"printWidth":120,"singleQuote":true,"htmlWhitespaceSensitivity":"ignore","bracketSameLine":true,"svelteIndentScriptAndStyle":true,"svelteSortOrder":"options-scripts-styles-markup","svelte":{"indentScriptAndStyle":true,"sortOrder":"options-scripts-styles-markup"}}

@@ -327,9 +327,7 @@ fn push_text_with_line_breaks<'a>(out: &mut ArenaVec<'a, FormatElement<'a>>, tex
 #[cfg(test)]
 mod tests {
     use oxc_allocator::{Allocator, ArenaVec};
-    use oxc_formatter_core::{
-        BestFittingElement, FormatElement, IndentWidth, format_element::TextWidth,
-    };
+    use oxc_formatter_core::{BestFittingElement, FormatElement, format_element::TextWidth};
 
     use super::placeholders_are_sequential;
 

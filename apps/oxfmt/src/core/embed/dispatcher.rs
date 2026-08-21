@@ -4,16 +4,20 @@
 //! the [`PrettierLanguage`] set goes to the napi-only Prettier Doc→IR channel ([`super::prettier_doc`]) when one is supplied,
 //! and is deliberately preserved as-is otherwise (pure Rust build); everything else stays as-is in every build.
 
-use std::sync::{Arc, OnceLock};
+use std::{
+    any::Any,
+    sync::{Arc, OnceLock},
+};
 
 use tracing::{debug, debug_span};
 
 use oxc_formatter::{
     CssInJsTemplate, ExpressionRootKind, FragmentContext, JsFormatOptions, SortImportsOptions,
+    TypeParameterAmbiguity,
 };
 use oxc_formatter_core::{
     CoreFormatOptions, DispatchPayload, DispatchRequest, DispatchResponse, EmbeddedIr,
-    ExpressionHugsDelimiters, FormatDispatcher, FormatSession,
+    ExpressionHugsDelimiters, FormatDispatcher, FormatSession, ScriptInComponentFile,
 };
 use oxc_formatter_core::{FormatOptions, PrinterOptions};
 use oxc_formatter_css::{CssFormatOptions, CssFragmentKind, CssVariant};
@@ -459,14 +463,26 @@ pub fn build_dispatcher(
                     )
                 }))
             }
-            Route::Native(NativeLanguage::Js(source_type)) => Ok(format_native("js", || {
-                oxc_formatter::format_to_ir(
-                    session,
-                    text,
-                    source_type,
-                    dispatch_config.js_options(),
-                )
-            })),
+            Route::Native(NativeLanguage::Js(source_type)) => {
+                // A component's `<script>` is not a file of its own, and
+                // Prettier's trailing-comma rule for a lone type parameter
+                // keys on the file's extension rather than the script's.
+                let type_parameters =
+                    if request.parent_context.is_some_and(<dyn Any>::is::<ScriptInComponentFile>) {
+                        TypeParameterAmbiguity::NeedsTrailingComma
+                    } else {
+                        TypeParameterAmbiguity::None
+                    };
+                Ok(format_native("js", || {
+                    oxc_formatter::format_to_ir(
+                        session,
+                        text,
+                        source_type,
+                        dispatch_config.js_options(),
+                        type_parameters,
+                    )
+                }))
+            }
             Route::Native(NativeLanguage::JsFragment(source_type, context)) => {
                 Ok(debug_span!("oxfmt::embed::format_to_ir", language = "js-fragment").in_scope(
                     || {
