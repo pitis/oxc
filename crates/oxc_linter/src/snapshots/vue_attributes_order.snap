@@ -1,0 +1,45 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(attributes-order): Attribute "v-if" should go before "@click".
+   ╭─[attributes_order.tsx:1:28]
+ 1 │ <template><div @click="go" v-if="x" /></template>
+   ·                            ────────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.
+
+  ⚠ vue(attributes-order): Attribute "is" should go before "id".
+   ╭─[attributes_order.tsx:1:23]
+ 1 │ <template><div id="a" is="x" /></template>
+   ·                       ──────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.
+
+  ⚠ vue(attributes-order): Attribute "@click" should go before "v-text".
+   ╭─[attributes_order.tsx:1:27]
+ 1 │ <template><div v-text="t" @click="go" /></template>
+   ·                           ───────────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.
+
+  ⚠ vue(attributes-order): Attribute "a" should go before "b".
+   ╭─[attributes_order.tsx:1:22]
+ 1 │ <template><div b="2" a="1" /></template>
+   ·                      ─────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.
+
+  ⚠ vue(attributes-order): Attribute "a" should go before "longer".
+   ╭─[attributes_order.tsx:1:28]
+ 1 │ <template><div longer="22" a="1" /></template>
+   ·                            ─────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.
+
+  ⚠ vue(attributes-order): Attribute "@click" should go before "v-if".
+   ╭─[attributes_order.tsx:1:25]
+ 1 │ <template><div v-if="x" @click="go" /></template>
+   ·                         ───────────
+   ╰────
+  help: Reorder the attributes to match the configured grouping.

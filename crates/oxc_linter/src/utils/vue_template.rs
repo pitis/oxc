@@ -168,6 +168,13 @@ pub fn is_html_svg_or_math_element_name(name: &str) -> bool {
         || MATHML_ELEMENTS.contains(&name)
 }
 
+/// Whether `name` is a well-known MathML element — the third of the three
+/// lists [`is_html_svg_or_math_element_name`] unions, exposed on its own for
+/// the rules that have to tell the namespaces apart.
+pub fn is_math_element_name(name: &str) -> bool {
+    MATHML_ELEMENTS.contains(&name)
+}
+
 /// MathML element names (eslint-plugin-vue checks these alongside HTML/SVG).
 const MATHML_ELEMENTS: &[&str] = &[
     "annotation",

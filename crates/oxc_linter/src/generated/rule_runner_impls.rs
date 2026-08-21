@@ -5244,6 +5244,11 @@ impl RuleRunner for crate::rules::vue::attribute_hyphenation::AttributeHyphenati
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::vue::attributes_order::AttributesOrder {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
 impl RuleRunner for crate::rules::vue::block_order::BlockOrder {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
@@ -5278,6 +5283,21 @@ impl RuleRunner for crate::rules::vue::define_props_destructuring::DefinePropsDe
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::vue::first_attribute_linebreak::FirstAttributeLinebreak {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::vue::html_end_tags::HtmlEndTags {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::vue::html_self_closing::HtmlSelfClosing {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::vue::max_props::MaxProps {
@@ -5635,6 +5655,11 @@ impl RuleRunner for crate::rules::vue::no_watch_after_await::NoWatchAfterAwait {
         AstType::ExportDefaultDeclaration,
     ]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::vue::one_component_per_file::OneComponentPerFile {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
 }
 
 impl RuleRunner for crate::rules::vue::prefer_import_from_vue::PreferImportFromVue {

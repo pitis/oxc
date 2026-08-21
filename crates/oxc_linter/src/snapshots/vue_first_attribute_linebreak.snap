@@ -1,0 +1,30 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(first-attribute-linebreak): Expected a linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:2:16]
+ 1 │ <template>
+ 2 │   <MyComponent id="a"
+   ·                ──────
+ 3 │     name="b" />
+   ╰────
+  help: Put the first attribute on its own line.
+
+  ⚠ vue(first-attribute-linebreak): Expected no linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:3:5]
+ 2 │   <MyComponent
+ 3 │     id="a"
+   ·     ──────
+ 4 │     name="b" />
+   ╰────
+  help: Put the first attribute on the same line as the tag name.
+
+  ⚠ vue(first-attribute-linebreak): Expected a linebreak before this attribute.
+   ╭─[first_attribute_linebreak.tsx:2:16]
+ 1 │ <template>
+ 2 │   <MyComponent id="a" name="b" />
+   ·                ──────
+ 3 │ </template>
+   ╰────
+  help: Put the first attribute on its own line.

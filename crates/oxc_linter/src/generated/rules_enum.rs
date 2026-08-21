@@ -918,12 +918,16 @@ pub use crate::rules::vitest::valid_expect_in_promise::ValidExpectInPromise as V
 pub use crate::rules::vitest::valid_title::ValidTitle as VitestValidTitle;
 pub use crate::rules::vitest::warn_todo::WarnTodo as VitestWarnTodo;
 pub use crate::rules::vue::attribute_hyphenation::AttributeHyphenation as VueAttributeHyphenation;
+pub use crate::rules::vue::attributes_order::AttributesOrder as VueAttributesOrder;
 pub use crate::rules::vue::block_order::BlockOrder as VueBlockOrder;
 pub use crate::rules::vue::comment_directive::CommentDirective as VueCommentDirective;
 pub use crate::rules::vue::component_definition_name_casing::ComponentDefinitionNameCasing as VueComponentDefinitionNameCasing;
 pub use crate::rules::vue::define_emits_declaration::DefineEmitsDeclaration as VueDefineEmitsDeclaration;
 pub use crate::rules::vue::define_props_declaration::DefinePropsDeclaration as VueDefinePropsDeclaration;
 pub use crate::rules::vue::define_props_destructuring::DefinePropsDestructuring as VueDefinePropsDestructuring;
+pub use crate::rules::vue::first_attribute_linebreak::FirstAttributeLinebreak as VueFirstAttributeLinebreak;
+pub use crate::rules::vue::html_end_tags::HtmlEndTags as VueHtmlEndTags;
+pub use crate::rules::vue::html_self_closing::HtmlSelfClosing as VueHtmlSelfClosing;
 pub use crate::rules::vue::max_props::MaxProps as VueMaxProps;
 pub use crate::rules::vue::multi_word_component_names::MultiWordComponentNames as VueMultiWordComponentNames;
 pub use crate::rules::vue::next_tick_style::NextTickStyle as VueNextTickStyle;
@@ -980,6 +984,7 @@ pub use crate::rules::vue::no_v_for_template_key_on_child::NoVForTemplateKeyOnCh
 pub use crate::rules::vue::no_v_html::NoVHtml as VueNoVHtml;
 pub use crate::rules::vue::no_v_text_v_html_on_component::NoVTextVHtmlOnComponent as VueNoVTextVHtmlOnComponent;
 pub use crate::rules::vue::no_watch_after_await::NoWatchAfterAwait as VueNoWatchAfterAwait;
+pub use crate::rules::vue::one_component_per_file::OneComponentPerFile as VueOneComponentPerFile;
 pub use crate::rules::vue::prefer_import_from_vue::PreferImportFromVue as VuePreferImportFromVue;
 pub use crate::rules::vue::prop_name_casing::PropNameCasing as VuePropNameCasing;
 pub use crate::rules::vue::require_component_is::RequireComponentIs as VueRequireComponentIs;
@@ -1866,12 +1871,16 @@ pub enum RuleEnum {
     NodeNoSync(NodeNoSync),
     NodeNoTopLevelAwait(NodeNoTopLevelAwait),
     VueAttributeHyphenation(VueAttributeHyphenation),
+    VueAttributesOrder(VueAttributesOrder),
     VueBlockOrder(VueBlockOrder),
     VueCommentDirective(VueCommentDirective),
     VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing),
     VueDefineEmitsDeclaration(VueDefineEmitsDeclaration),
     VueDefinePropsDeclaration(VueDefinePropsDeclaration),
     VueDefinePropsDestructuring(VueDefinePropsDestructuring),
+    VueFirstAttributeLinebreak(VueFirstAttributeLinebreak),
+    VueHtmlEndTags(VueHtmlEndTags),
+    VueHtmlSelfClosing(VueHtmlSelfClosing),
     VueMaxProps(VueMaxProps),
     VueMultiWordComponentNames(VueMultiWordComponentNames),
     VueNextTickStyle(VueNextTickStyle),
@@ -1928,6 +1937,7 @@ pub enum RuleEnum {
     VueNoVHtml(VueNoVHtml),
     VueNoVTextVHtmlOnComponent(VueNoVTextVHtmlOnComponent),
     VueNoWatchAfterAwait(VueNoWatchAfterAwait),
+    VueOneComponentPerFile(VueOneComponentPerFile),
     VuePreferImportFromVue(VuePreferImportFromVue),
     VuePropNameCasing(VuePropNameCasing),
     VueRequireComponentIs(VueRequireComponentIs),
@@ -2982,13 +2992,17 @@ const NODE_NO_PROCESS_ENV_ID: usize = NODE_NO_PATH_CONCAT_ID + 1usize;
 const NODE_NO_SYNC_ID: usize = NODE_NO_PROCESS_ENV_ID + 1usize;
 const NODE_NO_TOP_LEVEL_AWAIT_ID: usize = NODE_NO_SYNC_ID + 1usize;
 const VUE_ATTRIBUTE_HYPHENATION_ID: usize = NODE_NO_TOP_LEVEL_AWAIT_ID + 1usize;
-const VUE_BLOCK_ORDER_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_ATTRIBUTES_ORDER_ID: usize = VUE_ATTRIBUTE_HYPHENATION_ID + 1usize;
+const VUE_BLOCK_ORDER_ID: usize = VUE_ATTRIBUTES_ORDER_ID + 1usize;
 const VUE_COMMENT_DIRECTIVE_ID: usize = VUE_BLOCK_ORDER_ID + 1usize;
 const VUE_COMPONENT_DEFINITION_NAME_CASING_ID: usize = VUE_COMMENT_DIRECTIVE_ID + 1usize;
 const VUE_DEFINE_EMITS_DECLARATION_ID: usize = VUE_COMPONENT_DEFINITION_NAME_CASING_ID + 1usize;
 const VUE_DEFINE_PROPS_DECLARATION_ID: usize = VUE_DEFINE_EMITS_DECLARATION_ID + 1usize;
 const VUE_DEFINE_PROPS_DESTRUCTURING_ID: usize = VUE_DEFINE_PROPS_DECLARATION_ID + 1usize;
-const VUE_MAX_PROPS_ID: usize = VUE_DEFINE_PROPS_DESTRUCTURING_ID + 1usize;
+const VUE_FIRST_ATTRIBUTE_LINEBREAK_ID: usize = VUE_DEFINE_PROPS_DESTRUCTURING_ID + 1usize;
+const VUE_HTML_END_TAGS_ID: usize = VUE_FIRST_ATTRIBUTE_LINEBREAK_ID + 1usize;
+const VUE_HTML_SELF_CLOSING_ID: usize = VUE_HTML_END_TAGS_ID + 1usize;
+const VUE_MAX_PROPS_ID: usize = VUE_HTML_SELF_CLOSING_ID + 1usize;
 const VUE_MULTI_WORD_COMPONENT_NAMES_ID: usize = VUE_MAX_PROPS_ID + 1usize;
 const VUE_NEXT_TICK_STYLE_ID: usize = VUE_MULTI_WORD_COMPONENT_NAMES_ID + 1usize;
 const VUE_NO_ARROW_FUNCTIONS_IN_WATCH_ID: usize = VUE_NEXT_TICK_STYLE_ID + 1usize;
@@ -3056,7 +3070,8 @@ const VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID: usize = VUE_NO_USELESS_TEMPLATE_ATT
 const VUE_NO_V_HTML_ID: usize = VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID + 1usize;
 const VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID: usize = VUE_NO_V_HTML_ID + 1usize;
 const VUE_NO_WATCH_AFTER_AWAIT_ID: usize = VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID + 1usize;
-const VUE_PREFER_IMPORT_FROM_VUE_ID: usize = VUE_NO_WATCH_AFTER_AWAIT_ID + 1usize;
+const VUE_ONE_COMPONENT_PER_FILE_ID: usize = VUE_NO_WATCH_AFTER_AWAIT_ID + 1usize;
+const VUE_PREFER_IMPORT_FROM_VUE_ID: usize = VUE_ONE_COMPONENT_PER_FILE_ID + 1usize;
 const VUE_PROP_NAME_CASING_ID: usize = VUE_PREFER_IMPORT_FROM_VUE_ID + 1usize;
 const VUE_REQUIRE_COMPONENT_IS_ID: usize = VUE_PROP_NAME_CASING_ID + 1usize;
 const VUE_REQUIRE_DEFAULT_EXPORT_ID: usize = VUE_REQUIRE_COMPONENT_IS_ID + 1usize;
@@ -3198,7 +3213,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1013usize] = [
+static RULE_NAMES: [&str; 1018usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4024,12 +4039,16 @@ static RULE_NAMES: [&str; 1013usize] = [
     NodeNoSync::NAME,
     NodeNoTopLevelAwait::NAME,
     VueAttributeHyphenation::NAME,
+    VueAttributesOrder::NAME,
     VueBlockOrder::NAME,
     VueCommentDirective::NAME,
     VueComponentDefinitionNameCasing::NAME,
     VueDefineEmitsDeclaration::NAME,
     VueDefinePropsDeclaration::NAME,
     VueDefinePropsDestructuring::NAME,
+    VueFirstAttributeLinebreak::NAME,
+    VueHtmlEndTags::NAME,
+    VueHtmlSelfClosing::NAME,
     VueMaxProps::NAME,
     VueMultiWordComponentNames::NAME,
     VueNextTickStyle::NAME,
@@ -4086,6 +4105,7 @@ static RULE_NAMES: [&str; 1013usize] = [
     VueNoVHtml::NAME,
     VueNoVTextVHtmlOnComponent::NAME,
     VueNoWatchAfterAwait::NAME,
+    VueOneComponentPerFile::NAME,
     VuePreferImportFromVue::NAME,
     VuePropNameCasing::NAME,
     VueRequireComponentIs::NAME,
@@ -5167,12 +5187,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NODE_NO_SYNC_ID,
             Self::NodeNoTopLevelAwait(_) => NODE_NO_TOP_LEVEL_AWAIT_ID,
             Self::VueAttributeHyphenation(_) => VUE_ATTRIBUTE_HYPHENATION_ID,
+            Self::VueAttributesOrder(_) => VUE_ATTRIBUTES_ORDER_ID,
             Self::VueBlockOrder(_) => VUE_BLOCK_ORDER_ID,
             Self::VueCommentDirective(_) => VUE_COMMENT_DIRECTIVE_ID,
             Self::VueComponentDefinitionNameCasing(_) => VUE_COMPONENT_DEFINITION_NAME_CASING_ID,
             Self::VueDefineEmitsDeclaration(_) => VUE_DEFINE_EMITS_DECLARATION_ID,
             Self::VueDefinePropsDeclaration(_) => VUE_DEFINE_PROPS_DECLARATION_ID,
             Self::VueDefinePropsDestructuring(_) => VUE_DEFINE_PROPS_DESTRUCTURING_ID,
+            Self::VueFirstAttributeLinebreak(_) => VUE_FIRST_ATTRIBUTE_LINEBREAK_ID,
+            Self::VueHtmlEndTags(_) => VUE_HTML_END_TAGS_ID,
+            Self::VueHtmlSelfClosing(_) => VUE_HTML_SELF_CLOSING_ID,
             Self::VueMaxProps(_) => VUE_MAX_PROPS_ID,
             Self::VueMultiWordComponentNames(_) => VUE_MULTI_WORD_COMPONENT_NAMES_ID,
             Self::VueNextTickStyle(_) => VUE_NEXT_TICK_STYLE_ID,
@@ -5237,6 +5261,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VUE_NO_V_HTML_ID,
             Self::VueNoVTextVHtmlOnComponent(_) => VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID,
             Self::VueNoWatchAfterAwait(_) => VUE_NO_WATCH_AFTER_AWAIT_ID,
+            Self::VueOneComponentPerFile(_) => VUE_ONE_COMPONENT_PER_FILE_ID,
             Self::VuePreferImportFromVue(_) => VUE_PREFER_IMPORT_FROM_VUE_ID,
             Self::VuePropNameCasing(_) => VUE_PROP_NAME_CASING_ID,
             Self::VueRequireComponentIs(_) => VUE_REQUIRE_COMPONENT_IS_ID,
@@ -6385,12 +6410,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::CATEGORY,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::CATEGORY,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::CATEGORY,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::CATEGORY,
             Self::VueBlockOrder(_) => VueBlockOrder::CATEGORY,
             Self::VueCommentDirective(_) => VueCommentDirective::CATEGORY,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::CATEGORY,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::CATEGORY,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::CATEGORY,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::CATEGORY,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::CATEGORY,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::CATEGORY,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::CATEGORY,
             Self::VueMaxProps(_) => VueMaxProps::CATEGORY,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::CATEGORY,
             Self::VueNextTickStyle(_) => VueNextTickStyle::CATEGORY,
@@ -6463,6 +6492,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::CATEGORY,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::CATEGORY,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::CATEGORY,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::CATEGORY,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::CATEGORY,
             Self::VuePropNameCasing(_) => VuePropNameCasing::CATEGORY,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::CATEGORY,
@@ -7557,12 +7587,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::FIX,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::FIX,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::FIX,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::FIX,
             Self::VueBlockOrder(_) => VueBlockOrder::FIX,
             Self::VueCommentDirective(_) => VueCommentDirective::FIX,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::FIX,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::FIX,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::FIX,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::FIX,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::FIX,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::FIX,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::FIX,
             Self::VueMaxProps(_) => VueMaxProps::FIX,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::FIX,
             Self::VueNextTickStyle(_) => VueNextTickStyle::FIX,
@@ -7625,6 +7659,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::FIX,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::FIX,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::FIX,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::FIX,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::FIX,
             Self::VuePropNameCasing(_) => VuePropNameCasing::FIX,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::FIX,
@@ -8965,6 +9000,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::documentation(),
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::documentation(),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::documentation(),
+            Self::VueAttributesOrder(_) => VueAttributesOrder::documentation(),
             Self::VueBlockOrder(_) => VueBlockOrder::documentation(),
             Self::VueCommentDirective(_) => VueCommentDirective::documentation(),
             Self::VueComponentDefinitionNameCasing(_) => {
@@ -8973,6 +9009,9 @@ impl RuleEnum {
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::documentation(),
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::documentation(),
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::documentation(),
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::documentation(),
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::documentation(),
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::documentation(),
             Self::VueMaxProps(_) => VueMaxProps::documentation(),
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::documentation(),
             Self::VueNextTickStyle(_) => VueNextTickStyle::documentation(),
@@ -9065,6 +9104,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::documentation(),
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::documentation(),
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::documentation(),
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::documentation(),
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::documentation(),
             Self::VuePropNameCasing(_) => VuePropNameCasing::documentation(),
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::documentation(),
@@ -11616,6 +11656,8 @@ impl RuleEnum {
                 .or_else(|| NodeNoTopLevelAwait::schema(generator)),
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::config_schema(generator)
                 .or_else(|| VueAttributeHyphenation::schema(generator)),
+            Self::VueAttributesOrder(_) => VueAttributesOrder::config_schema(generator)
+                .or_else(|| VueAttributesOrder::schema(generator)),
             Self::VueBlockOrder(_) => {
                 VueBlockOrder::config_schema(generator).or_else(|| VueBlockOrder::schema(generator))
             }
@@ -11637,6 +11679,14 @@ impl RuleEnum {
                 VueDefinePropsDestructuring::config_schema(generator)
                     .or_else(|| VueDefinePropsDestructuring::schema(generator))
             }
+            Self::VueFirstAttributeLinebreak(_) => {
+                VueFirstAttributeLinebreak::config_schema(generator)
+                    .or_else(|| VueFirstAttributeLinebreak::schema(generator))
+            }
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::config_schema(generator)
+                .or_else(|| VueHtmlEndTags::schema(generator)),
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::config_schema(generator)
+                .or_else(|| VueHtmlSelfClosing::schema(generator)),
             Self::VueMaxProps(_) => {
                 VueMaxProps::config_schema(generator).or_else(|| VueMaxProps::schema(generator))
             }
@@ -11808,6 +11858,8 @@ impl RuleEnum {
             }
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::config_schema(generator)
                 .or_else(|| VueNoWatchAfterAwait::schema(generator)),
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::config_schema(generator)
+                .or_else(|| VueOneComponentPerFile::schema(generator)),
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::config_schema(generator)
                 .or_else(|| VuePreferImportFromVue::schema(generator)),
             Self::VuePropNameCasing(_) => VuePropNameCasing::config_schema(generator)
@@ -13004,12 +13056,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => "node",
             Self::NodeNoTopLevelAwait(_) => "node",
             Self::VueAttributeHyphenation(_) => "vue",
+            Self::VueAttributesOrder(_) => "vue",
             Self::VueBlockOrder(_) => "vue",
             Self::VueCommentDirective(_) => "vue",
             Self::VueComponentDefinitionNameCasing(_) => "vue",
             Self::VueDefineEmitsDeclaration(_) => "vue",
             Self::VueDefinePropsDeclaration(_) => "vue",
             Self::VueDefinePropsDestructuring(_) => "vue",
+            Self::VueFirstAttributeLinebreak(_) => "vue",
+            Self::VueHtmlEndTags(_) => "vue",
+            Self::VueHtmlSelfClosing(_) => "vue",
             Self::VueMaxProps(_) => "vue",
             Self::VueMultiWordComponentNames(_) => "vue",
             Self::VueNextTickStyle(_) => "vue",
@@ -13066,6 +13122,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => "vue",
             Self::VueNoVTextVHtmlOnComponent(_) => "vue",
             Self::VueNoWatchAfterAwait(_) => "vue",
+            Self::VueOneComponentPerFile(_) => "vue",
             Self::VuePreferImportFromVue(_) => "vue",
             Self::VuePropNameCasing(_) => "vue",
             Self::VueRequireComponentIs(_) => "vue",
@@ -14241,6 +14298,9 @@ impl RuleEnum {
             Self::VueAttributeHyphenation(_) => Ok(Self::VueAttributeHyphenation(
                 VueAttributeHyphenation::from_configuration(value)?,
             )),
+            Self::VueAttributesOrder(_) => {
+                Ok(Self::VueAttributesOrder(VueAttributesOrder::from_configuration(value)?))
+            }
             Self::VueBlockOrder(_) => {
                 Ok(Self::VueBlockOrder(VueBlockOrder::from_configuration(value)?))
             }
@@ -14258,6 +14318,12 @@ impl RuleEnum {
             Self::VueDefinePropsDestructuring(_) => Ok(Self::VueDefinePropsDestructuring(
                 VueDefinePropsDestructuring::from_configuration(value)?,
             )),
+            Self::VueFirstAttributeLinebreak(_) => Ok(Self::VueFirstAttributeLinebreak(
+                VueFirstAttributeLinebreak::from_configuration(value)?,
+            )),
+            Self::VueHtmlSelfClosing(_) => {
+                Ok(Self::VueHtmlSelfClosing(VueHtmlSelfClosing::from_configuration(value)?))
+            }
             Self::VueMaxProps(_) => Ok(Self::VueMaxProps(VueMaxProps::from_configuration(value)?)),
             Self::VueMultiWordComponentNames(_) => Ok(Self::VueMultiWordComponentNames(
                 VueMultiWordComponentNames::from_configuration(value)?,
@@ -15304,12 +15370,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run(node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run(node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run(node, ctx),
+            Self::VueAttributesOrder(rule) => rule.run(node, ctx),
             Self::VueBlockOrder(rule) => rule.run(node, ctx),
             Self::VueCommentDirective(rule) => rule.run(node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run(node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run(node, ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run(node, ctx),
+            Self::VueFirstAttributeLinebreak(rule) => rule.run(node, ctx),
+            Self::VueHtmlEndTags(rule) => rule.run(node, ctx),
+            Self::VueHtmlSelfClosing(rule) => rule.run(node, ctx),
             Self::VueMaxProps(rule) => rule.run(node, ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run(node, ctx),
             Self::VueNextTickStyle(rule) => rule.run(node, ctx),
@@ -15366,6 +15436,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.run(node, ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run(node, ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run(node, ctx),
+            Self::VueOneComponentPerFile(rule) => rule.run(node, ctx),
             Self::VuePreferImportFromVue(rule) => rule.run(node, ctx),
             Self::VuePropNameCasing(rule) => rule.run(node, ctx),
             Self::VueRequireComponentIs(rule) => rule.run(node, ctx),
@@ -16334,12 +16405,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_once(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_once(ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_once(ctx),
+            Self::VueAttributesOrder(rule) => rule.run_once(ctx),
             Self::VueBlockOrder(rule) => rule.run_once(ctx),
             Self::VueCommentDirective(rule) => rule.run_once(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_once(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_once(ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run_once(ctx),
+            Self::VueFirstAttributeLinebreak(rule) => rule.run_once(ctx),
+            Self::VueHtmlEndTags(rule) => rule.run_once(ctx),
+            Self::VueHtmlSelfClosing(rule) => rule.run_once(ctx),
             Self::VueMaxProps(rule) => rule.run_once(ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run_once(ctx),
             Self::VueNextTickStyle(rule) => rule.run_once(ctx),
@@ -16396,6 +16471,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.run_once(ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_once(ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run_once(ctx),
+            Self::VueOneComponentPerFile(rule) => rule.run_once(ctx),
             Self::VuePreferImportFromVue(rule) => rule.run_once(ctx),
             Self::VuePropNameCasing(rule) => rule.run_once(ctx),
             Self::VueRequireComponentIs(rule) => rule.run_once(ctx),
@@ -17477,12 +17553,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueAttributeHyphenation(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueAttributesOrder(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueBlockOrder(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueFirstAttributeLinebreak(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueHtmlEndTags(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueHtmlSelfClosing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueMaxProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNextTickStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17545,6 +17625,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueOneComponentPerFile(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VuePreferImportFromVue(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VuePropNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireComponentIs(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18530,12 +18611,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.should_run(ctx),
             Self::NodeNoTopLevelAwait(rule) => rule.should_run(ctx),
             Self::VueAttributeHyphenation(rule) => rule.should_run(ctx),
+            Self::VueAttributesOrder(rule) => rule.should_run(ctx),
             Self::VueBlockOrder(rule) => rule.should_run(ctx),
             Self::VueCommentDirective(rule) => rule.should_run(ctx),
             Self::VueComponentDefinitionNameCasing(rule) => rule.should_run(ctx),
             Self::VueDefineEmitsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDeclaration(rule) => rule.should_run(ctx),
             Self::VueDefinePropsDestructuring(rule) => rule.should_run(ctx),
+            Self::VueFirstAttributeLinebreak(rule) => rule.should_run(ctx),
+            Self::VueHtmlEndTags(rule) => rule.should_run(ctx),
+            Self::VueHtmlSelfClosing(rule) => rule.should_run(ctx),
             Self::VueMaxProps(rule) => rule.should_run(ctx),
             Self::VueMultiWordComponentNames(rule) => rule.should_run(ctx),
             Self::VueNextTickStyle(rule) => rule.should_run(ctx),
@@ -18592,6 +18677,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.should_run(ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.should_run(ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.should_run(ctx),
+            Self::VueOneComponentPerFile(rule) => rule.should_run(ctx),
             Self::VuePreferImportFromVue(rule) => rule.should_run(ctx),
             Self::VuePropNameCasing(rule) => rule.should_run(ctx),
             Self::VueRequireComponentIs(rule) => rule.should_run(ctx),
@@ -19915,6 +20001,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::IS_TSGOLINT_RULE,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::IS_TSGOLINT_RULE,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::IS_TSGOLINT_RULE,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::IS_TSGOLINT_RULE,
             Self::VueBlockOrder(_) => VueBlockOrder::IS_TSGOLINT_RULE,
             Self::VueCommentDirective(_) => VueCommentDirective::IS_TSGOLINT_RULE,
             Self::VueComponentDefinitionNameCasing(_) => {
@@ -19923,6 +20010,9 @@ impl RuleEnum {
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::IS_TSGOLINT_RULE,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::IS_TSGOLINT_RULE,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::IS_TSGOLINT_RULE,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::IS_TSGOLINT_RULE,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::IS_TSGOLINT_RULE,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::IS_TSGOLINT_RULE,
             Self::VueMaxProps(_) => VueMaxProps::IS_TSGOLINT_RULE,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::IS_TSGOLINT_RULE,
             Self::VueNextTickStyle(_) => VueNextTickStyle::IS_TSGOLINT_RULE,
@@ -20015,6 +20105,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::IS_TSGOLINT_RULE,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::IS_TSGOLINT_RULE,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::IS_TSGOLINT_RULE,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::IS_TSGOLINT_RULE,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::IS_TSGOLINT_RULE,
             Self::VuePropNameCasing(_) => VuePropNameCasing::IS_TSGOLINT_RULE,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::IS_TSGOLINT_RULE,
@@ -21200,12 +21291,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::VERSION,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::VERSION,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::VERSION,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::VERSION,
             Self::VueBlockOrder(_) => VueBlockOrder::VERSION,
             Self::VueCommentDirective(_) => VueCommentDirective::VERSION,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::VERSION,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::VERSION,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::VERSION,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::VERSION,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::VERSION,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::VERSION,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::VERSION,
             Self::VueMaxProps(_) => VueMaxProps::VERSION,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::VERSION,
             Self::VueNextTickStyle(_) => VueNextTickStyle::VERSION,
@@ -21278,6 +21373,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::VERSION,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::VERSION,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::VERSION,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::VERSION,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::VERSION,
             Self::VuePropNameCasing(_) => VuePropNameCasing::VERSION,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::VERSION,
@@ -22466,6 +22562,7 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::HAS_CONFIG,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::HAS_CONFIG,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::HAS_CONFIG,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::HAS_CONFIG,
             Self::VueBlockOrder(_) => VueBlockOrder::HAS_CONFIG,
             Self::VueCommentDirective(_) => VueCommentDirective::HAS_CONFIG,
             Self::VueComponentDefinitionNameCasing(_) => {
@@ -22474,6 +22571,9 @@ impl RuleEnum {
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::HAS_CONFIG,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::HAS_CONFIG,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::HAS_CONFIG,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::HAS_CONFIG,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::HAS_CONFIG,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::HAS_CONFIG,
             Self::VueMaxProps(_) => VueMaxProps::HAS_CONFIG,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::HAS_CONFIG,
             Self::VueNextTickStyle(_) => VueNextTickStyle::HAS_CONFIG,
@@ -22552,6 +22652,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::HAS_CONFIG,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::HAS_CONFIG,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::HAS_CONFIG,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::HAS_CONFIG,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::HAS_CONFIG,
             Self::VuePropNameCasing(_) => VuePropNameCasing::HAS_CONFIG,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::HAS_CONFIG,
@@ -23655,12 +23756,16 @@ impl RuleEnum {
             Self::NodeNoSync(_) => NodeNoSync::INFO,
             Self::NodeNoTopLevelAwait(_) => NodeNoTopLevelAwait::INFO,
             Self::VueAttributeHyphenation(_) => VueAttributeHyphenation::INFO,
+            Self::VueAttributesOrder(_) => VueAttributesOrder::INFO,
             Self::VueBlockOrder(_) => VueBlockOrder::INFO,
             Self::VueCommentDirective(_) => VueCommentDirective::INFO,
             Self::VueComponentDefinitionNameCasing(_) => VueComponentDefinitionNameCasing::INFO,
             Self::VueDefineEmitsDeclaration(_) => VueDefineEmitsDeclaration::INFO,
             Self::VueDefinePropsDeclaration(_) => VueDefinePropsDeclaration::INFO,
             Self::VueDefinePropsDestructuring(_) => VueDefinePropsDestructuring::INFO,
+            Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::INFO,
+            Self::VueHtmlEndTags(_) => VueHtmlEndTags::INFO,
+            Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::INFO,
             Self::VueMaxProps(_) => VueMaxProps::INFO,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::INFO,
             Self::VueNextTickStyle(_) => VueNextTickStyle::INFO,
@@ -23723,6 +23828,7 @@ impl RuleEnum {
             Self::VueNoVHtml(_) => VueNoVHtml::INFO,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::INFO,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::INFO,
+            Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::INFO,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::INFO,
             Self::VuePropNameCasing(_) => VuePropNameCasing::INFO,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::INFO,
@@ -24699,12 +24805,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.types_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.types_info(),
             Self::VueAttributeHyphenation(rule) => rule.types_info(),
+            Self::VueAttributesOrder(rule) => rule.types_info(),
             Self::VueBlockOrder(rule) => rule.types_info(),
             Self::VueCommentDirective(rule) => rule.types_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.types_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.types_info(),
             Self::VueDefinePropsDestructuring(rule) => rule.types_info(),
+            Self::VueFirstAttributeLinebreak(rule) => rule.types_info(),
+            Self::VueHtmlEndTags(rule) => rule.types_info(),
+            Self::VueHtmlSelfClosing(rule) => rule.types_info(),
             Self::VueMaxProps(rule) => rule.types_info(),
             Self::VueMultiWordComponentNames(rule) => rule.types_info(),
             Self::VueNextTickStyle(rule) => rule.types_info(),
@@ -24761,6 +24871,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.types_info(),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.types_info(),
             Self::VueNoWatchAfterAwait(rule) => rule.types_info(),
+            Self::VueOneComponentPerFile(rule) => rule.types_info(),
             Self::VuePreferImportFromVue(rule) => rule.types_info(),
             Self::VuePropNameCasing(rule) => rule.types_info(),
             Self::VueRequireComponentIs(rule) => rule.types_info(),
@@ -25716,12 +25827,16 @@ impl RuleEnum {
             Self::NodeNoSync(rule) => rule.run_info(),
             Self::NodeNoTopLevelAwait(rule) => rule.run_info(),
             Self::VueAttributeHyphenation(rule) => rule.run_info(),
+            Self::VueAttributesOrder(rule) => rule.run_info(),
             Self::VueBlockOrder(rule) => rule.run_info(),
             Self::VueCommentDirective(rule) => rule.run_info(),
             Self::VueComponentDefinitionNameCasing(rule) => rule.run_info(),
             Self::VueDefineEmitsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDeclaration(rule) => rule.run_info(),
             Self::VueDefinePropsDestructuring(rule) => rule.run_info(),
+            Self::VueFirstAttributeLinebreak(rule) => rule.run_info(),
+            Self::VueHtmlEndTags(rule) => rule.run_info(),
+            Self::VueHtmlSelfClosing(rule) => rule.run_info(),
             Self::VueMaxProps(rule) => rule.run_info(),
             Self::VueMultiWordComponentNames(rule) => rule.run_info(),
             Self::VueNextTickStyle(rule) => rule.run_info(),
@@ -25778,6 +25893,7 @@ impl RuleEnum {
             Self::VueNoVHtml(rule) => rule.run_info(),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_info(),
             Self::VueNoWatchAfterAwait(rule) => rule.run_info(),
+            Self::VueOneComponentPerFile(rule) => rule.run_info(),
             Self::VuePreferImportFromVue(rule) => rule.run_info(),
             Self::VuePropNameCasing(rule) => rule.run_info(),
             Self::VueRequireComponentIs(rule) => rule.run_info(),
@@ -26865,12 +26981,16 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::NodeNoSync(NodeNoSync::default()),
         RuleEnum::NodeNoTopLevelAwait(NodeNoTopLevelAwait::default()),
         RuleEnum::VueAttributeHyphenation(VueAttributeHyphenation::default()),
+        RuleEnum::VueAttributesOrder(VueAttributesOrder::default()),
         RuleEnum::VueBlockOrder(VueBlockOrder::default()),
         RuleEnum::VueCommentDirective(VueCommentDirective::default()),
         RuleEnum::VueComponentDefinitionNameCasing(VueComponentDefinitionNameCasing::default()),
         RuleEnum::VueDefineEmitsDeclaration(VueDefineEmitsDeclaration::default()),
         RuleEnum::VueDefinePropsDeclaration(VueDefinePropsDeclaration::default()),
         RuleEnum::VueDefinePropsDestructuring(VueDefinePropsDestructuring::default()),
+        RuleEnum::VueFirstAttributeLinebreak(VueFirstAttributeLinebreak::default()),
+        RuleEnum::VueHtmlEndTags(VueHtmlEndTags::default()),
+        RuleEnum::VueHtmlSelfClosing(VueHtmlSelfClosing::default()),
         RuleEnum::VueMaxProps(VueMaxProps::default()),
         RuleEnum::VueMultiWordComponentNames(VueMultiWordComponentNames::default()),
         RuleEnum::VueNextTickStyle(VueNextTickStyle::default()),
@@ -26933,6 +27053,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoVHtml(VueNoVHtml::default()),
         RuleEnum::VueNoVTextVHtmlOnComponent(VueNoVTextVHtmlOnComponent::default()),
         RuleEnum::VueNoWatchAfterAwait(VueNoWatchAfterAwait::default()),
+        RuleEnum::VueOneComponentPerFile(VueOneComponentPerFile::default()),
         RuleEnum::VuePreferImportFromVue(VuePreferImportFromVue::default()),
         RuleEnum::VuePropNameCasing(VuePropNameCasing::default()),
         RuleEnum::VueRequireComponentIs(VueRequireComponentIs::default()),

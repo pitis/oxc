@@ -915,12 +915,16 @@ pub(crate) mod node {
 /// <https://github.com/vuejs/eslint-plugin-vue>
 pub(crate) mod vue {
     pub mod attribute_hyphenation;
+    pub mod attributes_order;
     pub mod block_order;
     pub mod comment_directive;
     pub mod component_definition_name_casing;
     pub mod define_emits_declaration;
     pub mod define_props_declaration;
     pub mod define_props_destructuring;
+    pub mod first_attribute_linebreak;
+    pub mod html_end_tags;
+    pub mod html_self_closing;
     pub mod max_props;
     pub mod multi_word_component_names;
     pub mod next_tick_style;
@@ -977,6 +981,7 @@ pub(crate) mod vue {
     pub mod no_v_html;
     pub mod no_v_text_v_html_on_component;
     pub mod no_watch_after_await;
+    pub mod one_component_per_file;
     pub mod prefer_import_from_vue;
     pub mod prop_name_casing;
     pub mod require_component_is;
@@ -1023,6 +1028,24 @@ pub(crate) mod vue {
 }
 
 /// <https://github.com/sveltejs/eslint-plugin-svelte>
+///
+/// 83 of upstream's 86 rules, and all 37 in `recommended`. The three absent
+/// ones are absent on purpose, but only one of them is genuinely covered by
+/// something else — the other two are real checks a project loses by
+/// switching, and saying "83/86" rather than "100%" is deliberate:
+///
+/// - `svelte/indent` — genuinely redundant: `oxfmt` formats `.svelte`
+///   natively, so the formatter enforces what the rule checked. 2,700 lines
+///   upstream, reimplementing none of it.
+/// - `svelte/@typescript-eslint/no-unnecessary-condition` — a re-export of the
+///   typescript-eslint rule, which exists here as
+///   `typescript/no-unnecessary-condition`. That is *not* the same as covering
+///   it: type-aware linting runs through `oxlint-tsgolint`, which cannot see
+///   `.svelte` files at all, so on Svelte sources the check never runs.
+/// - `svelte/valid-compile` — not implemented. It surfaces the Svelte
+///   compiler's own warnings (a11y, unused CSS, …), which nothing else here
+///   reproduces. Deliverable as a first-party oxlint JS plugin, since `svelte`
+///   is already every Svelte project's dependency; not built.
 pub(crate) mod svelte {
     pub mod block_lang;
     pub mod button_has_type;

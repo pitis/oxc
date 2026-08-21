@@ -1,0 +1,24 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(html-end-tags): '<p>' should have end tag.
+   ╭─[html_end_tags.tsx:1:16]
+ 1 │ <template><div><p>text</div></template>
+   ·                ───
+   ╰────
+  help: Add `</p>`, or write the element as `<p />`.
+
+  ⚠ vue(html-end-tags): '<div>' should have end tag.
+   ╭─[html_end_tags.tsx:1:11]
+ 1 │ <template><div></template>
+   ·           ─────
+   ╰────
+  help: Add `</div>`, or write the element as `<div />`.
+
+  ⚠ vue(html-end-tags): '<em>' should have end tag.
+   ╭─[html_end_tags.tsx:1:22]
+ 1 │ <template><div><span><em>x</span></div></template>
+   ·                      ────
+   ╰────
+  help: Add `</em>`, or write the element as `<em />`.

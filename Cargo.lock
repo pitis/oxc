@@ -4224,7 +4224,7 @@ checksum = "5c3082ca00d5a5ef149bb8b555a72ae84c9c59f7250f013ac822ac2e49b19c64"
 [[package]]
 name = "vue_sfc_parser"
 version = "0.1.0"
-source = "git+https://github.com/pitis/vue-sfc-parser?tag=v0.1.0#cb5c90adef2b4311555da6936a945f5f585c6859"
+source = "git+https://github.com/pitis/vue-sfc-parser?tag=v0.1.1#fa78286b8cdd4b8ca79d304530ecb1c6a826d9ab"
 dependencies = [
  "oxc_span",
 ]

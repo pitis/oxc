@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(html-self-closing): Require self-closing on Vue.js custom components (<MyComponent>).
+   ╭─[html_self_closing.tsx:1:24]
+ 1 │ <template><MyComponent></MyComponent></template>
+   ·                        ──────────────
+   ╰────
+  help: Write it as `<MyComponent />`.
+
+  ⚠ vue(html-self-closing): Require self-closing on HTML elements (<div>).
+   ╭─[html_self_closing.tsx:1:16]
+ 1 │ <template><div></div></template>
+   ·                ──────
+   ╰────
+  help: Write it as `<div />`.
+
+  ⚠ vue(html-self-closing): Disallow self-closing on HTML void elements (<img/>).
+   ╭─[html_self_closing.tsx:1:16]
+ 1 │ <template><img /></template>
+   ·                ──
+   ╰────
+  help: Write it as `<img>`.
+
+  ⚠ vue(html-self-closing): Require self-closing on HTML elements (<div>).
+   ╭─[html_self_closing.tsx:2:3]
+ 1 │ <template><div>
+ 2 │   </div></template>
+   ·   ──────
+   ╰────
+  help: Write it as `<div />`.
+
+  ⚠ vue(html-self-closing): Disallow self-closing on Vue.js custom components (<MyComponent/>).
+   ╭─[html_self_closing.tsx:1:24]
+ 1 │ <template><MyComponent /></template>
+   ·                        ──
+   ╰────
+  help: Write it as `<MyComponent>`.
+
+  ⚠ vue(html-self-closing): Require self-closing on SVG elements (<circle>).
+   ╭─[html_self_closing.tsx:1:24]
+ 1 │ <template><svg><circle></circle></svg></template>
+   ·                        ─────────
+   ╰────
+  help: Write it as `<circle />`.

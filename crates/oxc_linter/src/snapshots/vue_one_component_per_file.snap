@@ -1,0 +1,51 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:1:22]
+ 1 │ Vue.component('foo', {})
+   ·                      ──
+ 2 │ Vue.component('bar', {})
+   ╰────
+  help: Move each component into a file of its own.
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:2:22]
+ 1 │ Vue.component('foo', {})
+ 2 │ Vue.component('bar', {})
+   ·                      ──
+   ╰────
+  help: Move each component into a file of its own.
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:1:22]
+ 1 │ app.component('foo', {})
+   ·                      ──
+ 2 │ app.component('bar', {})
+   ╰────
+  help: Move each component into a file of its own.
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:2:22]
+ 1 │ app.component('foo', {})
+ 2 │ app.component('bar', {})
+   ·                      ──
+   ╰────
+  help: Move each component into a file of its own.
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:1:24]
+ 1 │ <script>export default {}
+   ·                        ──
+ 2 │ Vue.component('bar', {})</script>
+   ╰────
+  help: Move each component into a file of its own.
+
+  ⚠ vue(one-component-per-file): There is more than one component in this file.
+   ╭─[one_component_per_file.tsx:2:22]
+ 1 │ <script>export default {}
+ 2 │ Vue.component('bar', {})</script>
+   ·                      ──
+   ╰────
+  help: Move each component into a file of its own.
