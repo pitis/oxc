@@ -115,6 +115,10 @@ pub struct JsFormatContext<'ast> {
     /// for top-level `|` chains (`{{ msg | uppercase }}`), which Prettier prints
     /// with the line break before the operator.
     embedded_vue_expression: bool,
+    /// Whether the host embedding this fragment indents a broken expression
+    /// itself, in which case a binaryish chain here must not indent again.
+    /// See [`crate::FragmentContext::Expression`].
+    fragment_host_indents: bool,
     /// Whether a lone type parameter needs a disambiguating trailing comma —
     /// see [`crate::TypeParameterAmbiguity`]. Set by the embedded entry point,
     /// since it is a fact about the *host file*, not about this source.
@@ -176,6 +180,7 @@ impl<'ast> JsFormatContext<'ast> {
             tailwind_context_stack: Vec::new(),
             embedded_in_html_attribute: false,
             embedded_vue_expression: false,
+            fragment_host_indents: true,
             type_parameters: TypeParameterAmbiguity::default(),
             embedded_in_html_interpolation: false,
         }
@@ -203,6 +208,18 @@ impl<'ast> JsFormatContext<'ast> {
     /// See the `embedded_vue_expression` field.
     pub fn embedded_vue_expression(&self) -> bool {
         self.embedded_vue_expression
+    }
+
+    /// See the `fragment_host_indents` field.
+    #[must_use]
+    pub fn with_fragment_host_indents(mut self, yes: bool) -> Self {
+        self.fragment_host_indents = yes;
+        self
+    }
+
+    /// See the `fragment_host_indents` field.
+    pub fn fragment_host_indents(&self) -> bool {
+        self.fragment_host_indents
     }
 
     /// See [`TypeParameterAmbiguity`].

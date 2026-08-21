@@ -137,10 +137,13 @@ pub fn write_expression<'a>(
         // markup can carry `as` casts and non-null assertions whether or not
         // its script declares `lang="ts"`, and TS is a superset of what plain
         // JavaScript allows here.
-        ExpressionPosition::Braces
-        | ExpressionPosition::BlockHeader
-        | ExpressionPosition::BindDirective => "ts-expression",
-        ExpressionPosition::QuotedAttribute => "ts-attribute-expression",
+        // A `{…}` in content is spliced bare, so a broken expression indents
+        // itself. A block header is flattened outright and a `bind:` value
+        // carries an indent from the embed site, so both keep the ordinary
+        // fragment route.
+        ExpressionPosition::Braces => "svelte-expression",
+        ExpressionPosition::BlockHeader | ExpressionPosition::BindDirective => "ts-expression",
+        ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
     };
     let response = f.session().dispatch(DispatchRequest {
         language,

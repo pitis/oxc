@@ -83,7 +83,16 @@ pub enum FragmentContext {
     /// `__vue_ts_expression` parsers (`v-bind` values and `{{ ... }}`
     /// interpolations, but NOT `v-for` right-hand sides or event handlers).
     /// It enables the Vue 2 filter-sequence layout for top-level `|` chains.
-    Expression { in_html_attribute: bool, vue_expression: bool },
+    ///
+    /// `host_indents` says the embedding host indents a broken expression
+    /// itself, so this fragment must not indent again. Vue's embed sites do —
+    /// they wrap the value in their own `indent` — and Prettier says the same
+    /// thing by giving those fragments a `JsExpressionRoot` parent. Svelte's
+    /// `{…}` does not: `prettier-plugin-svelte` splices the expression between
+    /// two braces and leaves the layout to it, so a binaryish chain that breaks
+    /// there has to supply the indent, and one that does not comes back with
+    /// its continuation at the mustache's own column.
+    Expression { in_html_attribute: bool, vue_expression: bool, host_indents: bool },
     /// Statement(s) from an inline event handler (e.g. Vue `@click` values that
     /// do not parse as a single expression).
     ///
@@ -150,6 +159,8 @@ struct EmbedFlags {
     vue_expression: bool,
     /// See [`JsFormatContext::embedded_in_html_interpolation`].
     in_html_interpolation: bool,
+    /// See [`JsFormatContext::fragment_host_indents`].
+    host_indents: bool,
 }
 
 /// Result of [`format_fragment`]: the formatted IR plus fragment metadata.
@@ -337,6 +348,8 @@ impl<'a> FragmentFinish<'a> for ToEmbeddedIr {
         let context = JsFormatContext::new(source_text, source_type, comments, options)
             .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
             .with_embedded_vue_expression(embed_flags.vue_expression)
+        .with_fragment_host_indents(embed_flags.host_indents)
+            .with_fragment_host_indents(embed_flags.host_indents)
             .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
         formatter::format_embedded(
             context,
@@ -379,6 +392,12 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
     let embed_flags = EmbedFlags {
         in_html_attribute,
         vue_expression: matches!(context, FragmentContext::Expression { vue_expression: true, .. }),
+        // Only an expression fragment has a host that might indent it; every
+        // other context is wrapped into a statement whose layout is its own.
+        host_indents: !matches!(
+            context,
+            FragmentContext::Expression { host_indents: false, .. }
+        ),
         in_html_interpolation: matches!(
             context,
             FragmentContext::Expression { in_html_attribute: false, .. }

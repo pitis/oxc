@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **95.9%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **97.5%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-95.9% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+97.5% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -80,12 +80,12 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | Repository                 | Files |        Identical |
 | :------------------------- | ----: | ---------------: |
 | `skeletonlabs/skeleton`    |   686 |      683 (99.6%) |
-| `huntabyte/bits-ui`        |   617 |      608 (98.5%) |
-| `carbon-components-svelte` |  1408 |     1386 (98.4%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1638 (97.4%) |
-| `immich-app/immich` (web)  |   415 |      407 (98.1%) |
-| `windmill-labs/windmill`   |  1866 |     1680 (90.0%) |
-| **Total**                  |  6673 | **6402 (95.9%)** |
+| `huntabyte/bits-ui`        |   617 |      612 (99.2%) |
+| `carbon-components-svelte` |  1408 |     1398 (99.3%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1650 (98.2%) |
+| `immich-app/immich` (web)  |   415 |      414 (99.8%) |
+| `windmill-labs/windmill`   |  1866 |     1749 (93.7%) |
+| **Total**                  |  6673 | **6506 (97.5%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: the four component
 libraries sit at 97.4–99.6%, and **windmill — the one large application — is at 90.0%**, up from
@@ -110,8 +110,19 @@ and breaks a cleared group that does not fit, whereas a flat-marked group short-
 `print_best_fitting`. Measured both ways over the corpus — identical at 6,402 — and marking them
 flat cost a conformance fixture, because Prettier does break a member chain in a block header.
 
-What is left has no dominant class: 271 files across 328 first-line clusters, the largest of them
-9 files. Block markers appear in 22.
+**A `{…}` now indents its own continuation**, which took 95.9% → 97.5% — another 104 files, again
+with nothing regressing. Prettier gives most embedded expressions a `JsExpressionRoot` parent,
+which suppresses `printBinaryishExpression`'s indent because the host supplies one; Vue's embed
+sites do exactly that. `prettier-plugin-svelte` does not — it splices the expression between two
+braces and leaves the layout to it — so a broken `a || b` there indents itself, and ours was
+continuing at the mustache's own column. Svelte's `{…}` and its attribute values now take routes of
+their own (`svelte-expression`, `svelte-attribute-expression`) that say the host adds no indent;
+the Vue routes are untouched, which is why js-in-vue stayed at 428/428. Block headers keep the
+ordinary route, since they are flattened anyway, and so do `bind:` values, which carry an indent
+from the embed site already.
+
+What is left has no dominant class: 167 files, and the largest cluster among them is small enough
+that each is its own investigation.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
 
@@ -659,9 +670,9 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 271 files with no dominant class, so this is
+1. **The long tail of Svelte layout differences** — 167 files with no dominant class, so this is
    many small investigations rather than one. Worth doing only against the corpus, a cluster at a
-   time; the largest is 9 files.
+   time.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so

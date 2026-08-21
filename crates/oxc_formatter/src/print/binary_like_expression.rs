@@ -173,7 +173,11 @@ impl<'a, 'b> BinaryLikeExpression<'a, 'b> {
     /// There are some cases where the indentation is done by the parent, so if the parent is already doing
     /// the indentation, then there's no need to do a second indentation.
     /// [Prettier applies]: <https://github.com/prettier/prettier/blob/b0201e01ef99db799eb3716f15b7dfedb0a2e62b/src/language-js/print/binaryish.js#L122-L125>
-    pub fn should_not_indent_if_parent_indents(&self, parent: &AstNodes<'a>) -> bool {
+    pub fn should_not_indent_if_parent_indents(
+        &self,
+        parent: &AstNodes<'a>,
+        f: &JsFormatter<'_, 'a>,
+    ) -> bool {
         match parent {
             AstNodes::ReturnStatement(_)
             | AstNodes::ThrowStatement(_)
@@ -181,13 +185,18 @@ impl<'a, 'b> BinaryLikeExpression<'a, 'b> {
             | AstNodes::TemplateLiteral(_)
             | AstNodes::ArrowFunctionExpression(_) => true,
             // An expression directly under `Program` only occurs for
-            // `FragmentContext::Expression` roots (js-in-xxx), where the host
-            // wraps the fragment and indents; matches Prettier's `JsExpressionRoot`.
-            // Top-level `|` chains are excluded and keep the indented-chain
-            // layout (binaryish.js: `node.operator !== "|" && parent.type ===
-            // "JsExpressionRoot"` — the Vue 2 filter-sequence shape).
+            // `FragmentContext::Expression` roots (js-in-xxx). Most hosts wrap
+            // the fragment and indent it themselves, which is what Prettier
+            // says by giving those a `JsExpressionRoot` parent — but a host
+            // that splices the expression bare, as Svelte's `{…}` does, leaves
+            // the indent to the chain. Top-level `|` chains are excluded either
+            // way and keep the indented-chain layout (binaryish.js:
+            // `node.operator !== "|" && parent.type === "JsExpressionRoot"` —
+            // the Vue 2 filter-sequence shape).
             AstNodes::Program(_) => {
-                self.operator() != BinaryLikeOperator::BinaryOperator(BinaryOperator::BitwiseOR)
+                f.context().fragment_host_indents()
+                    && self.operator()
+                        != BinaryLikeOperator::BinaryOperator(BinaryOperator::BitwiseOR)
             }
             AstNodes::JSXExpressionContainer(container) => {
                 matches!(container.parent(), AstNodes::JSXAttribute(_))
@@ -266,7 +275,7 @@ impl<'a> Format<'a, JsFormatContext<'a>> for BinaryLikeExpression<'a, '_> {
         }
 
         // Check if we can take another early-exit path before building the Vec
-        let should_not_indent = self.should_not_indent_if_parent_indents(self.parent());
+        let should_not_indent = self.should_not_indent_if_parent_indents(self.parent(), f);
 
         // Optimize: if should_not_indent is true, we can skip building the Vec entirely
         if should_not_indent {

@@ -126,19 +126,57 @@ pub fn route(language: &str) -> Route {
         "tsx" => Route::Native(NativeLanguage::Js(SourceType::tsx().with_module(true))),
         "js-expression" => Route::Native(NativeLanguage::JsFragment(
             SourceType::mjs(),
-            FragmentContext::Expression { in_html_attribute: false, vue_expression: false },
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: false,
+                host_indents: true,
+            },
+        )),
+        // A `{…}` inside a Svelte attribute value is spliced the same way, so
+        // it needs the same treatment; the Vue attribute route is separate and
+        // keeps the host indent.
+        "svelte-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression {
+                in_html_attribute: true,
+                vue_expression: false,
+                host_indents: false,
+            },
+        )),
+        // Svelte's `{…}` splices the expression between two braces and adds
+        // no indent of its own, so a binaryish chain that breaks there has to
+        // supply one. Every other expression host wraps and indents the value.
+        "svelte-expression" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: false,
+                host_indents: false,
+            },
         )),
         "ts-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
-            FragmentContext::Expression { in_html_attribute: false, vue_expression: false },
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: false,
+                host_indents: true,
+            },
         )),
         "js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
             SourceType::mjs(),
-            FragmentContext::Expression { in_html_attribute: true, vue_expression: false },
+            FragmentContext::Expression {
+                in_html_attribute: true,
+                vue_expression: false,
+                host_indents: true,
+            },
         )),
         "ts-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
-            FragmentContext::Expression { in_html_attribute: true, vue_expression: false },
+            FragmentContext::Expression {
+                in_html_attribute: true,
+                vue_expression: false,
+                host_indents: true,
+            },
         )),
         // The `.vue` family. Always TypeScript: a template may carry `as`
         // casts and non-null assertions whether or not its `<script>` declares
@@ -161,19 +199,35 @@ pub fn route(language: &str) -> Route {
         // template as TypeScript can change the layout of valid JavaScript.
         "vue-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
-            FragmentContext::Expression { in_html_attribute: false, vue_expression: true },
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: true,
+                host_indents: true,
+            },
         )),
         "vue-js-expression" => Route::Native(NativeLanguage::JsFragment(
             SourceType::mjs(),
-            FragmentContext::Expression { in_html_attribute: false, vue_expression: true },
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: true,
+                host_indents: true,
+            },
         )),
         "vue-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
             ts(),
-            FragmentContext::Expression { in_html_attribute: true, vue_expression: true },
+            FragmentContext::Expression {
+                in_html_attribute: true,
+                vue_expression: true,
+                host_indents: true,
+            },
         )),
         "vue-js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
             SourceType::mjs(),
-            FragmentContext::Expression { in_html_attribute: true, vue_expression: true },
+            FragmentContext::Expression {
+                in_html_attribute: true,
+                vue_expression: true,
+                host_indents: true,
+            },
         )),
         // `@click="count++; log()"`, which is statements rather than one
         // expression.
