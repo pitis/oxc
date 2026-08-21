@@ -84,10 +84,10 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `carbon-components-svelte` |  1408 |     1381 (98.1%) |
 | `huntabyte/shadcn-svelte`  |  1681 |     1630 (97.0%) |
 | `immich-app/immich` (web)  |   415 |      404 (97.3%) |
-| `windmill-labs/windmill`   |  1866 |     1612 (86.5%) |
-| **Total**                  |  6673 | **6318 (94.7%)** |
+| `windmill-labs/windmill`   |  1866 |     1613 (86.4%) |
+| **Total**                  |  6673 | **6319 (94.7%)** |
 
-Prettier failed on none of them; oxfmt refused two. Read the spread rather than the total: the four
+Neither tool failed on any of them. Read the spread rather than the total: the four
 component libraries sit at 97–99.6%, and **windmill — the one large application — is at 86.5%**.
 Component libraries have short markup; an application has long `{#if …}` and `{#each …}` headers,
 and that is where the printer diverges, in how a block header that has to break gets laid out. It
@@ -112,13 +112,22 @@ Two findings are bugs rather than layout, and both are what a corpus is for:
   `edge-cases/svelte/await-block-branch-shorthands.svelte` and by unit tests in both crates. It
   accounted for 3 of the 356 differing files.
 
-- **A regex literal ending in an escaped slash makes oxfmt refuse the file.**
-  `{x.replace(/^u\//, '')}` is rejected as not-well-formed, because `scan_js` in
-  `svelte_markup_parser` reads the `//` that `\/` and the closing delimiter spell as a line comment
-  and swallows the rest of the line. `/a\/b/` is fine; only the trailing position bites. The
-  scanner's doc comment already records that it does not recognise regex literals — what was not
-  anticipated is that the degradation reaches the user as a refusal to format the file at all.
-  Refusing is the safe failure, and it needs a fix in the sibling crate and a tag bump.
+- **A regex literal ending in an escaped slash made oxfmt refuse the file.**
+  `{x.replace(/^u\//, '')}` was rejected as not-well-formed: `scan_js` in `svelte_markup_parser`
+  did not recognise regex literals, so the `//` that `\/` and the closing delimiter spell read as a
+  line comment, and following it to end of line swallowed the closing brace. A regex holding a
+  brace, a quote or a bracket failed the same way. Refusing is the safe failure — nothing was
+  rewritten — but it is still a file the tool cannot format.
+
+  **Fixed** in `svelte_markup_parser` 0.2.4, which scans regex literals whole and settles the
+  regex-or-division ambiguity from the preceding token. Anything still ambiguous is read as
+  **division**, deliberately: an unrecognised regex degrades to the old behaviour, while a division
+  mistaken for a regex would consume up to the next `/` and could swallow the brace that ends the
+  construct. A `/` at the start of a scanned slice is division for the same reason — those slices
+  begin just after a `{`, where a leading `/` is a block closer like `{/each}`. That case is not
+  hypothetical: assuming otherwise broke three existing tests. Verified against `svelte/compiler`
+  on both readings and by re-parsing the corpus with 0 coverage violations; guarded by
+  `edge-cases/svelte/regex-literals-in-expressions.svelte`.
 
 Reproduce by cloning those six repositories and formatting every `.svelte` file twice — once
 through `prettier` with only `prettier-plugin-svelte` loaded, once through `oxfmt`'s napi `format()`
@@ -632,10 +641,9 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The regex-literal refusal**, and then the Svelte block-header layout class. The await-block
-   bug above it is fixed; this one is a safe failure — oxfmt declines the file rather than
-   rewriting it — but it still needs a fix in `svelte_markup_parser` and a tag bump. After that,
-   block-header layout is most of the remaining 353 and nearly all of windmill's 252.
+1. **The Svelte block-header layout class.** Both corpus bugs above are fixed and every one of the
+   6,673 files now formats, so what is left is layout: how a `{#if …}` / `{#each …}` header that
+   has to break gets laid out. It is most of the remaining 354 and nearly all of windmill's 253.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so
