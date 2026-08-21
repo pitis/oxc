@@ -21,12 +21,12 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-94.7% of 6,673 real-world files come back byte-identical, and one of the differences changes what a
-component renders. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+94.7% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
-could drop both tools, on the strength of one 21-file library and a fixture suite. See
+could drop both tools, on the strength of one 21-file library and a fixture suite. The one
+difference that changed what a component renders has since been fixed. See
 [The Svelte printer against a real-world corpus](#the-svelte-printer-against-a-real-world-corpus).
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -83,9 +83,9 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `huntabyte/bits-ui`        |   617 |      608 (98.5%) |
 | `carbon-components-svelte` |  1408 |     1381 (98.1%) |
 | `huntabyte/shadcn-svelte`  |  1681 |     1630 (97.0%) |
-| `immich-app/immich` (web)  |   415 |      401 (96.6%) |
+| `immich-app/immich` (web)  |   415 |      404 (97.3%) |
 | `windmill-labs/windmill`   |  1866 |     1612 (86.5%) |
-| **Total**                  |  6673 | **6315 (94.7%)** |
+| **Total**                  |  6673 | **6318 (94.7%)** |
 
 Prettier failed on none of them; oxfmt refused two. Read the spread rather than the total: the four
 component libraries sit at 97–99.6%, and **windmill — the one large application — is at 86.5%**.
@@ -97,11 +97,21 @@ by one file.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
 
-- **A bare `then` is dropped from an await block.** `{#await p then}` comes back as `{#await p}`.
-  Those are different components — with `then` and no pending block the body renders only after
-  the promise resolves; without it the body _is_ the pending block. `{#await p then v}` and
-  `{#await p catch e}` are unaffected. This is the only difference found that changes what a
-  component does, and no fixture in the suite covers it.
+- **A bare `then` was dropped from an await block** — `{#await p then}` came back as
+  `{#await p}`. Those are different components: with `then` and no pending block the body renders
+  only after the promise resolves, and without it the body _is_ the pending block. The only
+  difference found anywhere that changes what a component does, and no fixture covered the form.
+
+  **Fixed** in `svelte_markup_parser` 0.2.3. The cause was in the header splitter, which reported
+  only the _pattern_ after `then`/`catch`: a shorthand binding nothing was indistinguishable from
+  no shorthand at all, so the body was filed as the pending branch. `{#await p then v}` and
+  `{#await p catch e}` were never affected, which is why every fixture passed. Confirmed against
+  `svelte/compiler`, which puts the body under `then` for this form, and against
+  `prettier-plugin-svelte` for all six spellings — including `{#await p then}{/await}`, where
+  Prettier drops the empty branch too and oxfmt now matches. Guarded by
+  `edge-cases/svelte/await-block-branch-shorthands.svelte` and by unit tests in both crates. It
+  accounted for 3 of the 356 differing files.
+
 - **A regex literal ending in an escaped slash makes oxfmt refuse the file.**
   `{x.replace(/^u\//, '')}` is rejected as not-well-formed, because `scan_js` in
   `svelte_markup_parser` reads the `//` that `\/` and the closing delimiter spell as a line comment
@@ -622,11 +632,10 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The two Svelte corpus bugs**, above everything else on this list. Dropping a bare `then` from
-   an await block changes what a component renders, and is the only defect anywhere in this file
-   that does. The regex-literal refusal is a safe failure but needs a fix in `svelte_markup_parser`
-   and a tag bump. Then re-run the 6,673-file differential and work the block-header layout class,
-   which is most of the remaining 356.
+1. **The regex-literal refusal**, and then the Svelte block-header layout class. The await-block
+   bug above it is fixed; this one is a safe failure — oxfmt declines the file rather than
+   rewriting it — but it still needs a fix in `svelte_markup_parser` and a tag bump. After that,
+   block-header layout is most of the remaining 353 and nearly all of windmill's 252.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so

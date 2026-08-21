@@ -187,6 +187,12 @@ fn writes_block_headers() {
     check("{#await p}{:then v}ok{/await}\n", "{#await p then v}ok{/await}\n");
     check("{#await p}…{:then v}ok{/await}\n", "{#await p}…{:then v}ok{/await}\n");
     check("{#await p}{:catch e}bad{/await}\n", "{#await p catch e}bad{/await}\n");
+    // A branch shorthand that binds nothing still says which branch the body
+    // is. `{#await p then}` renders once the promise resolves; `{#await p}`
+    // renders while it is unsettled, so dropping the word changes the
+    // component rather than its layout.
+    check("{#await p then}ok{/await}\n", "{#await p then}ok{/await}\n");
+    check("{#await p catch}bad{/await}\n", "{#await p catch}bad{/await}\n");
 }
 
 /// The `{@…}` tags, and `{const …}`, which declares a binding rather than
