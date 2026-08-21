@@ -25,34 +25,81 @@ use super::{
         needs_to_borrow_prev_closing_tag_end_marker, write_closing_tag_suffix,
         write_opening_tag_prefix,
     },
+    text::write_text,
     tree::{NodeId, Tree},
 };
 
 /// The language a `<script>` or `<style>` body is written in, or `None` when
-/// nothing here owns it — an unrecognised `lang`, or a `src` attribute, which
-/// means the body is elsewhere.
+/// nothing here owns it — an unrecognised `lang` or `type`, or a `src`
+/// attribute, which means the body is elsewhere.
+///
+/// A `<script>` only defaults to JavaScript when it declares *neither* `lang`
+/// nor `type`. One that declares either and names something unrecognised is
+/// deliberately left alone: `<script type="text/x-template">` holds markup,
+/// not a program, and formatting it as JavaScript would destroy it.
 pub fn element_language(tree: &Tree<'_, '_>, id: NodeId) -> Option<&'static str> {
     let node = tree.node(id);
     if node.attribute_value("src").is_some() {
         return None;
     }
-    let lang = node.attribute_value("lang").unwrap_or("").cow_to_ascii_lowercase();
+    let lang = node.declared_attribute_value("lang");
+    let kind = node.declared_attribute_value("type");
     match node.name() {
-        "script" => match lang.as_ref() {
-            "" | "js" | "javascript" => Some("js"),
-            "ts" | "typescript" => Some("ts"),
-            "jsx" => Some("jsx"),
-            "tsx" => Some("tsx"),
-            _ => None,
-        },
-        "style" => match lang.as_ref() {
-            "" | "css" | "postcss" | "pcss" => Some("css"),
-            "scss" => Some("scss"),
-            "less" => Some("less"),
-            _ => None,
+        "script" => {
+            if lang.is_none() && kind.is_none() {
+                return Some("js");
+            }
+            lang.and_then(language_of_lang).or_else(|| kind.and_then(language_of_type))
+        }
+        // A `<style>` reads only its `lang`, and defaults to CSS without one.
+        "style" => match lang {
+            Some(lang) => language_of_lang(lang),
+            None => Some("css"),
         },
         _ => None,
     }
+}
+
+/// The language a `lang` attribute names, of those something here formats.
+pub fn language_of_lang(lang: &str) -> Option<&'static str> {
+    Some(match lang.cow_to_ascii_lowercase().as_ref() {
+        "js" | "javascript" | "babel" => "js",
+        "ts" | "typescript" => "ts",
+        "jsx" => "jsx",
+        "tsx" => "tsx",
+        "css" | "postcss" | "pcss" => "css",
+        "scss" => "scss",
+        "less" => "less",
+        "json" => "json",
+        "json5" => "json5",
+        "jsonc" => "jsonc",
+        "yaml" | "yml" => "yaml",
+        "graphql" | "gql" => "graphql",
+        "md" | "markdown" => "markdown",
+        "html" => "html",
+        "handlebars" | "glimmer" | "hbs" => "glimmer",
+        _ => return None,
+    })
+}
+
+/// The language a `type` attribute names. Ported from Prettier's
+/// `inferParserByTypeAttribute`, including its suffix rules — an importmap and
+/// anything ending in `json` are JSON whatever the vendor prefix.
+pub fn language_of_type(kind: &str) -> Option<&'static str> {
+    Some(match kind {
+        "module" | "text/javascript" | "text/babel" | "text/jsx" | "application/javascript" => "js",
+        "application/x-typescript" => "ts",
+        "text/markdown" => "markdown",
+        "text/html" => "html",
+        "text/x-handlebars-template" => "glimmer",
+        _ => {
+            if kind.ends_with("json") || kind.ends_with("importmap") || kind == "speculationrules" {
+                "json"
+            } else {
+                return None;
+            }
+        }
+    })
 }
 
 /// A `<script>` or `<style>` body, formatted by whoever owns that language.
@@ -60,18 +107,35 @@ pub fn element_language(tree: &Tree<'_, '_>, id: NodeId) -> Option<&'static str>
 /// The element around it is printed as any other, so only the body itself is
 /// replaced. The forced break is what keeps `<script>` from ever collapsing
 /// onto one line with its content.
+///
+/// When nothing formats it — an unrecognised `lang`, or a body that does not
+/// parse — it is not spliced back raw: it goes through the ordinary text path,
+/// which is where the block's own leading newline gets trimmed. Splicing it
+/// raw leaves that newline next to the one the layout writes after the open
+/// tag, and the block gains a blank line it never had.
 pub fn write_script_like_text<'a>(
     tree: &Tree<'_, 'a>,
     id: NodeId,
     language: Option<&'static str>,
     f: &mut VueFormatter<'_, 'a>,
 ) {
+    let value = tree.node(id).value;
+    let formatted = language
+        .and_then(|language| dispatch(language, value, value, f))
+        .map(|fragment| fragment.ir)
+        .filter(|ir| !ir.is_empty());
+    let Some(mut ir) = formatted else {
+        write_text(tree, id, f);
+        return;
+    };
+    // A whole-program IR ends with the newline a *file* wants. Here the
+    // element's own layout supplies it.
+    while matches!(ir.last(), Some(FormatElement::Line(_))) {
+        ir.pop();
+    }
     write!(f, expand_parent());
     write_opening_tag_prefix(tree, id, f);
-    let value = tree.node(id).value;
-    if !language.is_some_and(|language| write_formatted(language, value, f)) {
-        write!(f, text(value));
-    }
+    f.write_elements(ir);
     write_closing_tag_suffix(tree, id, f);
 }
 

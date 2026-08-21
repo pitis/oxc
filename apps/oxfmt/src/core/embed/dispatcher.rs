@@ -61,6 +61,9 @@ pub enum PrettierLanguage {
     Html,
     Angular,
     Markdown,
+    /// Handlebars, which a `.vue` file reaches through a custom block
+    /// declaring `type="text/x-handlebars-template"`.
+    Glimmer,
 }
 
 #[cfg(feature = "napi")]
@@ -76,6 +79,7 @@ impl PrettierLanguage {
             Self::Html => "html",
             Self::Angular => "angular",
             Self::Markdown => "markdown",
+            Self::Glimmer => "glimmer",
         }
     }
 
@@ -189,6 +193,7 @@ pub fn route(language: &str) -> Route {
         "html" => Route::Prettier(PrettierLanguage::Html),
         "angular" => Route::Prettier(PrettierLanguage::Angular),
         "markdown" | "md" => Route::Prettier(PrettierLanguage::Markdown),
+        "glimmer" => Route::Prettier(PrettierLanguage::Glimmer),
         _ => Route::Unsupported,
     }
 }

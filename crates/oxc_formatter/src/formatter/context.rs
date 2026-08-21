@@ -1,5 +1,3 @@
-use std::mem;
-
 use oxc_ast::Comment;
 use oxc_formatter_core::{FormatElement, SourceText};
 use oxc_span::{GetSpan, SourceType, Span};
@@ -138,9 +136,6 @@ impl std::fmt::Debug for JsFormatContext<'_> {
             .finish()
     }
 }
-
-/// Lets embedded children's classes merge into this context's index space
-/// (`DispatchPayload::into_doc` at each embed site).
 
 impl oxc_formatter_core::FormatContext for JsFormatContext<'_> {
     type Options = JsFormatOptions;

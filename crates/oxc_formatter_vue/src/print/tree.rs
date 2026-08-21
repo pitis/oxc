@@ -124,6 +124,16 @@ impl<'n, 'a> Info<'n, 'a> {
         self.element.map_or(&[][..], |element| &element.attributes)
     }
 
+    /// The value of an attribute that actually declares something.
+    ///
+    /// An empty value counts as absent, because Prettier reads these through
+    /// JavaScript truthiness: `lang=""` is no `lang` at all, so a
+    /// `<script lang="">` is an ordinary script rather than one in a language
+    /// nothing here knows.
+    pub fn declared_attribute_value(&self, name: &str) -> Option<&'a str> {
+        self.attribute_value(name).filter(|value| !value.is_empty())
+    }
+
     pub fn attribute_value(&self, name: &str) -> Option<&'a str> {
         self.attributes()
             .iter()
@@ -301,7 +311,7 @@ impl<'n, 'a> Tree<'n, 'a> {
             return false;
         }
         self.is_vue_custom_block(id)
-            || self.nodes[id].attribute_value("lang").is_some_and(|lang| lang != "html")
+            || self.nodes[id].declared_attribute_value("lang").is_some_and(|lang| lang != "html")
     }
 
     /// Whether the element renders its own whitespace, so the printer must

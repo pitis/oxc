@@ -956,6 +956,28 @@ mod tests {
                 "<template>\n  <div @click=\"say(&quot;hi&quot;)\" />\n</template>\n",
                 "<template>\n  <div @click=\"say('hi')\" />\n</template>\n",
             ),
+            // A block nothing can format keeps its body, and gains nothing:
+            // splicing it back raw would leave the block's own leading newline
+            // beside the one the layout writes, and a blank line with it.
+            (
+                "<script lang=\"unknown\">\nkeep   me\n</script>\n",
+                "<script lang=\"unknown\">\nkeep   me\n</script>\n",
+            ),
+            // An empty `lang` declares nothing, so this is an ordinary script.
+            (
+                "<script lang=\"\">\nconst  a=1\n</script>\n",
+                "<script lang=\"\">\nconst a = 1;\n</script>\n",
+            ),
+            // A `type` names the language when `lang` does not — and one that
+            // names something unknown means "not JavaScript", not "default".
+            (
+                "<script type=\"module\">\nconst  a=1\n</script>\n",
+                "<script type=\"module\">\nconst a = 1;\n</script>\n",
+            ),
+            (
+                "<script type=\"text/x-template\">\n<div>  x</div>\n</script>\n",
+                "<script type=\"text/x-template\">\n<div>  x</div>\n</script>\n",
+            ),
             // The blocks' own bodies go to the formatters that own them.
             (
                 "<script setup lang=\"ts\">\nconst  a=1\n</script>\n",

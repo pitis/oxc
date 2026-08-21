@@ -274,25 +274,17 @@ fn write_custom_block<'a>(
     write_closing_tag_suffix(tree, id, f);
 }
 
-/// The language a custom block's `lang` names, of the ones something here can
-/// format.
+/// The language a custom block declares, of the ones something here can
+/// format — its `lang`, or failing that its `type`, which is the same rule
+/// `<script>` follows.
 fn custom_block_language(tree: &Tree<'_, '_>, id: NodeId) -> Option<&'static str> {
     let node = tree.node(id);
     if node.attribute_value("src").is_some() {
         return None;
     }
-    match node.attribute_value("lang")? {
-        "json" => Some("json"),
-        "json5" => Some("json5"),
-        "jsonc" => Some("jsonc"),
-        "yaml" | "yml" => Some("yaml"),
-        "css" => Some("css"),
-        "scss" => Some("scss"),
-        "less" => Some("less"),
-        "js" | "javascript" => Some("js"),
-        "ts" | "typescript" => Some("ts"),
-        _ => None,
-    }
+    node.declared_attribute_value("lang")
+        .and_then(super::embed::language_of_lang)
+        .or_else(|| node.declared_attribute_value("type").and_then(super::embed::language_of_type))
 }
 
 /// Everything between an element's tags, exactly as written — including any

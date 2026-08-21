@@ -280,7 +280,7 @@ was made the default — and Prettier's **own** Vue fixtures put it back:
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
 | 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
-| `js-in-vue` conformance (428) |  427 (99.77%) |  411 (**96.0%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |  420 (**98.1%**) |
 
 Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
 `:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
@@ -301,11 +301,17 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-The work list, from that run: a spurious leading blank line in blocks nothing can format (5);
-top-level blocks as raw text (4); parser inference from the `type` attribute and the wider `lang`
-set (4); always-TypeScript template expressions where Prettier keys off the script's own `lang`
-(1); a malformed interpolation that should be preserved (1); and three real-world files from
-`vue-vben-admin`.
+Nine remain: top-level blocks as raw text (4, the refusals above); always-TypeScript template
+expressions where Prettier keys off the script's own `lang` (1); a malformed interpolation that
+should be preserved (1); and three real-world files from `vue-vben-admin`.
+
+Closed so far: the attribute-value escaping (1); a blank line that blocks nothing could format
+gained after their open tag, because the unformatted body was spliced back raw instead of going
+through the text path that trims it (5); and parser inference, which now reads `type` as well as
+`lang` and only defaults a `<script>` to JavaScript when it declares neither (3). Both attributes
+follow Prettier's JavaScript truthiness, where `lang=""` declares nothing at all — getting that
+wrong turned a plain `<script lang="">` into an unformattable one, which the same conformance run
+caught immediately.
 
 **A Tailwind bug this work found and fixed, in the layer every language shares.** Merging an
 embedded child's IR used to renumber its `TailwindClass` indices into the parent's space, and that
