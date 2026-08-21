@@ -84,11 +84,11 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
 | `huntabyte/shadcn-svelte`  |  1681 |     1678 (99.8%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1860 (99.7%) |
-| **Total**                  |  6673 | **6663 (99.9%)** |
+| `windmill-labs/windmill`   |  1866 |     1864 (99.9%) |
+| **Total**                  |  6673 | **6667 (99.9%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
-below 99.7%, where the first measurement had **windmill — the one large application —
+below 99.8%, where the first measurement had **windmill — the one large application —
 at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
@@ -117,9 +117,10 @@ sites do exactly that. `prettier-plugin-svelte` does not — it splices the expr
 braces and leaves the layout to it — so a broken `a || b` there indents itself, and ours was
 continuing at the mustache's own column. Svelte's `{…}` and its attribute values now take routes of
 their own (`svelte-expression`, `svelte-attribute-expression`) that say the host adds no indent;
-the Vue routes are untouched, which is why js-in-vue stayed at 428/428. Block headers keep the
-ordinary route, since they are flattened anyway, and so do `bind:` values, which carry an indent
-from the embed site already.
+the Vue routes are untouched, which is why js-in-vue stayed at 428/428. Only `bind:` values keep
+the ordinary route, since they carry an indent from the embed site already. Block headers kept it
+at first too, on the reasoning that a flattened expression has no continuation to indent — see
+below for why that was wrong.
 
 **An empty inline element keeps its attributes on the tag's line**, worth another 20 files. When
 there is nothing between the tags, an inline element's closing tag borrows the opening `>` rather
@@ -217,8 +218,14 @@ to what this printer thought an attribute value was. Svelte does not interpolate
 one. The value is now printed as written, with only its quoting normalized, which is what Prettier
 does with it.
 
-What is left has no dominant class: 10 files, and the largest cluster among them is small enough
-that each is its own investigation.
+**A block header supplies its own indent too**, worth the last four. Flattening a header does not
+remove the breaks the author cannot get rid of: a member chain long enough to break does so through
+hard lines, which `remove_lines` keeps, as Prettier's `removeLines` does. What is left then sits
+under the indent the binaryish chain around it supplies — and the header had been routed as a
+fragment whose host indents it, on the reasoning that a flattened expression has no continuation to
+indent. It has one exactly when flattening does not reach it.
+
+What is left is six files, no two of them alike.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
 
@@ -766,10 +773,8 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 10 files with no dominant class, so this is
-   many small investigations rather than one. Worth doing only against the corpus, a cluster at a
-   time. About half are still whole-file re-wraps, identical once whitespace is normalised, which
-   is where any remaining fill difference would show.
+1. **The last six Svelte layout differences** — six files, no two of them alike, so each is its
+   own investigation and none of them moves the figure. Worth doing only against the corpus.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so

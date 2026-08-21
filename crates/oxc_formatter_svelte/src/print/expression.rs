@@ -141,11 +141,14 @@ pub fn write_expression<'a>(
         // its script declares `lang="ts"`, and TS is a superset of what plain
         // JavaScript allows here.
         // A `{…}` in content is spliced bare, so a broken expression indents
-        // itself. A block header is flattened outright and a `bind:` value
-        // carries an indent from the embed site, so both keep the ordinary
-        // fragment route.
-        ExpressionPosition::Braces => "svelte-expression",
-        ExpressionPosition::BlockHeader | ExpressionPosition::BindDirective => "ts-expression",
+        // itself. So does a block header: flattening it leaves the breaks the
+        // author cannot get rid of — a member chain long enough to break does
+        // so through hard lines — and the chain's continuation then sits under
+        // the indent the binaryish chain around it supplies. Only a `bind:`
+        // value carries an indent from the embed site, so only it keeps the
+        // ordinary fragment route.
+        ExpressionPosition::Braces | ExpressionPosition::BlockHeader => "svelte-expression",
+        ExpressionPosition::BindDirective => "ts-expression",
         ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
         ExpressionPosition::SnippetSignature => "svelte-snippet-signature",
     };

@@ -39,3 +39,11 @@
 {#each customisationByComponent.filter((c) => c.components.includes(type)) as customisation (customisation.components.join('-'))}
 	<span>{customisation.link}</span>
 {/each}
+
+<!-- Flattening does not remove the breaks the author cannot get rid of: a member
+     chain long enough to break does so through hard lines. What is left then
+     sits under the indent the binaryish chain around it supplies, the same as
+     it would anywhere the expression is spliced bare. -->
+{#if longlonglonglongName.anotherLongProperty && longlonglonglongName.anotherLongProperty.andAnotherOne.trim().startsWith('{')}
+	<span>yes</span>
+{/if}
