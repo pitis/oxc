@@ -1,0 +1,46 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `emits` option.
+   ╭─[require_explicit_emits.tsx:1:55]
+ 1 │ <script>export default { methods: { go() { this.$emit('change') } } }</script>
+   ·                                                       ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `emits` option.
+   ╭─[require_explicit_emits.tsx:1:73]
+ 1 │ <script>export default { emits: ['other'], methods: { go() { this.$emit('change') } } }</script>
+   ·                                                                         ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `defineEmits`.
+   ╭─[require_explicit_emits.tsx:2:6]
+ 1 │ <script setup>const emit = defineEmits(['other'])
+ 2 │ emit('change')</script>
+   ·      ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `emits` option.
+   ╭─[require_explicit_emits.tsx:1:33]
+ 1 │ <template><button @click="$emit('change')" /></template><script>export default { emits: ['other'] }</script>
+   ·                                 ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `defineEmits`.
+   ╭─[require_explicit_emits.tsx:1:32]
+ 1 │ <template><button @click="emit('change')" /></template><script setup>const emit = defineEmits(['other'])</script>
+   ·                                ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.
+
+  ⚠ vue(require-explicit-emits): The "change" event has been triggered but not declared on `emits` option.
+   ╭─[require_explicit_emits.tsx:1:86]
+ 1 │ <script>export default { props: { onChange: Function }, methods: { go() { this.$emit('change') } } }</script>
+   ·                                                                                      ────────
+   ╰────
+  help: Declare "change" so the component's events are part of its contract.

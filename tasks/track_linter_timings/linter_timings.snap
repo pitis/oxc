@@ -826,6 +826,7 @@ vue/component-definition-name-casing                       |  76731
 vue/first-attribute-linebreak                              |      0
 vue/html-end-tags                                          |      0
 vue/html-self-closing                                      |      0
+vue/jsx-uses-vars                                          |      7
 vue/multi-word-component-names                             |      0
 vue/no-arrow-functions-in-watch                            |  62608
 vue/no-child-content                                       |      0
@@ -860,6 +861,8 @@ vue/no-side-effects-in-computed-properties                 |  94090
 vue/no-template-key                                        |      0
 vue/no-template-shadow                                     |      0
 vue/no-textarea-mustache                                   |      0
+vue/no-unused-components                                   |      0
+vue/no-unused-vars                                         |      0
 vue/no-use-computed-property-like-method                   |  10392
 vue/no-use-v-if-with-v-for                                 |      0
 vue/no-useless-template-attributes                         |      0
@@ -872,6 +875,7 @@ vue/prefer-import-from-vue                                 |      7
 vue/prop-name-casing                                       |  76731
 vue/require-component-is                                   |      0
 vue/require-default-prop                                   |  76731
+vue/require-explicit-emits                                 |  62606
 vue/require-prop-types                                     |  64029
 vue/require-render-return                                  |  16812
 vue/require-toggle-inside-transition                       |      0

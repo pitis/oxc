@@ -1,0 +1,31 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-unused-components): The "Modal" component has been registered but not used.
+   ╭─[no_unused_components.tsx:1:68]
+ 1 │ <template><div /></template><script>export default { components: { Modal } }</script>
+   ·                                                                    ─────
+   ╰────
+  help: Use it in the template, or drop the registration.
+
+  ⚠ vue(no-unused-components): The "Drawer" component has been registered but not used.
+   ╭─[no_unused_components.tsx:1:77]
+ 1 │ <template><Modal /></template><script>export default { components: { Modal, Drawer } }</script>
+   ·                                                                             ──────
+   ╰────
+  help: Use it in the template, or drop the registration.
+
+  ⚠ vue(no-unused-components): The "Modal" component has been registered but not used.
+   ╭─[no_unused_components.tsx:1:86]
+ 1 │ <template><component :is="which" /></template><script>export default { components: { Modal } }</script>
+   ·                                                                                      ─────
+   ╰────
+  help: Use it in the template, or drop the registration.
+
+  ⚠ vue(no-unused-components): The "my_modal" component has been registered but not used.
+   ╭─[no_unused_components.tsx:1:73]
+ 1 │ <template><my-modal /></template><script>export default { components: { my_modal } }</script>
+   ·                                                                         ────────
+   ╰────
+  help: Use it in the template, or drop the registration.

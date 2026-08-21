@@ -39,8 +39,8 @@ use crate::{
     fixer::{Message, PossibleFixes},
     rules::RuleEnum,
     utils::{
-        VueScriptProps, vue_template_non_function_computed, vue_template_script_props,
-        vue_template_visible_script_names,
+        VueScriptProps, vue_template_non_function_computed, vue_template_registered_components,
+        vue_template_script_props, vue_template_visible_script_names,
     },
 };
 
@@ -80,6 +80,12 @@ pub trait VueTemplateRule {
     fn needs_script_computed(&self) -> bool {
         false
     }
+
+    /// Whether this rule reads [`VueTemplateContext::script_components`],
+    /// gated for the same reason as the sets above.
+    fn needs_script_components(&self) -> bool {
+        false
+    }
 }
 
 /// A rule that lints the whole `.vue` SFC (its blocks, not a single
@@ -110,6 +116,9 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueHtmlEndTags(rule) => Some(rule),
         RuleEnum::VueHtmlSelfClosing(rule) => Some(rule),
         RuleEnum::VueNoMutatingProps(rule) => Some(rule),
+        RuleEnum::VueNoUnusedComponents(rule) => Some(rule),
+        RuleEnum::VueRequireExplicitEmits(rule) => Some(rule),
+        RuleEnum::VueNoUnusedVars(rule) => Some(rule),
         RuleEnum::VueNoUseComputedPropertyLikeMethod(rule) => Some(rule),
         RuleEnum::VueNoTextareaMustache(rule) => Some(rule),
         RuleEnum::VueRequireComponentIs(rule) => Some(rule),
@@ -193,6 +202,10 @@ pub struct VueTemplateContext<'a> {
     /// The `computed` names that cannot return a function, for the rules that
     /// declare [`VueTemplateRule::needs_script_computed`].
     script_computed: Rc<FxHashSet<String>>,
+    /// The components the `<script>` registers, with the file-absolute span of
+    /// each registration, for the rules that declare
+    /// [`VueTemplateRule::needs_script_components`].
+    script_components: Rc<[(String, Span)]>,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
@@ -222,6 +235,14 @@ impl<'a> VueTemplateContext<'a> {
     /// unless the rule declares [`VueTemplateRule::needs_script_computed`].
     pub fn script_computed(&self) -> &FxHashSet<String> {
         &self.script_computed
+    }
+
+    /// The components the component registers, each with the file-absolute
+    /// span of its registration — see
+    /// [`crate::utils::vue_template_registered_components`]. Empty unless the
+    /// rule declares [`VueTemplateRule::needs_script_components`].
+    pub fn script_components(&self) -> &[(String, Span)] {
+        &self.script_components
     }
 
     /// Report a violation. Label spans are absolute file offsets, exactly as
@@ -306,6 +327,13 @@ impl Linter {
         // directive never reaches backwards.
         // One walk of the `<script>` ASTs per file, and only when an enabled
         // rule actually reads the result.
+        let script_components = Rc::<[(String, Span)]>::from(
+            if template_rules.iter().any(|(_, rule, _)| rule.needs_script_components()) {
+                vue_template_registered_components(script_hosts)
+            } else {
+                Vec::new()
+            },
+        );
         let script_computed =
             Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_computed()) {
                 vue_template_non_function_computed(script_hosts)
@@ -331,6 +359,7 @@ impl Linter {
                 script_names: Rc::clone(&script_names),
                 script_props: Rc::clone(&script_props),
                 script_computed: Rc::clone(&script_computed),
+                script_components: Rc::clone(&script_components),
                 diagnostics: Vec::new(),
             };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
@@ -377,6 +406,7 @@ impl Linter {
                     script_names: Rc::clone(&script_names),
                     script_props: Rc::clone(&script_props),
                     script_computed: Rc::clone(&script_computed),
+                    script_components: Rc::clone(&script_components),
                     diagnostics: Vec::new(),
                 };
                 template_rule.run_on_template(&nodes, &mut ctx);

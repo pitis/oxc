@@ -1,0 +1,52 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-unused-vars): 'i' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:23]
+ 1 │ <template><div v-for="i in xs" /></template>
+   ·                       ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'k' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:27]
+ 1 │ <template><div v-for="(v, k) in xs">{{ v }}</div></template>
+   ·                           ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'a' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:26]
+ 1 │ <template><div v-for="({ a, b }, k) in xs">{{ k }}</div></template>
+   ·                          ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'b' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:29]
+ 1 │ <template><div v-for="({ a, b }, k) in xs">{{ k }}</div></template>
+   ·                             ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'item' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:27]
+ 1 │ <template><List v-slot="{ item }">x</List></template>
+   ·                           ────
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'i' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:23]
+ 1 │ <template><div v-for="i in xs"><span v-for="i in ys">{{ i }}</span></div></template>
+   ·                       ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.
+
+  ⚠ vue(no-unused-vars): 'i' is defined but never used.
+   ╭─[no_unused_vars.tsx:1:23]
+ 1 │ <template><div v-for="i in xs" /></template>
+   ·                       ─
+   ╰────
+  help: Remove the variable, or rename it to something the `ignorePattern` allows.

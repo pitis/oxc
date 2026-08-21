@@ -573,6 +573,23 @@ fn snippet_parse_error(snippet: &str) -> Option<String> {
 pub struct ScopeBinding {
     pub name: String,
     pub span: Span,
+    /// Which declaration introduced it — vue-eslint-parser's
+    /// `VVariable.kind`, which `no-unused-vars` groups by.
+    pub kind: ScopeBindingKind,
+    /// Whether the name sits inside an object or array pattern rather than
+    /// being an alias in its own right — upstream's `isDestructuringVar`. A
+    /// destructured name can be removed on its own, so it is reported even
+    /// when a later sibling is used.
+    pub destructured: bool,
+}
+
+/// The two ways a `<template>` element can declare a scope variable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ScopeBindingKind {
+    /// A `v-for` alias.
+    VFor,
+    /// A `v-slot` / `slot-scope` / `scope` parameter.
+    Scope,
 }
 
 /// The `v-for` aliases declared by a `v-for="<aliases> in/of <expr>"` value,
@@ -584,21 +601,32 @@ pub struct ScopeBinding {
 /// silent-on-parse-failure discipline for template expression parsing.
 fn v_for_alias_bindings(raw: &str, base: u32) -> Vec<ScopeBinding> {
     let Ok((snippet, alias_offset)) = v_for_snippet(raw) else { return Vec::new() };
-    snippet_bindings(&snippet, V_FOR_ALIASES_PREFIX.len(), base, alias_offset, |program| {
-        let left = match program.body.first() {
-            Some(Statement::ForInStatement(statement)) => &statement.left,
-            Some(Statement::ForOfStatement(statement)) => &statement.left,
-            _ => return Vec::new(),
-        };
-        let ForStatementLeft::VariableDeclaration(declaration) = left else { return Vec::new() };
-        let Some(declarator) = declaration.declarations.first() else { return Vec::new() };
-        let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else { return Vec::new() };
-        let mut identifiers = Vec::new();
-        for pattern in array_pattern.elements.iter().flatten() {
-            collect_binding_identifiers(pattern, &mut identifiers);
-        }
-        identifiers
-    })
+    snippet_bindings(
+        &snippet,
+        V_FOR_ALIASES_PREFIX.len(),
+        base,
+        alias_offset,
+        ScopeBindingKind::VFor,
+        |program| {
+            let left = match program.body.first() {
+                Some(Statement::ForInStatement(statement)) => &statement.left,
+                Some(Statement::ForOfStatement(statement)) => &statement.left,
+                _ => return Vec::new(),
+            };
+            let ForStatementLeft::VariableDeclaration(declaration) = left else {
+                return Vec::new();
+            };
+            let Some(declarator) = declaration.declarations.first() else { return Vec::new() };
+            let BindingPattern::ArrayPattern(array_pattern) = &declarator.id else {
+                return Vec::new();
+            };
+            let mut identifiers = Vec::new();
+            for pattern in array_pattern.elements.iter().flatten() {
+                collect_binding_identifiers(pattern, &mut identifiers);
+            }
+            identifiers
+        },
+    )
 }
 
 /// Parse `snippet`, hand the program to `bindings_of`, and map every span it
@@ -614,7 +642,8 @@ fn snippet_bindings(
     prefix_len: usize,
     base: u32,
     text_offset: usize,
-    bindings_of: impl for<'p> FnOnce(&Program<'p>) -> Vec<(String, Span)>,
+    kind: ScopeBindingKind,
+    bindings_of: impl for<'p> FnOnce(&Program<'p>) -> Vec<(String, Span, bool)>,
 ) -> Vec<ScopeBinding> {
     let (Ok(prefix_len), Ok(text_offset)) = (u32::try_from(prefix_len), u32::try_from(text_offset))
     else {
@@ -637,19 +666,21 @@ fn snippet_bindings(
     if identifiers
         .iter()
         .enumerate()
-        .any(|(index, (name, _))| identifiers[..index].iter().any(|(seen, _)| seen == name))
+        .any(|(index, (name, _, _))| identifiers[..index].iter().any(|(seen, _, _)| seen == name))
     {
         return Vec::new();
     }
     let start = base + text_offset;
     identifiers
         .into_iter()
-        .map(|(name, span)| ScopeBinding {
+        .map(|(name, span, destructured)| ScopeBinding {
             name,
             span: Span::new(
                 start + span.start.saturating_sub(prefix_len),
                 start + span.end.saturating_sub(prefix_len),
             ),
+            kind,
+            destructured,
         })
         .collect()
 }
@@ -659,29 +690,41 @@ fn snippet_bindings(
 /// value's own expression (e.g. `someGlobal` in `{ b: c = someGlobal }`) is a
 /// reference rather than a declaration, so only an assignment pattern's left
 /// (binding) side is recursed into.
-fn collect_binding_identifiers(pattern: &BindingPattern<'_>, out: &mut Vec<(String, Span)>) {
+fn collect_binding_identifiers(pattern: &BindingPattern<'_>, out: &mut Vec<(String, Span, bool)>) {
+    collect_binding_identifiers_inner(pattern, false, out);
+}
+
+/// `destructured` becomes true as soon as the walk descends through an object
+/// or array pattern, which is upstream's `isDestructuringVar` seen from the
+/// other end: it walks *up* from the identifier and asks whether a `Property`
+/// or `ArrayPattern` comes before the `v-for` / slot-scope expression.
+fn collect_binding_identifiers_inner(
+    pattern: &BindingPattern<'_>,
+    destructured: bool,
+    out: &mut Vec<(String, Span, bool)>,
+) {
     match pattern {
         BindingPattern::BindingIdentifier(ident) => {
-            out.push((ident.name.as_str().to_string(), ident.span));
+            out.push((ident.name.as_str().to_string(), ident.span, destructured));
         }
         BindingPattern::ObjectPattern(object) => {
             for property in &object.properties {
-                collect_binding_identifiers(&property.value, out);
+                collect_binding_identifiers_inner(&property.value, true, out);
             }
             if let Some(rest) = &object.rest {
-                collect_binding_identifiers(&rest.argument, out);
+                collect_binding_identifiers_inner(&rest.argument, true, out);
             }
         }
         BindingPattern::ArrayPattern(array) => {
             for pattern in array.elements.iter().flatten() {
-                collect_binding_identifiers(pattern, out);
+                collect_binding_identifiers_inner(pattern, true, out);
             }
             if let Some(rest) = &array.rest {
-                collect_binding_identifiers(&rest.argument, out);
+                collect_binding_identifiers_inner(&rest.argument, true, out);
             }
         }
         BindingPattern::AssignmentPattern(assignment) => {
-            collect_binding_identifiers(&assignment.left, out);
+            collect_binding_identifiers_inner(&assignment.left, destructured, out);
         }
     }
 }
@@ -813,19 +856,26 @@ fn slot_scope_bindings(pattern_text: &str, base: u32) -> Vec<ScopeBinding> {
     }
     let leading = pattern_text.len() - pattern_text.trim_start().len();
     let snippet = format!("{SLOT_SCOPE_PREFIX}{trimmed}) => 0;");
-    snippet_bindings(&snippet, SLOT_SCOPE_PREFIX.len(), base, leading, |program| {
-        let Some(Statement::ExpressionStatement(statement)) = program.body.first() else {
-            return Vec::new();
-        };
-        let Expression::ArrowFunctionExpression(arrow) = &statement.expression else {
-            return Vec::new();
-        };
-        let mut identifiers = Vec::new();
-        for parameter in &arrow.params.items {
-            collect_binding_identifiers(&parameter.pattern, &mut identifiers);
-        }
-        identifiers
-    })
+    snippet_bindings(
+        &snippet,
+        SLOT_SCOPE_PREFIX.len(),
+        base,
+        leading,
+        ScopeBindingKind::Scope,
+        |program| {
+            let Some(Statement::ExpressionStatement(statement)) = program.body.first() else {
+                return Vec::new();
+            };
+            let Expression::ArrowFunctionExpression(arrow) = &statement.expression else {
+                return Vec::new();
+            };
+            let mut identifiers = Vec::new();
+            for parameter in &arrow.params.items {
+                collect_binding_identifiers(&parameter.pattern, &mut identifiers);
+            }
+            identifiers
+        },
+    )
 }
 
 /// What [`slot_scope_bindings`] puts in front of the pattern. Shared with the
@@ -888,6 +938,51 @@ pub fn directive_expression<'a>(attribute: &Attribute<'a>) -> Option<(&'a str, S
 /// already have that wrapper's leading `(` subtracted back out, so they're
 /// relative to `text` itself. Silently empty on any parse failure, matching
 /// this fork's established silent-on-parse-failure discipline.
+/// Every emit call in a template expression, as the span of the event-name
+/// argument (which is what the message points at) and the name. Only a
+/// statically known name is returned, matching upstream's `getNameParamNode`.
+///
+/// `$emit` is always an emit; `binding` additionally names the `<script setup>`
+/// binding a `defineEmits()` produced, which the template can call directly.
+pub fn template_emit_calls(text: &str, binding: Option<&str>) -> Vec<(Span, String)> {
+    let snippet = format!("({text});");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return Vec::new();
+    }
+    let program = allocator.alloc(parser_ret.program);
+    let semantic = SemanticBuilder::new_linter().build(program).semantic;
+    let mut out = Vec::new();
+    for node in semantic.nodes() {
+        let AstKind::CallExpression(call) = node.kind() else { continue };
+        let is_emit = match call.callee.get_inner_expression() {
+            Expression::Identifier(identifier) => {
+                identifier.name == "$emit"
+                    || binding.is_some_and(|binding| identifier.name == binding)
+            }
+            Expression::StaticMemberExpression(member) => member.property.name == "$emit",
+            _ => continue,
+        };
+        if !is_emit {
+            continue;
+        }
+        let Some(argument) = call.arguments.first().and_then(|argument| argument.as_expression())
+        else {
+            continue;
+        };
+        let Some(name) = crate::utils::literal_element_name(argument.without_parentheses()) else {
+            continue;
+        };
+        let span = argument.span();
+        out.push((
+            Span::new(span.start.saturating_sub(1), span.end.saturating_sub(1)),
+            name.into_owned(),
+        ));
+    }
+    out
+}
+
 /// Every span, within `text`, of a *call* whose callee is a free reference
 /// named exactly `name` — `foo()` but not `foo`, `a.foo()` or a locally-bound
 /// `foo`. The span covers the whole call expression, which is what

@@ -7,7 +7,7 @@ use oxc_ast::{
     ast::{
         BindingPattern, CallExpression, ExportDefaultDeclarationKind, Expression,
         IdentifierReference, ObjectExpression, ObjectProperty, ObjectPropertyKind, PropertyKey,
-        Statement, TSSignature, TSType, TSTypeName,
+        Statement, TSLiteral, TSSignature, TSType, TSTypeName,
     },
 };
 use oxc_semantic::Semantic;
@@ -627,6 +627,38 @@ pub fn is_vue_computed_call(call: &CallExpression<'_>, ctx: &LintContext<'_>) ->
     })
 }
 
+/// The components a `.vue` file's `<script>` blocks register, as the name and
+/// the **file-absolute** span of the key that registers it — which is where
+/// `no-unused-components` reports, even though it decides from the template.
+pub fn vue_template_registered_components(
+    hosts: &[ContextSubHost<'_>],
+) -> Vec<(String, oxc_span::Span)> {
+    let mut out = Vec::new();
+    for host in hosts {
+        let semantic = host.semantic();
+        let framework_options = host.framework_options();
+        let offset = host.source_text_offset();
+        for node in semantic.nodes() {
+            let AstKind::ObjectExpression(object) = node.kind() else { continue };
+            if vue_component_options_kind_in(node, semantic, true, framework_options).is_none() {
+                continue;
+            }
+            let Some(components) = find_property(object, "components") else { continue };
+            let Expression::ObjectExpression(components) = &components.value else { continue };
+            for property in &components.properties {
+                let ObjectPropertyKind::ObjectProperty(property) = property else { continue };
+                let Some(name) = static_key_name(&property.key) else { continue };
+                let span = property.key.span();
+                out.push((
+                    name.into_owned(),
+                    oxc_span::Span::new(offset + span.start, offset + span.end),
+                ));
+            }
+        }
+    }
+    out
+}
+
 /// The `computed` properties a `.vue` file's `<script>` blocks declare whose
 /// getter cannot return a function — i.e. the ones that must be read as a
 /// property and never called. See `no-use-computed-property-like-method`.
@@ -756,6 +788,20 @@ pub struct VueScriptProps {
     /// `const props = defineProps(…)` — the binding the whole props object
     /// lands in, if it has one.
     pub object_name: Option<String>,
+    /// The event names the component declares, via the `emits` option or
+    /// `defineEmits`.
+    pub emits: Vec<String>,
+    /// True when an `emits` declaration exists but names cannot all be read
+    /// statically (a spread, a computed key, an identifier), so any event
+    /// might be declared.
+    pub emits_unknown: bool,
+    /// Whether the declaration is `defineEmits` rather than the `emits`
+    /// option, which the message distinguishes.
+    pub emits_from_define: bool,
+    /// `const emit = defineEmits(…)` — the binding the emit function lands in.
+    /// A `<script setup>` block exposes it to the template, so
+    /// `@x="emit('y')"` is an emit call just as `$emit('y')` is.
+    pub emit_name: Option<String>,
 }
 
 /// Vue's `globalsWhitelist` (`@vue/shared`), which a template resolves before
@@ -819,6 +865,20 @@ pub fn vue_template_script_props(hosts: &[ContextSubHost<'_>]) -> VueScriptProps
                     }));
                     collect_define_props_binding(call, semantic, &mut props);
                 }
+                AstKind::CallExpression(call)
+                    if is_setup
+                        && matches!(call.callee, Expression::Identifier(_))
+                        && call.callee_name() == Some("defineEmits") =>
+                {
+                    props.emits_from_define = true;
+                    vue_define_emit_names(call, &mut props);
+                    if let AstKind::VariableDeclarator(declarator) =
+                        semantic.nodes().parent_kind(node.id())
+                        && let BindingPattern::BindingIdentifier(ident) = &declarator.id
+                    {
+                        props.emit_name = Some(ident.name.to_string());
+                    }
+                }
                 AstKind::ObjectExpression(object)
                     if vue_component_options_kind_in(node, semantic, true, framework_options)
                         .is_some() =>
@@ -826,12 +886,107 @@ pub fn vue_template_script_props(hosts: &[ContextSubHost<'_>]) -> VueScriptProps
                     if let Some(property) = find_property(object, "props") {
                         collect_group_key_names(&property.value, &mut props.names);
                     }
+                    if let Some(property) = find_property(object, "emits") {
+                        vue_collect_emit_names_from(&property.value, &mut props);
+                    }
                 }
                 _ => {}
             }
         }
     }
     props
+}
+
+/// The event names a `defineEmits(...)` call declares, from its runtime
+/// argument or its type argument.
+/// The prop names a single `defineProps(...)` call declares, from either its
+/// runtime argument or its type argument.
+pub fn vue_define_props_names<'a>(
+    call: &CallExpression<'a>,
+    semantic: &Semantic<'a>,
+) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    collect_define_props_names(call, semantic, &mut names);
+    names
+}
+
+pub fn vue_define_emit_names(call: &CallExpression<'_>, out: &mut VueScriptProps) {
+    if let Some(argument) = call.arguments.first().and_then(|argument| argument.as_expression()) {
+        vue_collect_emit_names_from(argument, out);
+        return;
+    }
+    let Some(type_arguments) = &call.type_arguments else { return };
+    let Some(first_type) = type_arguments.params.first() else { return };
+    match first_type {
+        // `defineEmits<{ (e: 'save'): void }>()` and
+        // `defineEmits<{ save: [] }>()`.
+        TSType::TSTypeLiteral(literal) => {
+            for member in &literal.members {
+                match member {
+                    TSSignature::TSPropertySignature(signature) => {
+                        match static_key_name(&signature.key) {
+                            Some(name) => out.emits.push(name.into_owned()),
+                            None => out.emits_unknown = true,
+                        }
+                    }
+                    TSSignature::TSCallSignatureDeclaration(signature) => {
+                        // The event name is the first parameter's literal type.
+                        let Some(first) = signature.params.items.first() else {
+                            out.emits_unknown = true;
+                            continue;
+                        };
+                        match first
+                            .type_annotation
+                            .as_ref()
+                            .map(|annotation| &annotation.type_annotation)
+                        {
+                            Some(TSType::TSLiteralType(literal)) => match &literal.literal {
+                                TSLiteral::StringLiteral(string) => {
+                                    out.emits.push(string.value.to_string());
+                                }
+                                _ => out.emits_unknown = true,
+                            },
+                            _ => out.emits_unknown = true,
+                        }
+                    }
+                    _ => out.emits_unknown = true,
+                }
+            }
+        }
+        _ => out.emits_unknown = true,
+    }
+}
+
+/// The event names an `emits` value declares — an array of literals or an
+/// object of handlers.
+pub fn vue_collect_emit_names_from(value: &Expression<'_>, out: &mut VueScriptProps) {
+    match value.without_parentheses() {
+        Expression::ArrayExpression(array) => {
+            for element in &array.elements {
+                match element
+                    .as_expression()
+                    .and_then(|expression| literal_element_name(expression.without_parentheses()))
+                {
+                    Some(name) => out.emits.push(name.into_owned()),
+                    None => out.emits_unknown = true,
+                }
+            }
+        }
+        Expression::ObjectExpression(object) => {
+            for property in &object.properties {
+                let ObjectPropertyKind::ObjectProperty(property) = property else {
+                    out.emits_unknown = true;
+                    continue;
+                };
+                match static_key_name(&property.key) {
+                    Some(name) => out.emits.push(name.into_owned()),
+                    None => out.emits_unknown = true,
+                }
+            }
+        }
+        // An identifier, a call, a spread — anything could be in there.
+        _ => out.emits_unknown = true,
+    }
 }
 
 /// The binding a `defineProps()` call's result lands in, looking through

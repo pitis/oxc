@@ -5306,6 +5306,11 @@ impl RuleRunner for crate::rules::vue::html_self_closing::HtmlSelfClosing {
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner for crate::rules::vue::jsx_uses_vars::JsxUsesVars {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
 impl RuleRunner for crate::rules::vue::max_props::MaxProps {
     const NODE_TYPES: Option<&AstTypesBitset> = Some(&AstTypesBitset::from_types(&[
         AstType::CallExpression,
@@ -5630,7 +5635,12 @@ impl RuleRunner for crate::rules::vue::no_this_in_before_route_enter::NoThisInBe
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
-impl RuleRunner for crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor {
+impl RuleRunner for crate::rules::vue::no_unused_components::NoUnusedComponents {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::vue::no_unused_vars::NoUnusedVars {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
@@ -5641,6 +5651,11 @@ impl RuleRunner
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::ThisExpression]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor {
+    const NODE_TYPES: Option<&AstTypesBitset> = None;
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
 impl RuleRunner for crate::rules::vue::no_useless_template_attributes::NoUselessTemplateAttributes {
@@ -5712,6 +5727,12 @@ impl RuleRunner for crate::rules::vue::require_default_prop::RequireDefaultProp 
 impl RuleRunner for crate::rules::vue::require_direct_export::RequireDirectExport {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::ExportDefaultDeclaration]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
+impl RuleRunner for crate::rules::vue::require_explicit_emits::RequireExplicitEmits {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::CallExpression]));
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 

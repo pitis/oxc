@@ -930,6 +930,7 @@ pub use crate::rules::vue::define_props_destructuring::DefinePropsDestructuring 
 pub use crate::rules::vue::first_attribute_linebreak::FirstAttributeLinebreak as VueFirstAttributeLinebreak;
 pub use crate::rules::vue::html_end_tags::HtmlEndTags as VueHtmlEndTags;
 pub use crate::rules::vue::html_self_closing::HtmlSelfClosing as VueHtmlSelfClosing;
+pub use crate::rules::vue::jsx_uses_vars::JsxUsesVars as VueJsxUsesVars;
 pub use crate::rules::vue::max_props::MaxProps as VueMaxProps;
 pub use crate::rules::vue::multi_word_component_names::MultiWordComponentNames as VueMultiWordComponentNames;
 pub use crate::rules::vue::next_tick_style::NextTickStyle as VueNextTickStyle;
@@ -980,6 +981,8 @@ pub use crate::rules::vue::no_template_key::NoTemplateKey as VueNoTemplateKey;
 pub use crate::rules::vue::no_template_shadow::NoTemplateShadow as VueNoTemplateShadow;
 pub use crate::rules::vue::no_textarea_mustache::NoTextareaMustache as VueNoTextareaMustache;
 pub use crate::rules::vue::no_this_in_before_route_enter::NoThisInBeforeRouteEnter as VueNoThisInBeforeRouteEnter;
+pub use crate::rules::vue::no_unused_components::NoUnusedComponents as VueNoUnusedComponents;
+pub use crate::rules::vue::no_unused_vars::NoUnusedVars as VueNoUnusedVars;
 pub use crate::rules::vue::no_use_computed_property_like_method::NoUseComputedPropertyLikeMethod as VueNoUseComputedPropertyLikeMethod;
 pub use crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor as VueNoUseVIfWithVFor;
 pub use crate::rules::vue::no_useless_template_attributes::NoUselessTemplateAttributes as VueNoUselessTemplateAttributes;
@@ -995,6 +998,7 @@ pub use crate::rules::vue::require_component_is::RequireComponentIs as VueRequir
 pub use crate::rules::vue::require_default_export::RequireDefaultExport as VueRequireDefaultExport;
 pub use crate::rules::vue::require_default_prop::RequireDefaultProp as VueRequireDefaultProp;
 pub use crate::rules::vue::require_direct_export::RequireDirectExport as VueRequireDirectExport;
+pub use crate::rules::vue::require_explicit_emits::RequireExplicitEmits as VueRequireExplicitEmits;
 pub use crate::rules::vue::require_prop_type_constructor::RequirePropTypeConstructor as VueRequirePropTypeConstructor;
 pub use crate::rules::vue::require_prop_types::RequirePropTypes as VueRequirePropTypes;
 pub use crate::rules::vue::require_render_return::RequireRenderReturn as VueRequireRenderReturn;
@@ -1887,6 +1891,7 @@ pub enum RuleEnum {
     VueFirstAttributeLinebreak(VueFirstAttributeLinebreak),
     VueHtmlEndTags(VueHtmlEndTags),
     VueHtmlSelfClosing(VueHtmlSelfClosing),
+    VueJsxUsesVars(VueJsxUsesVars),
     VueMaxProps(VueMaxProps),
     VueMultiWordComponentNames(VueMultiWordComponentNames),
     VueNextTickStyle(VueNextTickStyle),
@@ -1937,8 +1942,10 @@ pub enum RuleEnum {
     VueNoTemplateShadow(VueNoTemplateShadow),
     VueNoTextareaMustache(VueNoTextareaMustache),
     VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter),
-    VueNoUseVIfWithVFor(VueNoUseVIfWithVFor),
+    VueNoUnusedComponents(VueNoUnusedComponents),
+    VueNoUnusedVars(VueNoUnusedVars),
     VueNoUseComputedPropertyLikeMethod(VueNoUseComputedPropertyLikeMethod),
+    VueNoUseVIfWithVFor(VueNoUseVIfWithVFor),
     VueNoUselessTemplateAttributes(VueNoUselessTemplateAttributes),
     VueNoVForTemplateKeyOnChild(VueNoVForTemplateKeyOnChild),
     VueNoVHtml(VueNoVHtml),
@@ -1952,6 +1959,7 @@ pub enum RuleEnum {
     VueRequireDefaultExport(VueRequireDefaultExport),
     VueRequireDefaultProp(VueRequireDefaultProp),
     VueRequireDirectExport(VueRequireDirectExport),
+    VueRequireExplicitEmits(VueRequireExplicitEmits),
     VueRequirePropTypeConstructor(VueRequirePropTypeConstructor),
     VueRequirePropTypes(VueRequirePropTypes),
     VueRequireRenderReturn(VueRequireRenderReturn),
@@ -3013,7 +3021,8 @@ const VUE_DEFINE_PROPS_DESTRUCTURING_ID: usize = VUE_DEFINE_PROPS_DECLARATION_ID
 const VUE_FIRST_ATTRIBUTE_LINEBREAK_ID: usize = VUE_DEFINE_PROPS_DESTRUCTURING_ID + 1usize;
 const VUE_HTML_END_TAGS_ID: usize = VUE_FIRST_ATTRIBUTE_LINEBREAK_ID + 1usize;
 const VUE_HTML_SELF_CLOSING_ID: usize = VUE_HTML_END_TAGS_ID + 1usize;
-const VUE_MAX_PROPS_ID: usize = VUE_HTML_SELF_CLOSING_ID + 1usize;
+const VUE_JSX_USES_VARS_ID: usize = VUE_HTML_SELF_CLOSING_ID + 1usize;
+const VUE_MAX_PROPS_ID: usize = VUE_JSX_USES_VARS_ID + 1usize;
 const VUE_MULTI_WORD_COMPONENT_NAMES_ID: usize = VUE_MAX_PROPS_ID + 1usize;
 const VUE_NEXT_TICK_STYLE_ID: usize = VUE_MULTI_WORD_COMPONENT_NAMES_ID + 1usize;
 const VUE_NO_ARROW_FUNCTIONS_IN_WATCH_ID: usize = VUE_NEXT_TICK_STYLE_ID + 1usize;
@@ -3075,10 +3084,11 @@ const VUE_NO_TEMPLATE_KEY_ID: usize = VUE_NO_SIDE_EFFECTS_IN_COMPUTED_PROPERTIES
 const VUE_NO_TEMPLATE_SHADOW_ID: usize = VUE_NO_TEMPLATE_KEY_ID + 1usize;
 const VUE_NO_TEXTAREA_MUSTACHE_ID: usize = VUE_NO_TEMPLATE_SHADOW_ID + 1usize;
 const VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID: usize = VUE_NO_TEXTAREA_MUSTACHE_ID + 1usize;
-const VUE_NO_USE_V_IF_WITH_V_FOR_ID: usize = VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID + 1usize;
-const VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID: usize = VUE_NO_USE_V_IF_WITH_V_FOR_ID + 1usize;
-const VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID: usize =
-    VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID + 1usize;
+const VUE_NO_UNUSED_COMPONENTS_ID: usize = VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID + 1usize;
+const VUE_NO_UNUSED_VARS_ID: usize = VUE_NO_UNUSED_COMPONENTS_ID + 1usize;
+const VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID: usize = VUE_NO_UNUSED_VARS_ID + 1usize;
+const VUE_NO_USE_V_IF_WITH_V_FOR_ID: usize = VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID + 1usize;
+const VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID: usize = VUE_NO_USE_V_IF_WITH_V_FOR_ID + 1usize;
 const VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID: usize = VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID + 1usize;
 const VUE_NO_V_HTML_ID: usize = VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID + 1usize;
 const VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID: usize = VUE_NO_V_HTML_ID + 1usize;
@@ -3091,7 +3101,8 @@ const VUE_REQUIRE_COMPONENT_IS_ID: usize = VUE_PROP_NAME_CASING_ID + 1usize;
 const VUE_REQUIRE_DEFAULT_EXPORT_ID: usize = VUE_REQUIRE_COMPONENT_IS_ID + 1usize;
 const VUE_REQUIRE_DEFAULT_PROP_ID: usize = VUE_REQUIRE_DEFAULT_EXPORT_ID + 1usize;
 const VUE_REQUIRE_DIRECT_EXPORT_ID: usize = VUE_REQUIRE_DEFAULT_PROP_ID + 1usize;
-const VUE_REQUIRE_PROP_TYPE_CONSTRUCTOR_ID: usize = VUE_REQUIRE_DIRECT_EXPORT_ID + 1usize;
+const VUE_REQUIRE_EXPLICIT_EMITS_ID: usize = VUE_REQUIRE_DIRECT_EXPORT_ID + 1usize;
+const VUE_REQUIRE_PROP_TYPE_CONSTRUCTOR_ID: usize = VUE_REQUIRE_EXPLICIT_EMITS_ID + 1usize;
 const VUE_REQUIRE_PROP_TYPES_ID: usize = VUE_REQUIRE_PROP_TYPE_CONSTRUCTOR_ID + 1usize;
 const VUE_REQUIRE_RENDER_RETURN_ID: usize = VUE_REQUIRE_PROP_TYPES_ID + 1usize;
 const VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID: usize = VUE_REQUIRE_RENDER_RETURN_ID + 1usize;
@@ -3229,7 +3240,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1023usize] = [
+static RULE_NAMES: [&str; 1027usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -4066,6 +4077,7 @@ static RULE_NAMES: [&str; 1023usize] = [
     VueFirstAttributeLinebreak::NAME,
     VueHtmlEndTags::NAME,
     VueHtmlSelfClosing::NAME,
+    VueJsxUsesVars::NAME,
     VueMaxProps::NAME,
     VueMultiWordComponentNames::NAME,
     VueNextTickStyle::NAME,
@@ -4116,8 +4128,10 @@ static RULE_NAMES: [&str; 1023usize] = [
     VueNoTemplateShadow::NAME,
     VueNoTextareaMustache::NAME,
     VueNoThisInBeforeRouteEnter::NAME,
-    VueNoUseVIfWithVFor::NAME,
+    VueNoUnusedComponents::NAME,
+    VueNoUnusedVars::NAME,
     VueNoUseComputedPropertyLikeMethod::NAME,
+    VueNoUseVIfWithVFor::NAME,
     VueNoUselessTemplateAttributes::NAME,
     VueNoVForTemplateKeyOnChild::NAME,
     VueNoVHtml::NAME,
@@ -4131,6 +4145,7 @@ static RULE_NAMES: [&str; 1023usize] = [
     VueRequireDefaultExport::NAME,
     VueRequireDefaultProp::NAME,
     VueRequireDirectExport::NAME,
+    VueRequireExplicitEmits::NAME,
     VueRequirePropTypeConstructor::NAME,
     VueRequirePropTypes::NAME,
     VueRequireRenderReturn::NAME,
@@ -5219,6 +5234,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VUE_FIRST_ATTRIBUTE_LINEBREAK_ID,
             Self::VueHtmlEndTags(_) => VUE_HTML_END_TAGS_ID,
             Self::VueHtmlSelfClosing(_) => VUE_HTML_SELF_CLOSING_ID,
+            Self::VueJsxUsesVars(_) => VUE_JSX_USES_VARS_ID,
             Self::VueMaxProps(_) => VUE_MAX_PROPS_ID,
             Self::VueMultiWordComponentNames(_) => VUE_MULTI_WORD_COMPONENT_NAMES_ID,
             Self::VueNextTickStyle(_) => VUE_NEXT_TICK_STYLE_ID,
@@ -5277,10 +5293,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VUE_NO_TEMPLATE_SHADOW_ID,
             Self::VueNoTextareaMustache(_) => VUE_NO_TEXTAREA_MUSTACHE_ID,
             Self::VueNoThisInBeforeRouteEnter(_) => VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID,
-            Self::VueNoUseVIfWithVFor(_) => VUE_NO_USE_V_IF_WITH_V_FOR_ID,
+            Self::VueNoUnusedComponents(_) => VUE_NO_UNUSED_COMPONENTS_ID,
+            Self::VueNoUnusedVars(_) => VUE_NO_UNUSED_VARS_ID,
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID
             }
+            Self::VueNoUseVIfWithVFor(_) => VUE_NO_USE_V_IF_WITH_V_FOR_ID,
             Self::VueNoUselessTemplateAttributes(_) => VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID,
             Self::VueNoVForTemplateKeyOnChild(_) => VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID,
             Self::VueNoVHtml(_) => VUE_NO_V_HTML_ID,
@@ -5294,6 +5312,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VUE_REQUIRE_DEFAULT_EXPORT_ID,
             Self::VueRequireDefaultProp(_) => VUE_REQUIRE_DEFAULT_PROP_ID,
             Self::VueRequireDirectExport(_) => VUE_REQUIRE_DIRECT_EXPORT_ID,
+            Self::VueRequireExplicitEmits(_) => VUE_REQUIRE_EXPLICIT_EMITS_ID,
             Self::VueRequirePropTypeConstructor(_) => VUE_REQUIRE_PROP_TYPE_CONSTRUCTOR_ID,
             Self::VueRequirePropTypes(_) => VUE_REQUIRE_PROP_TYPES_ID,
             Self::VueRequireRenderReturn(_) => VUE_REQUIRE_RENDER_RETURN_ID,
@@ -6449,6 +6468,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::CATEGORY,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::CATEGORY,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::CATEGORY,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::CATEGORY,
             Self::VueMaxProps(_) => VueMaxProps::CATEGORY,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::CATEGORY,
             Self::VueNextTickStyle(_) => VueNextTickStyle::CATEGORY,
@@ -6515,10 +6535,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::CATEGORY,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::CATEGORY,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::CATEGORY,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::CATEGORY,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::CATEGORY,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::CATEGORY,
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::CATEGORY
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::CATEGORY,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::CATEGORY,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::CATEGORY,
             Self::VueNoVHtml(_) => VueNoVHtml::CATEGORY,
@@ -6532,6 +6554,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::CATEGORY,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::CATEGORY,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::CATEGORY,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::CATEGORY,
             Self::VueRequirePropTypeConstructor(_) => VueRequirePropTypeConstructor::CATEGORY,
             Self::VueRequirePropTypes(_) => VueRequirePropTypes::CATEGORY,
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::CATEGORY,
@@ -7633,6 +7656,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::FIX,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::FIX,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::FIX,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::FIX,
             Self::VueMaxProps(_) => VueMaxProps::FIX,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::FIX,
             Self::VueNextTickStyle(_) => VueNextTickStyle::FIX,
@@ -7689,8 +7713,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::FIX,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::FIX,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::FIX,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::FIX,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::FIX,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::FIX,
             Self::VueNoUseComputedPropertyLikeMethod(_) => VueNoUseComputedPropertyLikeMethod::FIX,
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::FIX,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::FIX,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::FIX,
             Self::VueNoVHtml(_) => VueNoVHtml::FIX,
@@ -7704,6 +7730,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::FIX,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::FIX,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::FIX,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::FIX,
             Self::VueRequirePropTypeConstructor(_) => VueRequirePropTypeConstructor::FIX,
             Self::VueRequirePropTypes(_) => VueRequirePropTypes::FIX,
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::FIX,
@@ -9053,6 +9080,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::documentation(),
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::documentation(),
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::documentation(),
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::documentation(),
             Self::VueMaxProps(_) => VueMaxProps::documentation(),
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::documentation(),
             Self::VueNextTickStyle(_) => VueNextTickStyle::documentation(),
@@ -9137,10 +9165,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::documentation(),
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::documentation(),
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::documentation(),
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::documentation(),
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::documentation(),
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::documentation(),
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::documentation()
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::documentation(),
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::documentation()
             }
@@ -9156,6 +9186,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::documentation(),
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::documentation(),
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::documentation(),
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::documentation(),
             Self::VueRequirePropTypeConstructor(_) => {
                 VueRequirePropTypeConstructor::documentation()
             }
@@ -11737,6 +11768,8 @@ impl RuleEnum {
                 .or_else(|| VueHtmlEndTags::schema(generator)),
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::config_schema(generator)
                 .or_else(|| VueHtmlSelfClosing::schema(generator)),
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::config_schema(generator)
+                .or_else(|| VueJsxUsesVars::schema(generator)),
             Self::VueMaxProps(_) => {
                 VueMaxProps::config_schema(generator).or_else(|| VueMaxProps::schema(generator))
             }
@@ -11889,12 +11922,16 @@ impl RuleEnum {
                 VueNoThisInBeforeRouteEnter::config_schema(generator)
                     .or_else(|| VueNoThisInBeforeRouteEnter::schema(generator))
             }
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::config_schema(generator)
-                .or_else(|| VueNoUseVIfWithVFor::schema(generator)),
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::config_schema(generator)
+                .or_else(|| VueNoUnusedComponents::schema(generator)),
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::config_schema(generator)
+                .or_else(|| VueNoUnusedVars::schema(generator)),
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::config_schema(generator)
                     .or_else(|| VueNoUseComputedPropertyLikeMethod::schema(generator))
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::config_schema(generator)
+                .or_else(|| VueNoUseVIfWithVFor::schema(generator)),
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::config_schema(generator)
                     .or_else(|| VueNoUselessTemplateAttributes::schema(generator))
@@ -11928,6 +11965,8 @@ impl RuleEnum {
                 .or_else(|| VueRequireDefaultProp::schema(generator)),
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::config_schema(generator)
                 .or_else(|| VueRequireDirectExport::schema(generator)),
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::config_schema(generator)
+                .or_else(|| VueRequireExplicitEmits::schema(generator)),
             Self::VueRequirePropTypeConstructor(_) => {
                 VueRequirePropTypeConstructor::config_schema(generator)
                     .or_else(|| VueRequirePropTypeConstructor::schema(generator))
@@ -13129,6 +13168,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => "vue",
             Self::VueHtmlEndTags(_) => "vue",
             Self::VueHtmlSelfClosing(_) => "vue",
+            Self::VueJsxUsesVars(_) => "vue",
             Self::VueMaxProps(_) => "vue",
             Self::VueMultiWordComponentNames(_) => "vue",
             Self::VueNextTickStyle(_) => "vue",
@@ -13179,8 +13219,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => "vue",
             Self::VueNoTextareaMustache(_) => "vue",
             Self::VueNoThisInBeforeRouteEnter(_) => "vue",
-            Self::VueNoUseVIfWithVFor(_) => "vue",
+            Self::VueNoUnusedComponents(_) => "vue",
+            Self::VueNoUnusedVars(_) => "vue",
             Self::VueNoUseComputedPropertyLikeMethod(_) => "vue",
+            Self::VueNoUseVIfWithVFor(_) => "vue",
             Self::VueNoUselessTemplateAttributes(_) => "vue",
             Self::VueNoVForTemplateKeyOnChild(_) => "vue",
             Self::VueNoVHtml(_) => "vue",
@@ -13194,6 +13236,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => "vue",
             Self::VueRequireDefaultProp(_) => "vue",
             Self::VueRequireDirectExport(_) => "vue",
+            Self::VueRequireExplicitEmits(_) => "vue",
             Self::VueRequirePropTypeConstructor(_) => "vue",
             Self::VueRequirePropTypes(_) => "vue",
             Self::VueRequireRenderReturn(_) => "vue",
@@ -14439,6 +14482,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => {
                 Ok(Self::VueNoTemplateShadow(VueNoTemplateShadow::from_configuration(value)?))
             }
+            Self::VueNoUnusedComponents(_) => {
+                Ok(Self::VueNoUnusedComponents(VueNoUnusedComponents::from_configuration(value)?))
+            }
+            Self::VueNoUnusedVars(_) => {
+                Ok(Self::VueNoUnusedVars(VueNoUnusedVars::from_configuration(value)?))
+            }
             Self::VueNoUseVIfWithVFor(_) => {
                 Ok(Self::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::from_configuration(value)?))
             }
@@ -14455,6 +14504,9 @@ impl RuleEnum {
             Self::VueRequireDirectExport(_) => {
                 Ok(Self::VueRequireDirectExport(VueRequireDirectExport::from_configuration(value)?))
             }
+            Self::VueRequireExplicitEmits(_) => Ok(Self::VueRequireExplicitEmits(
+                VueRequireExplicitEmits::from_configuration(value)?,
+            )),
             Self::VueRequireToggleInsideTransition(_) => {
                 Ok(Self::VueRequireToggleInsideTransition(
                     VueRequireToggleInsideTransition::from_configuration(value)?,
@@ -15451,6 +15503,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.run(node, ctx),
             Self::VueHtmlEndTags(rule) => rule.run(node, ctx),
             Self::VueHtmlSelfClosing(rule) => rule.run(node, ctx),
+            Self::VueJsxUsesVars(rule) => rule.run(node, ctx),
             Self::VueMaxProps(rule) => rule.run(node, ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run(node, ctx),
             Self::VueNextTickStyle(rule) => rule.run(node, ctx),
@@ -15501,8 +15554,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.run(node, ctx),
             Self::VueNoTextareaMustache(rule) => rule.run(node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run(node, ctx),
-            Self::VueNoUseVIfWithVFor(rule) => rule.run(node, ctx),
+            Self::VueNoUnusedComponents(rule) => rule.run(node, ctx),
+            Self::VueNoUnusedVars(rule) => rule.run(node, ctx),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run(node, ctx),
+            Self::VueNoUseVIfWithVFor(rule) => rule.run(node, ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run(node, ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run(node, ctx),
             Self::VueNoVHtml(rule) => rule.run(node, ctx),
@@ -15516,6 +15571,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.run(node, ctx),
             Self::VueRequireDefaultProp(rule) => rule.run(node, ctx),
             Self::VueRequireDirectExport(rule) => rule.run(node, ctx),
+            Self::VueRequireExplicitEmits(rule) => rule.run(node, ctx),
             Self::VueRequirePropTypeConstructor(rule) => rule.run(node, ctx),
             Self::VueRequirePropTypes(rule) => rule.run(node, ctx),
             Self::VueRequireRenderReturn(rule) => rule.run(node, ctx),
@@ -16491,6 +16547,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.run_once(ctx),
             Self::VueHtmlEndTags(rule) => rule.run_once(ctx),
             Self::VueHtmlSelfClosing(rule) => rule.run_once(ctx),
+            Self::VueJsxUsesVars(rule) => rule.run_once(ctx),
             Self::VueMaxProps(rule) => rule.run_once(ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run_once(ctx),
             Self::VueNextTickStyle(rule) => rule.run_once(ctx),
@@ -16541,8 +16598,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.run_once(ctx),
             Self::VueNoTextareaMustache(rule) => rule.run_once(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_once(ctx),
-            Self::VueNoUseVIfWithVFor(rule) => rule.run_once(ctx),
+            Self::VueNoUnusedComponents(rule) => rule.run_once(ctx),
+            Self::VueNoUnusedVars(rule) => rule.run_once(ctx),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_once(ctx),
+            Self::VueNoUseVIfWithVFor(rule) => rule.run_once(ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_once(ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_once(ctx),
             Self::VueNoVHtml(rule) => rule.run_once(ctx),
@@ -16556,6 +16615,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.run_once(ctx),
             Self::VueRequireDefaultProp(rule) => rule.run_once(ctx),
             Self::VueRequireDirectExport(rule) => rule.run_once(ctx),
+            Self::VueRequireExplicitEmits(rule) => rule.run_once(ctx),
             Self::VueRequirePropTypeConstructor(rule) => rule.run_once(ctx),
             Self::VueRequirePropTypes(rule) => rule.run_once(ctx),
             Self::VueRequireRenderReturn(rule) => rule.run_once(ctx),
@@ -17644,6 +17704,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueHtmlEndTags(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueHtmlSelfClosing(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueJsxUsesVars(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueMaxProps(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueMultiWordComponentNames(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNextTickStyle(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17700,8 +17761,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoTextareaMustache(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_on_jest_node(jest_node, ctx),
-            Self::VueNoUseVIfWithVFor(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoUnusedComponents(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoUnusedVars(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoUseVIfWithVFor(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVHtml(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17715,6 +17778,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireDefaultProp(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireDirectExport(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueRequireExplicitEmits(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequirePropTypeConstructor(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequirePropTypes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireRenderReturn(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -18707,6 +18771,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.should_run(ctx),
             Self::VueHtmlEndTags(rule) => rule.should_run(ctx),
             Self::VueHtmlSelfClosing(rule) => rule.should_run(ctx),
+            Self::VueJsxUsesVars(rule) => rule.should_run(ctx),
             Self::VueMaxProps(rule) => rule.should_run(ctx),
             Self::VueMultiWordComponentNames(rule) => rule.should_run(ctx),
             Self::VueNextTickStyle(rule) => rule.should_run(ctx),
@@ -18757,8 +18822,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.should_run(ctx),
             Self::VueNoTextareaMustache(rule) => rule.should_run(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.should_run(ctx),
-            Self::VueNoUseVIfWithVFor(rule) => rule.should_run(ctx),
+            Self::VueNoUnusedComponents(rule) => rule.should_run(ctx),
+            Self::VueNoUnusedVars(rule) => rule.should_run(ctx),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.should_run(ctx),
+            Self::VueNoUseVIfWithVFor(rule) => rule.should_run(ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.should_run(ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.should_run(ctx),
             Self::VueNoVHtml(rule) => rule.should_run(ctx),
@@ -18772,6 +18839,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.should_run(ctx),
             Self::VueRequireDefaultProp(rule) => rule.should_run(ctx),
             Self::VueRequireDirectExport(rule) => rule.should_run(ctx),
+            Self::VueRequireExplicitEmits(rule) => rule.should_run(ctx),
             Self::VueRequirePropTypeConstructor(rule) => rule.should_run(ctx),
             Self::VueRequirePropTypes(rule) => rule.should_run(ctx),
             Self::VueRequireRenderReturn(rule) => rule.should_run(ctx),
@@ -20104,6 +20172,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::IS_TSGOLINT_RULE,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::IS_TSGOLINT_RULE,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::IS_TSGOLINT_RULE,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::IS_TSGOLINT_RULE,
             Self::VueMaxProps(_) => VueMaxProps::IS_TSGOLINT_RULE,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::IS_TSGOLINT_RULE,
             Self::VueNextTickStyle(_) => VueNextTickStyle::IS_TSGOLINT_RULE,
@@ -20188,10 +20257,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::IS_TSGOLINT_RULE,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::IS_TSGOLINT_RULE,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::IS_TSGOLINT_RULE,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::IS_TSGOLINT_RULE,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::IS_TSGOLINT_RULE,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::IS_TSGOLINT_RULE,
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::IS_TSGOLINT_RULE
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::IS_TSGOLINT_RULE,
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::IS_TSGOLINT_RULE
             }
@@ -20207,6 +20278,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::IS_TSGOLINT_RULE,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::IS_TSGOLINT_RULE,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::IS_TSGOLINT_RULE,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::IS_TSGOLINT_RULE,
             Self::VueRequirePropTypeConstructor(_) => {
                 VueRequirePropTypeConstructor::IS_TSGOLINT_RULE
             }
@@ -21399,6 +21471,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::VERSION,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::VERSION,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::VERSION,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::VERSION,
             Self::VueMaxProps(_) => VueMaxProps::VERSION,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::VERSION,
             Self::VueNextTickStyle(_) => VueNextTickStyle::VERSION,
@@ -21465,10 +21538,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::VERSION,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::VERSION,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::VERSION,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::VERSION,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::VERSION,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::VERSION,
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::VERSION
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::VERSION,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::VERSION,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::VERSION,
             Self::VueNoVHtml(_) => VueNoVHtml::VERSION,
@@ -21482,6 +21557,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::VERSION,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::VERSION,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::VERSION,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::VERSION,
             Self::VueRequirePropTypeConstructor(_) => VueRequirePropTypeConstructor::VERSION,
             Self::VueRequirePropTypes(_) => VueRequirePropTypes::VERSION,
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::VERSION,
@@ -22679,6 +22755,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::HAS_CONFIG,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::HAS_CONFIG,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::HAS_CONFIG,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::HAS_CONFIG,
             Self::VueMaxProps(_) => VueMaxProps::HAS_CONFIG,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::HAS_CONFIG,
             Self::VueNextTickStyle(_) => VueNextTickStyle::HAS_CONFIG,
@@ -22751,10 +22828,12 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::HAS_CONFIG,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::HAS_CONFIG,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::HAS_CONFIG,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::HAS_CONFIG,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::HAS_CONFIG,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::HAS_CONFIG,
             Self::VueNoUseComputedPropertyLikeMethod(_) => {
                 VueNoUseComputedPropertyLikeMethod::HAS_CONFIG
             }
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::HAS_CONFIG,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::HAS_CONFIG,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::HAS_CONFIG,
             Self::VueNoVHtml(_) => VueNoVHtml::HAS_CONFIG,
@@ -22768,6 +22847,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::HAS_CONFIG,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::HAS_CONFIG,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::HAS_CONFIG,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::HAS_CONFIG,
             Self::VueRequirePropTypeConstructor(_) => VueRequirePropTypeConstructor::HAS_CONFIG,
             Self::VueRequirePropTypes(_) => VueRequirePropTypes::HAS_CONFIG,
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::HAS_CONFIG,
@@ -23878,6 +23958,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(_) => VueFirstAttributeLinebreak::INFO,
             Self::VueHtmlEndTags(_) => VueHtmlEndTags::INFO,
             Self::VueHtmlSelfClosing(_) => VueHtmlSelfClosing::INFO,
+            Self::VueJsxUsesVars(_) => VueJsxUsesVars::INFO,
             Self::VueMaxProps(_) => VueMaxProps::INFO,
             Self::VueMultiWordComponentNames(_) => VueMultiWordComponentNames::INFO,
             Self::VueNextTickStyle(_) => VueNextTickStyle::INFO,
@@ -23934,8 +24015,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(_) => VueNoTemplateShadow::INFO,
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::INFO,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::INFO,
-            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::INFO,
+            Self::VueNoUnusedComponents(_) => VueNoUnusedComponents::INFO,
+            Self::VueNoUnusedVars(_) => VueNoUnusedVars::INFO,
             Self::VueNoUseComputedPropertyLikeMethod(_) => VueNoUseComputedPropertyLikeMethod::INFO,
+            Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::INFO,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::INFO,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::INFO,
             Self::VueNoVHtml(_) => VueNoVHtml::INFO,
@@ -23949,6 +24032,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(_) => VueRequireDefaultExport::INFO,
             Self::VueRequireDefaultProp(_) => VueRequireDefaultProp::INFO,
             Self::VueRequireDirectExport(_) => VueRequireDirectExport::INFO,
+            Self::VueRequireExplicitEmits(_) => VueRequireExplicitEmits::INFO,
             Self::VueRequirePropTypeConstructor(_) => VueRequirePropTypeConstructor::INFO,
             Self::VueRequirePropTypes(_) => VueRequirePropTypes::INFO,
             Self::VueRequireRenderReturn(_) => VueRequireRenderReturn::INFO,
@@ -24932,6 +25016,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.types_info(),
             Self::VueHtmlEndTags(rule) => rule.types_info(),
             Self::VueHtmlSelfClosing(rule) => rule.types_info(),
+            Self::VueJsxUsesVars(rule) => rule.types_info(),
             Self::VueMaxProps(rule) => rule.types_info(),
             Self::VueMultiWordComponentNames(rule) => rule.types_info(),
             Self::VueNextTickStyle(rule) => rule.types_info(),
@@ -24982,8 +25067,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.types_info(),
             Self::VueNoTextareaMustache(rule) => rule.types_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.types_info(),
-            Self::VueNoUseVIfWithVFor(rule) => rule.types_info(),
+            Self::VueNoUnusedComponents(rule) => rule.types_info(),
+            Self::VueNoUnusedVars(rule) => rule.types_info(),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.types_info(),
+            Self::VueNoUseVIfWithVFor(rule) => rule.types_info(),
             Self::VueNoUselessTemplateAttributes(rule) => rule.types_info(),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.types_info(),
             Self::VueNoVHtml(rule) => rule.types_info(),
@@ -24997,6 +25084,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.types_info(),
             Self::VueRequireDefaultProp(rule) => rule.types_info(),
             Self::VueRequireDirectExport(rule) => rule.types_info(),
+            Self::VueRequireExplicitEmits(rule) => rule.types_info(),
             Self::VueRequirePropTypeConstructor(rule) => rule.types_info(),
             Self::VueRequirePropTypes(rule) => rule.types_info(),
             Self::VueRequireRenderReturn(rule) => rule.types_info(),
@@ -25959,6 +26047,7 @@ impl RuleEnum {
             Self::VueFirstAttributeLinebreak(rule) => rule.run_info(),
             Self::VueHtmlEndTags(rule) => rule.run_info(),
             Self::VueHtmlSelfClosing(rule) => rule.run_info(),
+            Self::VueJsxUsesVars(rule) => rule.run_info(),
             Self::VueMaxProps(rule) => rule.run_info(),
             Self::VueMultiWordComponentNames(rule) => rule.run_info(),
             Self::VueNextTickStyle(rule) => rule.run_info(),
@@ -26009,8 +26098,10 @@ impl RuleEnum {
             Self::VueNoTemplateShadow(rule) => rule.run_info(),
             Self::VueNoTextareaMustache(rule) => rule.run_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_info(),
-            Self::VueNoUseVIfWithVFor(rule) => rule.run_info(),
+            Self::VueNoUnusedComponents(rule) => rule.run_info(),
+            Self::VueNoUnusedVars(rule) => rule.run_info(),
             Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_info(),
+            Self::VueNoUseVIfWithVFor(rule) => rule.run_info(),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_info(),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_info(),
             Self::VueNoVHtml(rule) => rule.run_info(),
@@ -26024,6 +26115,7 @@ impl RuleEnum {
             Self::VueRequireDefaultExport(rule) => rule.run_info(),
             Self::VueRequireDefaultProp(rule) => rule.run_info(),
             Self::VueRequireDirectExport(rule) => rule.run_info(),
+            Self::VueRequireExplicitEmits(rule) => rule.run_info(),
             Self::VueRequirePropTypeConstructor(rule) => rule.run_info(),
             Self::VueRequirePropTypes(rule) => rule.run_info(),
             Self::VueRequireRenderReturn(rule) => rule.run_info(),
@@ -27118,6 +27210,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueFirstAttributeLinebreak(VueFirstAttributeLinebreak::default()),
         RuleEnum::VueHtmlEndTags(VueHtmlEndTags::default()),
         RuleEnum::VueHtmlSelfClosing(VueHtmlSelfClosing::default()),
+        RuleEnum::VueJsxUsesVars(VueJsxUsesVars::default()),
         RuleEnum::VueMaxProps(VueMaxProps::default()),
         RuleEnum::VueMultiWordComponentNames(VueMultiWordComponentNames::default()),
         RuleEnum::VueNextTickStyle(VueNextTickStyle::default()),
@@ -27174,8 +27267,10 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoTemplateShadow(VueNoTemplateShadow::default()),
         RuleEnum::VueNoTextareaMustache(VueNoTextareaMustache::default()),
         RuleEnum::VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter::default()),
-        RuleEnum::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::default()),
+        RuleEnum::VueNoUnusedComponents(VueNoUnusedComponents::default()),
+        RuleEnum::VueNoUnusedVars(VueNoUnusedVars::default()),
         RuleEnum::VueNoUseComputedPropertyLikeMethod(VueNoUseComputedPropertyLikeMethod::default()),
+        RuleEnum::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::default()),
         RuleEnum::VueNoUselessTemplateAttributes(VueNoUselessTemplateAttributes::default()),
         RuleEnum::VueNoVForTemplateKeyOnChild(VueNoVForTemplateKeyOnChild::default()),
         RuleEnum::VueNoVHtml(VueNoVHtml::default()),
@@ -27189,6 +27284,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueRequireDefaultExport(VueRequireDefaultExport::default()),
         RuleEnum::VueRequireDefaultProp(VueRequireDefaultProp::default()),
         RuleEnum::VueRequireDirectExport(VueRequireDirectExport::default()),
+        RuleEnum::VueRequireExplicitEmits(VueRequireExplicitEmits::default()),
         RuleEnum::VueRequirePropTypeConstructor(VueRequirePropTypeConstructor::default()),
         RuleEnum::VueRequirePropTypes(VueRequirePropTypes::default()),
         RuleEnum::VueRequireRenderReturn(VueRequireRenderReturn::default()),

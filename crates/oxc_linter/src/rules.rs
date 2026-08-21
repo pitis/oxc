@@ -926,6 +926,7 @@ pub(crate) mod vue {
     pub mod first_attribute_linebreak;
     pub mod html_end_tags;
     pub mod html_self_closing;
+    pub mod jsx_uses_vars;
     pub mod max_props;
     pub mod multi_word_component_names;
     pub mod next_tick_style;
@@ -976,6 +977,8 @@ pub(crate) mod vue {
     pub mod no_template_shadow;
     pub mod no_textarea_mustache;
     pub mod no_this_in_before_route_enter;
+    pub mod no_unused_components;
+    pub mod no_unused_vars;
     pub mod no_use_computed_property_like_method;
     pub mod no_use_v_if_with_v_for;
     pub mod no_useless_template_attributes;
@@ -991,6 +994,7 @@ pub(crate) mod vue {
     pub mod require_default_export;
     pub mod require_default_prop;
     pub mod require_direct_export;
+    pub mod require_explicit_emits;
     pub mod require_prop_type_constructor;
     pub mod require_prop_types;
     pub mod require_render_return;
