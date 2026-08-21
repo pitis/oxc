@@ -82,10 +82,10 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
 | `huntabyte/bits-ui`        |   617 |     617 (100.0%) |
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1678 (99.8%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1679 (99.9%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
 | `windmill-labs/windmill`   |  1866 |     1864 (99.9%) |
-| **Total**                  |  6673 | **6667 (99.9%)** |
+| **Total**                  |  6673 | **6668 (99.9%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
 below 99.8%, where the first measurement had **windmill — the one large application —
@@ -225,7 +225,12 @@ under the indent the binaryish chain around it supplies — and the header had b
 fragment whose host indents it, on the reasoning that a flattened expression has no continuation to
 indent. It has one exactly when flattening does not reach it.
 
-What is left is six files, no two of them alike.
+A component called `<Textarea>` was being taken for the HTML element, along with `<Pre>` — the name
+was the whole test, and Svelte tells an element from a component by the capital. Its content was
+kept as written and its tag was laid out as whitespace-significant. Prettier asks for a
+`RegularElement` as well as the name, and so does this now.
+
+What is left is five files, no two of them alike.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
 
@@ -773,7 +778,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The last six Svelte layout differences** — six files, no two of them alike, so each is its
+1. **The last five Svelte layout differences** — five files, no two of them alike, so each is its
    own investigation and none of them moves the figure. Worth doing only against the corpus.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a

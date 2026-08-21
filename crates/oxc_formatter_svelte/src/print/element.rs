@@ -178,13 +178,7 @@ pub fn write_element<'a>(
             f,
             group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
                 write!(f, &open_tag);
-                if inline_whitespace {
-                    write!(f, [token(">"), soft_line_break_or_space()]);
-                    write_close_tag(name, f);
-                } else if bracket_same_line {
-                    write!(f, [token(">"), soft_line_break()]);
-                    write_close_tag(name, f);
-                } else if hug_start && hug_end {
+                if hug_start && hug_end {
                     // An element that hugs its content on both sides renders
                     // the whitespace between its tags, so the closing tag
                     // borrows the opening `>` rather than let a break
@@ -214,12 +208,28 @@ pub fn write_element<'a>(
                             write!(
                                 f,
                                 group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
-                                    write!(f, [token(">"), token("</"), text(name)]);
+                                    write!(f, token(">"));
+                                    // `bracketSameLine` asks for a break the
+                                    // closing tag can take when the two do not
+                                    // fit beside each other.
+                                    if bracket_same_line {
+                                        write!(f, soft_line_break());
+                                    }
+                                    write!(f, [token("</"), text(name)]);
                                 }))
                             );
                         }))
                     );
+                    if bracket_same_line && !omit_softline_before_close {
+                        write!(f, soft_line_break());
+                    }
                     write!(f, token(">"));
+                } else if inline_whitespace {
+                    write!(f, [token(">"), soft_line_break_or_space()]);
+                    write_close_tag(name, f);
+                } else if bracket_same_line {
+                    write!(f, [token(">"), soft_line_break()]);
+                    write_close_tag(name, f);
                 } else {
                     write!(f, token(">"));
                     write_close_tag(name, f);

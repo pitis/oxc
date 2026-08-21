@@ -105,8 +105,14 @@ fn is_plain_html(element: &Element<'_>) -> bool {
 
 /// Whether the element renders its own whitespace, so its content is kept
 /// exactly as written. Its *tag* is still printed as markup.
+///
+/// Only the HTML elements: a component may be called `<Textarea>` and very
+/// often is, and what it renders is its own business. Svelte tells the two
+/// apart by the capital, which is why the name alone is not the question.
 pub fn is_pre_content(element: &Element<'_>) -> bool {
-    element.name.eq_ignore_ascii_case("pre") || element.name.eq_ignore_ascii_case("textarea")
+    is_regular_element(element)
+        && (element.name.eq_ignore_ascii_case("pre")
+            || element.name.eq_ignore_ascii_case("textarea"))
 }
 
 /// Whether the element's body is a foreign language this printer hands to

@@ -25,6 +25,18 @@
      whitespace, which it renders, so the tags keep a break between them. -->
 <Skeleton class="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"> </Skeleton>
 
+<!-- Only the HTML elements render their own whitespace. A component may be
+     called `<Textarea>`, and often is; what it renders is its own business,
+     so its tag is laid out like any other. Svelte tells the two apart by the
+     capital. -->
+<Textarea
+	id="notes"
+	placeholder="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	class="min-h-[100px]"
+></Textarea>
+<textarea id="notes" placeholder="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+></textarea>
+
 <!-- Both fit outright and stay put. -->
 <span class="short" title="New"></span>
 <div class="short"></div>
