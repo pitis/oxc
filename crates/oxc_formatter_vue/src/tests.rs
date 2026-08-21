@@ -81,6 +81,20 @@ fn a_custom_block_is_kept_verbatim() {
     check(source, source);
 }
 
+/// A component's blocks hold other languages, so `</` inside one is whatever
+/// that language says it is. Reading it as markup would leave an element open
+/// and get the whole file refused.
+#[test]
+fn a_block_body_is_not_read_as_markup() {
+    let source = "<custom lang=\"unknown\">\nconst foo = \"</\";\n</custom>\n";
+    check(source, source);
+
+    // `<template>` is the exception, and stops being one when it declares a
+    // language of its own.
+    let pug = "<template lang=\"pug\">\n  .test\n    #foo\n</template>\n";
+    check(pug, pug);
+}
+
 #[test]
 fn a_component_with_no_closing_tag_is_refused() {
     let allocator = Allocator::new();

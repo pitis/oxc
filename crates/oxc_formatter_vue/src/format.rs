@@ -5,7 +5,7 @@ use oxc_formatter_core::{
     builders::{hard_line_break, text},
     write,
 };
-use vue_sfc_parser::{ast::Node, parse_template};
+use vue_sfc_parser::{ast::Node, parse_sfc_nodes};
 
 use crate::{
     context::VueFormatContext,
@@ -54,8 +54,10 @@ pub fn format_with_session<'a>(
 
     // A `.vue` file is a tiny HTML document, so the markup parser is what
     // splits it into blocks too — one parse, and every span is already
-    // file-relative.
-    let nodes = parse_template(source, 0);
+    // file-relative. The SFC entry adds the rule that a component's blocks
+    // hold other languages, so a `</` inside a `<custom>` block's JavaScript
+    // is a string rather than an element this printer would then refuse.
+    let nodes = parse_sfc_nodes(source);
     if let Some(reason) = not_well_formed(&nodes) {
         return Err(OxcDiagnostic::error(format!(
             "Cannot format: {reason}, and reformatting it would change what it means."

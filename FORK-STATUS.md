@@ -280,7 +280,7 @@ was made the default — and Prettier's **own** Vue fixtures put it back:
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
 | 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
-| `js-in-vue` conformance (428) |  427 (99.77%) |  420 (**98.1%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |  424 (**99.1%**) |
 
 Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
 `:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
@@ -301,17 +301,17 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-Nine remain: top-level blocks as raw text (4, the refusals above); always-TypeScript template
-expressions where Prettier keys off the script's own `lang` (1); a malformed interpolation that
-should be preserved (1); and three real-world files from `vue-vben-admin`.
+Five remain: always-TypeScript template expressions where Prettier keys off the script's own
+`lang` (1); a malformed interpolation that should be preserved (1); and three real-world files
+from `vue-vben-admin` that have not been looked at.
 
 Closed so far: the attribute-value escaping (1); a blank line that blocks nothing could format
 gained after their open tag, because the unformatted body was spliced back raw instead of going
-through the text path that trims it (5); and parser inference, which now reads `type` as well as
-`lang` and only defaults a `<script>` to JavaScript when it declares neither (3). Both attributes
-follow Prettier's JavaScript truthiness, where `lang=""` declares nothing at all — getting that
-wrong turned a plain `<script lang="">` into an unformattable one, which the same conformance run
-caught immediately.
+through the text path that trims it (5); parser inference, which now reads `type` as well as
+`lang` and only defaults a `<script>` to JavaScript when it declares neither (3); and the
+raw-text rule above (4). Both `lang` and `type` follow Prettier's JavaScript truthiness, where
+`lang=""` declares nothing at all — getting that wrong turned a plain `<script lang="">` into an
+unformattable one, which the same conformance run caught in the same minute.
 
 **A Tailwind bug this work found and fixed, in the layer every language shares.** Merging an
 embedded child's IR used to renumber its `TailwindClass` indices into the parent's space, and that
