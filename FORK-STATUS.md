@@ -7,9 +7,9 @@ outright, rather than running them alongside. Svelte first, then Vue/Nuxt, then 
 Nothing here is submitted upstream; the upstream repository is read-only from this fork.
 
 Everything below is measured, not estimated. Every figure names the command that produced it, so
-a stale number can be re-derived rather than trusted. Figures were last taken **2026-08-21**
-against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.9.1 and
-`eslint-plugin-svelte` 3.23.0.
+a stale number can be re-derived rather than trusted. Figures were last taken **2026-08-21**, and
+the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6,
+`eslint-plugin-vue` 10.7.0–10.9.1 and `eslint-plugin-svelte` 3.23.0.
 
 ## Summary
 
@@ -24,9 +24,12 @@ The short version: **Svelte can drop ESLint today; dropping Prettier there is cl
 99.9% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
-That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
-could drop both tools, on the strength of one 21-file library and a fixture suite. The one
-difference that changed what a component renders has since been fixed. See
+That Svelte figure is new, and it began as a correction: until it was measured the file claimed
+Svelte could drop both tools, on the strength of one 21-file library and a fixture suite. What the
+corpus found was four differences that changed what a component means or renders — a dropped
+`then`, text re-wrapped inside a `<pre>`, a `{#snippet}` header parenthesized into a different
+signature, and a `generics` type mangled — none of which any fixture reached. All four are fixed,
+and everything that remains is layout. See
 [The Svelte printer against a real-world corpus](#the-svelte-printer-against-a-real-world-corpus).
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -232,12 +235,17 @@ kept as written and its tag was laid out as whitespace-significant. Prettier ask
 
 What is left is five files, no two of them alike.
 
-Two findings are bugs rather than layout, and both are what a corpus is for:
+Five findings are bugs rather than layout, and all five are what a corpus is for — no fixture
+reached any of them. Three are printer bugs described above with the class they were found in:
+text under a `<pre>` re-wrapped at depth, a `{#snippet}` header read as a call, and a `generics`
+type read as an object. The other two were in the parser, and are worth the detail because the
+shape of each is the shape of the next one:
 
 - **A bare `then` was dropped from an await block** — `{#await p then}` came back as
   `{#await p}`. Those are different components: with `then` and no pending block the body renders
-  only after the promise resolves, and without it the body _is_ the pending block. The only
-  difference found anywhere that changes what a component does, and no fixture covered the form.
+  only after the promise resolves, and without it the body _is_ the pending block. The first
+  difference found that changes what a component _does_ rather than how it reads, and no fixture
+  covered the form.
 
   **Fixed** in `svelte_markup_parser` 0.2.3. The cause was in the header splitter, which reported
   only the _pattern_ after `then`/`catch`: a shorthand binding nothing was indistinguishable from

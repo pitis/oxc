@@ -24,6 +24,21 @@ Prettier doc primitives are ported on demand; still missing: the `trim`.
 Composite primitives translate rather than port 1:1:
 
 - `hardlineWithoutBreakParent` is `hard_line_break().without_expand_parent()`
+- `fill` is `Fill` with `StartEntry`/`EndEntry` alternating item, separator, item, … — the same
+  positions as Prettier's `parts` array, and the parity matters: a leading separator shifts every
+  later item into a separator slot and changes where the sequence wraps.
+  A pair is decided on two measurements only, as Prettier decides it: the **item**, and the
+  **item/separator/next-item triple**. An item that fits is always printed flat; a separator too
+  wide for the line overruns it rather than pushing an item that fits onto the next line.
+  (The Biome version this came from had two further cases, keyed on whether the _separator_ fits
+  on its own. They are indistinguishable while every separator contains a line — which is every
+  fill in JS, and why the whole conformance suite was unchanged when they were removed — and
+  showed only once a shape without one turned up, in Svelte text runs.)
+  One gotcha: an entry that adds no width of its own (a lone `line`, an empty one) fits at any
+  column, because the space is only charged when text arrives to claim it. `fill_entry_fits`
+  therefore refuses anything on a line already **past** the width — past, not at it. Prettier's
+  `fits` defers the space the same way (`hasPendingSpace`) and draws the line in the same place,
+  so a run whose last word ends exactly on `printWidth` still takes the word after it.
 - `conditionalGroup` is `best_fitting!`: same expansion boundary, same flat-first variant trial.
   Prettier's own doesn't switch variants on inner breaks either ("the user is expected to manually handle what breaks");
   that manual wiring is `ifBreak({groupId})` there and `if_group_breaks(..).with_group_id(..)` here

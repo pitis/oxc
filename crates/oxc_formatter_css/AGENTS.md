@@ -314,8 +314,13 @@ Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notabl
 - Less: `func(x, + 20px)` unary gluing
   - Prettier prints `+20px`; `oxc-css-parser` ASTs `, +` as a comma-left binary operation, so matching is ad-hoc for a torture-test-only shape
 - Less: Nested math in a function arg / multi-value shorthand
-  - Prettier's fill fit-check breaks INSIDE the wide chunk; our core `fill` (biome semantics) breaks the SEPARATOR instead.
-  - Principled fix is the shared core-fill fit-check change (needs JS-conformance impact experiment first)
+  - Prettier's fill fit-check breaks INSIDE the wide chunk; our core `fill` breaks the SEPARATOR instead.
+  - Principled fix is the shared core-fill fit-check change
+  - The "needs a JS-conformance impact experiment first" caveat has been answered for a neighbouring change:
+    core `fill` lost the two Biome-only cases (the ones keyed on whether the SEPARATOR fits on its own)
+    and gained Prettier's own over-the-width guard, and **the whole conformance suite was unchanged** by it
+    — CSS included, so this divergence class survived and is still open.
+    Start from the `fill` entry in `crates/oxc_formatter_core/AGENTS.md`: the algorithm is three cases now, not five.
 - Less: Value-position `@{var}` interpolation
   - `oxc-css-parser` rejects it matching `lessc`; Prettier (postcss) accepts and prints verbatim
 - Less: Lookup with whitespace inside (`@config   [   option1]`)
