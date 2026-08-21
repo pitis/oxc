@@ -2,7 +2,7 @@ use oxc_formatter_core::{FormatContext, SourceText, TailwindCollector};
 
 use crate::{
     comments::{Comments, CssComment},
-    options::CssFormatOptions,
+    options::{CssFormatOptions, CssFragmentKind},
 };
 
 /// Formatting context for CSS/SCSS/Less.
@@ -16,9 +16,10 @@ pub struct CssFormatContext<'a> {
     /// Inside an ICSS rule (`:import(...)` / `:export`): property names keep
     /// their case (Prettier's `insideIcssRuleNode`).
     in_icss_rule: std::cell::Cell<bool>,
-    /// The source may contain css-in-js `${}` placeholder markers
-    /// (embedded entry point only); gates the printer's placeholder handling.
-    template_placeholders: bool,
+    /// What kind of CSS this is: a whole stylesheet, a css-in-js template,
+    /// or an HTML `style` attribute's value. Gates both placeholder handling
+    /// and the attribute layout.
+    kind: CssFragmentKind,
     /// Pre-sort `@apply` class strings indexed by `FormatElement::TailwindClass`.
     /// Sorting happens in one host-supplied batch after IR construction.
     tailwind_classes: Vec<String>,
@@ -29,7 +30,7 @@ impl<'a> CssFormatContext<'a> {
         options: CssFormatOptions,
         source_code: &'a str,
         comments: &'a [CssComment],
-        template_placeholders: bool,
+        kind: CssFragmentKind,
     ) -> Self {
         Self {
             options,
@@ -37,7 +38,7 @@ impl<'a> CssFormatContext<'a> {
             comments: Comments::new(comments),
             in_less_detached: std::cell::Cell::new(false),
             in_icss_rule: std::cell::Cell::new(false),
-            template_placeholders,
+            kind,
             tailwind_classes: Vec::new(),
         }
     }
@@ -57,7 +58,13 @@ impl<'a> CssFormatContext<'a> {
 
     /// Whether the source may contain css-in-js `${}` placeholder markers.
     pub fn template_placeholders(&self) -> bool {
-        self.template_placeholders
+        self.kind.has_template_placeholders()
+    }
+
+    /// Whether this is an HTML `style` attribute's value, which lays its
+    /// declarations out on one line when they fit.
+    pub fn is_style_attribute(&self) -> bool {
+        self.kind.is_style_attribute()
     }
 
     pub fn in_less_detached(&self) -> &std::cell::Cell<bool> {

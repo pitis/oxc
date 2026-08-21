@@ -15,7 +15,7 @@ use crate::{
     TEMPLATE_PLACEHOLDER_PREFIX, TEMPLATE_PLACEHOLDER_SUFFIX,
     comments::CssComment,
     context::CssFormatContext,
-    options::{CssFormatOptions, CssVariant},
+    options::{CssFormatOptions, CssFragmentKind, CssVariant},
     print::{self, CssFormatter},
 };
 
@@ -70,10 +70,9 @@ pub fn format_with_session<'a>(
     let PreparedSource { source, parse_source, front_matter } =
         prepare_source(allocator, source_text);
     let (stylesheet, comments) =
-        parse_stylesheet(allocator, parse_source, options, /* tolerate_placeholders */ false)?;
+        parse_stylesheet(allocator, parse_source, options, CssFragmentKind::Stylesheet)?;
 
-    let context =
-        CssFormatContext::new(options, source, comments, /* template_placeholders */ false);
+    let context = CssFormatContext::new(options, source, comments, CssFragmentKind::Stylesheet);
     let mut state = FormatState::new_with_session(context, session.clone());
     // Pre-allocate: measured on 616 real-world files (bootstrap, vscode, saleor; css/scss/less),
     // 0.5x source bytes plus a 1024-element floor for tiny-file spikes avoids reallocation for 98% of the corpus.
@@ -99,9 +98,9 @@ pub fn format_with_session<'a>(
 /// Unlike [`format()`], this:
 /// - allocates from the session's shared arena and `GroupId` space
 /// - emits neither a BOM nor the trailing newline
-/// - `template_placeholders` enables the css-in-js parse mode
-///   (`` `PLACEHOLDER-N` `` markers + top-level declarations);
-///   JSDoc-style whole-stylesheet fragments pass `false`
+/// - `kind` says what the fragment is: a whole stylesheet (JSDoc fences), a
+///   css-in-js template (`` `PLACEHOLDER-N` `` markers + top-level
+///   declarations), or an HTML `style` attribute's value
 ///
 /// The returned [`EmbeddedIr`] also carries the pre-sort `@apply` Tailwind
 /// classes the IR's `TailwindClass(index)` elements refer to (empty unless
@@ -116,7 +115,7 @@ pub fn format_to_ir<'a>(
     session: &FormatSession<'a>,
     source_text: &str,
     options: CssFormatOptions,
-    template_placeholders: bool,
+    kind: CssFragmentKind,
 ) -> Result<EmbeddedIr<'a>, OxcDiagnostic> {
     let allocator = session.allocator();
     let input_kind = session.input_kind();
@@ -129,14 +128,9 @@ pub fn format_to_ir<'a>(
             "Front matter in a CSS fragment; the part is preserved as-is",
         ));
     }
-    let (stylesheet, comments) = parse_stylesheet(
-        allocator,
-        prepared.parse_source,
-        options,
-        /* tolerate_placeholders */ template_placeholders,
-    )?;
+    let (stylesheet, comments) = parse_stylesheet(allocator, prepared.parse_source, options, kind)?;
 
-    let context = CssFormatContext::new(options, prepared.source, comments, template_placeholders);
+    let context = CssFormatContext::new(options, prepared.source, comments, kind);
     let mut state = FormatState::new_with_session(context, session.clone());
     let mut buffer = VecBuffer::new(&mut state);
 
@@ -193,7 +187,7 @@ fn parse_stylesheet<'a>(
     allocator: &'a Allocator,
     parse_source: &'a str,
     options: CssFormatOptions,
-    tolerate_placeholders: bool,
+    kind: CssFragmentKind,
 ) -> Result<(Stylesheet<'a>, &'a [CssComment]), OxcDiagnostic> {
     debug_assert!(!parse_source.starts_with('\u{feff}'), "callers must never pass a leading BOM");
 
@@ -204,7 +198,7 @@ fn parse_stylesheet<'a>(
             // minus the leading backtick which oxc-css-parser consumes as the placeholder sigil
             // (the closing backtick `TEMPLATE_PLACEHOLDER_SUFFIX` is fixed in oxc-css-parser).
             // Only valid for SCSS; oxc-css-parser asserts that.
-            template_placeholder: tolerate_placeholders.then_some(TemplatePlaceholder {
+            template_placeholder: kind.has_template_placeholders().then_some(TemplatePlaceholder {
                 prefix: TEMPLATE_PLACEHOLDER_PREFIX
                     .strip_prefix(TEMPLATE_PLACEHOLDER_SUFFIX)
                     .expect("placeholder prefix starts with a backtick"),
@@ -219,11 +213,12 @@ fn parse_stylesheet<'a>(
         .build();
 
     let stylesheet = parser.parse::<Stylesheet>().map_err(|error| to_diagnostic(&error))?;
-    // Top-level declarations are valid only as an embedded css-in-js fragment.
-    // A standalone file rejects them like any other recoverable error
-    // (they are not valid CSS/SCSS/Less); only the embedded path tolerates them.
+    // Top-level declarations are valid only in a fragment of a document — a
+    // css-in-js template or a `style` attribute. A standalone stylesheet
+    // rejects them like any other recoverable error, because they are not
+    // valid CSS/SCSS/Less on their own.
     if let Some(error) = parser.recoverable_errors().iter().find(|error| {
-        !(tolerate_placeholders
+        !(kind.allows_top_level_declarations()
             && matches!(error.kind, oxc_css_parser::error::ErrorKind::TopLevelDeclaration))
     }) {
         return Err(to_diagnostic(error));

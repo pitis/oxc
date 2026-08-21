@@ -16,7 +16,7 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer at 99.7%            |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer at **100%**         |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
@@ -237,7 +237,7 @@ declaration produced 554 findings in real templates. It caught one real defect �
 block exposes the binding `defineEmits()` returns to the template, so `@x="emit('y')"` is an emit
 call just as `$emit('y')` is, and looking only for `$emit` missed it.
 
-**Format — Tier 3, with a native printer at 99.7%.** By default `.vue` still goes to Prettier
+**Format — Tier 3, with a native printer at 100%.** By default `.vue` still goes to Prettier
 through NAPI, and that is what every existing project's output depends on. `oxc_formatter_vue`
 exists alongside it, opt-in behind `OXFMT_NATIVE_VUE=1`, built on the sibling `vue_sfc_parser`
 crate.
@@ -258,13 +258,18 @@ Measured against Prettier 3.9.6 over the same 1,602 `.vue` files, at matched `pr
 | SFC skeleton, template as written  | 1,602 |   576 (**36.0%**) |
 | \+ the markup printer              | 1,602 | 1,233 (**77.0%**) |
 | \+ attribute and expression values | 1,602 | 1,597 (**99.7%**) |
+| \+ the `style` attribute           | 1,602 |  1,602 (**100%**) |
 
 Speed, for scale: 1,602 files in 50ms, against a NAPI round-trip per file today.
 
-**The five files that differ all differ for one reason**: the `style` attribute. Prettier sends
-its value to the CSS printer, which drops the trailing `;` and normalises the spacing;
-`oxc_formatter_css` has no declaration-list entry point yet, so the value is kept as written.
-That is the whole remaining gap — a feature in another crate, not a layout defect here.
+The last five files were the `style` attribute, whose value Prettier sends to the CSS printer.
+`oxc_formatter_css` now takes a `CssFragmentKind`, which says whether the input is a whole
+stylesheet, a css-in-js template, or an attribute's declaration list; the attribute kind separates
+its declarations with a break that renders as a space, and writes the final `;` only when that
+break is taken — so `style="color: red; margin: 0"` stays on the line and the broken form gets a
+`;` per line. The parser already reported a top-level declaration as a recoverable error that the
+css-in-js path tolerated; the attribute kind tolerates the same one. The formatter conformance
+suite is unchanged by it: CSS stays 221/221, SCSS and Less unmoved.
 
 **One known deviation, and it is in the shared printer, not in this crate.** `oxc_formatter_core`
 records a group's print mode while _measuring_ whether an earlier group fits; Prettier's `fits`
@@ -364,16 +369,16 @@ making them.
 
 ## oxfmt in general
 
-| Language                                          | Implementation                                                                       |
-| :------------------------------------------------ | :----------------------------------------------------------------------------------- |
-| JS, TS, JSX, TSX                                  | `oxc_formatter`                                                                      |
-| JSON, JSONC, `package.json`                       | `oxc_formatter_json`                                                                 |
-| CSS, SCSS, Less                                   | `oxc_formatter_css`                                                                  |
-| YAML                                              | `oxc_formatter_yaml`                                                                 |
-| GraphQL                                           | `oxc_formatter_graphql`                                                              |
-| **Svelte**                                        | `oxc_formatter_svelte`                                                               |
-| TOML                                              | taplo (Rust)                                                                         |
-| **Vue, HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI (Vue: native printer at 99.7%, `OXFMT_NATIVE_VUE=1`) |
+| Language                                          | Implementation                                                                      |
+| :------------------------------------------------ | :---------------------------------------------------------------------------------- |
+| JS, TS, JSX, TSX                                  | `oxc_formatter`                                                                     |
+| JSON, JSONC, `package.json`                       | `oxc_formatter_json`                                                                |
+| CSS, SCSS, Less                                   | `oxc_formatter_css`                                                                 |
+| YAML                                              | `oxc_formatter_yaml`                                                                |
+| GraphQL                                           | `oxc_formatter_graphql`                                                             |
+| **Svelte**                                        | `oxc_formatter_svelte`                                                              |
+| TOML                                              | taplo (Rust)                                                                        |
+| **Vue, HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI (Vue: native printer at 100%, `OXFMT_NATIVE_VUE=1`) |
 
 Prettier is still bundled inside `oxfmt`'s own `dist/` for that last row, so a project's manifest
 can be Prettier-free even where Prettier code still runs. Removing the bundle means writing native

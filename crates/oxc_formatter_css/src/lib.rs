@@ -38,5 +38,5 @@ pub const TEMPLATE_PLACEHOLDER_SUFFIX: &str = "`";
 pub use crate::{
     context::CssFormatContext,
     format::{format, format_to_ir, format_with_session},
-    options::{CssFormatOptions, CssVariant, SingleQuote, TrailingCommas},
+    options::{CssFormatOptions, CssFragmentKind, CssVariant, SingleQuote, TrailingCommas},
 };

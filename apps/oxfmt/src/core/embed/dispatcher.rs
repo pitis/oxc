@@ -16,7 +16,7 @@ use oxc_formatter_core::{
     ExpressionHugsDelimiters, FormatDispatcher, FormatSession,
 };
 use oxc_formatter_core::{FormatOptions, PrinterOptions};
-use oxc_formatter_css::{CssFormatOptions, CssVariant};
+use oxc_formatter_css::{CssFormatOptions, CssFragmentKind, CssVariant};
 use oxc_formatter_graphql::GraphqlFormatOptions;
 use oxc_formatter_json::{JsonFormatOptions, JsonVariant};
 use oxc_formatter_yaml::YamlFormatOptions;
@@ -44,7 +44,9 @@ pub enum NativeLanguage {
     JsFragment(SourceType, FragmentContext),
     /// The fence-derived variant;
     /// the css-in-js typed context overrides it to Scss + placeholders at dispatch time (see the css branch).
-    Css(CssVariant),
+    /// `kind` is what the fragment is: a whole stylesheet, or an HTML `style`
+    /// attribute's declaration list.
+    Css(CssVariant, CssFragmentKind),
     Yaml,
     Json(JsonVariant),
 }
@@ -167,9 +169,14 @@ pub fn route(language: &str) -> Route {
         "vue-generic" => {
             Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::TypeParameters))
         }
-        "css" => Route::Native(NativeLanguage::Css(CssVariant::Css)),
-        "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss)),
-        "less" => Route::Native(NativeLanguage::Css(CssVariant::Less)),
+        "css" => Route::Native(NativeLanguage::Css(CssVariant::Css, CssFragmentKind::Stylesheet)),
+        "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss, CssFragmentKind::Stylesheet)),
+        "less" => Route::Native(NativeLanguage::Css(CssVariant::Less, CssFragmentKind::Stylesheet)),
+        // `style="color: red"`: declarations with no rule around them, laid
+        // out to fit on the attribute's line.
+        "css-style-attribute" => {
+            Route::Native(NativeLanguage::Css(CssVariant::Css, CssFragmentKind::StyleAttribute))
+        }
         "yaml" | "yml" => Route::Native(NativeLanguage::Yaml),
         "json" => Route::Native(NativeLanguage::Json(JsonVariant::Json)),
         "jsonc" => Route::Native(NativeLanguage::Json(JsonVariant::Jsonc)),
@@ -395,23 +402,23 @@ pub fn build_dispatcher(
                     dispatch_config.graphql_options(),
                 )
             })),
-            Route::Native(NativeLanguage::Css(variant)) => {
+            Route::Native(NativeLanguage::Css(variant, kind)) => {
                 // css-in-js (typed `CssInJsTemplate` context) is always parsed as SCSS with `${}` placeholder markers.
-                // Any other caller gets the strict standalone grammar with the fence/request language's variant.
-                let (variant, template_placeholders) = if request
+                // Any other caller gets the fence/request language's variant and the kind its route named.
+                let (variant, kind) = if request
                     .parent_context
                     .is_some_and(|c| c.downcast_ref::<CssInJsTemplate>().is_some())
                 {
-                    (CssVariant::Scss, true)
+                    (CssVariant::Scss, CssFragmentKind::Template)
                 } else {
-                    (variant, false)
+                    (variant, kind)
                 };
                 Ok(format_native("css", || {
                     oxc_formatter_css::format_to_ir(
                         session,
                         text,
                         dispatch_config.css_options(variant),
-                        template_placeholders,
+                        kind,
                     )
                 }))
             }

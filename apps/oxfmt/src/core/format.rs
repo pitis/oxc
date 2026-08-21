@@ -920,6 +920,21 @@ mod tests {
                 "<template>\n  <List v-slot=\"{ item,index }\">{{item}}</List>\n</template>\n",
                 "<template>\n  <List v-slot=\"{ item, index }\">{{ item }}</List>\n</template>\n",
             ),
+            // A `style` attribute is a CSS declaration list: the trailing
+            // `;` goes only on the broken form, and a value with nothing in
+            // it prints as empty however it was spelled.
+            (
+                "<template>\n  <div style=\"color:red;margin:0\" />\n</template>\n",
+                "<template>\n  <div style=\"color: red; margin: 0\" />\n</template>\n",
+            ),
+            (
+                "<template>\n  <div style=\"grid-template-columns: 260px 1fr;\" />\n</template>\n",
+                "<template>\n  <div style=\"grid-template-columns: 260px 1fr\" />\n</template>\n",
+            ),
+            (
+                "<template>\n  <div style=\"  \" />\n</template>\n",
+                "<template>\n  <div style=\"\" />\n</template>\n",
+            ),
             // The blocks' own bodies go to the formatters that own them.
             (
                 "<script setup lang=\"ts\">\nconst  a=1\n</script>\n",

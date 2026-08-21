@@ -5,7 +5,10 @@ use oxc_css_parser::ast::{
 
 use oxc_formatter_core::{
     Buffer, arena_cow_str,
-    builders::{block_indent, dedent, empty_line, hard_line_break, indent, space, text},
+    builders::{
+        block_indent, dedent, empty_line, hard_line_break, if_group_breaks, indent,
+        soft_line_break_or_space, space, text, token,
+    },
     write,
 };
 
@@ -112,6 +115,12 @@ pub(super) fn write_statement_sequence_bounded<'a>(
             // Other statements always start on a new line.
             if matches!(statements[i - 1], Statement::Placeholder(_)) && gap == Gap::None {
                 write!(f, space());
+            } else if f.context().is_style_attribute() {
+                // An attribute's declarations sit on one line while they fit,
+                // so the separator has to be a break that renders as a space.
+                // Nothing the author wrote about line breaks survives: the
+                // value is one line of markup, not a document.
+                write!(f, soft_line_break_or_space());
             } else {
                 write!(f, hard_line_break());
                 if gap == Gap::Blank {
@@ -139,6 +148,15 @@ pub(super) fn write_statement_sequence_bounded<'a>(
             if has_source_semicolon {
                 write!(f, ";");
             }
+        } else if f.context().is_style_attribute()
+            && i + 1 == statements.len()
+            && let Statement::Declaration(decl) = stmt
+        {
+            // `style="color: red"` ends without a `;`, but the broken form
+            // gets one on every line — so the last declaration's `;` is
+            // written only when the value breaks.
+            write_declaration(decl, f);
+            write!(f, if_group_breaks(&token(";")));
         } else {
             write_statement(stmt, f);
         }

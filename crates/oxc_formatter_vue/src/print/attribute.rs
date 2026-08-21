@@ -66,6 +66,8 @@ fn write_plain_value<'a>(raw: &'a str, f: &mut VueFormatter<'_, 'a>) {
 enum ValuePrinter {
     /// `class`: a list of names, whose whitespace is tidied.
     ClassNames,
+    /// `style`: a CSS declaration list.
+    Style,
     /// A JavaScript expression, under the named dispatch language.
     Expression(&'static str),
     /// `@click`: an expression, or statements when it is not one.
@@ -90,6 +92,9 @@ fn value_printer(
     // A value carrying an interpolation is not the language its name says: it
     // is a template the Vue compiler assembles, and reformatting the pieces
     // would break the seams.
+    if name == "style" && !raw.contains("{{") {
+        return Some(ValuePrinter::Style);
+    }
     if name == "class" && !raw.contains("{{") {
         return Some(ValuePrinter::ClassNames);
     }
@@ -150,6 +155,20 @@ fn write_printed_value<'a>(
                 write!(f, text(tidied_class_list(raw, f)));
             }
             write!(f, token("\""));
+            true
+        }
+        // Unlike an expression, a declaration list never hugs: it always
+        // gets the indented break of its own that Prettier's `printExpand`
+        // supplies.
+        ValuePrinter::Style => {
+            // A value with no declarations in it has none to print, whatever
+            // whitespace it was written with.
+            if raw.trim().is_empty() {
+                write!(f, token("=\"\""));
+                return true;
+            }
+            let Some(value) = dispatch("css-style-attribute", raw, f) else { return false };
+            write_value_doc(Value { hugs: false, ..value }, f);
             true
         }
         ValuePrinter::Expression(language) => {

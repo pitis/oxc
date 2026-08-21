@@ -28,6 +28,49 @@ impl CssVariant {
     }
 }
 
+/// What kind of CSS an embedded fragment is, which decides both what the
+/// parser tolerates and how the result is laid out.
+///
+/// Only [`Self::Stylesheet`] is a document in its own right. The other two are
+/// pieces of one, and both allow declarations where a stylesheet would demand
+/// a rule.
+#[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
+pub enum CssFragmentKind {
+    /// A whole stylesheet, or a fence holding one: rules at the top level,
+    /// each on its own line.
+    #[default]
+    Stylesheet,
+    /// A css-in-js template: `` `PLACEHOLDER-N` `` markers stand in for the
+    /// interpolations, and declarations may appear at the top level.
+    Template,
+    /// The value of an HTML `style` attribute — `color: red; margin: 0`.
+    ///
+    /// Declarations only, and laid out to fit on the attribute's line when
+    /// they can: separated by a break that renders as a space, and with the
+    /// last one's `;` written only if that break is taken. Prettier's
+    /// `__isHTMLStyleAttribute`.
+    StyleAttribute,
+}
+
+impl CssFragmentKind {
+    /// Whether the source may carry css-in-js placeholder markers.
+    pub fn has_template_placeholders(self) -> bool {
+        matches!(self, Self::Template)
+    }
+
+    /// Whether a declaration may stand at the top level. A stylesheet rejects
+    /// one as the recoverable error it is; a fragment of a document does not.
+    pub fn allows_top_level_declarations(self) -> bool {
+        matches!(self, Self::Template | Self::StyleAttribute)
+    }
+
+    /// Whether the statements lay out on one line when they fit, which is
+    /// what an attribute value has to do.
+    pub fn is_style_attribute(self) -> bool {
+        matches!(self, Self::StyleAttribute)
+    }
+}
+
 /// Format options for CSS/SCSS/Less.
 ///
 /// Prettier's CSS languages consume the shared layout options plus
