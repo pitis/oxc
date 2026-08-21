@@ -271,29 +271,41 @@ break is taken — so `style="color: red; margin: 0"` stays on the line and the 
 css-in-js path tolerated; the attribute kind tolerates the same one. The formatter conformance
 suite is unchanged by it: CSS stays 221/221, SCSS and Less unmoved.
 
-**One bug gates recommending Tailwind sorting on `.vue`, and it is older than this printer.**
-`DispatchPayload::into_doc` merges a child's Tailwind classes by rewriting the indices in the
-child's IR, and that rewrite only reaches the top level — a `TailwindClass` inside an `Interned`
-subtree keeps a stale index. With `sortTailwindcss` on, a component holding a Tailwind function
-call (`clsx("p-4 flex")`) hits it: a debug build panics on the `debug_assert`, and a release build
-silently prints the wrong classes whenever the parent had already collected some of its own.
+### What the corpus could not tell us
 
-It is **not** new, and not Vue's: the same input in a `.svelte` file panics identically on
-`fork/main` with nothing changed, because `oxc_formatter_svelte` merges its `<script>` the same
-way. Moving `.vue` onto the native printer gives the defect a second host rather than creating it.
-The fix is the session-shared collector the `TailwindCollector` doc comment already describes as
-deferred — children allocating parent indices directly, so no remap exists to fall short. That is
-a change to the layer every language shares and belongs in its own commit.
+The printer is byte-identical with Prettier on **1,602 real-world components**, and on
+**891 / 891** of chatlyn-ui at that repo's own per-directory config. On the strength of that it
+was made the default — and Prettier's **own** Vue fixtures put it back:
 
-Reproduce with `sortTailwindcss` enabled on either:
+| Suite                         | Prettier path |   Native printer |
+| :---------------------------- | ------------: | ---------------: |
+| 1,602 real-world `.vue`       |             — | 1,602 (**100%**) |
+| `js-in-vue` conformance (428) |  427 (99.77%) |  411 (**96.0%**) |
 
-```html
-<script>
-  import clsx from "clsx";
-  const c = clsx("p-4 flex");
-</script>
-<div class="flex p-4">x</div>
-```
+Eighteen fixtures regressed, in seven classes. The worst emitted **invalid markup**:
+`:id="'&quot;' + id"` came back as `:id="'"' + id"`, because the value is unescaped so it can be
+parsed and was never re-escaped on the way out. That one is fixed — `escape_double_quotes`
+rewrites every `"` in the value's IR, reaching through `Interned` and `BestFitting` subtrees by
+rebuilding them, and is applied at the attribute boundary and nowhere else, since an interpolation
+has no delimiter to protect.
+
+Four more are files the printer _refuses_ that Prettier formats, all from one root cause:
+Prettier's Vue parser treats every top-level block except `<template>` as raw text, so
+`const foo = "</"` inside a `<custom>` block is a string, while `vue_sfc_parser` reads it as markup
+and then reports an unclosed element.
+
+The lesson is the one this file keeps re-learning: **a real-world corpus is uniform, and
+uniformity is what hides bugs.** 1,602 hand-written components exercise a narrow band of what the
+format allows; 428 fixtures written by the people who defined the format do not, on purpose.
+Neither substitutes for the other, and the conformance suite is the one that gates a default.
+Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
+silently measures a fraction of the suite.
+
+The work list, from that run: a spurious leading blank line in blocks nothing can format (5);
+top-level blocks as raw text (4); parser inference from the `type` attribute and the wider `lang`
+set (4); always-TypeScript template expressions where Prettier keys off the script's own `lang`
+(1); a malformed interpolation that should be preserved (1); and three real-world files from
+`vue-vben-admin`.
 
 **A Tailwind bug this work found and fixed, in the layer every language shares.** Merging an
 embedded child's IR used to renumber its `TailwindClass` indices into the parent's space, and that

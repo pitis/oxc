@@ -40,7 +40,7 @@ pub use format_element::tag::{
 };
 pub use format_element::{
     BestFittingElement, FormatElement, FormatElements, Interned, LINE_TERMINATORS, LineMode,
-    PrintMode, TextWidth, normalize_newlines, remove_lines,
+    PrintMode, TextWidth, escape_double_quotes, normalize_newlines, remove_lines,
 };
 pub use printer::error::{ActualStart, InvalidDocumentError, PrintError};
 pub use printer::{PrintResult, PrintWidth, Printed, PrinterOptions};

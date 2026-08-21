@@ -10,9 +10,10 @@ use std::hash::{Hash, Hasher};
 use std::ptr;
 use std::{borrow::Cow, ops::Deref};
 
+use cow_utils::CowUtils;
 use unicode_width::UnicodeWidthStr;
 
-use oxc_allocator::ArenaVec;
+use oxc_allocator::{Allocator, ArenaVec};
 
 use crate::IndentWidth;
 
@@ -547,6 +548,106 @@ impl TextWidth {
 ///
 /// Only the top level of the list: an `Interned` or `BestFitting` subtree is
 /// shared or pre-measured and is left as it is.
+/// Rewrites every `"` in the document's text as `&quot;`.
+///
+/// A markup host that splices a formatted value into a double-quoted attribute
+/// has to do this. A quote inside a string literal, a template literal, a regex
+/// or a comment would otherwise close the attribute early, and the result would
+/// no longer parse as markup at all — so this is a correctness step, not a
+/// stylistic one. Prettier applies the same rewrite at the same boundary
+/// (`mapDoc` in `language-html/embed/attribute.js`).
+///
+/// The delimiters of the value's own strings are assumed never to be `"`: a
+/// formatter producing a fragment for an HTML attribute prefers single quotes
+/// and refuses to reintroduce the surrounding one. Escaping a delimiter would
+/// corrupt the fragment rather than protect it.
+///
+/// Unlike [`remove_lines`], this reaches through `Interned` and `BestFitting`
+/// subtrees by rebuilding them: those are shared arena slices, and a quote left
+/// inside one is exactly the quote that breaks the document. Rebuilding costs
+/// their sharing, which is a memoization detail, never a correctness one.
+pub fn escape_double_quotes<'a>(
+    elements: &mut ArenaVec<'a, FormatElement<'a>>,
+    allocator: &'a Allocator,
+    indent_width: IndentWidth,
+) {
+    for element in elements.iter_mut() {
+        escape_double_quotes_in(element, allocator, indent_width);
+    }
+}
+
+fn escape_double_quotes_in<'a>(
+    element: &mut FormatElement<'a>,
+    allocator: &'a Allocator,
+    indent_width: IndentWidth,
+) {
+    match element {
+        FormatElement::Token { text } => {
+            if text.contains('"') {
+                // A `Token` is `&'static str`, so the escaped form cannot be
+                // one; it becomes the `Text` that can hold an arena string.
+                let escaped: &'a str = allocator.alloc_str(&text.cow_replace('"', "&quot;"));
+                *element = FormatElement::Text {
+                    text: escaped,
+                    width: TextWidth::from_text(escaped, indent_width),
+                };
+            }
+        }
+        FormatElement::Text { text, width } => {
+            if text.contains('"') {
+                let escaped: &'a str = allocator.alloc_str(&text.cow_replace('"', "&quot;"));
+                *text = escaped;
+                *width = TextWidth::from_text(escaped, indent_width);
+            }
+        }
+        FormatElement::Interned(interned) => {
+            if !interned.iter().any(contains_double_quote) {
+                return;
+            }
+            let mut rebuilt = ArenaVec::from_iter_in(interned.iter().cloned(), &allocator);
+            for child in &mut rebuilt {
+                escape_double_quotes_in(child, allocator, indent_width);
+            }
+            *element = FormatElement::Interned(Interned::new(rebuilt));
+        }
+        FormatElement::BestFitting(best_fitting) => {
+            if !best_fitting
+                .variants()
+                .iter()
+                .any(|variant| variant.iter().any(contains_double_quote))
+            {
+                return;
+            }
+            let variants = ArenaVec::from_iter_in(
+                best_fitting.variants().iter().map(|variant| {
+                    let mut rebuilt = ArenaVec::from_iter_in(variant.iter().cloned(), &allocator);
+                    for child in &mut rebuilt {
+                        escape_double_quotes_in(child, allocator, indent_width);
+                    }
+                    rebuilt.into_arena_slice()
+                }),
+                &allocator,
+            );
+            // SAFETY: the constructor requires at least two variants, and the
+            // count here is unchanged from an element it already accepted.
+            let rebuilt = unsafe { BestFittingElement::from_vec_unchecked(variants) };
+            *element = FormatElement::BestFitting(rebuilt);
+        }
+        _ => {}
+    }
+}
+
+fn contains_double_quote(element: &FormatElement<'_>) -> bool {
+    match element {
+        FormatElement::Token { text } | FormatElement::Text { text, .. } => text.contains('"'),
+        FormatElement::Interned(interned) => interned.iter().any(contains_double_quote),
+        FormatElement::BestFitting(best_fitting) => {
+            best_fitting.variants().iter().any(|variant| variant.iter().any(contains_double_quote))
+        }
+        _ => false,
+    }
+}
+
 pub fn remove_lines<'a>(elements: &mut ArenaVec<'a, FormatElement<'a>>) {
     for element in elements.iter_mut() {
         match element {

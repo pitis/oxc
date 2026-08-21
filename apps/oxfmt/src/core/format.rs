@@ -939,6 +939,23 @@ mod tests {
                 "<template>\n  <div style=\"  \" />\n</template>\n",
                 "<template>\n  <div style=\"\" />\n</template>\n",
             ),
+            // A `"` the formatted value carries has to come back as the
+            // entity, or it closes the attribute early and the output stops
+            // being markup. It reaches into a string, a template, a regex and
+            // a comment alike.
+            (
+                "<template>\n  <div :id=\"'&quot;' + id\" />\n</template>\n",
+                "<template>\n  <div :id=\"'&quot;' + id\" />\n</template>\n",
+            ),
+            (
+                "<template>\n  <div :foo=\"x /* &quot;c&quot; */\" />\n</template>\n",
+                "<template>\n  <div :foo=\"x /* &quot;c&quot; */\" />\n</template>\n",
+            ),
+            // A value that can be re-quoted needs no entity.
+            (
+                "<template>\n  <div @click=\"say(&quot;hi&quot;)\" />\n</template>\n",
+                "<template>\n  <div @click=\"say('hi')\" />\n</template>\n",
+            ),
             // The blocks' own bodies go to the formatters that own them.
             (
                 "<script setup lang=\"ts\">\nconst  a=1\n</script>\n",

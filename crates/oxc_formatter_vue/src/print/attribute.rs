@@ -18,7 +18,7 @@ use oxc_allocator::ArenaVec;
 use oxc_formatter_core::{
     Buffer, BufferExtensions, Format, FormatElement,
     builders::{group, indent, soft_line_break, space, text, token},
-    write,
+    escape_double_quotes, write,
 };
 use vue_sfc_parser::ast::Attribute;
 
@@ -273,10 +273,16 @@ fn dispatch<'a>(
     snippet: &str,
     f: &mut VueFormatter<'_, 'a>,
 ) -> Option<Value<'a>> {
-    let fragment = super::embed::dispatch(language, source, snippet, f)?;
+    let mut fragment = super::embed::dispatch(language, source, snippet, f)?;
     if fragment.ir.is_empty() {
         return None;
     }
+    // The value goes inside `="…"`, so a `"` the fragment carries — in a
+    // string, a template, a regex, a comment — would end the attribute early
+    // and the markup would no longer parse. Only the attribute path escapes;
+    // an interpolation has no delimiter to protect.
+    let indent_width = f.options().indent_width;
+    escape_double_quotes(&mut fragment.ir, f.allocator(), indent_width);
     Some(Value { ir: fragment.ir, hugs: fragment.hugs })
 }
 
@@ -322,11 +328,14 @@ fn tidied_class_list<'a>(value: &'a str, f: &VueFormatter<'_, 'a>) -> &'a str {
     let trimmed = value.trim();
     if !trimmed.bytes().any(|byte| matches!(byte, b'\n' | b'\t' | b'\r' | 0x0c))
         && !trimmed.contains("  ")
+        && !trimmed.contains('"')
     {
         return trimmed;
     }
-    let tidied: String = trimmed.split_whitespace().collect::<Vec<_>>().join(" ");
-    f.allocator().alloc_str(&tidied)
+    let tidied = trimmed.split_whitespace().collect::<Vec<_>>().join(" ");
+    // Written straight into `="…"`, so it needs the same protection a
+    // formatted value gets.
+    f.allocator().alloc_str(&tidied.cow_replace('"', "&quot;"))
 }
 
 // ---------------------------------------------------------------------------

@@ -179,6 +179,22 @@ fn an_interpolation_gets_one_space_inside_its_braces() {
     );
 }
 
+/// A `"` inside a value would close the attribute early, so it is written as
+/// the entity — otherwise the output is not markup any more. `class` is
+/// written straight through and needs the same protection as a formatted
+/// value.
+#[test]
+fn a_quote_in_an_attribute_value_is_written_as_an_entity() {
+    check(
+        "<template><div class=\"a&quot;b\" /></template>\n",
+        "<template><div class=\"a&quot;b\" /></template>\n",
+    );
+    check(
+        "<template><div class=\"a  b&quot;c\" /></template>\n",
+        "<template><div class=\"a b&quot;c\" /></template>\n",
+    );
+}
+
 /// Inside an `<svg>` the HTML stylesheet does not apply — SVG lays its own
 /// elements out as blocks — so `<circle>` gets a line of its own where a
 /// `<span>` in the same position would not.
