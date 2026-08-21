@@ -16,7 +16,7 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer opt-in              |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
@@ -236,11 +236,11 @@ declaration produced 554 findings in real templates. It caught one real defect �
 block exposes the binding `defineEmits()` returns to the template, so `@x="emit('y')"` is an emit
 call just as `$emit('y')` is, and looking only for `$emit` missed it.
 
-**Format — Tier 3, with a native printer that is opt-in.** `.vue` goes to Prettier by default;
-`oxc_formatter_vue` runs behind `OXFMT_NATIVE_VUE=1`, built on the sibling `vue_sfc_parser` crate.
+**Format — Tier 1, native.** `oxc_formatter_vue` is the only printer for `.vue`; Prettier is no
+longer in that path. Built on the sibling `vue_sfc_parser` crate.
 
-It was made the default and then put back, which is the useful part of the story — see
-[what the corpus could not tell us](#what-the-corpus-could-not-tell-us) below.
+It was made the default, put back, and made the default again, which is the useful part of the
+story — see [what the corpus could not tell us](#what-the-corpus-could-not-tell-us) below.
 
 It is a port of Prettier's own HTML printer rather than of `prettier-plugin-svelte`, because
 that is what a `.vue` file actually goes through: `oxc_formatter_svelte`'s architecture carried
@@ -275,7 +275,7 @@ suite is unchanged by it: CSS stays 221/221, SCSS and Less unmoved.
 
 The printer is byte-identical with Prettier on **1,602 real-world components**, and on
 **891 / 891** of chatlyn-ui at that repo's own per-directory config. On the strength of that it
-was made the default — and Prettier's **own** Vue fixtures put it back:
+was made the default — and Prettier's **own** Vue fixtures put it back for a while:
 
 | Suite                         | Prettier path |   Native printer |
 | :---------------------------- | ------------: | ---------------: |
@@ -310,7 +310,10 @@ is a claim that has to be checkable:
 | `slogan.vue`             | `oxc_formatter_core` measures a tab as `indentWidth` columns; Prettier's `string-width` treats it, like any control character, as zero. Upstream's deliberate choice, with a test asserting it (`from_text_uses_indent_width_for_tabs`). Only ever breaks a line early.                                              |
 | `preferences-drawer.vue` | `oxc-css-parser` parses a selector argument only for `not`/`is`/`where`/`matches`/`has`/`global`; `:deep()`, `:slotted()` and `:v-deep()` — the Vue scoped-style pseudo-classes — fall through as opaque tokens and print verbatim, so `[role='x']` keeps its quotes where Prettier normalises them. External crate. |
 
-The last two are the only ones a Vue project would notice, and neither produces invalid output.
+The last two are the only ones a Vue project would notice, and neither produces invalid output —
+which is what made the default defensible the second time. Switching costs exactly those two
+files' worth of difference: a line broken early where the source had tabs, and an attribute
+selector inside `:deep()` keeping the quotes it was written with.
 
 Closed: the attribute-value escaping (1); a blank line that blocks nothing could format gained
 after their open tag, because the unformatted body was spliced back raw instead of going through

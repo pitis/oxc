@@ -74,14 +74,11 @@ pub fn classify_file_kind(path: Arc<Path>) -> Option<FileKind> {
     if extension == Some("svelte") {
         return Some(FileKind::OxcFormatterSvelte { path });
     }
-    // A `.vue` component can be formatted by `oxc_formatter_vue`, which is
-    // pure Rust. It is byte-identical with Prettier on 1,602 real-world
-    // components, but NOT on Prettier's own Vue fixtures — the `js-in-vue`
-    // conformance category drops from 427/428 to 410/428, and one of those
-    // emits invalid markup (an unescaped `"` inside a double-quoted
-    // attribute). So it stays opt-in until that category is back at parity;
-    // without the switch `.vue` keeps going to Prettier.
-    if extension == Some("vue") && native_vue_enabled() {
+    // A `.vue` component is formatted by `oxc_formatter_vue`, which is pure
+    // Rust — so it is classified here rather than as a Prettier target, and
+    // works in a build without the `napi` feature like every other native
+    // language.
+    if extension == Some("vue") {
         return Some(FileKind::OxcFormatterVue { path });
     }
 
@@ -192,20 +189,13 @@ impl FileKind {
 
 // ---
 
-/// Whether the native Vue printer is switched on. Opt-in while the
-/// `js-in-vue` conformance category is brought back to parity; see
-/// `crates/oxc_formatter_vue`.
-fn native_vue_enabled() -> bool {
-    std::env::var_os("OXFMT_NATIVE_VUE").is_some_and(|value| value == "1")
-}
-
 /// Parsers(files) that benefit from Tailwind plugin.
 /// CSS/SCSS/Less also benefit, but are classified as [`FileKind::OxcFormatterCss`];
 /// their Tailwind gating happens at the format step.
+/// `.vue` is absent because it is native now, and sorts its own classes.
 #[cfg(feature = "napi")]
 static TAILWIND_PARSERS: phf::Set<&'static str> = phf_set! {
     "html",
-    "vue",
     "angular",
     "glimmer",
 };
@@ -214,11 +204,15 @@ static TAILWIND_PARSERS: phf::Set<&'static str> = phf_set! {
 /// This covers both `<script>` contents and expression fragments
 /// (`__(js|ts)_expression`, `__vue(_ts)_expression`, `__vue(_ts)_event_binding`).
 ///
-/// Angular-style fragments (e.g. `__ng_directive`) are not supported yet.
+///
+/// EMPTY since `.vue` went native: it was the only host that reached the
+/// plugin, so nothing injects the payload today. The entries stay commented
+/// out because enabling one is how the plugin gets a host back —
+/// Angular-style fragments (e.g. `__ng_directive`) are the next candidate,
+/// and they are not supported yet.
 #[cfg(feature = "napi")]
 static OXFMT_PARSERS: phf::Set<&'static str> = phf_set! {
     // "html",
-    "vue",
     // "markdown",
     // "mdx",
 };
