@@ -26,3 +26,12 @@
 
 	A run that follows a blank line is laid out the ordinary way, so a word that crosses moves down.
 </div>
+
+<!-- A line whose last word ends exactly on the width is not yet past it, so the
+     next word still joins. This is the one column the two readings of "full"
+     disagree about. -->
+<div class="note">
+	before.
+	<br />
+	A line that ends just on the width is not full yet, so the word after it still joins and takes it over.
+</div>

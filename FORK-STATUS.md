@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **98.9%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.2%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-98.9% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+99.2% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -79,13 +79,13 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 
 | Repository                 | Files |        Identical |
 | :------------------------- | ----: | ---------------: |
-| `skeletonlabs/skeleton`    |   686 |      685 (99.9%) |
+| `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
 | `huntabyte/bits-ui`        |   617 |      616 (99.8%) |
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
 | `huntabyte/shadcn-svelte`  |  1681 |     1656 (98.5%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1821 (97.6%) |
-| **Total**                  |  6673 | **6600 (98.9%)** |
+| `windmill-labs/windmill`   |  1866 |     1840 (98.6%) |
+| **Total**                  |  6673 | **6620 (99.2%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: every repository now
 sits at 98.5% or better, where the first measurement had **windmill — the one large application —
@@ -135,7 +135,7 @@ Reading Prettier's doc directly — `prettier.__debug.printToDoc` with the plugi
 more than reading its source for questions like this. The plugin's `openingTag` builder is the same
 shape as this printer's, and the difference was entirely in what followed it.
 
-**A text run that follows a sibling wraps late**, worth 74 files and 97.5% → 98.9%. This one is a
+**A text run that follows a sibling wraps late**, worth 94 files and 97.5% → 99.2%. This one is a
 Prettier behaviour that reads as a bug, and matching it is still the job. A run of text is printed
 by filling a sequence of words and the breaks between them, and the decision at each break is made
 by measuring the word, the break, and the word after it. But a text node keeps its own leading
@@ -152,18 +152,23 @@ same sequence; the printer was the half that differed. `Fill` had two cases Pret
 asking whether the _separator_ fits on its own and moving an item that fits down to the next line
 when it did not — so a sequence whose items were all breaks wrapped sensibly instead of the way
 Prettier wraps it. It now decides a pair the way Prettier does, on the item and on the
-item/separator/next-item triple and nothing else, which is three cases where there were five. Two
-details had to land together: an entry that _is_ a space measured as zero-width and fit at any
-column, so without counting that space the fill would never break at all. And a blank line was one
-element where Prettier writes two, which shifted every following word by one place; it is now the
-blank line plus an empty word beside it.
+item/separator/next-item triple and nothing else, which is three cases where there were five.
 
-The whole conformance suite — every language, several thousand fixtures — is unchanged by that
-printer edit except for one Svelte fixture that now passes. That is the evidence the extra cases
+Two details had to land with it. A blank line was one element where Prettier writes two breaks,
+which shifted every following word by one place; it is now the blank line plus an empty word beside
+it. And an entry that adds no width of its own — a lone break, an empty one — measured as fitting
+at any column, so the fill would never break at all. What decides that is one column: Prettier's
+fits walk defers a flat break's space exactly as this printer does, and so refuses only a line that
+is already _past_ the width, not one that ends on it. Read as "at the width" instead, a paragraph
+whose last word lands exactly on the column wraps a word early — 20 files, and the one column is
+what separated them.
+
+The whole conformance suite — every language, several thousand fixtures — is unchanged by those
+printer edits except for one Svelte fixture that now passes. That is the evidence the extra cases
 were not carrying anything: they only ever differed for a separator with no break in it, which is a
 shape only text produces.
 
-What is left has no dominant class: 73 files, and the largest cluster among them is small enough
+What is left has no dominant class: 53 files, and the largest cluster among them is small enough
 that each is its own investigation.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
@@ -712,7 +717,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 73 files with no dominant class, so this is
+1. **The long tail of Svelte layout differences** — 53 files with no dominant class, so this is
    many small investigations rather than one. Worth doing only against the corpus, a cluster at a
    time. About half are still whole-file re-wraps, identical once whitespace is normalised, which
    is where any remaining fill difference would show.

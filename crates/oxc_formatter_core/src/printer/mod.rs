@@ -1119,28 +1119,24 @@ impl<'a, 'print> FitsMeasurer<'a, 'print> {
             return invalid_start_tag(TagKind::Entry, start_entry);
         }
 
+        // Nothing fits on a line that is already past the width, whatever the entry holds —
+        // not even a hard break, which anywhere else reports that it fits. The walk below
+        // cannot say so on its own: it only compares against the width when text arrives to
+        // claim it, so an entry that adds no width of its own — a lone `line`, an empty one —
+        // fits at any column. That is invisible while entries are words, but a text run whose
+        // leading break sits inside the fill pairs every word with a `line` item, and such a
+        // fill would never break at all.
+        let over_the_width = self.state.line_width > usize::from(self.options().print_width);
+
         self.stack.push(TagKind::Fill, self.stack.top().with_print_mode(mode));
         let mut predicate = SingleEntryPredicate::default();
-        let mut fits = self.fits(&mut predicate)?;
-
-        // An entry ending in a space still occupies that column — whatever the fill prints
-        // next lands after it. The space is only added to the width when text arrives to
-        // claim it, so an entry that *is* a space measures as zero-width and fits at any
-        // column. That is invisible while entries are words, but a text run whose leading
-        // break sits inside the fill pairs every separator against a `line` item, and such
-        // a fill would never break at all.
-        if fits
-            && self.state.pending_space
-            && self.state.line_width >= usize::from(self.options().print_width)
-        {
-            fits = false;
-        }
+        let fits = self.fits(&mut predicate)?;
 
         if predicate.is_done() {
             self.stack.pop(TagKind::Fill)?;
         }
 
-        Ok(fits)
+        Ok(fits && !over_the_width)
     }
 
     /// Tests if the passed element fits on the current line or not.
