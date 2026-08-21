@@ -176,7 +176,7 @@ oxc_macros = { path = "crates/oxc_macros" } # Proc macros
 oxc_tasks_common = { path = "tasks/common" } # Task utilities
 oxc_tasks_transform_checker = { path = "tasks/transform_checker" } # Transform validation
 vue_sfc_parser = { git = "https://github.com/pitis/vue-sfc-parser", tag = "v0.2.0" } # Vue SFC and template parser (extracted crate)
-svelte_markup_parser = { git = "https://github.com/pitis/svelte-markup-parser", tag = "v0.2.4" } # Svelte markup parser (sibling crate)
+svelte_markup_parser = { git = "https://github.com/pitis/svelte-markup-parser", tag = "v0.2.5" } # Svelte markup parser (sibling crate)
 website_common = { path = "tasks/website_common" } # Website utilities
 oxfmt = { path = "apps/oxfmt" } # Formatter CLI
 oxlint = { path = "apps/oxlint" } # Linter CLI

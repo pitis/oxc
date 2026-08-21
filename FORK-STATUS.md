@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **94.7%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **95.9%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-94.7% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+95.9% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -81,19 +81,37 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | :------------------------- | ----: | ---------------: |
 | `skeletonlabs/skeleton`    |   686 |      683 (99.6%) |
 | `huntabyte/bits-ui`        |   617 |      608 (98.5%) |
-| `carbon-components-svelte` |  1408 |     1381 (98.1%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1630 (97.0%) |
-| `immich-app/immich` (web)  |   415 |      404 (97.3%) |
-| `windmill-labs/windmill`   |  1866 |     1613 (86.4%) |
-| **Total**                  |  6673 | **6319 (94.7%)** |
+| `carbon-components-svelte` |  1408 |     1386 (98.4%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1638 (97.4%) |
+| `immich-app/immich` (web)  |   415 |      407 (98.1%) |
+| `windmill-labs/windmill`   |  1866 |     1680 (90.0%) |
+| **Total**                  |  6673 | **6402 (95.9%)** |
 
-Neither tool failed on any of them. Read the spread rather than the total: the four
-component libraries sit at 97–99.6%, and **windmill — the one large application — is at 86.5%**.
-Component libraries have short markup; an application has long `{#if …}` and `{#each …}` headers,
-and that is where the printer diverges, in how a block header that has to break gets laid out. It
-is the same shape as the Vue result, where a uniform corpus concealed what a varied one exposed.
-`htmlWhitespaceSensitivity` was ruled out as the cause: forcing windmill to `css` moved the count
-by one file.
+Neither tool failed on any of them. Read the spread rather than the total: the four component
+libraries sit at 97.4–99.6%, and **windmill — the one large application — is at 90.0%**, up from
+86.5% when first measured. Component libraries have short markup; an application has long
+`{#if …}` and `{#each …}` headers, which is where the printer diverged. It is the same shape as
+the Vue result, where a uniform corpus concealed what a varied one exposed.
+`htmlWhitespaceSensitivity` was ruled out as a cause: forcing windmill to `css` moved the count by
+one file.
+
+**The block-header class is fixed**, which is where the 94.7% → 95.9% came from — 83 files, and
+zero files that agreed beforehand now differ. A block header is one line however long it gets, so
+its expression is flattened with `remove_lines`; that pass was shallow, and a call's arguments and
+a member chain are printed as `BestFitting`, whose variants live in slices of their own. So
+`{#if a && b}` flattened and `{#each Object.entries(x) as y}` broke inside its call. It now
+descends, and resolves two things the printer would otherwise decide by measuring — conditional
+content, or an over-long flattened call comes back wearing the broken form's trailing comma as
+`f(a,)`; and `BestFitting`, by flattening each variant rather than choosing one.
+
+Groups are deliberately left unmarked, though `Group::set_flat` exists for it and Prettier's own
+`removeLines` clears a group's break flag. The two are not equivalent: Prettier still re-measures
+and breaks a cleared group that does not fit, whereas a flat-marked group short-circuits that in
+`print_best_fitting`. Measured both ways over the corpus — identical at 6,402 — and marking them
+flat cost a conformance fixture, because Prettier does break a member chain in a block header.
+
+What is left has no dominant class: 271 files across 328 first-line clusters, the largest of them
+9 files. Block markers appear in 22.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
 
@@ -641,9 +659,9 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The Svelte block-header layout class.** Both corpus bugs above are fixed and every one of the
-   6,673 files now formats, so what is left is layout: how a `{#if …}` / `{#each …}` header that
-   has to break gets laid out. It is most of the remaining 354 and nearly all of windmill's 253.
+1. **The long tail of Svelte layout differences** — 271 files with no dominant class, so this is
+   many small investigations rather than one. Worth doing only against the corpus, a cluster at a
+   time; the largest is 9 files.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so

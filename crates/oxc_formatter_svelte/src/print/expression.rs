@@ -164,7 +164,7 @@ pub fn write_expression<'a>(
         // that decides what a `{#each}` iterates reads as part of the marker,
         // not as content laid out beside it.
         ExpressionPosition::BlockHeader => {
-            remove_lines(&mut ir);
+            remove_lines(&mut ir, f.allocator());
             f.write_elements(ir);
         }
         // A `bind:` value carries a break of its own, so a tag that has to

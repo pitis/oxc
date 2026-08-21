@@ -566,7 +566,7 @@ impl TextWidth {
 /// and refuses to reintroduce the surrounding one. Escaping a delimiter would
 /// corrupt the fragment rather than protect it.
 ///
-/// Unlike [`remove_lines`], this reaches through `Interned` and `BestFitting`
+/// Like [`remove_lines`], this reaches through `Interned` and `BestFitting`
 /// subtrees by rebuilding them: those are shared arena slices, and a quote left
 /// inside one is exactly the quote that breaks the document. Rebuilding costs
 /// their sharing, which is a memoization detail, never a correctness one.
@@ -645,17 +645,115 @@ fn contains_double_quote(element: &FormatElement<'_>) -> bool {
     }
 }
 
-pub fn remove_lines<'a>(elements: &mut ArenaVec<'a, FormatElement<'a>>) {
-    for element in elements.iter_mut() {
+/// Force `elements` flat, as Prettier's `removeLines` does: a soft-or-space
+/// line becomes a space and a soft line goes away, so there is nothing left in
+/// the document to break at.
+///
+/// Hard lines survive, exactly as they do in Prettier. Something that asked for
+/// a break unconditionally is making a claim this pass is not entitled to
+/// overrule — and a member chain that has to break is the case where it shows.
+///
+/// Groups are deliberately *not* marked flat, though `Group::set_flat` exists
+/// for it and Prettier's own `removeLines` clears a group's break flag. The two
+/// are not equivalent here: clearing the flag in Prettier still leaves the
+/// printer to re-measure and break the group if it does not fit, whereas a
+/// flat-marked group short-circuits that re-measurement in
+/// `Printer::print_best_fitting`. Static line removal already makes the
+/// document flat wherever it can be; leaving the groups alone keeps the
+/// remaining decisions fit-driven, which is what Prettier does. Measured both
+/// ways over 6,673 real components: identical, and marking them flat cost one
+/// conformance fixture.
+///
+/// Two things have to be resolved here rather than left to the printer, because
+/// the printer decides them by measuring, and a document that is flat by
+/// construction can still be too wide to fit:
+///
+/// - **Conditional content.** `if_group_breaks` is emitted when its group
+///   prints expanded, so an over-long flattened call would come back as
+///   `f(a,)`, wearing the broken form's trailing comma. Flat is now the answer,
+///   so expanded-only content is dropped and flat-only content is unwrapped.
+/// - **`BestFitting`.** It is a choice between layouts made by width, and the
+///   variant chosen is printed expanded. Collapsing to the narrowest variant is
+///   what flat means, and it is how Prettier resolves the same shape — flat
+///   mode takes a `conditionalGroup`'s contents, which is its first state.
+///
+/// Like [`escape_double_quotes`], this reaches through `Interned` and
+/// `BestFitting` subtrees by rebuilding them. The IR is otherwise flat, so a
+/// nested group already sits in this slice, but those two hold slices of their
+/// own — and a call's arguments and a member chain are printed as
+/// `BestFitting`, so a pass that skipped them would flatten `{#if a && b}` and
+/// leave `{#each Object.entries(x) as y}` breaking inside its call. Rebuilding
+/// costs their sharing, which is a memoization detail, never a correctness one.
+pub fn remove_lines<'a>(elements: &mut ArenaVec<'a, FormatElement<'a>>, allocator: &'a Allocator) {
+    let mut flattened = ArenaVec::new_in(&allocator);
+    // Depth inside an expanded-only region being dropped, counted so that a
+    // nested conditional does not end the outer one early.
+    let mut dropping = 0_u32;
+
+    for element in elements.iter() {
+        if dropping > 0 {
+            match element {
+                FormatElement::Tag(Tag::StartConditionalContent(_)) => dropping += 1,
+                FormatElement::Tag(Tag::EndConditionalContent) => dropping -= 1,
+                _ => {}
+            }
+            continue;
+        }
+
         match element {
-            FormatElement::Line(LineMode::SoftOrSpace) => *element = FormatElement::Space,
-            FormatElement::Tag(Tag::StartGroup(group)) => group.set_flat(),
-            _ => {}
+            FormatElement::Line(LineMode::SoftOrSpace) => flattened.push(FormatElement::Space),
+            FormatElement::Tag(Tag::StartConditionalContent(condition)) => {
+                if condition.mode == PrintMode::Expanded {
+                    dropping = 1;
+                }
+                // Either way the tag itself goes: flat-only content is simply
+                // kept, and dropping both ends leaves the document balanced.
+            }
+            // Nothing to emit. A soft line has no flat spelling; an
+            // `ExpandParent` asks for a break that no longer exists; the
+            // conditional's closing tag pairs with one already dropped; and
+            // indentation conditioned on a broken group never applies.
+            FormatElement::Line(LineMode::Soft)
+            | FormatElement::ExpandParent
+            | FormatElement::Tag(
+                Tag::EndConditionalContent
+                | Tag::StartIndentIfGroupBreaks(_)
+                | Tag::EndIndentIfGroupBreaks(_),
+            ) => {}
+
+            FormatElement::Interned(interned) => {
+                let mut rebuilt = ArenaVec::from_iter_in(interned.iter().cloned(), &allocator);
+                remove_lines(&mut rebuilt, allocator);
+                flattened.push(FormatElement::Interned(Interned::new(rebuilt)));
+            }
+            FormatElement::BestFitting(best_fitting) => {
+                // Every variant is flattened, and the choice between them is
+                // left to the printer. It still depends on width: flattened,
+                // a call's variants read `f(a, b)` and `f( a, b )`, because
+                // the wider one was built from `line` separators that flatten
+                // to spaces. Prettier keeps that dependence too — its
+                // `conditionalGroup` picks a state by fit after `removeLines`
+                // has rewritten them all — so resolving it here to either
+                // variant would diverge on one input or the other.
+                let variants = ArenaVec::from_iter_in(
+                    best_fitting.variants().iter().map(|variant| {
+                        let mut rebuilt =
+                            ArenaVec::from_iter_in(variant.iter().cloned(), &allocator);
+                        remove_lines(&mut rebuilt, allocator);
+                        rebuilt.into_arena_slice()
+                    }),
+                    &allocator,
+                );
+                // SAFETY: the constructor requires at least two variants, and
+                // the count here is unchanged from an element it accepted.
+                let rebuilt = unsafe { BestFittingElement::from_vec_unchecked(variants) };
+                flattened.push(FormatElement::BestFitting(rebuilt));
+            }
+            _ => flattened.push(element.clone()),
         }
     }
-    elements.retain(|element| {
-        !matches!(element, FormatElement::Line(LineMode::Soft) | FormatElement::ExpandParent)
-    });
+
+    *elements = flattened;
 }
 
 #[cfg(test)]
