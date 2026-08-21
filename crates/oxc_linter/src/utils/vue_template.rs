@@ -5,10 +5,13 @@
 //! of re-implementing them.
 
 use oxc_allocator::Allocator;
-use oxc_ast::ast::{BindingPattern, Expression, ForStatementLeft, Program, Statement};
+use oxc_ast::{
+    AstKind,
+    ast::{BindingPattern, Expression, ForStatementLeft, Program, Statement},
+};
 use oxc_parser::Parser;
 use oxc_semantic::SemanticBuilder;
-use oxc_span::{SourceType, Span};
+use oxc_span::{GetSpan, SourceType, Span};
 use rustc_hash::FxHashSet;
 use vue_sfc_parser::ast::{Attribute, Element, Node};
 
@@ -885,6 +888,40 @@ pub fn directive_expression<'a>(attribute: &Attribute<'a>) -> Option<(&'a str, S
 /// already have that wrapper's leading `(` subtracted back out, so they're
 /// relative to `text` itself. Silently empty on any parse failure, matching
 /// this fork's established silent-on-parse-failure discipline.
+/// Every span, within `text`, of a *call* whose callee is a free reference
+/// named exactly `name` — `foo()` but not `foo`, `a.foo()` or a locally-bound
+/// `foo`. The span covers the whole call expression, which is what
+/// `no-use-computed-property-like-method` reports.
+///
+/// Same parse-and-resolve mechanism as [`free_reference_spans`], and the same
+/// silent-on-parse-failure discipline; see there for why the wrapper is
+/// `(<text>);` and why the returned spans are relative to `text`.
+pub fn free_call_spans(text: &str, name: &str) -> Vec<Span> {
+    let snippet = format!("({text});");
+    let allocator = Allocator::new();
+    let parser_ret = Parser::new(&allocator, &snippet, SourceType::ts()).parse();
+    if parser_ret.panicked || !parser_ret.diagnostics.is_empty() {
+        return Vec::new();
+    }
+    let program = allocator.alloc(parser_ret.program);
+    let semantic = SemanticBuilder::new_linter().build(program).semantic;
+    let Some(reference_ids) = semantic.scoping().root_unresolved_references().get(name) else {
+        return Vec::new();
+    };
+    let nodes = semantic.nodes();
+    reference_ids
+        .iter()
+        .filter_map(|&reference_id| {
+            let node = nodes.get_node(semantic.scoping().get_reference(reference_id).node_id());
+            let AstKind::CallExpression(call) = nodes.parent_kind(node.id()) else { return None };
+            if call.callee.span() != node.span() {
+                return None;
+            }
+            Some(Span::new(call.span.start.saturating_sub(1), call.span.end.saturating_sub(1)))
+        })
+        .collect()
+}
+
 pub fn free_reference_spans(text: &str, name: &str) -> Vec<Span> {
     let snippet = format!("({text});");
     let allocator = Allocator::new();

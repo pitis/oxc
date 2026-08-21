@@ -38,7 +38,10 @@ use crate::{
     context::ContextSubHost,
     fixer::{Message, PossibleFixes},
     rules::RuleEnum,
-    utils::{VueScriptProps, vue_template_script_props, vue_template_visible_script_names},
+    utils::{
+        VueScriptProps, vue_template_non_function_computed, vue_template_script_props,
+        vue_template_visible_script_names,
+    },
 };
 
 /// A rule that lints the parsed `<template>` AST of a `.vue` file.
@@ -71,6 +74,12 @@ pub trait VueTemplateRule {
     fn needs_script_props(&self) -> bool {
         false
     }
+
+    /// Whether this rule reads [`VueTemplateContext::script_computed`], gated
+    /// for the same reason as the two sets above.
+    fn needs_script_computed(&self) -> bool {
+        false
+    }
 }
 
 /// A rule that lints the whole `.vue` SFC (its blocks, not a single
@@ -101,6 +110,7 @@ fn as_vue_template_rule(rule: &RuleEnum) -> Option<&dyn VueTemplateRule> {
         RuleEnum::VueHtmlEndTags(rule) => Some(rule),
         RuleEnum::VueHtmlSelfClosing(rule) => Some(rule),
         RuleEnum::VueNoMutatingProps(rule) => Some(rule),
+        RuleEnum::VueNoUseComputedPropertyLikeMethod(rule) => Some(rule),
         RuleEnum::VueNoTextareaMustache(rule) => Some(rule),
         RuleEnum::VueRequireComponentIs(rule) => Some(rule),
         RuleEnum::VueNoLoneTemplate(rule) => Some(rule),
@@ -180,6 +190,9 @@ pub struct VueTemplateContext<'a> {
     /// The component's props, for the rules that declare
     /// [`VueTemplateRule::needs_script_props`]; empty for every other rule.
     script_props: Rc<VueScriptProps>,
+    /// The `computed` names that cannot return a function, for the rules that
+    /// declare [`VueTemplateRule::needs_script_computed`].
+    script_computed: Rc<FxHashSet<String>>,
     diagnostics: Vec<OxcDiagnostic>,
 }
 
@@ -202,6 +215,13 @@ impl<'a> VueTemplateContext<'a> {
     /// Empty unless the rule declares [`VueTemplateRule::needs_script_props`].
     pub fn script_props(&self) -> &VueScriptProps {
         &self.script_props
+    }
+
+    /// The component's `computed` names whose getter cannot return a function
+    /// — see [`crate::utils::vue_template_non_function_computed`]. Empty
+    /// unless the rule declares [`VueTemplateRule::needs_script_computed`].
+    pub fn script_computed(&self) -> &FxHashSet<String> {
+        &self.script_computed
     }
 
     /// Report a violation. Label spans are absolute file offsets, exactly as
@@ -286,6 +306,12 @@ impl Linter {
         // directive never reaches backwards.
         // One walk of the `<script>` ASTs per file, and only when an enabled
         // rule actually reads the result.
+        let script_computed =
+            Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_computed()) {
+                vue_template_non_function_computed(script_hosts)
+            } else {
+                FxHashSet::default()
+            });
         let script_props =
             Rc::new(if template_rules.iter().any(|(_, rule, _)| rule.needs_script_props()) {
                 vue_template_script_props(script_hosts)
@@ -304,6 +330,7 @@ impl Linter {
                 source_text,
                 script_names: Rc::clone(&script_names),
                 script_props: Rc::clone(&script_props),
+                script_computed: Rc::clone(&script_computed),
                 diagnostics: Vec::new(),
             };
             sfc_rule.run_on_sfc(&sfc, path, &mut ctx);
@@ -349,6 +376,7 @@ impl Linter {
                     source_text,
                     script_names: Rc::clone(&script_names),
                     script_props: Rc::clone(&script_props),
+                    script_computed: Rc::clone(&script_computed),
                     diagnostics: Vec::new(),
                 };
                 template_rule.run_on_template(&nodes, &mut ctx);

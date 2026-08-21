@@ -1,0 +1,45 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(order-in-components): The "name" property should be above the "data" property on line 1.
+   ╭─[order_in_components.tsx:1:48]
+ 1 │ <script>export default { data() { return {} }, name: 'A' }</script>
+   ·                                                ─────────
+   ╰────
+  help: Keep component options in the conventional order.
+
+  ⚠ vue(order-in-components): The "computed" property should be above the "methods" property on line 1.
+   ╭─[order_in_components.tsx:1:39]
+ 1 │ <script>export default { methods: {}, computed: {}, props: {} }</script>
+   ·                                       ────────────
+   ╰────
+  help: Keep component options in the conventional order.
+
+  ⚠ vue(order-in-components): The "props" property should be above the "computed" property on line 1.
+   ╭─[order_in_components.tsx:1:53]
+ 1 │ <script>export default { methods: {}, computed: {}, props: {} }</script>
+   ·                                                     ─────────
+   ╰────
+  help: Keep component options in the conventional order.
+
+  ⚠ vue(order-in-components): The "beforeRouteEnter" property should be above the "data" property on line 1.
+   ╭─[order_in_components.tsx:1:48]
+ 1 │ <script>export default { data() { return {} }, beforeRouteEnter() {} }</script>
+   ·                                                ─────────────────────
+   ╰────
+  help: Keep component options in the conventional order.
+
+  ⚠ vue(order-in-components): The "methods" property should be above the "name" property on line 1.
+   ╭─[order_in_components.tsx:1:37]
+ 1 │ <script>export default { name: 'A', methods: {} }</script>
+   ·                                     ───────────
+   ╰────
+  help: Keep component options in the conventional order.
+
+  ⚠ vue(order-in-components): The "name" property should be above the "inheritAttrs" property on line 1.
+   ╭─[order_in_components.tsx:1:52]
+ 1 │ <script setup>defineOptions({ inheritAttrs: false, name: 'A' })</script>
+   ·                                                    ─────────
+   ╰────
+  help: Keep component options in the conventional order.

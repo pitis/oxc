@@ -1,0 +1,38 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(no-use-computed-property-like-method): Use this.total instead of this.total().
+   ╭─[no_use_computed_property_like_method.tsx:1:89]
+ 1 │ <script>export default { computed: { total() { return 1 } }, methods: { show() { return this.total() } } }</script>
+   ·                                                                                         ────────────
+   ╰────
+  help: A computed property is a value, not a method — read it without calling it.
+
+  ⚠ vue(no-use-computed-property-like-method): Use this.conf instead of this.conf().
+   ╭─[no_use_computed_property_like_method.tsx:1:89]
+ 1 │ <script>export default { computed: { conf() { return {} } }, methods: { show() { return this.conf() } } }</script>
+   ·                                                                                         ───────────
+   ╰────
+  help: A computed property is a value, not a method — read it without calling it.
+
+  ⚠ vue(no-use-computed-property-like-method): Use this.total instead of this.total().
+   ╭─[no_use_computed_property_like_method.tsx:1:98]
+ 1 │ <script>export default { computed: { total: { get() { return 1 } } }, methods: { show() { return this.total() } } }</script>
+   ·                                                                                                  ────────────
+   ╰────
+  help: A computed property is a value, not a method — read it without calling it.
+
+  ⚠ vue(no-use-computed-property-like-method): Use total instead of total().
+   ╭─[no_use_computed_property_like_method.tsx:1:19]
+ 1 │ <template><div>{{ total() }}</div></template><script>export default { computed: { total() { return 1 } } }</script>
+   ·                   ───────
+   ╰────
+  help: A computed property is a value, not a method — read it without calling it.
+
+  ⚠ vue(no-use-computed-property-like-method): Use total instead of total().
+   ╭─[no_use_computed_property_like_method.tsx:1:24]
+ 1 │ <template><div :title="total()" /></template><script>export default { computed: { total() { return 1 } } }</script>
+   ·                        ───────
+   ╰────
+  help: A computed property is a value, not a method — read it without calling it.

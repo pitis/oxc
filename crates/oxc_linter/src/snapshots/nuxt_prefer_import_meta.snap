@@ -1,0 +1,52 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.client` with `import.meta.client`.
+   ╭─[prefer_import_meta.tsx:1:5]
+ 1 │ if (process.client) {}
+   ·     ──────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.server` with `import.meta.server`.
+   ╭─[prefer_import_meta.tsx:1:5]
+ 1 │ if (process.server) {}
+   ·     ──────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.browser` with `import.meta.browser`.
+   ╭─[prefer_import_meta.tsx:1:5]
+ 1 │ if (process.browser) {}
+   ·     ───────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.dev` with `import.meta.dev`.
+   ╭─[prefer_import_meta.tsx:1:5]
+ 1 │ if (process.dev) {}
+   ·     ───────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.nitro` with `import.meta.nitro`.
+   ╭─[prefer_import_meta.tsx:1:11]
+ 1 │ const x = process.nitro ? 1 : 2
+   ·           ─────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.test` with `import.meta.test`.
+   ╭─[prefer_import_meta.tsx:1:5]
+ 1 │ if (process.test || process.prerender) {}
+   ·     ────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.
+
+  ⚠ nuxt(prefer-import-meta): Replace `process.prerender` with `import.meta.prerender`.
+   ╭─[prefer_import_meta.tsx:1:21]
+ 1 │ if (process.test || process.prerender) {}
+   ·                     ─────────────────
+   ╰────
+  help: `import.meta` is statically analysable, so the bundler can drop the dead branch.

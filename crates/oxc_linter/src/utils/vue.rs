@@ -627,6 +627,122 @@ pub fn is_vue_computed_call(call: &CallExpression<'_>, ctx: &LintContext<'_>) ->
     })
 }
 
+/// The `computed` properties a `.vue` file's `<script>` blocks declare whose
+/// getter cannot return a function — i.e. the ones that must be read as a
+/// property and never called. See `no-use-computed-property-like-method`.
+pub fn vue_template_non_function_computed(hosts: &[ContextSubHost<'_>]) -> FxHashSet<String> {
+    let mut names = FxHashSet::default();
+    for host in hosts {
+        let semantic = host.semantic();
+        let framework_options = host.framework_options();
+        for node in semantic.nodes() {
+            let AstKind::ObjectExpression(object) = node.kind() else { continue };
+            if vue_component_options_kind_in(node, semantic, true, framework_options).is_none() {
+                continue;
+            }
+            let Some(computed) = find_property(object, "computed") else { continue };
+            let Expression::ObjectExpression(computed) = &computed.value else { continue };
+            for property in &computed.properties {
+                let ObjectPropertyKind::ObjectProperty(property) = property else { continue };
+                let Some(name) = static_key_name(&property.key) else { continue };
+                if !computed_getter_may_return_function(&property.value) {
+                    names.insert(name.into_owned());
+                }
+            }
+        }
+    }
+    names
+}
+
+/// Whether a `computed` entry's getter might hand back a function.
+///
+/// Deliberately conservative, as upstream's `maybeReturnFunction` is: anything
+/// this cannot see through counts as "might", so an unclear getter is never
+/// reported.
+pub fn computed_getter_may_return_function(value: &Expression<'_>) -> bool {
+    let body = match value.get_inner_expression() {
+        Expression::FunctionExpression(function) => function.body.as_deref(),
+        Expression::ArrowFunctionExpression(arrow) => {
+            if arrow.is_expression() {
+                return arrow.get_expression().is_none_or(expression_may_be_function);
+            }
+            arrow.get_function_body()
+        }
+        // `computed: { x: { get() {…} } }`.
+        Expression::ObjectExpression(object) => {
+            let Some(getter) = find_property(object, "get") else { return true };
+            return computed_getter_may_return_function(&getter.value);
+        }
+        _ => return true,
+    };
+    let Some(body) = body else { return true };
+    let mut returns = Vec::new();
+    collect_returned_expressions(&body.statements, &mut returns);
+    // A getter with no `return` at all yields `undefined`, which is not a
+    // function; upstream reaches the same conclusion through an empty
+    // return-type list.
+    returns.iter().any(|expression| expression_may_be_function(expression))
+}
+
+/// Whether an expression might evaluate to a function. Only the forms that
+/// clearly cannot are treated as "no".
+fn expression_may_be_function(expression: &Expression<'_>) -> bool {
+    !matches!(
+        expression.get_inner_expression().without_parentheses(),
+        Expression::StringLiteral(_)
+            | Expression::NumericLiteral(_)
+            | Expression::BigIntLiteral(_)
+            | Expression::BooleanLiteral(_)
+            | Expression::NullLiteral(_)
+            | Expression::RegExpLiteral(_)
+            | Expression::TemplateLiteral(_)
+            | Expression::ArrayExpression(_)
+            | Expression::ObjectExpression(_)
+            | Expression::BinaryExpression(_)
+            | Expression::UnaryExpression(_)
+            | Expression::UpdateExpression(_)
+    )
+}
+
+/// Every `return <expression>` in a function body, not descending into nested
+/// functions.
+fn collect_returned_expressions<'e, 'a>(
+    statements: &'e [Statement<'a>],
+    out: &mut Vec<&'e Expression<'a>>,
+) {
+    for statement in statements {
+        match statement {
+            Statement::ReturnStatement(statement) => {
+                if let Some(argument) = &statement.argument {
+                    out.push(argument);
+                }
+            }
+            Statement::BlockStatement(block) => collect_returned_expressions(&block.body, out),
+            Statement::IfStatement(statement) => {
+                collect_returned_expressions(std::slice::from_ref(&statement.consequent), out);
+                if let Some(alternate) = &statement.alternate {
+                    collect_returned_expressions(std::slice::from_ref(alternate), out);
+                }
+            }
+            Statement::SwitchStatement(statement) => {
+                for case in &statement.cases {
+                    collect_returned_expressions(&case.consequent, out);
+                }
+            }
+            Statement::TryStatement(statement) => {
+                collect_returned_expressions(&statement.block.body, out);
+                if let Some(handler) = &statement.handler {
+                    collect_returned_expressions(&handler.body.body, out);
+                }
+                if let Some(finalizer) = &statement.finalizer {
+                    collect_returned_expressions(&finalizer.body, out);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 /// The props a `.vue` file's `<script>` blocks declare, as the template half
 /// of `no-mutating-props` needs them: the prop names, plus the name the
 /// `defineProps()` result was bound to (`const props = defineProps()` → the

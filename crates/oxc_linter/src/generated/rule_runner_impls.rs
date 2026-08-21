@@ -931,6 +931,12 @@ impl RuleRunner for crate::rules::eslint::no_object_constructor::NoObjectConstru
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
+impl RuleRunner for crate::rules::eslint::no_octal::NoOctal {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::NumericLiteral]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
 impl RuleRunner for crate::rules::eslint::no_param_reassign::NoParamReassign {
     const NODE_TYPES: Option<&AstTypesBitset> =
         Some(&AstTypesBitset::from_types(&[AstType::FormalParameter]));
@@ -5629,6 +5635,14 @@ impl RuleRunner for crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor 
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
 }
 
+impl RuleRunner
+    for crate::rules::vue::no_use_computed_property_like_method::NoUseComputedPropertyLikeMethod
+{
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::ThisExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
+}
+
 impl RuleRunner for crate::rules::vue::no_useless_template_attributes::NoUselessTemplateAttributes {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
@@ -5660,6 +5674,12 @@ impl RuleRunner for crate::rules::vue::no_watch_after_await::NoWatchAfterAwait {
 impl RuleRunner for crate::rules::vue::one_component_per_file::OneComponentPerFile {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::RunOnce;
+}
+
+impl RuleRunner for crate::rules::vue::order_in_components::OrderInComponents {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::CallExpression, AstType::ObjectExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
 impl RuleRunner for crate::rules::vue::prefer_import_from_vue::PreferImportFromVue {
@@ -5738,6 +5758,12 @@ impl RuleRunner for crate::rules::vue::require_typed_ref::RequireTypedRef {
 impl RuleRunner for crate::rules::vue::require_v_for_key::RequireVForKey {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::vue::require_valid_default_prop::RequireValidDefaultProp {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::CallExpression, AstType::ObjectExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
 impl RuleRunner for crate::rules::vue::return_in_computed_property::ReturnInComputedProperty {
@@ -5894,6 +5920,12 @@ impl RuleRunner for crate::rules::vue::valid_v_slot::ValidVSlot {
 impl RuleRunner for crate::rules::vue::valid_v_text::ValidVText {
     const NODE_TYPES: Option<&AstTypesBitset> = None;
     const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::None;
+}
+
+impl RuleRunner for crate::rules::nuxt::prefer_import_meta::PreferImportMeta {
+    const NODE_TYPES: Option<&AstTypesBitset> =
+        Some(&AstTypesBitset::from_types(&[AstType::StaticMemberExpression]));
+    const RUN_FUNCTIONS: RuleRunFunctionsImplemented = RuleRunFunctionsImplemented::Run;
 }
 
 impl RuleRunner for crate::rules::svelte::block_lang::BlockLang {

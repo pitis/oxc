@@ -112,6 +112,7 @@ pub use crate::rules::eslint::no_new_wrappers::NoNewWrappers as EslintNoNewWrapp
 pub use crate::rules::eslint::no_nonoctal_decimal_escape::NoNonoctalDecimalEscape as EslintNoNonoctalDecimalEscape;
 pub use crate::rules::eslint::no_obj_calls::NoObjCalls as EslintNoObjCalls;
 pub use crate::rules::eslint::no_object_constructor::NoObjectConstructor as EslintNoObjectConstructor;
+pub use crate::rules::eslint::no_octal::NoOctal as EslintNoOctal;
 pub use crate::rules::eslint::no_param_reassign::NoParamReassign as EslintNoParamReassign;
 pub use crate::rules::eslint::no_plusplus::NoPlusplus as EslintNoPlusplus;
 pub use crate::rules::eslint::no_promise_executor_return::NoPromiseExecutorReturn as EslintNoPromiseExecutorReturn;
@@ -381,6 +382,7 @@ pub use crate::rules::node::no_path_concat::NoPathConcat as NodeNoPathConcat;
 pub use crate::rules::node::no_process_env::NoProcessEnv as NodeNoProcessEnv;
 pub use crate::rules::node::no_sync::NoSync as NodeNoSync;
 pub use crate::rules::node::no_top_level_await::NoTopLevelAwait as NodeNoTopLevelAwait;
+pub use crate::rules::nuxt::prefer_import_meta::PreferImportMeta as NuxtPreferImportMeta;
 pub use crate::rules::oxc::approx_constant::ApproxConstant as OxcApproxConstant;
 pub use crate::rules::oxc::bad_array_method_on_arguments::BadArrayMethodOnArguments as OxcBadArrayMethodOnArguments;
 pub use crate::rules::oxc::bad_bitwise_operator::BadBitwiseOperator as OxcBadBitwiseOperator;
@@ -978,6 +980,7 @@ pub use crate::rules::vue::no_template_key::NoTemplateKey as VueNoTemplateKey;
 pub use crate::rules::vue::no_template_shadow::NoTemplateShadow as VueNoTemplateShadow;
 pub use crate::rules::vue::no_textarea_mustache::NoTextareaMustache as VueNoTextareaMustache;
 pub use crate::rules::vue::no_this_in_before_route_enter::NoThisInBeforeRouteEnter as VueNoThisInBeforeRouteEnter;
+pub use crate::rules::vue::no_use_computed_property_like_method::NoUseComputedPropertyLikeMethod as VueNoUseComputedPropertyLikeMethod;
 pub use crate::rules::vue::no_use_v_if_with_v_for::NoUseVIfWithVFor as VueNoUseVIfWithVFor;
 pub use crate::rules::vue::no_useless_template_attributes::NoUselessTemplateAttributes as VueNoUselessTemplateAttributes;
 pub use crate::rules::vue::no_v_for_template_key_on_child::NoVForTemplateKeyOnChild as VueNoVForTemplateKeyOnChild;
@@ -985,6 +988,7 @@ pub use crate::rules::vue::no_v_html::NoVHtml as VueNoVHtml;
 pub use crate::rules::vue::no_v_text_v_html_on_component::NoVTextVHtmlOnComponent as VueNoVTextVHtmlOnComponent;
 pub use crate::rules::vue::no_watch_after_await::NoWatchAfterAwait as VueNoWatchAfterAwait;
 pub use crate::rules::vue::one_component_per_file::OneComponentPerFile as VueOneComponentPerFile;
+pub use crate::rules::vue::order_in_components::OrderInComponents as VueOrderInComponents;
 pub use crate::rules::vue::prefer_import_from_vue::PreferImportFromVue as VuePreferImportFromVue;
 pub use crate::rules::vue::prop_name_casing::PropNameCasing as VuePropNameCasing;
 pub use crate::rules::vue::require_component_is::RequireComponentIs as VueRequireComponentIs;
@@ -998,6 +1002,7 @@ pub use crate::rules::vue::require_slots_as_functions::RequireSlotsAsFunctions a
 pub use crate::rules::vue::require_toggle_inside_transition::RequireToggleInsideTransition as VueRequireToggleInsideTransition;
 pub use crate::rules::vue::require_typed_ref::RequireTypedRef as VueRequireTypedRef;
 pub use crate::rules::vue::require_v_for_key::RequireVForKey as VueRequireVForKey;
+pub use crate::rules::vue::require_valid_default_prop::RequireValidDefaultProp as VueRequireValidDefaultProp;
 pub use crate::rules::vue::return_in_computed_property::ReturnInComputedProperty as VueReturnInComputedProperty;
 pub use crate::rules::vue::return_in_emits_validator::ReturnInEmitsValidator as VueReturnInEmitsValidator;
 pub use crate::rules::vue::this_in_template::ThisInTemplate as VueThisInTemplate;
@@ -1173,6 +1178,7 @@ pub enum RuleEnum {
     EslintNoNonoctalDecimalEscape(EslintNoNonoctalDecimalEscape),
     EslintNoObjCalls(EslintNoObjCalls),
     EslintNoObjectConstructor(EslintNoObjectConstructor),
+    EslintNoOctal(EslintNoOctal),
     EslintNoParamReassign(EslintNoParamReassign),
     EslintNoPlusplus(EslintNoPlusplus),
     EslintNoPromiseExecutorReturn(EslintNoPromiseExecutorReturn),
@@ -1932,12 +1938,14 @@ pub enum RuleEnum {
     VueNoTextareaMustache(VueNoTextareaMustache),
     VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter),
     VueNoUseVIfWithVFor(VueNoUseVIfWithVFor),
+    VueNoUseComputedPropertyLikeMethod(VueNoUseComputedPropertyLikeMethod),
     VueNoUselessTemplateAttributes(VueNoUselessTemplateAttributes),
     VueNoVForTemplateKeyOnChild(VueNoVForTemplateKeyOnChild),
     VueNoVHtml(VueNoVHtml),
     VueNoVTextVHtmlOnComponent(VueNoVTextVHtmlOnComponent),
     VueNoWatchAfterAwait(VueNoWatchAfterAwait),
     VueOneComponentPerFile(VueOneComponentPerFile),
+    VueOrderInComponents(VueOrderInComponents),
     VuePreferImportFromVue(VuePreferImportFromVue),
     VuePropNameCasing(VuePropNameCasing),
     VueRequireComponentIs(VueRequireComponentIs),
@@ -1951,6 +1959,7 @@ pub enum RuleEnum {
     VueRequireToggleInsideTransition(VueRequireToggleInsideTransition),
     VueRequireTypedRef(VueRequireTypedRef),
     VueRequireVForKey(VueRequireVForKey),
+    VueRequireValidDefaultProp(VueRequireValidDefaultProp),
     VueReturnInComputedProperty(VueReturnInComputedProperty),
     VueReturnInEmitsValidator(VueReturnInEmitsValidator),
     VueThisInTemplate(VueThisInTemplate),
@@ -1981,6 +1990,7 @@ pub enum RuleEnum {
     VueValidVShow(VueValidVShow),
     VueValidVSlot(VueValidVSlot),
     VueValidVText(VueValidVText),
+    NuxtPreferImportMeta(NuxtPreferImportMeta),
     SvelteBlockLang(SvelteBlockLang),
     SvelteButtonHasType(SvelteButtonHasType),
     SvelteCommentDirective(SvelteCommentDirective),
@@ -2200,7 +2210,8 @@ const ESLINT_NO_NEW_WRAPPERS_ID: usize = ESLINT_NO_NEW_NATIVE_NONCONSTRUCTOR_ID 
 const ESLINT_NO_NONOCTAL_DECIMAL_ESCAPE_ID: usize = ESLINT_NO_NEW_WRAPPERS_ID + 1usize;
 const ESLINT_NO_OBJ_CALLS_ID: usize = ESLINT_NO_NONOCTAL_DECIMAL_ESCAPE_ID + 1usize;
 const ESLINT_NO_OBJECT_CONSTRUCTOR_ID: usize = ESLINT_NO_OBJ_CALLS_ID + 1usize;
-const ESLINT_NO_PARAM_REASSIGN_ID: usize = ESLINT_NO_OBJECT_CONSTRUCTOR_ID + 1usize;
+const ESLINT_NO_OCTAL_ID: usize = ESLINT_NO_OBJECT_CONSTRUCTOR_ID + 1usize;
+const ESLINT_NO_PARAM_REASSIGN_ID: usize = ESLINT_NO_OCTAL_ID + 1usize;
 const ESLINT_NO_PLUSPLUS_ID: usize = ESLINT_NO_PARAM_REASSIGN_ID + 1usize;
 const ESLINT_NO_PROMISE_EXECUTOR_RETURN_ID: usize = ESLINT_NO_PLUSPLUS_ID + 1usize;
 const ESLINT_NO_PROTO_ID: usize = ESLINT_NO_PROMISE_EXECUTOR_RETURN_ID + 1usize;
@@ -3065,13 +3076,16 @@ const VUE_NO_TEMPLATE_SHADOW_ID: usize = VUE_NO_TEMPLATE_KEY_ID + 1usize;
 const VUE_NO_TEXTAREA_MUSTACHE_ID: usize = VUE_NO_TEMPLATE_SHADOW_ID + 1usize;
 const VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID: usize = VUE_NO_TEXTAREA_MUSTACHE_ID + 1usize;
 const VUE_NO_USE_V_IF_WITH_V_FOR_ID: usize = VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID + 1usize;
-const VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID: usize = VUE_NO_USE_V_IF_WITH_V_FOR_ID + 1usize;
+const VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID: usize = VUE_NO_USE_V_IF_WITH_V_FOR_ID + 1usize;
+const VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID: usize =
+    VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID + 1usize;
 const VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID: usize = VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID + 1usize;
 const VUE_NO_V_HTML_ID: usize = VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID + 1usize;
 const VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID: usize = VUE_NO_V_HTML_ID + 1usize;
 const VUE_NO_WATCH_AFTER_AWAIT_ID: usize = VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID + 1usize;
 const VUE_ONE_COMPONENT_PER_FILE_ID: usize = VUE_NO_WATCH_AFTER_AWAIT_ID + 1usize;
-const VUE_PREFER_IMPORT_FROM_VUE_ID: usize = VUE_ONE_COMPONENT_PER_FILE_ID + 1usize;
+const VUE_ORDER_IN_COMPONENTS_ID: usize = VUE_ONE_COMPONENT_PER_FILE_ID + 1usize;
+const VUE_PREFER_IMPORT_FROM_VUE_ID: usize = VUE_ORDER_IN_COMPONENTS_ID + 1usize;
 const VUE_PROP_NAME_CASING_ID: usize = VUE_PREFER_IMPORT_FROM_VUE_ID + 1usize;
 const VUE_REQUIRE_COMPONENT_IS_ID: usize = VUE_PROP_NAME_CASING_ID + 1usize;
 const VUE_REQUIRE_DEFAULT_EXPORT_ID: usize = VUE_REQUIRE_COMPONENT_IS_ID + 1usize;
@@ -3084,7 +3098,8 @@ const VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID: usize = VUE_REQUIRE_RENDER_RETURN_ID + 
 const VUE_REQUIRE_TOGGLE_INSIDE_TRANSITION_ID: usize = VUE_REQUIRE_SLOTS_AS_FUNCTIONS_ID + 1usize;
 const VUE_REQUIRE_TYPED_REF_ID: usize = VUE_REQUIRE_TOGGLE_INSIDE_TRANSITION_ID + 1usize;
 const VUE_REQUIRE_V_FOR_KEY_ID: usize = VUE_REQUIRE_TYPED_REF_ID + 1usize;
-const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_V_FOR_KEY_ID + 1usize;
+const VUE_REQUIRE_VALID_DEFAULT_PROP_ID: usize = VUE_REQUIRE_V_FOR_KEY_ID + 1usize;
+const VUE_RETURN_IN_COMPUTED_PROPERTY_ID: usize = VUE_REQUIRE_VALID_DEFAULT_PROP_ID + 1usize;
 const VUE_RETURN_IN_EMITS_VALIDATOR_ID: usize = VUE_RETURN_IN_COMPUTED_PROPERTY_ID + 1usize;
 const VUE_THIS_IN_TEMPLATE_ID: usize = VUE_RETURN_IN_EMITS_VALIDATOR_ID + 1usize;
 const VUE_USE_V_ON_EXACT_ID: usize = VUE_THIS_IN_TEMPLATE_ID + 1usize;
@@ -3114,7 +3129,8 @@ const VUE_VALID_V_PRE_ID: usize = VUE_VALID_V_ONCE_ID + 1usize;
 const VUE_VALID_V_SHOW_ID: usize = VUE_VALID_V_PRE_ID + 1usize;
 const VUE_VALID_V_SLOT_ID: usize = VUE_VALID_V_SHOW_ID + 1usize;
 const VUE_VALID_V_TEXT_ID: usize = VUE_VALID_V_SLOT_ID + 1usize;
-const SVELTE_BLOCK_LANG_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
+const NUXT_PREFER_IMPORT_META_ID: usize = VUE_VALID_V_TEXT_ID + 1usize;
+const SVELTE_BLOCK_LANG_ID: usize = NUXT_PREFER_IMPORT_META_ID + 1usize;
 const SVELTE_BUTTON_HAS_TYPE_ID: usize = SVELTE_BLOCK_LANG_ID + 1usize;
 const SVELTE_COMMENT_DIRECTIVE_ID: usize = SVELTE_BUTTON_HAS_TYPE_ID + 1usize;
 const SVELTE_CONSISTENT_SELECTOR_STYLE_ID: usize = SVELTE_COMMENT_DIRECTIVE_ID + 1usize;
@@ -3213,7 +3229,7 @@ const SVELTE_SYSTEM_ID: usize = SVELTE_SPACED_HTML_COMMENT_ID + 1usize;
 const SVELTE_VALID_EACH_KEY_ID: usize = SVELTE_SYSTEM_ID + 1usize;
 const SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID: usize = SVELTE_VALID_EACH_KEY_ID + 1usize;
 const SVELTE_VALID_STYLE_PARSE_ID: usize = SVELTE_VALID_PROP_NAMES_IN_KIT_PAGES_ID + 1usize;
-static RULE_NAMES: [&str; 1018usize] = [
+static RULE_NAMES: [&str; 1023usize] = [
     ImportConsistentTypeSpecifierStyle::NAME,
     ImportDefault::NAME,
     ImportExport::NAME,
@@ -3349,6 +3365,7 @@ static RULE_NAMES: [&str; 1018usize] = [
     EslintNoNonoctalDecimalEscape::NAME,
     EslintNoObjCalls::NAME,
     EslintNoObjectConstructor::NAME,
+    EslintNoOctal::NAME,
     EslintNoParamReassign::NAME,
     EslintNoPlusplus::NAME,
     EslintNoPromiseExecutorReturn::NAME,
@@ -4100,12 +4117,14 @@ static RULE_NAMES: [&str; 1018usize] = [
     VueNoTextareaMustache::NAME,
     VueNoThisInBeforeRouteEnter::NAME,
     VueNoUseVIfWithVFor::NAME,
+    VueNoUseComputedPropertyLikeMethod::NAME,
     VueNoUselessTemplateAttributes::NAME,
     VueNoVForTemplateKeyOnChild::NAME,
     VueNoVHtml::NAME,
     VueNoVTextVHtmlOnComponent::NAME,
     VueNoWatchAfterAwait::NAME,
     VueOneComponentPerFile::NAME,
+    VueOrderInComponents::NAME,
     VuePreferImportFromVue::NAME,
     VuePropNameCasing::NAME,
     VueRequireComponentIs::NAME,
@@ -4119,6 +4138,7 @@ static RULE_NAMES: [&str; 1018usize] = [
     VueRequireToggleInsideTransition::NAME,
     VueRequireTypedRef::NAME,
     VueRequireVForKey::NAME,
+    VueRequireValidDefaultProp::NAME,
     VueReturnInComputedProperty::NAME,
     VueReturnInEmitsValidator::NAME,
     VueThisInTemplate::NAME,
@@ -4149,6 +4169,7 @@ static RULE_NAMES: [&str; 1018usize] = [
     VueValidVShow::NAME,
     VueValidVSlot::NAME,
     VueValidVText::NAME,
+    NuxtPreferImportMeta::NAME,
     SvelteBlockLang::NAME,
     SvelteButtonHasType::NAME,
     SvelteCommentDirective::NAME,
@@ -4373,6 +4394,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => ESLINT_NO_NONOCTAL_DECIMAL_ESCAPE_ID,
             Self::EslintNoObjCalls(_) => ESLINT_NO_OBJ_CALLS_ID,
             Self::EslintNoObjectConstructor(_) => ESLINT_NO_OBJECT_CONSTRUCTOR_ID,
+            Self::EslintNoOctal(_) => ESLINT_NO_OCTAL_ID,
             Self::EslintNoParamReassign(_) => ESLINT_NO_PARAM_REASSIGN_ID,
             Self::EslintNoPlusplus(_) => ESLINT_NO_PLUSPLUS_ID,
             Self::EslintNoPromiseExecutorReturn(_) => ESLINT_NO_PROMISE_EXECUTOR_RETURN_ID,
@@ -5256,12 +5278,16 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VUE_NO_TEXTAREA_MUSTACHE_ID,
             Self::VueNoThisInBeforeRouteEnter(_) => VUE_NO_THIS_IN_BEFORE_ROUTE_ENTER_ID,
             Self::VueNoUseVIfWithVFor(_) => VUE_NO_USE_V_IF_WITH_V_FOR_ID,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VUE_NO_USE_COMPUTED_PROPERTY_LIKE_METHOD_ID
+            }
             Self::VueNoUselessTemplateAttributes(_) => VUE_NO_USELESS_TEMPLATE_ATTRIBUTES_ID,
             Self::VueNoVForTemplateKeyOnChild(_) => VUE_NO_V_FOR_TEMPLATE_KEY_ON_CHILD_ID,
             Self::VueNoVHtml(_) => VUE_NO_V_HTML_ID,
             Self::VueNoVTextVHtmlOnComponent(_) => VUE_NO_V_TEXT_V_HTML_ON_COMPONENT_ID,
             Self::VueNoWatchAfterAwait(_) => VUE_NO_WATCH_AFTER_AWAIT_ID,
             Self::VueOneComponentPerFile(_) => VUE_ONE_COMPONENT_PER_FILE_ID,
+            Self::VueOrderInComponents(_) => VUE_ORDER_IN_COMPONENTS_ID,
             Self::VuePreferImportFromVue(_) => VUE_PREFER_IMPORT_FROM_VUE_ID,
             Self::VuePropNameCasing(_) => VUE_PROP_NAME_CASING_ID,
             Self::VueRequireComponentIs(_) => VUE_REQUIRE_COMPONENT_IS_ID,
@@ -5275,6 +5301,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => VUE_REQUIRE_TOGGLE_INSIDE_TRANSITION_ID,
             Self::VueRequireTypedRef(_) => VUE_REQUIRE_TYPED_REF_ID,
             Self::VueRequireVForKey(_) => VUE_REQUIRE_V_FOR_KEY_ID,
+            Self::VueRequireValidDefaultProp(_) => VUE_REQUIRE_VALID_DEFAULT_PROP_ID,
             Self::VueReturnInComputedProperty(_) => VUE_RETURN_IN_COMPUTED_PROPERTY_ID,
             Self::VueReturnInEmitsValidator(_) => VUE_RETURN_IN_EMITS_VALIDATOR_ID,
             Self::VueThisInTemplate(_) => VUE_THIS_IN_TEMPLATE_ID,
@@ -5305,6 +5332,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VUE_VALID_V_SHOW_ID,
             Self::VueValidVSlot(_) => VUE_VALID_V_SLOT_ID,
             Self::VueValidVText(_) => VUE_VALID_V_TEXT_ID,
+            Self::NuxtPreferImportMeta(_) => NUXT_PREFER_IMPORT_META_ID,
             Self::SvelteBlockLang(_) => SVELTE_BLOCK_LANG_ID,
             Self::SvelteButtonHasType(_) => SVELTE_BUTTON_HAS_TYPE_ID,
             Self::SvelteCommentDirective(_) => SVELTE_COMMENT_DIRECTIVE_ID,
@@ -5554,6 +5582,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => EslintNoNonoctalDecimalEscape::CATEGORY,
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::CATEGORY,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::CATEGORY,
+            Self::EslintNoOctal(_) => EslintNoOctal::CATEGORY,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::CATEGORY,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::CATEGORY,
             Self::EslintNoPromiseExecutorReturn(_) => EslintNoPromiseExecutorReturn::CATEGORY,
@@ -6487,12 +6516,16 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::CATEGORY,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::CATEGORY,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::CATEGORY,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::CATEGORY
+            }
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::CATEGORY,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::CATEGORY,
             Self::VueNoVHtml(_) => VueNoVHtml::CATEGORY,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::CATEGORY,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::CATEGORY,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::CATEGORY,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::CATEGORY,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::CATEGORY,
             Self::VuePropNameCasing(_) => VuePropNameCasing::CATEGORY,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::CATEGORY,
@@ -6506,6 +6539,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => VueRequireToggleInsideTransition::CATEGORY,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::CATEGORY,
             Self::VueRequireVForKey(_) => VueRequireVForKey::CATEGORY,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::CATEGORY,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::CATEGORY,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::CATEGORY,
             Self::VueThisInTemplate(_) => VueThisInTemplate::CATEGORY,
@@ -6536,6 +6570,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::CATEGORY,
             Self::VueValidVSlot(_) => VueValidVSlot::CATEGORY,
             Self::VueValidVText(_) => VueValidVText::CATEGORY,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::CATEGORY,
             Self::SvelteBlockLang(_) => SvelteBlockLang::CATEGORY,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::CATEGORY,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::CATEGORY,
@@ -6787,6 +6822,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => EslintNoNonoctalDecimalEscape::FIX,
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::FIX,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::FIX,
+            Self::EslintNoOctal(_) => EslintNoOctal::FIX,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::FIX,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::FIX,
             Self::EslintNoPromiseExecutorReturn(_) => EslintNoPromiseExecutorReturn::FIX,
@@ -7654,12 +7690,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::FIX,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::FIX,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::FIX,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => VueNoUseComputedPropertyLikeMethod::FIX,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::FIX,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::FIX,
             Self::VueNoVHtml(_) => VueNoVHtml::FIX,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::FIX,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::FIX,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::FIX,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::FIX,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::FIX,
             Self::VuePropNameCasing(_) => VuePropNameCasing::FIX,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::FIX,
@@ -7673,6 +7711,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => VueRequireToggleInsideTransition::FIX,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::FIX,
             Self::VueRequireVForKey(_) => VueRequireVForKey::FIX,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::FIX,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::FIX,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::FIX,
             Self::VueThisInTemplate(_) => VueThisInTemplate::FIX,
@@ -7703,6 +7742,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::FIX,
             Self::VueValidVSlot(_) => VueValidVSlot::FIX,
             Self::VueValidVText(_) => VueValidVText::FIX,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::FIX,
             Self::SvelteBlockLang(_) => SvelteBlockLang::FIX,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::FIX,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::FIX,
@@ -7958,6 +7998,7 @@ impl RuleEnum {
             }
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::documentation(),
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::documentation(),
+            Self::EslintNoOctal(_) => EslintNoOctal::documentation(),
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::documentation(),
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::documentation(),
             Self::EslintNoPromiseExecutorReturn(_) => {
@@ -9097,6 +9138,9 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::documentation(),
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::documentation(),
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::documentation(),
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::documentation()
+            }
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::documentation()
             }
@@ -9105,6 +9149,7 @@ impl RuleEnum {
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::documentation(),
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::documentation(),
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::documentation(),
+            Self::VueOrderInComponents(_) => VueOrderInComponents::documentation(),
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::documentation(),
             Self::VuePropNameCasing(_) => VuePropNameCasing::documentation(),
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::documentation(),
@@ -9122,6 +9167,7 @@ impl RuleEnum {
             }
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::documentation(),
             Self::VueRequireVForKey(_) => VueRequireVForKey::documentation(),
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::documentation(),
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::documentation(),
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::documentation(),
             Self::VueThisInTemplate(_) => VueThisInTemplate::documentation(),
@@ -9152,6 +9198,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::documentation(),
             Self::VueValidVSlot(_) => VueValidVSlot::documentation(),
             Self::VueValidVText(_) => VueValidVText::documentation(),
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::documentation(),
             Self::SvelteBlockLang(_) => SvelteBlockLang::documentation(),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::documentation(),
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::documentation(),
@@ -9628,6 +9675,9 @@ impl RuleEnum {
             Self::EslintNoObjectConstructor(_) => {
                 EslintNoObjectConstructor::config_schema(generator)
                     .or_else(|| EslintNoObjectConstructor::schema(generator))
+            }
+            Self::EslintNoOctal(_) => {
+                EslintNoOctal::config_schema(generator).or_else(|| EslintNoOctal::schema(generator))
             }
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::config_schema(generator)
                 .or_else(|| EslintNoParamReassign::schema(generator)),
@@ -11841,6 +11891,10 @@ impl RuleEnum {
             }
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::config_schema(generator)
                 .or_else(|| VueNoUseVIfWithVFor::schema(generator)),
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::config_schema(generator)
+                    .or_else(|| VueNoUseComputedPropertyLikeMethod::schema(generator))
+            }
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::config_schema(generator)
                     .or_else(|| VueNoUselessTemplateAttributes::schema(generator))
@@ -11860,6 +11914,8 @@ impl RuleEnum {
                 .or_else(|| VueNoWatchAfterAwait::schema(generator)),
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::config_schema(generator)
                 .or_else(|| VueOneComponentPerFile::schema(generator)),
+            Self::VueOrderInComponents(_) => VueOrderInComponents::config_schema(generator)
+                .or_else(|| VueOrderInComponents::schema(generator)),
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::config_schema(generator)
                 .or_else(|| VuePreferImportFromVue::schema(generator)),
             Self::VuePropNameCasing(_) => VuePropNameCasing::config_schema(generator)
@@ -11892,6 +11948,10 @@ impl RuleEnum {
                 .or_else(|| VueRequireTypedRef::schema(generator)),
             Self::VueRequireVForKey(_) => VueRequireVForKey::config_schema(generator)
                 .or_else(|| VueRequireVForKey::schema(generator)),
+            Self::VueRequireValidDefaultProp(_) => {
+                VueRequireValidDefaultProp::config_schema(generator)
+                    .or_else(|| VueRequireValidDefaultProp::schema(generator))
+            }
             Self::VueReturnInComputedProperty(_) => {
                 VueReturnInComputedProperty::config_schema(generator)
                     .or_else(|| VueReturnInComputedProperty::schema(generator))
@@ -11972,6 +12032,8 @@ impl RuleEnum {
             Self::VueValidVText(_) => {
                 VueValidVText::config_schema(generator).or_else(|| VueValidVText::schema(generator))
             }
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::config_schema(generator)
+                .or_else(|| NuxtPreferImportMeta::schema(generator)),
             Self::SvelteBlockLang(_) => SvelteBlockLang::config_schema(generator)
                 .or_else(|| SvelteBlockLang::schema(generator)),
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::config_schema(generator)
@@ -12366,6 +12428,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => "eslint",
             Self::EslintNoObjCalls(_) => "eslint",
             Self::EslintNoObjectConstructor(_) => "eslint",
+            Self::EslintNoOctal(_) => "eslint",
             Self::EslintNoParamReassign(_) => "eslint",
             Self::EslintNoPlusplus(_) => "eslint",
             Self::EslintNoPromiseExecutorReturn(_) => "eslint",
@@ -13117,12 +13180,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => "vue",
             Self::VueNoThisInBeforeRouteEnter(_) => "vue",
             Self::VueNoUseVIfWithVFor(_) => "vue",
+            Self::VueNoUseComputedPropertyLikeMethod(_) => "vue",
             Self::VueNoUselessTemplateAttributes(_) => "vue",
             Self::VueNoVForTemplateKeyOnChild(_) => "vue",
             Self::VueNoVHtml(_) => "vue",
             Self::VueNoVTextVHtmlOnComponent(_) => "vue",
             Self::VueNoWatchAfterAwait(_) => "vue",
             Self::VueOneComponentPerFile(_) => "vue",
+            Self::VueOrderInComponents(_) => "vue",
             Self::VuePreferImportFromVue(_) => "vue",
             Self::VuePropNameCasing(_) => "vue",
             Self::VueRequireComponentIs(_) => "vue",
@@ -13136,6 +13201,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => "vue",
             Self::VueRequireTypedRef(_) => "vue",
             Self::VueRequireVForKey(_) => "vue",
+            Self::VueRequireValidDefaultProp(_) => "vue",
             Self::VueReturnInComputedProperty(_) => "vue",
             Self::VueReturnInEmitsValidator(_) => "vue",
             Self::VueThisInTemplate(_) => "vue",
@@ -13166,6 +13232,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => "vue",
             Self::VueValidVSlot(_) => "vue",
             Self::VueValidVText(_) => "vue",
+            Self::NuxtPreferImportMeta(_) => "nuxt",
             Self::SvelteBlockLang(_) => "svelte",
             Self::SvelteButtonHasType(_) => "svelte",
             Self::SvelteCommentDirective(_) => "svelte",
@@ -14379,6 +14446,9 @@ impl RuleEnum {
             Self::VueNoVTextVHtmlOnComponent(_) => Ok(Self::VueNoVTextVHtmlOnComponent(
                 VueNoVTextVHtmlOnComponent::from_configuration(value)?,
             )),
+            Self::VueOrderInComponents(_) => {
+                Ok(Self::VueOrderInComponents(VueOrderInComponents::from_configuration(value)?))
+            }
             Self::VuePropNameCasing(_) => {
                 Ok(Self::VuePropNameCasing(VuePropNameCasing::from_configuration(value)?))
             }
@@ -14680,6 +14750,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.run(node, ctx),
             Self::EslintNoObjCalls(rule) => rule.run(node, ctx),
             Self::EslintNoObjectConstructor(rule) => rule.run(node, ctx),
+            Self::EslintNoOctal(rule) => rule.run(node, ctx),
             Self::EslintNoParamReassign(rule) => rule.run(node, ctx),
             Self::EslintNoPlusplus(rule) => rule.run(node, ctx),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.run(node, ctx),
@@ -15431,12 +15502,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.run(node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run(node, ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run(node, ctx),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run(node, ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run(node, ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run(node, ctx),
             Self::VueNoVHtml(rule) => rule.run(node, ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run(node, ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run(node, ctx),
             Self::VueOneComponentPerFile(rule) => rule.run(node, ctx),
+            Self::VueOrderInComponents(rule) => rule.run(node, ctx),
             Self::VuePreferImportFromVue(rule) => rule.run(node, ctx),
             Self::VuePropNameCasing(rule) => rule.run(node, ctx),
             Self::VueRequireComponentIs(rule) => rule.run(node, ctx),
@@ -15450,6 +15523,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.run(node, ctx),
             Self::VueRequireTypedRef(rule) => rule.run(node, ctx),
             Self::VueRequireVForKey(rule) => rule.run(node, ctx),
+            Self::VueRequireValidDefaultProp(rule) => rule.run(node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run(node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run(node, ctx),
             Self::VueThisInTemplate(rule) => rule.run(node, ctx),
@@ -15480,6 +15554,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run(node, ctx),
             Self::VueValidVSlot(rule) => rule.run(node, ctx),
             Self::VueValidVText(rule) => rule.run(node, ctx),
+            Self::NuxtPreferImportMeta(rule) => rule.run(node, ctx),
             Self::SvelteBlockLang(rule) => rule.run(node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run(node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run(node, ctx),
@@ -15715,6 +15790,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.run_once(ctx),
             Self::EslintNoObjCalls(rule) => rule.run_once(ctx),
             Self::EslintNoObjectConstructor(rule) => rule.run_once(ctx),
+            Self::EslintNoOctal(rule) => rule.run_once(ctx),
             Self::EslintNoParamReassign(rule) => rule.run_once(ctx),
             Self::EslintNoPlusplus(rule) => rule.run_once(ctx),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.run_once(ctx),
@@ -16466,12 +16542,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.run_once(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_once(ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_once(ctx),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_once(ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_once(ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_once(ctx),
             Self::VueNoVHtml(rule) => rule.run_once(ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_once(ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run_once(ctx),
             Self::VueOneComponentPerFile(rule) => rule.run_once(ctx),
+            Self::VueOrderInComponents(rule) => rule.run_once(ctx),
             Self::VuePreferImportFromVue(rule) => rule.run_once(ctx),
             Self::VuePropNameCasing(rule) => rule.run_once(ctx),
             Self::VueRequireComponentIs(rule) => rule.run_once(ctx),
@@ -16485,6 +16563,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.run_once(ctx),
             Self::VueRequireTypedRef(rule) => rule.run_once(ctx),
             Self::VueRequireVForKey(rule) => rule.run_once(ctx),
+            Self::VueRequireValidDefaultProp(rule) => rule.run_once(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_once(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_once(ctx),
             Self::VueThisInTemplate(rule) => rule.run_once(ctx),
@@ -16515,6 +16594,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_once(ctx),
             Self::VueValidVSlot(rule) => rule.run_once(ctx),
             Self::VueValidVText(rule) => rule.run_once(ctx),
+            Self::NuxtPreferImportMeta(rule) => rule.run_once(ctx),
             Self::SvelteBlockLang(rule) => rule.run_once(ctx),
             Self::SvelteButtonHasType(rule) => rule.run_once(ctx),
             Self::SvelteCommentDirective(rule) => rule.run_once(ctx),
@@ -16753,6 +16833,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::EslintNoObjCalls(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::EslintNoObjectConstructor(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::EslintNoOctal(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::EslintNoParamReassign(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::EslintNoPlusplus(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17620,12 +17701,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVHtml(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueOneComponentPerFile(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueOrderInComponents(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VuePreferImportFromVue(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VuePropNameCasing(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireComponentIs(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17639,6 +17722,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireTypedRef(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueRequireVForKey(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::VueRequireValidDefaultProp(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInComputedProperty(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueThisInTemplate(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17669,6 +17753,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVSlot(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::VueValidVText(rule) => rule.run_on_jest_node(jest_node, ctx),
+            Self::NuxtPreferImportMeta(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteBlockLang(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteButtonHasType(rule) => rule.run_on_jest_node(jest_node, ctx),
             Self::SvelteCommentDirective(rule) => rule.run_on_jest_node(jest_node, ctx),
@@ -17921,6 +18006,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.should_run(ctx),
             Self::EslintNoObjCalls(rule) => rule.should_run(ctx),
             Self::EslintNoObjectConstructor(rule) => rule.should_run(ctx),
+            Self::EslintNoOctal(rule) => rule.should_run(ctx),
             Self::EslintNoParamReassign(rule) => rule.should_run(ctx),
             Self::EslintNoPlusplus(rule) => rule.should_run(ctx),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.should_run(ctx),
@@ -18672,12 +18758,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.should_run(ctx),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.should_run(ctx),
             Self::VueNoUseVIfWithVFor(rule) => rule.should_run(ctx),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.should_run(ctx),
             Self::VueNoUselessTemplateAttributes(rule) => rule.should_run(ctx),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.should_run(ctx),
             Self::VueNoVHtml(rule) => rule.should_run(ctx),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.should_run(ctx),
             Self::VueNoWatchAfterAwait(rule) => rule.should_run(ctx),
             Self::VueOneComponentPerFile(rule) => rule.should_run(ctx),
+            Self::VueOrderInComponents(rule) => rule.should_run(ctx),
             Self::VuePreferImportFromVue(rule) => rule.should_run(ctx),
             Self::VuePropNameCasing(rule) => rule.should_run(ctx),
             Self::VueRequireComponentIs(rule) => rule.should_run(ctx),
@@ -18691,6 +18779,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.should_run(ctx),
             Self::VueRequireTypedRef(rule) => rule.should_run(ctx),
             Self::VueRequireVForKey(rule) => rule.should_run(ctx),
+            Self::VueRequireValidDefaultProp(rule) => rule.should_run(ctx),
             Self::VueReturnInComputedProperty(rule) => rule.should_run(ctx),
             Self::VueReturnInEmitsValidator(rule) => rule.should_run(ctx),
             Self::VueThisInTemplate(rule) => rule.should_run(ctx),
@@ -18721,6 +18810,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.should_run(ctx),
             Self::VueValidVSlot(rule) => rule.should_run(ctx),
             Self::VueValidVText(rule) => rule.should_run(ctx),
+            Self::NuxtPreferImportMeta(rule) => rule.should_run(ctx),
             Self::SvelteBlockLang(rule) => rule.should_run(ctx),
             Self::SvelteButtonHasType(rule) => rule.should_run(ctx),
             Self::SvelteCommentDirective(rule) => rule.should_run(ctx),
@@ -18959,6 +19049,7 @@ impl RuleEnum {
             }
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::IS_TSGOLINT_RULE,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::IS_TSGOLINT_RULE,
+            Self::EslintNoOctal(_) => EslintNoOctal::IS_TSGOLINT_RULE,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::IS_TSGOLINT_RULE,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::IS_TSGOLINT_RULE,
             Self::EslintNoPromiseExecutorReturn(_) => {
@@ -20098,6 +20189,9 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::IS_TSGOLINT_RULE,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::IS_TSGOLINT_RULE,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::IS_TSGOLINT_RULE,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::IS_TSGOLINT_RULE
+            }
             Self::VueNoUselessTemplateAttributes(_) => {
                 VueNoUselessTemplateAttributes::IS_TSGOLINT_RULE
             }
@@ -20106,6 +20200,7 @@ impl RuleEnum {
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::IS_TSGOLINT_RULE,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::IS_TSGOLINT_RULE,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::IS_TSGOLINT_RULE,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::IS_TSGOLINT_RULE,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::IS_TSGOLINT_RULE,
             Self::VuePropNameCasing(_) => VuePropNameCasing::IS_TSGOLINT_RULE,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::IS_TSGOLINT_RULE,
@@ -20123,6 +20218,7 @@ impl RuleEnum {
             }
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::IS_TSGOLINT_RULE,
             Self::VueRequireVForKey(_) => VueRequireVForKey::IS_TSGOLINT_RULE,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::IS_TSGOLINT_RULE,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::IS_TSGOLINT_RULE,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::IS_TSGOLINT_RULE,
             Self::VueThisInTemplate(_) => VueThisInTemplate::IS_TSGOLINT_RULE,
@@ -20153,6 +20249,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::IS_TSGOLINT_RULE,
             Self::VueValidVSlot(_) => VueValidVSlot::IS_TSGOLINT_RULE,
             Self::VueValidVText(_) => VueValidVText::IS_TSGOLINT_RULE,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::IS_TSGOLINT_RULE,
             Self::SvelteBlockLang(_) => SvelteBlockLang::IS_TSGOLINT_RULE,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::IS_TSGOLINT_RULE,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::IS_TSGOLINT_RULE,
@@ -20435,6 +20532,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => EslintNoNonoctalDecimalEscape::VERSION,
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::VERSION,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::VERSION,
+            Self::EslintNoOctal(_) => EslintNoOctal::VERSION,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::VERSION,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::VERSION,
             Self::EslintNoPromiseExecutorReturn(_) => EslintNoPromiseExecutorReturn::VERSION,
@@ -21368,12 +21466,16 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::VERSION,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::VERSION,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::VERSION,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::VERSION
+            }
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::VERSION,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::VERSION,
             Self::VueNoVHtml(_) => VueNoVHtml::VERSION,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::VERSION,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::VERSION,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::VERSION,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::VERSION,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::VERSION,
             Self::VuePropNameCasing(_) => VuePropNameCasing::VERSION,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::VERSION,
@@ -21387,6 +21489,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => VueRequireToggleInsideTransition::VERSION,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::VERSION,
             Self::VueRequireVForKey(_) => VueRequireVForKey::VERSION,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::VERSION,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::VERSION,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::VERSION,
             Self::VueThisInTemplate(_) => VueThisInTemplate::VERSION,
@@ -21417,6 +21520,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::VERSION,
             Self::VueValidVSlot(_) => VueValidVSlot::VERSION,
             Self::VueValidVText(_) => VueValidVText::VERSION,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::VERSION,
             Self::SvelteBlockLang(_) => SvelteBlockLang::VERSION,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::VERSION,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::VERSION,
@@ -21676,6 +21780,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => EslintNoNonoctalDecimalEscape::HAS_CONFIG,
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::HAS_CONFIG,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::HAS_CONFIG,
+            Self::EslintNoOctal(_) => EslintNoOctal::HAS_CONFIG,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::HAS_CONFIG,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::HAS_CONFIG,
             Self::EslintNoPromiseExecutorReturn(_) => EslintNoPromiseExecutorReturn::HAS_CONFIG,
@@ -22647,12 +22752,16 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::HAS_CONFIG,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::HAS_CONFIG,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::HAS_CONFIG,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => {
+                VueNoUseComputedPropertyLikeMethod::HAS_CONFIG
+            }
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::HAS_CONFIG,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::HAS_CONFIG,
             Self::VueNoVHtml(_) => VueNoVHtml::HAS_CONFIG,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::HAS_CONFIG,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::HAS_CONFIG,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::HAS_CONFIG,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::HAS_CONFIG,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::HAS_CONFIG,
             Self::VuePropNameCasing(_) => VuePropNameCasing::HAS_CONFIG,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::HAS_CONFIG,
@@ -22668,6 +22777,7 @@ impl RuleEnum {
             }
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::HAS_CONFIG,
             Self::VueRequireVForKey(_) => VueRequireVForKey::HAS_CONFIG,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::HAS_CONFIG,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::HAS_CONFIG,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::HAS_CONFIG,
             Self::VueThisInTemplate(_) => VueThisInTemplate::HAS_CONFIG,
@@ -22698,6 +22808,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::HAS_CONFIG,
             Self::VueValidVSlot(_) => VueValidVSlot::HAS_CONFIG,
             Self::VueValidVText(_) => VueValidVText::HAS_CONFIG,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::HAS_CONFIG,
             Self::SvelteBlockLang(_) => SvelteBlockLang::HAS_CONFIG,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::HAS_CONFIG,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::HAS_CONFIG,
@@ -22956,6 +23067,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(_) => EslintNoNonoctalDecimalEscape::INFO,
             Self::EslintNoObjCalls(_) => EslintNoObjCalls::INFO,
             Self::EslintNoObjectConstructor(_) => EslintNoObjectConstructor::INFO,
+            Self::EslintNoOctal(_) => EslintNoOctal::INFO,
             Self::EslintNoParamReassign(_) => EslintNoParamReassign::INFO,
             Self::EslintNoPlusplus(_) => EslintNoPlusplus::INFO,
             Self::EslintNoPromiseExecutorReturn(_) => EslintNoPromiseExecutorReturn::INFO,
@@ -23823,12 +23935,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(_) => VueNoTextareaMustache::INFO,
             Self::VueNoThisInBeforeRouteEnter(_) => VueNoThisInBeforeRouteEnter::INFO,
             Self::VueNoUseVIfWithVFor(_) => VueNoUseVIfWithVFor::INFO,
+            Self::VueNoUseComputedPropertyLikeMethod(_) => VueNoUseComputedPropertyLikeMethod::INFO,
             Self::VueNoUselessTemplateAttributes(_) => VueNoUselessTemplateAttributes::INFO,
             Self::VueNoVForTemplateKeyOnChild(_) => VueNoVForTemplateKeyOnChild::INFO,
             Self::VueNoVHtml(_) => VueNoVHtml::INFO,
             Self::VueNoVTextVHtmlOnComponent(_) => VueNoVTextVHtmlOnComponent::INFO,
             Self::VueNoWatchAfterAwait(_) => VueNoWatchAfterAwait::INFO,
             Self::VueOneComponentPerFile(_) => VueOneComponentPerFile::INFO,
+            Self::VueOrderInComponents(_) => VueOrderInComponents::INFO,
             Self::VuePreferImportFromVue(_) => VuePreferImportFromVue::INFO,
             Self::VuePropNameCasing(_) => VuePropNameCasing::INFO,
             Self::VueRequireComponentIs(_) => VueRequireComponentIs::INFO,
@@ -23842,6 +23956,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(_) => VueRequireToggleInsideTransition::INFO,
             Self::VueRequireTypedRef(_) => VueRequireTypedRef::INFO,
             Self::VueRequireVForKey(_) => VueRequireVForKey::INFO,
+            Self::VueRequireValidDefaultProp(_) => VueRequireValidDefaultProp::INFO,
             Self::VueReturnInComputedProperty(_) => VueReturnInComputedProperty::INFO,
             Self::VueReturnInEmitsValidator(_) => VueReturnInEmitsValidator::INFO,
             Self::VueThisInTemplate(_) => VueThisInTemplate::INFO,
@@ -23872,6 +23987,7 @@ impl RuleEnum {
             Self::VueValidVShow(_) => VueValidVShow::INFO,
             Self::VueValidVSlot(_) => VueValidVSlot::INFO,
             Self::VueValidVText(_) => VueValidVText::INFO,
+            Self::NuxtPreferImportMeta(_) => NuxtPreferImportMeta::INFO,
             Self::SvelteBlockLang(_) => SvelteBlockLang::INFO,
             Self::SvelteButtonHasType(_) => SvelteButtonHasType::INFO,
             Self::SvelteCommentDirective(_) => SvelteCommentDirective::INFO,
@@ -24115,6 +24231,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.types_info(),
             Self::EslintNoObjCalls(rule) => rule.types_info(),
             Self::EslintNoObjectConstructor(rule) => rule.types_info(),
+            Self::EslintNoOctal(rule) => rule.types_info(),
             Self::EslintNoParamReassign(rule) => rule.types_info(),
             Self::EslintNoPlusplus(rule) => rule.types_info(),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.types_info(),
@@ -24866,12 +24983,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.types_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.types_info(),
             Self::VueNoUseVIfWithVFor(rule) => rule.types_info(),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.types_info(),
             Self::VueNoUselessTemplateAttributes(rule) => rule.types_info(),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.types_info(),
             Self::VueNoVHtml(rule) => rule.types_info(),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.types_info(),
             Self::VueNoWatchAfterAwait(rule) => rule.types_info(),
             Self::VueOneComponentPerFile(rule) => rule.types_info(),
+            Self::VueOrderInComponents(rule) => rule.types_info(),
             Self::VuePreferImportFromVue(rule) => rule.types_info(),
             Self::VuePropNameCasing(rule) => rule.types_info(),
             Self::VueRequireComponentIs(rule) => rule.types_info(),
@@ -24885,6 +25004,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.types_info(),
             Self::VueRequireTypedRef(rule) => rule.types_info(),
             Self::VueRequireVForKey(rule) => rule.types_info(),
+            Self::VueRequireValidDefaultProp(rule) => rule.types_info(),
             Self::VueReturnInComputedProperty(rule) => rule.types_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.types_info(),
             Self::VueThisInTemplate(rule) => rule.types_info(),
@@ -24915,6 +25035,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.types_info(),
             Self::VueValidVSlot(rule) => rule.types_info(),
             Self::VueValidVText(rule) => rule.types_info(),
+            Self::NuxtPreferImportMeta(rule) => rule.types_info(),
             Self::SvelteBlockLang(rule) => rule.types_info(),
             Self::SvelteButtonHasType(rule) => rule.types_info(),
             Self::SvelteCommentDirective(rule) => rule.types_info(),
@@ -25137,6 +25258,7 @@ impl RuleEnum {
             Self::EslintNoNonoctalDecimalEscape(rule) => rule.run_info(),
             Self::EslintNoObjCalls(rule) => rule.run_info(),
             Self::EslintNoObjectConstructor(rule) => rule.run_info(),
+            Self::EslintNoOctal(rule) => rule.run_info(),
             Self::EslintNoParamReassign(rule) => rule.run_info(),
             Self::EslintNoPlusplus(rule) => rule.run_info(),
             Self::EslintNoPromiseExecutorReturn(rule) => rule.run_info(),
@@ -25888,12 +26010,14 @@ impl RuleEnum {
             Self::VueNoTextareaMustache(rule) => rule.run_info(),
             Self::VueNoThisInBeforeRouteEnter(rule) => rule.run_info(),
             Self::VueNoUseVIfWithVFor(rule) => rule.run_info(),
+            Self::VueNoUseComputedPropertyLikeMethod(rule) => rule.run_info(),
             Self::VueNoUselessTemplateAttributes(rule) => rule.run_info(),
             Self::VueNoVForTemplateKeyOnChild(rule) => rule.run_info(),
             Self::VueNoVHtml(rule) => rule.run_info(),
             Self::VueNoVTextVHtmlOnComponent(rule) => rule.run_info(),
             Self::VueNoWatchAfterAwait(rule) => rule.run_info(),
             Self::VueOneComponentPerFile(rule) => rule.run_info(),
+            Self::VueOrderInComponents(rule) => rule.run_info(),
             Self::VuePreferImportFromVue(rule) => rule.run_info(),
             Self::VuePropNameCasing(rule) => rule.run_info(),
             Self::VueRequireComponentIs(rule) => rule.run_info(),
@@ -25907,6 +26031,7 @@ impl RuleEnum {
             Self::VueRequireToggleInsideTransition(rule) => rule.run_info(),
             Self::VueRequireTypedRef(rule) => rule.run_info(),
             Self::VueRequireVForKey(rule) => rule.run_info(),
+            Self::VueRequireValidDefaultProp(rule) => rule.run_info(),
             Self::VueReturnInComputedProperty(rule) => rule.run_info(),
             Self::VueReturnInEmitsValidator(rule) => rule.run_info(),
             Self::VueThisInTemplate(rule) => rule.run_info(),
@@ -25937,6 +26062,7 @@ impl RuleEnum {
             Self::VueValidVShow(rule) => rule.run_info(),
             Self::VueValidVSlot(rule) => rule.run_info(),
             Self::VueValidVText(rule) => rule.run_info(),
+            Self::NuxtPreferImportMeta(rule) => rule.run_info(),
             Self::SvelteBlockLang(rule) => rule.run_info(),
             Self::SvelteButtonHasType(rule) => rule.run_info(),
             Self::SvelteCommentDirective(rule) => rule.run_info(),
@@ -26181,6 +26307,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::EslintNoNonoctalDecimalEscape(EslintNoNonoctalDecimalEscape::default()),
         RuleEnum::EslintNoObjCalls(EslintNoObjCalls::default()),
         RuleEnum::EslintNoObjectConstructor(EslintNoObjectConstructor::default()),
+        RuleEnum::EslintNoOctal(EslintNoOctal::default()),
         RuleEnum::EslintNoParamReassign(EslintNoParamReassign::default()),
         RuleEnum::EslintNoPlusplus(EslintNoPlusplus::default()),
         RuleEnum::EslintNoPromiseExecutorReturn(EslintNoPromiseExecutorReturn::default()),
@@ -27048,12 +27175,14 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueNoTextareaMustache(VueNoTextareaMustache::default()),
         RuleEnum::VueNoThisInBeforeRouteEnter(VueNoThisInBeforeRouteEnter::default()),
         RuleEnum::VueNoUseVIfWithVFor(VueNoUseVIfWithVFor::default()),
+        RuleEnum::VueNoUseComputedPropertyLikeMethod(VueNoUseComputedPropertyLikeMethod::default()),
         RuleEnum::VueNoUselessTemplateAttributes(VueNoUselessTemplateAttributes::default()),
         RuleEnum::VueNoVForTemplateKeyOnChild(VueNoVForTemplateKeyOnChild::default()),
         RuleEnum::VueNoVHtml(VueNoVHtml::default()),
         RuleEnum::VueNoVTextVHtmlOnComponent(VueNoVTextVHtmlOnComponent::default()),
         RuleEnum::VueNoWatchAfterAwait(VueNoWatchAfterAwait::default()),
         RuleEnum::VueOneComponentPerFile(VueOneComponentPerFile::default()),
+        RuleEnum::VueOrderInComponents(VueOrderInComponents::default()),
         RuleEnum::VuePreferImportFromVue(VuePreferImportFromVue::default()),
         RuleEnum::VuePropNameCasing(VuePropNameCasing::default()),
         RuleEnum::VueRequireComponentIs(VueRequireComponentIs::default()),
@@ -27067,6 +27196,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueRequireToggleInsideTransition(VueRequireToggleInsideTransition::default()),
         RuleEnum::VueRequireTypedRef(VueRequireTypedRef::default()),
         RuleEnum::VueRequireVForKey(VueRequireVForKey::default()),
+        RuleEnum::VueRequireValidDefaultProp(VueRequireValidDefaultProp::default()),
         RuleEnum::VueReturnInComputedProperty(VueReturnInComputedProperty::default()),
         RuleEnum::VueReturnInEmitsValidator(VueReturnInEmitsValidator::default()),
         RuleEnum::VueThisInTemplate(VueThisInTemplate::default()),
@@ -27097,6 +27227,7 @@ pub static RULES: std::sync::LazyLock<Vec<RuleEnum>> = std::sync::LazyLock::new(
         RuleEnum::VueValidVShow(VueValidVShow::default()),
         RuleEnum::VueValidVSlot(VueValidVSlot::default()),
         RuleEnum::VueValidVText(VueValidVText::default()),
+        RuleEnum::NuxtPreferImportMeta(NuxtPreferImportMeta::default()),
         RuleEnum::SvelteBlockLang(SvelteBlockLang::default()),
         RuleEnum::SvelteButtonHasType(SvelteButtonHasType::default()),
         RuleEnum::SvelteCommentDirective(SvelteCommentDirective::default()),

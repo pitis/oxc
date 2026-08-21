@@ -1,0 +1,53 @@
+---
+source: crates/oxc_linter/src/tester.rs
+---
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a string.
+   ╭─[require_valid_default_prop.tsx:1:63]
+ 1 │ <script>export default { props: { a: { type: String, default: 1 } } }</script>
+   ·                                                               ─
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a function.
+   ╭─[require_valid_default_prop.tsx:1:63]
+ 1 │ <script>export default { props: { a: { type: Object, default: {} } } }</script>
+   ·                                                               ──
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a function.
+   ╭─[require_valid_default_prop.tsx:1:62]
+ 1 │ <script>export default { props: { a: { type: Array, default: [] } } }</script>
+   ·                                                              ──
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a string.
+   ╭─[require_valid_default_prop.tsx:1:69]
+ 1 │ <script>export default { props: { a: { type: String, default: () => 1 } } }</script>
+   ·                                                                     ─
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a number.
+   ╭─[require_valid_default_prop.tsx:1:73]
+ 1 │ <script>export default { props: { a: { type: Number, default() { return 'x' } } } }</script>
+   ·                                                                         ───
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'borderWidth' prop must be a string.
+   ╭─[require_valid_default_prop.tsx:2:65]
+ 1 │ <script setup lang="ts">interface Props { borderWidth?: string }
+ 2 │ const props = withDefaults(defineProps<Props>(), { borderWidth: 1 })</script>
+   ·                                                                 ─
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.
+
+  ⚠ vue(require-valid-default-prop): Type of the default value for 'a' prop must be a string or number.
+   ╭─[require_valid_default_prop.tsx:1:73]
+ 1 │ <script>export default { props: { a: { type: [String, Number], default: false } } }</script>
+   ·                                                                         ─────
+   ╰────
+  help: Make the default match the declared type; `Object` and `Array` defaults need a factory function.

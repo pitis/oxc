@@ -123,6 +123,8 @@ bitflags! {
         const VUE = 1 << 13;
         /// `eslint-plugin-svelte`
         const SVELTE = 1 << 14;
+        /// `@nuxt/eslint-plugin`
+        const NUXT = 1 << 15;
     }
 }
 
@@ -189,6 +191,7 @@ impl TryFrom<&str> for LintPlugins {
             "node" => Ok(LintPlugins::NODE),
             "vue" => Ok(LintPlugins::VUE),
             "svelte" => Ok(LintPlugins::SVELTE),
+            "nuxt" => Ok(LintPlugins::NUXT),
             // "eslint" is not really a plugin, so it's 'empty'. This has the added benefit of
             // making it the default value.
             "eslint" => Ok(LintPlugins::ESLINT),
@@ -215,6 +218,7 @@ impl From<LintPlugins> for &'static str {
             LintPlugins::NODE => "node",
             LintPlugins::VUE => "vue",
             LintPlugins::SVELTE => "svelte",
+            LintPlugins::NUXT => "nuxt",
             _ => "",
         }
     }

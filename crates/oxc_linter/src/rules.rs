@@ -144,6 +144,7 @@ pub(crate) mod eslint {
     pub mod no_nonoctal_decimal_escape;
     pub mod no_obj_calls;
     pub mod no_object_constructor;
+    pub mod no_octal;
     pub mod no_param_reassign;
     pub mod no_plusplus;
     pub mod no_promise_executor_return;
@@ -975,6 +976,7 @@ pub(crate) mod vue {
     pub mod no_template_shadow;
     pub mod no_textarea_mustache;
     pub mod no_this_in_before_route_enter;
+    pub mod no_use_computed_property_like_method;
     pub mod no_use_v_if_with_v_for;
     pub mod no_useless_template_attributes;
     pub mod no_v_for_template_key_on_child;
@@ -982,6 +984,7 @@ pub(crate) mod vue {
     pub mod no_v_text_v_html_on_component;
     pub mod no_watch_after_await;
     pub mod one_component_per_file;
+    pub mod order_in_components;
     pub mod prefer_import_from_vue;
     pub mod prop_name_casing;
     pub mod require_component_is;
@@ -995,6 +998,7 @@ pub(crate) mod vue {
     pub mod require_toggle_inside_transition;
     pub mod require_typed_ref;
     pub mod require_v_for_key;
+    pub mod require_valid_default_prop;
     pub mod return_in_computed_property;
     pub mod return_in_emits_validator;
     pub mod this_in_template;
@@ -1025,6 +1029,11 @@ pub(crate) mod vue {
     pub mod valid_v_show;
     pub mod valid_v_slot;
     pub mod valid_v_text;
+}
+
+/// <https://eslint.nuxt.com/packages/plugin>
+pub(crate) mod nuxt {
+    pub mod prefer_import_meta;
 }
 
 /// <https://github.com/sveltejs/eslint-plugin-svelte>
