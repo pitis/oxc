@@ -1,7 +1,7 @@
 use oxc_allocator::{Allocator, ArenaVec};
 use oxc_ast::ast::*;
 use oxc_formatter_core::{
-    FormatElement, IndentWidth, dispatch_fragment_ir,
+    FormatElement, dispatch_fragment_ir,
     format_element::{LineMode, TextWidth},
 };
 
@@ -79,11 +79,10 @@ pub(super) fn format_graphql_doc<'a>(
     // so template-literal characters (`` ` ``, `${`, `\`) are re-escaped here
     // for both dispatcher returned IRs and manually built comment-only IRs.
     let allocator = f.allocator();
-    let indent_width = f.options().indent_width;
     let mut ir_parts: Vec<Option<ArenaVec<'a, FormatElement<'a>>>> = Vec::with_capacity(num_quasis);
     for info in &infos {
         let ir = if info.comments_only {
-            build_graphql_comment_ir(info.text, allocator, indent_width)
+            build_graphql_comment_ir(info.text, allocator)
         } else {
             let Some(ir) = dispatch_fragment_ir(f, "graphql", info.text, None) else {
                 return false;
@@ -171,7 +170,6 @@ struct QuasiInfo<'a> {
 fn build_graphql_comment_ir<'a>(
     text: &str,
     allocator: &'a Allocator,
-    indent_width: IndentWidth,
 ) -> Option<ArenaVec<'a, FormatElement<'a>>> {
     // This comes from `.cooked`, which has normalized line terminators
     let lines: Vec<&str> = text.split('\n').map(str::trim).collect();
@@ -188,7 +186,7 @@ fn build_graphql_comment_ir<'a>(
             parts.push(FormatElement::Line(LineMode::Empty));
             parts.push(FormatElement::ExpandParent);
             let arena_text = allocator.alloc_str(line);
-            let width = TextWidth::from_text(arena_text, indent_width);
+            let width = TextWidth::from_text(arena_text);
             parts.push(FormatElement::Text { text: arena_text, width });
         } else {
             if seen_comment {
@@ -196,7 +194,7 @@ fn build_graphql_comment_ir<'a>(
                 parts.push(FormatElement::ExpandParent);
             }
             let arena_text = allocator.alloc_str(line);
-            let width = TextWidth::from_text(arena_text, indent_width);
+            let width = TextWidth::from_text(arena_text);
             parts.push(FormatElement::Text { text: arena_text, width });
         }
 

@@ -10,7 +10,7 @@
 | :--- | :--- |
 | [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma removed in ts-in-vue as like plain `.ts`, intentional divergence: Prettier keeps in ts-in-xxx, but not in ts-in-md and also plain `.ts`. It is only required for `.tsx` and `.mts|cts` |
 
-### Option 2: 426/428 (99.53%)
+### Option 2: 427/428 (99.77%)
 
 ```json
 {"printWidth":100,"vueIndentScriptAndStyle":true,"singleQuote":true}
@@ -19,7 +19,6 @@
 | File | Note |
 | :--- | :--- |
 | [externals/vue-vben-admin/effects/common-ui/src/components/api-component/api-component.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__common-ui__src__components__api-component__api-component.vue.md) | `<T = any,>() => {}` comma removed in ts-in-vue as like plain `.ts`, intentional divergence: Prettier keeps in ts-in-xxx, but not in ts-in-md and also plain `.ts`. It is only required for `.tsx` and `.mts|cts` |
-| [externals/vue-vben-admin/effects/layouts/src/authentication/icons/slogan.vue](diffs/js-in-vue/externals__vue-vben-admin__effects__layouts__src__authentication__icons__slogan.vue.md) |  |
 
 ## gql-in-js
 

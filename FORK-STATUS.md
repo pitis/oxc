@@ -301,17 +301,23 @@ Neither substitutes for the other, and the conformance suite is the one that gat
 Run `pnpm --filter oxfmt-app download-fixtures` first — a conformance run without the externals
 silently measures a fraction of the suite.
 
-**Two remain, and neither is this printer's.** They are worth naming, because "not ours" is a
-claim that has to be checkable:
+**One remains, and it is not this printer's.** `api-component.vue` fails on the Prettier path too
+— it _is_ the 1 in 427/428: `oxc_formatter` drops the disambiguating comma in `<T = any,>`,
+reproducible in a plain `.ts` file. At both option sets the native printer is now **level with the
+Prettier path**, failing that fixture and no others.
 
-| Fixture             | Cause                                                                                                                                                                                                                                                                   |
-| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api-component.vue` | Fails on the Prettier path too — it _is_ the 1 in 427/428. `oxc_formatter` drops the disambiguating comma in `<T = any,>`, reproducible in a plain `.ts` file.                                                                                                          |
-| `slogan.vue`        | `oxc_formatter_core` measures a tab as `indentWidth` columns; Prettier's `string-width` treats it, like any control character, as zero. Upstream's deliberate choice, with a test asserting it (`from_text_uses_indent_width_for_tabs`). Only ever breaks a line early. |
+Two used to keep it company, and both were in shared code rather than here.
 
-At `printWidth` 80 that is **level with the Prettier path**, which fails the same one fixture and
-no others; `slogan.vue` costs the second option set its extra point, since whether a tab pushes a
-line over the margin depends on the margin.
+`slogan.vue` was `oxc_formatter_core` expanding a tab to `indentWidth` columns when measuring
+text. Prettier measures through `string-width`, which strips control characters, so a tab there
+counts as nothing — confirmed by binary-searching the width at which Prettier breaks a string
+with 0, 1, 2 and 5 tabs in it, which is the same width every time. What the two disagreed about
+was never indentation: the printer emits that itself as `Indent`, and `from_text` only ever sees
+_content_ — a tab inside a string literal, a comment, an attribute value. Correcting it moved
+nothing anywhere else in the suite, which is the tell that the expansion was wrong rather than
+load-bearing: JS, TS, CSS, SCSS, Less, YAML, GraphQL, Markdown and Svelte are all unchanged to the
+fixture. `TextWidth::from_text` lost its `indent_width` parameter with it, and so did the six
+call sites that had been threading one through for it.
 
 `preferences-drawer.vue` used to be a third. `oxc-css-parser` parses a pseudo-class argument as a
 selector only for `not`/`is`/`where`/`matches`/`has`/`global` and hands back opaque tokens for

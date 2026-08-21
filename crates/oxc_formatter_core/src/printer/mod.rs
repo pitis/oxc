@@ -371,7 +371,7 @@ impl<'a> Printer<'a> {
                     self.state.sorted_tailwind_classes.len(),
                 );
                 if let Some(text) = text {
-                    let width = TextWidth::from_text(text, self.options.indent_width);
+                    let width = TextWidth::from_text(text);
                     self.print_text(Text::Text { text, width });
                 }
             }
@@ -1408,7 +1408,7 @@ impl<'a, 'print> FitsMeasurer<'a, 'print> {
             }
             FormatElement::TailwindClass(index) => {
                 if let Some(text) = self.state.sorted_tailwind_classes.get(*index) {
-                    let width = TextWidth::from_text(text, self.options().indent_width);
+                    let width = TextWidth::from_text(text);
                     return Ok(self.fits_text(Text::Text { text, width }));
                 }
             }

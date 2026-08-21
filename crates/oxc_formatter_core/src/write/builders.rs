@@ -8,8 +8,8 @@ use std::num::NonZeroU8;
 use oxc_allocator::ArenaVec;
 
 use crate::{
-    Argument, Arguments, Buffer, Format, FormatContext, FormatElement, FormatOptions, FormatState,
-    Formatter, GroupId, HeapVecBuffer,
+    Argument, Arguments, Buffer, Format, FormatContext, FormatElement, FormatState, Formatter,
+    GroupId, HeapVecBuffer,
     format_element::{
         self, LineMode, PrintMode, TextWidth,
         tag::{self, Condition, DedentMode, GroupMode, LabelId, Tag},
@@ -304,9 +304,7 @@ where
     C: FormatContext,
 {
     fn fmt(&self, f: &mut Formatter<'_, 'a, C>) {
-        let width = self
-            .width
-            .unwrap_or_else(|| TextWidth::from_text(self.text, f.options().indent_width()));
+        let width = self.width.unwrap_or_else(|| TextWidth::from_text(self.text));
         let width = if self.expand_parent { width } else { width.without_expand_parent() };
         f.write_element(FormatElement::Text { text: self.text, width });
     }

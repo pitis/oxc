@@ -19,8 +19,7 @@ use oxc_allocator::Allocator;
 
 use crate::{
     Argument, Arguments, Buffer, BufferExtensions, Document, Format, FormatContext, FormatElement,
-    FormatOptions, FormatState, Formatter, PrintMode, Printer, PrinterOptions, SimpleFormatContext,
-    VecBuffer,
+    FormatState, Formatter, PrintMode, Printer, PrinterOptions, SimpleFormatContext, VecBuffer,
     builders::{hard_line_break, soft_line_break_or_space, space, text, token},
     format_element::{
         LineMode, TextWidth,
@@ -135,10 +134,7 @@ where
                                     let text = text.cow_replace('"', "\\\"");
                                     FormatElement::Text {
                                         text: f.allocator().alloc_str(&text),
-                                        width: TextWidth::from_text(
-                                            &text,
-                                            f.options().indent_width(),
-                                        ),
+                                        width: TextWidth::from_text(&text),
                                     }
                                 }
                                 _ => unreachable!(),

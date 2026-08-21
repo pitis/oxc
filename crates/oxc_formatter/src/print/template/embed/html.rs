@@ -1,7 +1,7 @@
 use oxc_allocator::{ArenaStringBuilder, ArenaVec};
 use oxc_ast::ast::*;
 use oxc_formatter_core::{
-    DispatchRequest, DispatchResponse, FormatElement, IndentWidth, InputKind,
+    DispatchRequest, DispatchResponse, FormatElement, InputKind,
     format_element::{LineMode, TextWidth},
 };
 
@@ -161,7 +161,6 @@ pub(super) fn format_html_doc<'a>(
     // (the IR is reinserted into a JS template literal built from `.cooked` values)
     // and substituting placeholders inside every `BestFitting` variant.
     // Escaping cannot alter placeholders: the sentinel is ASCII word characters only.
-    let indent_width = f.options().indent_width;
     let ir = super::map_text_in_ir(&ir, f, &mut |text, out| {
         let escaped = super::escape_template_chars(text, allocator);
         let text = escaped.unwrap_or(text);
@@ -170,7 +169,7 @@ pub(super) fn format_html_doc<'a>(
             if parts.len() > 1 {
                 for (index, part) in parts.iter().enumerate() {
                     if index.is_multiple_of(2) {
-                        push_text_with_line_breaks(out, part, indent_width);
+                        push_text_with_line_breaks(out, part);
                     } else {
                         let expression = part
                             .parse::<usize>()
@@ -187,7 +186,7 @@ pub(super) fn format_html_doc<'a>(
         }
         // No placeholder to substitute; push the escaped text if escaping changed it
         let Some(text) = escaped else { return false };
-        out.push(FormatElement::Text { text, width: TextWidth::from_text(text, indent_width) });
+        out.push(FormatElement::Text { text, width: TextWidth::from_text(text) });
         true
     });
     let format_content = format_once(move |f: &mut JsFormatter<'_, 'a>| f.write_elements(ir));
@@ -311,11 +310,7 @@ fn placeholders_are_sequential(ir: &[FormatElement<'_>], next: &mut usize) -> bo
 /// Uses [`LineMode::Literal`] instead of a hard line break to avoid adding indentation:
 /// the returned HTML Doc already carries its indentation in the text content,
 /// so the surrounding `block_indent` must not add more.
-fn push_text_with_line_breaks<'a>(
-    out: &mut ArenaVec<'a, FormatElement<'a>>,
-    text: &'a str,
-    indent_width: IndentWidth,
-) {
+fn push_text_with_line_breaks<'a>(out: &mut ArenaVec<'a, FormatElement<'a>>, text: &'a str) {
     let mut first = true;
     // Splitting on `\n` is safe because `Doc` only contains normalized linebreaks
     for line in text.split('\n') {
@@ -324,10 +319,7 @@ fn push_text_with_line_breaks<'a>(
         }
         first = false;
         if !line.is_empty() {
-            out.push(FormatElement::Text {
-                text: line,
-                width: TextWidth::from_text(line, indent_width),
-            });
+            out.push(FormatElement::Text { text: line, width: TextWidth::from_text(line) });
         }
     }
 }
@@ -342,7 +334,7 @@ mod tests {
     use super::placeholders_are_sequential;
 
     fn text(text: &'static str) -> FormatElement<'static> {
-        FormatElement::Text { text, width: TextWidth::from_text(text, IndentWidth::default()) }
+        FormatElement::Text { text, width: TextWidth::from_text(text) }
     }
 
     fn best_fitting<'a>(

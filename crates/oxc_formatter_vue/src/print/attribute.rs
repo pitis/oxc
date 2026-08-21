@@ -286,8 +286,7 @@ fn dispatch<'a>(
     // string, a template, a regex, a comment — would end the attribute early
     // and the markup would no longer parse. Only the attribute path escapes;
     // an interpolation has no delimiter to protect.
-    let indent_width = f.options().indent_width;
-    escape_double_quotes(&mut fragment.ir, f.allocator(), indent_width);
+    escape_double_quotes(&mut fragment.ir, f.allocator());
     Some(Value { ir: fragment.ir, hugs: fragment.hugs })
 }
 

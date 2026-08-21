@@ -15,8 +15,6 @@ use unicode_width::UnicodeWidthStr;
 
 use oxc_allocator::{Allocator, ArenaVec};
 
-use crate::IndentWidth;
-
 use self::tag::{LabelId, Tag, TagKind};
 
 // `FormatElement` must have the same layout in debug and release builds.
@@ -476,7 +474,7 @@ impl TextWidth {
     /// Counting by `char` can lead to incorrect widths for complex Unicode sequences.
     /// e.g. "🗑️" (U+1F5D1 U+FE0F) is a single emoji with width 2, but counting chars gives width 1.
     #[expect(clippy::cast_possible_truncation)]
-    pub fn from_text(text: &str, indent_width: IndentWidth) -> TextWidth {
+    pub fn from_text(text: &str) -> TextWidth {
         // Fast path for empty text
         if text.is_empty() {
             return Self::single(0);
@@ -488,14 +486,20 @@ impl TextWidth {
             return Self::single(text.len() as u32);
         }
 
+        // A tab contributes nothing. This measures the width of *content* — a
+        // tab inside a string literal, a comment, an attribute value — and
+        // structural indentation is the printer's own, emitted as `Indent`
+        // rather than as text. Prettier measures the same thing through
+        // `string-width`, which strips control characters, so a tab never
+        // pushes a line over the margin there; `unicode-width` would give it
+        // 1, hence the explicit arm.
         let mut width = 0u32;
         let mut segment_start = 0;
         for (i, c) in text.char_indices() {
             match c {
                 '\t' => {
                     width += text[segment_start..i].width() as u32;
-                    width += u32::from(indent_width.value());
-                    segment_start = i + 1; // Skip the tab character
+                    segment_start = i + 1;
                 }
                 '\n' => {
                     width += text[segment_start..i].width() as u32;
@@ -569,35 +573,28 @@ impl TextWidth {
 pub fn escape_double_quotes<'a>(
     elements: &mut ArenaVec<'a, FormatElement<'a>>,
     allocator: &'a Allocator,
-    indent_width: IndentWidth,
 ) {
     for element in elements.iter_mut() {
-        escape_double_quotes_in(element, allocator, indent_width);
+        escape_double_quotes_in(element, allocator);
     }
 }
 
-fn escape_double_quotes_in<'a>(
-    element: &mut FormatElement<'a>,
-    allocator: &'a Allocator,
-    indent_width: IndentWidth,
-) {
+fn escape_double_quotes_in<'a>(element: &mut FormatElement<'a>, allocator: &'a Allocator) {
     match element {
         FormatElement::Token { text } => {
             if text.contains('"') {
                 // A `Token` is `&'static str`, so the escaped form cannot be
                 // one; it becomes the `Text` that can hold an arena string.
                 let escaped: &'a str = allocator.alloc_str(&text.cow_replace('"', "&quot;"));
-                *element = FormatElement::Text {
-                    text: escaped,
-                    width: TextWidth::from_text(escaped, indent_width),
-                };
+                *element =
+                    FormatElement::Text { text: escaped, width: TextWidth::from_text(escaped) };
             }
         }
         FormatElement::Text { text, width } => {
             if text.contains('"') {
                 let escaped: &'a str = allocator.alloc_str(&text.cow_replace('"', "&quot;"));
                 *text = escaped;
-                *width = TextWidth::from_text(escaped, indent_width);
+                *width = TextWidth::from_text(escaped);
             }
         }
         FormatElement::Interned(interned) => {
@@ -606,7 +603,7 @@ fn escape_double_quotes_in<'a>(
             }
             let mut rebuilt = ArenaVec::from_iter_in(interned.iter().cloned(), &allocator);
             for child in &mut rebuilt {
-                escape_double_quotes_in(child, allocator, indent_width);
+                escape_double_quotes_in(child, allocator);
             }
             *element = FormatElement::Interned(Interned::new(rebuilt));
         }
@@ -622,7 +619,7 @@ fn escape_double_quotes_in<'a>(
                 best_fitting.variants().iter().map(|variant| {
                     let mut rebuilt = ArenaVec::from_iter_in(variant.iter().cloned(), &allocator);
                     for child in &mut rebuilt {
-                        escape_double_quotes_in(child, allocator, indent_width);
+                        escape_double_quotes_in(child, allocator);
                     }
                     rebuilt.into_arena_slice()
                 }),
@@ -665,10 +662,6 @@ pub fn remove_lines<'a>(elements: &mut ArenaVec<'a, FormatElement<'a>>) {
 mod tests {
     use super::*;
 
-    fn indent_width(value: u8) -> IndentWidth {
-        IndentWidth::try_from(value).expect("valid indent width")
-    }
-
     #[test]
     fn single_width_round_trips_zero() {
         let width = TextWidth::single(0);
@@ -684,15 +677,20 @@ mod tests {
     }
 
     #[test]
-    fn from_text_uses_indent_width_for_tabs() {
-        let width = TextWidth::from_text("\t", indent_width(4));
-        debug_assert_eq!(width.value(), 4);
+    fn from_text_gives_a_tab_no_width() {
+        // Prettier's `string-width` gives a control character zero, so a tab
+        // inside content never pushes a line over the margin.
+        let width = TextWidth::from_text("\t");
+        debug_assert_eq!(width.value(), 0);
         debug_assert!(!width.is_multiline());
+
+        let width = TextWidth::from_text("ab\tcd");
+        debug_assert_eq!(width.value(), 4);
     }
 
     #[test]
     fn from_text_marks_multiline_on_newline() {
-        let width = TextWidth::from_text("ab\nc", indent_width(2));
+        let width = TextWidth::from_text("ab\nc");
         debug_assert_eq!(width.value(), 2);
         debug_assert!(width.is_multiline());
     }
@@ -735,12 +733,12 @@ mod tests {
     #[test]
     fn from_text_handles_unicode() {
         // Emoji width
-        let width = TextWidth::from_text("👍", indent_width(2));
+        let width = TextWidth::from_text("👍");
         debug_assert_eq!(width.value(), 2); // Most emojis are width 2
         debug_assert!(!width.is_multiline());
 
         // Chinese characters
-        let width = TextWidth::from_text("你好", indent_width(2));
+        let width = TextWidth::from_text("你好");
         debug_assert_eq!(width.value(), 4); // Each CJK char is width 2
         debug_assert!(!width.is_multiline());
     }
@@ -758,21 +756,21 @@ mod tests {
         // Need to count by str for correct width
         debug_assert_eq!(emoji.width(), 2);
         // Verify `TextWidth` also gets it right
-        let width = TextWidth::from_text(emoji, indent_width(2));
+        let width = TextWidth::from_text(emoji);
         debug_assert_eq!(width.value(), 2);
 
         // Emoji with text
-        let width = TextWidth::from_text("🗑️ DELETE", indent_width(2));
+        let width = TextWidth::from_text("🗑️ DELETE");
         debug_assert_eq!(width.value(), 9); // 2 (emoji) + 1 (space) + 6 (DELETE)
 
         // Another emoji with variation selector: ⚠️ = U+26A0 + U+FE0F
-        let width = TextWidth::from_text("⚠️", indent_width(2));
+        let width = TextWidth::from_text("⚠️");
         debug_assert_eq!(width.value(), 2);
     }
 
     #[test]
     fn from_text_empty_returns_zero() {
-        let width = TextWidth::from_text("", indent_width(2));
+        let width = TextWidth::from_text("");
         debug_assert_eq!(width.value(), 0);
         debug_assert!(!width.is_multiline());
     }
@@ -783,7 +781,7 @@ mod tests {
 
         // Reference: the original `from_text` scan, without the ASCII fast path.
         #[expect(clippy::cast_possible_truncation)]
-        fn from_text_slow(text: &str, indent_width: IndentWidth) -> TextWidth {
+        fn from_text_slow(text: &str) -> TextWidth {
             if text.is_empty() {
                 return TextWidth::single(0);
             }
@@ -793,7 +791,6 @@ mod tests {
                 match c {
                     '\t' => {
                         width += text[segment_start..i].width() as u32;
-                        width += u32::from(indent_width.value());
                         segment_start = i + 1;
                     }
                     '\n' => {
@@ -831,11 +828,10 @@ mod tests {
             "\u{1f}",   // unit separator
             "mix café \t 日 \n end",
         ];
-        let w = indent_width(4);
         for &s in &cases {
             debug_assert_eq!(
-                TextWidth::from_text(s, w).0,
-                from_text_slow(s, w).0,
+                TextWidth::from_text(s).0,
+                from_text_slow(s).0,
                 "from_text mismatch for {s:?}"
             );
         }

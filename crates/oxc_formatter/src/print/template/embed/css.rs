@@ -1,8 +1,6 @@
 use oxc_allocator::ArenaStringBuilder;
 use oxc_ast::ast::*;
-use oxc_formatter_core::{
-    FormatElement, IndentWidth, dispatch_fragment_ir, format_element::TextWidth,
-};
+use oxc_formatter_core::{FormatElement, dispatch_fragment_ir, format_element::TextWidth};
 
 use crate::{
     ast_nodes::AstNode,
@@ -24,11 +22,11 @@ const PLACEHOLDER_SUFFIX: &str = "`";
 
 /// Re-emit a (already arena-backed) text slice as a `Text` element.
 /// No-op for an empty slice.
-fn write_text_piece<'a>(text: &'a str, indent_width: IndentWidth, f: &mut JsFormatter<'_, 'a>) {
+fn write_text_piece<'a>(text: &'a str, f: &mut JsFormatter<'_, 'a>) {
     if text.is_empty() {
         return;
     }
-    let width = TextWidth::from_text(text, indent_width);
+    let width = TextWidth::from_text(text);
     f.write_element(FormatElement::Text { text, width });
 }
 
@@ -116,7 +114,6 @@ pub(super) fn format_css_doc<'a>(
     // - a `` `PLACEHOLDER-N` `` sentinel still embedded in a `Text` run
     //   because a string / `url()` keeps it opaque to the CSS lexer -> inline.
     let format_content = format_once(move |f: &mut JsFormatter<'_, 'a>| {
-        let indent_width = f.options().indent_width;
         for element in ir {
             match element {
                 FormatElement::EmbedPlaceholder(index) => {
@@ -139,7 +136,7 @@ pub(super) fn format_css_doc<'a>(
                         super::split_on_placeholders(text, PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
                     for (i, part) in parts.iter().enumerate() {
                         if i % 2 == 0 {
-                            write_text_piece(part, indent_width, f);
+                            write_text_piece(part, f);
                         } else if let Ok(idx) = part.parse::<usize>()
                             && let Some(&expr) = expressions.get(idx)
                         {
