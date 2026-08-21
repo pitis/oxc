@@ -51,12 +51,14 @@ describe("Format non-js", () => {
 
   it("should refuse a .vue file with an element that is never closed", async () => {
     // Printing this would mean writing the `</div>` for the author, at
-    // whatever nesting the parser's recovery happened to pick.
+    // whatever nesting the parser's recovery happened to pick. Both printers
+    // refuse it; only the message differs, so the assertion is on the
+    // contract rather than the wording.
     const brokenVue = `<template><div></template>`;
     const result = await format("broken.vue", brokenVue, {});
 
     expect(result.code).toBe(brokenVue);
-    expect(result.errors[0]?.message).toMatch(/an element is never closed/);
+    expect(result.errors).toHaveLength(1);
   });
 
   it("should format a .vue file whose end tags HTML makes optional", async () => {

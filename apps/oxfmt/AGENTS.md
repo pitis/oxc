@@ -73,7 +73,7 @@ Oxfmt utilizes different implementations depending on the file extension and fil
 
 - Tier 1: Rust implementations using `oxc_formatter`, `oxc_formatter_json`, `oxc_formatter_svelte`, etc found in this repository
 - Tier 2: Rust implementations using external libraries like `oxc_toml`
-- Tier 3: Delegations to Prettier via NAPI-JS calls (e.g., for Markdown or HTML; Vue is native now)
+- Tier 3: Delegations to Prettier via NAPI-JS calls (e.g., for Vue or Markdown)
 - Tier 4: Delegations to Prettier that require additional Prettier plugins
 
 NOTE: Rust written formatters never fall back to Prettier, since they exist to reduce the dependency on Prettier.

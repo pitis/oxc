@@ -319,5 +319,11 @@ pub fn node_content<'a>(tree: &Tree<'_, 'a>, id: NodeId) -> &'a str {
         _ => {}
     }
 
+    // An element written self-closing has one span for both its tags, so
+    // "between them" is empty and the two offsets cross. JavaScript's `slice`
+    // yields `""` for that; a Rust range would panic.
+    if end <= start {
+        return "";
+    }
     &tree.source()[start..end]
 }

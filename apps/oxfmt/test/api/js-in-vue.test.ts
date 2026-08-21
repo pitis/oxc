@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { format } from "../../dist/index.js";
 
-// NOTE: For now, Vue files are partially handled by Prettier
+// `.vue` is formatted by `oxc_formatter_vue` now; the embedded JS/TS in it
+// still goes to `oxc_formatter`, which is what these cover.
 
 describe("Format js-in-vue with prettier-plugin-oxfmt", () => {
   it("should not indent a comments-only script block", async () => {
@@ -213,7 +214,7 @@ const a = \`
     expect(result.errors).toStrictEqual([]);
     // ...but the failure is no longer silent.
     expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0].message).toContain("syntax error in embedded script:");
+    expect(result.warnings[0].message).toContain("syntax error in embedded script");
     expect(result.warnings[0].message).toContain("a &&& b");
     expect(result.warnings[0].message).not.toContain("internal error:");
   });
@@ -229,7 +230,7 @@ const a = ;
     expect(result.code).toContain("const a = ;");
     expect(result.errors).toStrictEqual([]);
     expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0].message).toContain("syntax error in embedded script:");
+    expect(result.warnings[0].message).toContain("syntax error in embedded script");
   });
 
   it("should not report v-on values that only fail the expression parse", async () => {

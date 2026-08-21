@@ -393,7 +393,10 @@ fn write_child<'a>(tree: &Tree<'_, 'a>, id: NodeId, f: &mut VueFormatter<'_, 'a>
     }
 
     write!(f, opening_tag_prefix(tree, id));
-    write!(f, text(tree.source()[start..end].trim_end()));
+    // The borrowed delimiters can meet in the middle of a short node, leaving
+    // nothing of it to reproduce.
+    let source = if end > start { tree.source()[start..end].trim_end() } else { "" };
+    write!(f, text(source));
     write!(f, closing_tag_suffix(tree, id));
 }
 

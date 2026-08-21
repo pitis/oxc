@@ -111,6 +111,11 @@ pub fn route(language: &str) -> Route {
         // would let the parser work that out for itself. Without it `await x`
         // parses as a call on an identifier named `await`.
         "ts" => Route::Native(NativeLanguage::Js(SourceType::ts().with_module(true))),
+        // `<script lang="jsx">` / `<script lang="tsx">` in a component. A
+        // JSX-free `tsx` block parses fine as plain `ts`, so the distinction
+        // only matters for one that is not.
+        "jsx" => Route::Native(NativeLanguage::Js(SourceType::jsx())),
+        "tsx" => Route::Native(NativeLanguage::Js(SourceType::tsx().with_module(true))),
         "js-expression" => Route::Native(NativeLanguage::JsFragment(
             SourceType::mjs(),
             FragmentContext::Expression { in_html_attribute: false, vue_expression: false },

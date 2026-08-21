@@ -16,7 +16,7 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer opt-in              |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
@@ -236,8 +236,11 @@ declaration produced 554 findings in real templates. It caught one real defect �
 block exposes the binding `defineEmits()` returns to the template, so `@x="emit('y')"` is an emit
 call just as `$emit('y')` is, and looking only for `$emit` missed it.
 
-**Format — Tier 1, native.** `oxc_formatter_vue` is the only printer for `.vue`; Prettier is no
-longer in that path. Built on the sibling `vue_sfc_parser` crate.
+**Format — Tier 3, with a native printer that is opt-in.** `.vue` goes to Prettier by default;
+`oxc_formatter_vue` runs behind `OXFMT_NATIVE_VUE=1`, built on the sibling `vue_sfc_parser` crate.
+
+It was made the default and then put back, which is the useful part of the story — see
+[what the corpus could not tell us](#what-the-corpus-could-not-tell-us) below.
 
 It is a port of Prettier's own HTML printer rather than of `prettier-plugin-svelte`, because
 that is what a `.vue` file actually goes through: `oxc_formatter_svelte`'s architecture carried
@@ -291,6 +294,20 @@ Reproduce with `sortTailwindcss` enabled on either:
 </script>
 <div class="flex p-4">x</div>
 ```
+
+**A Tailwind bug this work found and fixed, in the layer every language shares.** Merging an
+embedded child's IR used to renumber its `TailwindClass` indices into the parent's space, and that
+rewrite could not reach inside an `Interned` subtree — those are shared arena slices with no owner
+to rewrite through. With `sortTailwindcss` on, any component holding a Tailwind function call hit
+it: debug builds panicked, release builds silently printed the wrong classes. It was **not** new
+and not Vue's — the same input in a `.svelte` file panicked identically — but moving `.vue` onto
+the native printer would have given it a second host.
+
+The fix is the one `TailwindCollector`'s own doc comment described as deferred: the class space
+now lives on the `FormatSession`, beside the `GroupId` space it exactly parallels, so a child
+allocates the parent's indices directly and there is no renumbering left to fall short. The
+`EmbeddedIr` / `DispatchPayload` class fields, the remap, its `debug_assert` and the
+`TailwindCollector` trait are all gone with it.
 
 **One known deviation, and it is in the shared printer, not in this crate.** `oxc_formatter_core`
 records a group's print mode while _measuring_ whether an earlier group fits; Prettier's `fits`
