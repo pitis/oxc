@@ -566,11 +566,25 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 
 ## What is next
 
-1. A native Vue printer, to move `.vue` off Prettier.
-2. `attributes-order`, the largest single gap for a stock Nuxt config.
-3. `svelte/valid-compile` as a first-party JS plugin.
-4. A native Vue printer, to move `.vue` off Prettier.
-5. Native Markdown, the last thing keeping Prettier in `oxfmt`'s bundle.
+The native Vue printer and `attributes-order` both used to head this list, and both are done. What
+is left, in the order it costs the most:
+
+1. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
+   Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
+   build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so
+   in practice it is what keeps the Prettier sidecar loading at all.
+2. **The Tailwind class sorter.** Even with all four languages ported, `prettier-plugin-tailwindcss`
+   still pulls Prettier in for anyone who turns class sorting on. Porting the printer without it
+   moves the dependency rather than removing it.
+3. `svelte/valid-compile` as a first-party JS plugin — 1 of the 3 absent Svelte rules, and the only
+   one worth building.
+4. `vue/no-undef-components` and `vue/no-multiple-template-root`, the two named gap rules still
+   absent. No stock config enables either, which is why they have stayed at the bottom.
+5. The four conformance differences that are _not_ recorded as deliberate: `Xxx.extend` unrecognised
+   as a styled-components tag (css-in-js), an own-line comment Prettier moves and this does not
+   (gql-in-js), `<!-- #endregion -->` after a hoisted `<script>`/`<style>` (svelte), and one SCSS
+   long-expression break position. Everything else in the suite is annotated as allowed,
+   layout-only, a reduced port, or a Prettier 3.9.6 bug already fixed on Prettier main.
 
 One test failure is known and pre-existing on `main`, unrelated to any of the above:
 `oxlint::lsp::server_linter::test::test_frameworks`. The `lint::suppression` tests that drive
