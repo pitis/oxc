@@ -33,8 +33,13 @@ pub enum ExpressionPosition {
     /// one line however long it is (Prettier's `forceSingleLine`).
     BlockHeader,
     /// A `bind:` directive's value, which gets a break of its own to move to
-    /// when the tag wraps (Prettier's `surroundWithSoftline`).
+    /// when the tag wraps (Prettier's `surroundWithSoftline`). Svelte 5 spells
+    /// a function binding `bind:x={get, set}`, so a comma here is its grammar.
     BindDirective,
+    /// What a `{#each}` iterates. Svelte 5 spells the index `{#each expr, i}`,
+    /// so a comma here is its grammar too — the rest of a block header is one
+    /// expression and takes [`ExpressionPosition::BlockHeader`].
+    EachSubject,
     /// A `{#snippet name(params)}` header, already wrapped by the caller as
     /// `function name(params) {}` (Prettier's `asFunction`).
     SnippetSignature,
@@ -148,7 +153,8 @@ pub fn write_expression<'a>(
         // value carries an indent from the embed site, so only it keeps the
         // ordinary fragment route.
         ExpressionPosition::Braces | ExpressionPosition::BlockHeader => "svelte-expression",
-        ExpressionPosition::BindDirective => "ts-expression",
+        ExpressionPosition::EachSubject => "svelte-each-subject",
+        ExpressionPosition::BindDirective => "svelte-bind-value",
         ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
         ExpressionPosition::SnippetSignature => "svelte-snippet-signature",
     };
@@ -178,7 +184,7 @@ pub fn write_expression<'a>(
         // A block header is one line however long it gets: the expression
         // that decides what a `{#each}` iterates reads as part of the marker,
         // not as content laid out beside it.
-        ExpressionPosition::BlockHeader => {
+        ExpressionPosition::BlockHeader | ExpressionPosition::EachSubject => {
             remove_lines(&mut ir, f.allocator());
             f.write_elements(ir);
         }

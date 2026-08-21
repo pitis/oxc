@@ -86,7 +86,7 @@ fn write_each_block<'a>(each: &EachBlock<'a>, f: &mut SvelteFormatter<'_, 'a>) {
         f,
         group(&format_with(|f: &mut SvelteFormatter<'_, 'a>| {
             write!(f, token("{#each "));
-            write_slot(&each.expression, f);
+            write_expression(each.expression.text, ExpressionPosition::EachSubject, f);
             // The `as` pattern and the index name are bindings, not
             // expressions: they keep the spelling the author gave them.
             if let Some(context) = &each.context {

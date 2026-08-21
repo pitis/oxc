@@ -130,6 +130,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: false,
                 vue_expression: false,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         // A `{…}` inside a Svelte attribute value is spliced the same way, so
@@ -141,6 +142,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: true,
                 vue_expression: false,
                 host_indents: false,
+                sequence_parens: true,
             },
         )),
         // Svelte's `{…}` splices the expression between two braces and adds
@@ -152,6 +154,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: false,
                 vue_expression: false,
                 host_indents: false,
+                sequence_parens: true,
             },
         )),
         "ts-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -160,6 +163,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: false,
                 vue_expression: false,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         "js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -168,6 +172,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: true,
                 vue_expression: false,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         "ts-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -176,6 +181,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: true,
                 vue_expression: false,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         // The `.vue` family. Always TypeScript: a template may carry `as`
@@ -203,6 +209,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: false,
                 vue_expression: true,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         "vue-js-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -211,6 +218,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: false,
                 vue_expression: true,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         "vue-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -219,6 +227,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: true,
                 vue_expression: true,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         "vue-js-attribute-expression" => Route::Native(NativeLanguage::JsFragment(
@@ -227,6 +236,7 @@ pub fn route(language: &str) -> Route {
                 in_html_attribute: true,
                 vue_expression: true,
                 host_indents: true,
+                sequence_parens: true,
             },
         )),
         // `@click="count++; log()"`, which is statements rather than one
@@ -263,6 +273,30 @@ pub fn route(language: &str) -> Route {
         "vue-generic" => {
             Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::TypeParameters))
         }
+        // The two Svelte slots where a top-level comma is Svelte's own grammar
+        // rather than JavaScript's sequence operator: `{#each expr, index}`
+        // names the index with it, and `bind:x={get, set}` names the pair of
+        // functions. Both arrive whole, so the comma has to be left alone.
+        "svelte-each-subject" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: false,
+                host_indents: false,
+                sequence_parens: false,
+            },
+        )),
+        // A `bind:` value carries an indent from the embed site, unlike the
+        // other Svelte routes.
+        "svelte-bind-value" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::Expression {
+                in_html_attribute: false,
+                vue_expression: false,
+                host_indents: true,
+                sequence_parens: false,
+            },
+        )),
         // A `{#snippet name(params)}` header, wrapped by the caller as
         // `function name(params) {}`: it is a function signature, and its
         // parameters are parameters rather than arguments.

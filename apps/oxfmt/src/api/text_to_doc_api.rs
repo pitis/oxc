@@ -470,21 +470,25 @@ fn run_fragment(
             in_html_attribute: true,
             vue_expression: false,
             host_indents: true,
+            sequence_parens: true,
         },
         FragmentKind::ExpressionInterpolation => FragmentContext::Expression {
             in_html_attribute: false,
             vue_expression: false,
             host_indents: true,
+            sequence_parens: true,
         },
         FragmentKind::VueExpressionAttribute => FragmentContext::Expression {
             in_html_attribute: true,
             vue_expression: true,
             host_indents: true,
+            sequence_parens: true,
         },
         FragmentKind::VueExpressionInterpolation => FragmentContext::Expression {
             in_html_attribute: false,
             vue_expression: true,
             host_indents: true,
+            sequence_parens: true,
         },
         FragmentKind::EventHandler => FragmentContext::EventHandlerStatements,
     };

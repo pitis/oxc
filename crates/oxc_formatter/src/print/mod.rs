@@ -803,7 +803,8 @@ impl<'a> FormatWrite<'a> for AstNode<'a, DoWhileStatement<'a>> {
             test_end
         };
         let content = format_with(|f| {
-            write!(f, ["while", space(), "(", group(&soft_block_indent(&self.test())), ")"]);
+            write!(f, ["while", space()]);
+            write_clause(self.test(), &self.test(), f);
         });
         write!(f, FormatContentWithSemicolon::new(&content, rparen_end, node_end));
     }
@@ -842,6 +843,48 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatCommentForEmptyStatement<'a, 
     }
 }
 
+/// Whether the clause of an `if` / `while` / `do…while` hugs its parentheses
+/// instead of taking a break of its own.
+///
+/// `if (!(a || b))` reads better with the `!(` against the chain than with two
+/// further levels of indentation around it, so the test is printed bare and the
+/// break comes from the chain itself — a binaryish under a `UnaryExpression`
+/// already carries one. Only a negated logical qualifies, `!` or `!!`, and only
+/// without comments, which would have nowhere to sit. Prettier's `ym`.
+fn clause_hugs_parens<'a>(test: &AstNode<'a, Expression<'a>>, f: &JsFormatter<'_, 'a>) -> bool {
+    fn negated<'x, 'y>(expression: &'y Expression<'x>) -> Option<&'y Expression<'x>> {
+        match expression {
+            Expression::UnaryExpression(unary) if unary.operator == UnaryOperator::LogicalNot => {
+                Some(&unary.argument)
+            }
+            _ => None,
+        }
+    }
+
+    let span = test.span();
+    if f.comments().has_comment_in_span(span)
+        || !f.comments().comments_before_character(span.end, b')').is_empty()
+    {
+        return false;
+    }
+    let Some(argument) = negated(test.as_ref()) else { return false };
+    matches!(negated(argument).unwrap_or(argument), Expression::LogicalExpression(_))
+}
+
+/// Write the `(…)` of an `if` / `while` / `do…while`, with the break the clause
+/// takes unless it hugs — see [`clause_hugs_parens`].
+fn write_clause<'a>(
+    test: &AstNode<'a, Expression<'a>>,
+    content: &impl Format<'a, JsFormatContext<'a>>,
+    f: &mut JsFormatter<'_, 'a>,
+) {
+    if clause_hugs_parens(test, f) {
+        write!(f, ["(", content, ")"]);
+    } else {
+        write!(f, ["(", group(&soft_block_indent(content)), ")"]);
+    }
+}
+
 struct FormatTestOfIfAndWhileStatement<'a, 'b>(&'b AstNode<'a, Expression<'a>>);
 impl<'a> Format<'a, JsFormatContext<'a>> for FormatTestOfIfAndWhileStatement<'a, '_> {
     fn fmt(&self, f: &mut JsFormatter<'_, 'a>) {
@@ -867,12 +910,14 @@ impl<'a> FormatWrite<'a> for AstNode<'a, WhileStatement<'a>> {
             group(&format_args!(
                 "while",
                 space(),
-                "(",
-                group(&soft_block_indent(&format_args!(
-                    FormatTestOfIfAndWhileStatement(self.test()),
-                    FormatCommentForEmptyStatement(self.body())
-                ))),
-                ")",
+                format_with(|f| write_clause(
+                    self.test(),
+                    &format_args!(
+                        FormatTestOfIfAndWhileStatement(self.test()),
+                        FormatCommentForEmptyStatement(self.body())
+                    ),
+                    f
+                )),
                 FormatStatementBody::new(body)
             ))
         );
@@ -1023,9 +1068,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, IfStatement<'a>> {
             group(&format_args!(
                 "if",
                 space(),
-                "(",
-                group(&soft_block_indent(&FormatTestOfIfAndWhileStatement(test))),
-                ")",
+                format_with(|f| write_clause(test, &FormatTestOfIfAndWhileStatement(test), f)),
                 FormatStatementBody::new(consequent),
             ))
         );

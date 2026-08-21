@@ -106,7 +106,19 @@ pub enum FragmentContext {
     /// two braces and leaves the layout to it, so a binaryish chain that breaks
     /// there has to supply the indent, and one that does not comes back with
     /// its continuation at the mustache's own column.
-    Expression { in_html_attribute: bool, vue_expression: bool, host_indents: bool },
+    ///
+    /// `sequence_parens` says whether a top-level comma here is JavaScript's
+    /// sequence operator. It usually is, and a sequence root then keeps the
+    /// parentheses that tell it apart from an argument list. Some hosts spell
+    /// their own grammar with a comma in a slot they hand over whole — Svelte's
+    /// `{#each expr, index}` and `bind:x={get, set}` — and parenthesizing there
+    /// would join two things the host reads separately.
+    Expression {
+        in_html_attribute: bool,
+        vue_expression: bool,
+        host_indents: bool,
+        sequence_parens: bool,
+    },
     /// Statement(s) from an inline event handler (e.g. Vue `@click` values that
     /// do not parse as a single expression).
     ///
@@ -505,10 +517,33 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
             // the same "root expression" semantics as Prettier's `JsExpressionRoot`.
             let program_node = allocator.alloc(AstNode::new(program, AstNodes::Dummy(), allocator));
             let node = AstNode::new(expression, AstNodes::Program(program_node), allocator);
+            // A sequence expression keeps the parentheses that tell it from an
+            // argument list: `{#key a, b}` comes back `{#key (a, b)}`, in Vue as
+            // in Svelte. Nothing else takes them here — `{(a)}` comes back `{a}`
+            // — because Prettier prints the fragment's expression as its
+            // document root, where the only rule left is the one for a bare
+            // comma. A host that spells its own grammar with a comma says so
+            // through `sequence_parens`, and then there is no sequence to
+            // parenthesize.
+            //
+            // Prettier parenthesizes an assignment root too, and this does not:
+            // Svelte's declaration tags reach this path with their declarator
+            // (`{@const x = 1}` formats `x = 1`), where a parenthesis would
+            // change what the tag declares. Prettier keeps them apart by giving
+            // the declaration a path of its own.
+            let sequence_parens =
+                matches!(context, FragmentContext::Expression { sequence_parens: true, .. });
+            let content = formatter::prelude::format_with(|f| {
+                if sequence_parens && matches!(expression, Expression::SequenceExpression(_)) {
+                    write!(f, ["(", node, ")"]);
+                } else {
+                    write!(f, [node]);
+                }
+            });
             finish.finish(
                 session,
                 options,
-                &node,
+                &content,
                 program.source_text,
                 source_type,
                 &program.comments,
