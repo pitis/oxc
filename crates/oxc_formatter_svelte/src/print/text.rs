@@ -29,7 +29,9 @@ enum Piece<'a> {
     Hardline,
     /// Two breaks the author wrote: a blank line. One element rather than two
     /// `Hardline`s, because the printer only starts a new line once per line
-    /// of output and two in a row would collapse into one.
+    /// of output and two in a row would collapse into one. It is still
+    /// accompanied by an empty `Word`, so that the blank line takes as many
+    /// places in the sequence as the two breaks it stands for.
     EmptyLine,
 }
 
@@ -108,15 +110,26 @@ fn split_into_pieces(value: &str) -> Vec<Piece<'_>> {
         }
     }
 
-    if starts_with_line_breaks(value, 1)
-        && let Some(first) = pieces.first_mut()
-    {
-        *first = if starts_with_line_breaks(value, 2) { Piece::EmptyLine } else { Piece::Hardline };
+    // A blank line is two of Prettier's breaks, not one, and the second one
+    // takes a slot in the sequence. Which slot each piece lands in is what
+    // decides where the fill breaks, so the pair is two pieces here too: one
+    // that renders the blank line and one that renders nothing beside it.
+    if starts_with_line_breaks(value, 1) && !pieces.is_empty() {
+        if starts_with_line_breaks(value, 2) {
+            pieces[0] = Piece::EmptyLine;
+            pieces.insert(1, Piece::Word(""));
+        } else {
+            pieces[0] = Piece::Hardline;
+        }
     }
-    if ends_with_line_breaks(value, 1)
-        && let Some(last) = pieces.last_mut()
-    {
-        *last = if ends_with_line_breaks(value, 2) { Piece::EmptyLine } else { Piece::Hardline };
+    if ends_with_line_breaks(value, 1) && !pieces.is_empty() {
+        let last = pieces.len() - 1;
+        if ends_with_line_breaks(value, 2) {
+            pieces[last] = Piece::EmptyLine;
+            pieces.push(Piece::Word(""));
+        } else {
+            pieces[last] = Piece::Hardline;
+        }
     }
     pieces
 }

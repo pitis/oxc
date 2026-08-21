@@ -466,34 +466,26 @@ fn run_fragment(
         FragmentKind::VueForBindingLeft => FragmentContext::FunctionParamsAsBindingLhs,
         FragmentKind::VueBindings => FragmentContext::FunctionParamsAsBinding,
         FragmentKind::VueScriptGeneric => FragmentContext::TypeParameters,
-        FragmentKind::ExpressionAttribute => {
-            FragmentContext::Expression {
-                in_html_attribute: true,
-                vue_expression: false,
-                host_indents: true,
-            }
-        }
-        FragmentKind::ExpressionInterpolation => {
-            FragmentContext::Expression {
-                in_html_attribute: false,
-                vue_expression: false,
-                host_indents: true,
-            }
-        }
-        FragmentKind::VueExpressionAttribute => {
-            FragmentContext::Expression {
-                in_html_attribute: true,
-                vue_expression: true,
-                host_indents: true,
-            }
-        }
-        FragmentKind::VueExpressionInterpolation => {
-            FragmentContext::Expression {
-                in_html_attribute: false,
-                vue_expression: true,
-                host_indents: true,
-            }
-        }
+        FragmentKind::ExpressionAttribute => FragmentContext::Expression {
+            in_html_attribute: true,
+            vue_expression: false,
+            host_indents: true,
+        },
+        FragmentKind::ExpressionInterpolation => FragmentContext::Expression {
+            in_html_attribute: false,
+            vue_expression: false,
+            host_indents: true,
+        },
+        FragmentKind::VueExpressionAttribute => FragmentContext::Expression {
+            in_html_attribute: true,
+            vue_expression: true,
+            host_indents: true,
+        },
+        FragmentKind::VueExpressionInterpolation => FragmentContext::Expression {
+            in_html_attribute: false,
+            vue_expression: true,
+            host_indents: true,
+        },
         FragmentKind::EventHandler => FragmentContext::EventHandlerStatements,
     };
 

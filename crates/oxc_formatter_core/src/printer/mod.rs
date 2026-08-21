@@ -490,22 +490,22 @@ impl<'a> Printer<'a> {
     /// Tries to fit as much content as possible on a single line.
     ///
     /// `Fill` is a sequence of *item*, *separator*, *item*, *separator*, *item*, ... entries.
-    /// The goal is to fit as many items (with their separators) on a single line as possible and
-    /// first expand the *separator* if the content exceeds the print width and only fallback to expanding
-    /// the *item*s if the *item* or the *item* and the expanded *separator* don't fit on the line.
+    /// The goal is to fit as many items (with their separators) on a single line as possible,
+    /// expanding the *separator* when the next item would not fit and only expanding an *item*
+    /// when the item itself does not fit.
     ///
-    /// The implementation handles the following 5 cases:
+    /// The implementation handles the following 3 cases:
     ///
     /// * The *item*, *separator*, and the *next item* fit on the same line.
     ///   Print the *item* and *separator* in flat mode.
-    /// * The *item* and *separator* fit on the line but there's not enough space for the *next item*.
+    /// * The *item* fits on the line but the *item*, *separator* and *next item* together do not.
     ///   Print the *item* in flat mode and the *separator* in expanded mode.
-    /// * The *item* fits on the line but the *separator* does not in flat mode.
-    ///   Print the *item* in flat mode and the *separator* in expanded mode.
-    /// * The *item* fits on the line but the *separator* does not in flat **NOR** expanded mode.
-    ///   Print the *item* and *separator* in expanded mode.
     /// * The *item* does not fit on the line.
     ///   Print the *item* and *separator* in expanded mode.
+    ///
+    /// An *item* that fits is therefore always printed flat: only the *item* decides the item's
+    /// mode, and only the triple decides the separator's. A *separator* wide enough to overrun the
+    /// line on its own overruns it, rather than pushing the item that fits onto the next line.
     fn print_fill_entries(
         &mut self,
         queue: &mut PrintQueue<'a>,
@@ -547,9 +547,14 @@ impl<'a> Printer<'a> {
 
                     let separator_fits = measurer.fill_separator_fits(PrintMode::Flat)?;
 
-                    // Item fits but the flat separator does not.
+                    // Item fits but the flat separator does not, so neither can the
+                    // item/separator/next-item triple: the same layout as measuring that
+                    // triple and finding it too wide. Whether the *expanded* separator
+                    // fits is not asked, and an item that fits is never moved off the
+                    // line because of what follows it — Prettier decides a fill pair on
+                    // the item alone and on the triple, never on the separator.
                     if !separator_fits {
-                        break FillPairLayout::ItemMaybeFlat;
+                        break FillPairLayout::ItemFlatSeparatorExpanded;
                     }
 
                     // Last item/separator pair that both fit
@@ -595,23 +600,13 @@ impl<'a> Printer<'a> {
             let item_mode = match last_pair_layout {
                 FillPairLayout::Flat | FillPairLayout::ItemFlatSeparatorExpanded => PrintMode::Flat,
                 FillPairLayout::Expanded => PrintMode::Expanded,
-                FillPairLayout::ItemMaybeFlat => {
-                    let mut measurer = FitsMeasurer::new_flat(queue, stack, indent_stack, self);
-                    // SAFETY: That the item fits is guaranteed by `ItemMaybeFlat`.
-                    // Re-measuring is required to get the measurer in the correct state for measuring the separator.
-                    assert!(measurer.fill_item_fits()?);
-                    let separator_fits = measurer.fill_separator_fits(PrintMode::Expanded)?;
-                    measurer.finish();
-
-                    if separator_fits { PrintMode::Flat } else { PrintMode::Expanded }
-                }
             };
 
             let separator_mode = match last_pair_layout {
                 FillPairLayout::Flat => PrintMode::Flat,
-                FillPairLayout::ItemFlatSeparatorExpanded
-                | FillPairLayout::Expanded
-                | FillPairLayout::ItemMaybeFlat => PrintMode::Expanded,
+                FillPairLayout::ItemFlatSeparatorExpanded | FillPairLayout::Expanded => {
+                    PrintMode::Expanded
+                }
             };
 
             self.print_fill_item(
@@ -840,10 +835,6 @@ enum FillPairLayout {
 
     /// The item does not fit. Print the item and any potential separator in expanded mode.
     Expanded,
-
-    /// The item fits but the separator does not in flat mode. If the separator fits in expanded mode then
-    /// print the item in flat and the separator in expanded mode, otherwise print both in expanded mode.
-    ItemMaybeFlat,
 }
 
 /// Printer state that is global to all elements.
@@ -1130,7 +1121,20 @@ impl<'a, 'print> FitsMeasurer<'a, 'print> {
 
         self.stack.push(TagKind::Fill, self.stack.top().with_print_mode(mode));
         let mut predicate = SingleEntryPredicate::default();
-        let fits = self.fits(&mut predicate)?;
+        let mut fits = self.fits(&mut predicate)?;
+
+        // An entry ending in a space still occupies that column — whatever the fill prints
+        // next lands after it. The space is only added to the width when text arrives to
+        // claim it, so an entry that *is* a space measures as zero-width and fits at any
+        // column. That is invisible while entries are words, but a text run whose leading
+        // break sits inside the fill pairs every separator against a `line` item, and such
+        // a fill would never break at all.
+        if fits
+            && self.state.pending_space
+            && self.state.line_width >= usize::from(self.options().print_width)
+        {
+            fits = false;
+        }
 
         if predicate.is_done() {
             self.stack.pop(TagKind::Fill)?;

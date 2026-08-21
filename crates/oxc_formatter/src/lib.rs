@@ -348,7 +348,6 @@ impl<'a> FragmentFinish<'a> for ToEmbeddedIr {
         let context = JsFormatContext::new(source_text, source_type, comments, options)
             .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
             .with_embedded_vue_expression(embed_flags.vue_expression)
-        .with_fragment_host_indents(embed_flags.host_indents)
             .with_fragment_host_indents(embed_flags.host_indents)
             .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
         formatter::format_embedded(
@@ -394,10 +393,7 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
         vue_expression: matches!(context, FragmentContext::Expression { vue_expression: true, .. }),
         // Only an expression fragment has a host that might indent it; every
         // other context is wrapped into a statement whose layout is its own.
-        host_indents: !matches!(
-            context,
-            FragmentContext::Expression { host_indents: false, .. }
-        ),
+        host_indents: !matches!(context, FragmentContext::Expression { host_indents: false, .. }),
         in_html_interpolation: matches!(
             context,
             FragmentContext::Expression { in_html_attribute: false, .. }
