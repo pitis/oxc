@@ -15,13 +15,13 @@ the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prett
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.9%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.96%** byte-identical on 6,673 files |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-99.9% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+99.96% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it began as a correction: until it was measured the file claimed
@@ -64,7 +64,7 @@ and `{…}` inside it reach `oxc_formatter` and `oxc_formatter_css` through the 
 ` ```svelte ` block inside Markdown or MDX gets the same formatter.
 
 Conformance runs `prettier-plugin-svelte`'s own fixture suite, plus edge cases of this fork's own,
-against **real Prettier** as the oracle — currently 86/89 at both option sets, with each remaining difference recorded
+against **real Prettier** as the oracle — currently 87/90 at both option sets, with each remaining difference recorded
 as a deliberate divergence in `crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer
 this category used `prettier-plugin-svelte` as both implementation and oracle and reported 80/80,
 which measured nothing.
@@ -80,18 +80,18 @@ signals and Svelte has it, but the breadth check that found most of the Vue prin
 never been run. It has now been, over **6,673 `.svelte` files in six open-source repositories**,
 each file formatted under **its own repo's Prettier config** resolved per file:
 
-| Repository                 | Files |        Identical |
-| :------------------------- | ----: | ---------------: |
-| `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
-| `huntabyte/bits-ui`        |   617 |     617 (100.0%) |
-| `carbon-components-svelte` |  1408 |     1407 (99.9%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1679 (99.9%) |
-| `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1864 (99.9%) |
-| **Total**                  |  6673 | **6668 (99.9%)** |
+| Repository                 | Files |         Identical |
+| :------------------------- | ----: | ----------------: |
+| `skeletonlabs/skeleton`    |   686 |      686 (100.0%) |
+| `huntabyte/bits-ui`        |   617 |      617 (100.0%) |
+| `carbon-components-svelte` |  1408 |      1407 (99.9%) |
+| `huntabyte/shadcn-svelte`  |  1681 |      1679 (99.9%) |
+| `immich-app/immich` (web)  |   415 |      415 (100.0%) |
+| `windmill-labs/windmill`   |  1866 |     1866 (100.0%) |
+| **Total**                  |  6673 | **6670 (99.96%)** |
 
-Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
-below 99.8%, where the first measurement had **windmill — the one large application —
+Neither tool failed on any of them. Read the spread rather than the total: four of the six are exact, and neither of the other
+two is below 99.9%, where the first measurement had **windmill — the one large application —
 at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
@@ -233,7 +233,29 @@ was the whole test, and Svelte tells an element from a component by the capital.
 kept as written and its tag was laid out as whitespace-significant. Prettier asks for a
 `RegularElement` as well as the name, and so does this now.
 
-What is left is five files, no two of them alike.
+**A comma is not always a sequence**, and the last two of these came from either side of that. A
+sequence expression at a fragment's root keeps the parentheses that tell it from an argument list,
+`{#key a, b}` coming back `{#key (a, b)}` in Vue as in Svelte — but Svelte spells two of its own
+forms with a comma in a slot it hands over whole, `{#each expr, index}` written without `as` and
+`bind:x={get, set}`, and parenthesizing there joins two things Svelte reads separately. The first
+run of the change, before those two had routes of their own, rewrote 127 files and would have
+changed what several of them do; it is in now with the distinction the routes carry. Alongside it,
+an `if` / `while` clause whose test is a negated logical hugs its parentheses instead of taking a
+break of its own — `if (!(a || b))` — which also moved a Prettier fixture from 61% to 88%.
+
+What is left is three files, no two of them alike, and all three are layout:
+
+- `TreeView.svelte` — `/** @type {T} */ (event).shiftKey` breaks inside the cast's parentheses
+  where Prettier breaks at the `.`. The parentheses a cast keeps are a breakable group in both,
+  and the question is only which of the two groups on the line gives way first; an ordinary
+  parenthesized object (`(event || window).shiftKey`) already matches, which is what says the
+  member half is right and the cast half is not.
+- `chart-tooltip.svelte` — a line comment between `?:` and a union type is a trailing comment of
+  the key here and a leading comment of the annotation in Prettier, so it stays on the `?:` line
+  rather than moving to its own. A comment-attachment difference rather than a layout one.
+- `theme-customizer-code.svelte` — an element inside a `<pre>`, where the tags are laid out but
+  the text around them keeps the source's own tabs, so the column an element is measured at is
+  not the column it prints at.
 
 Five findings are bugs rather than layout, and all five are what a corpus is for — no fixture
 reached any of them. Three are printer bugs described above with the class they were found in:
@@ -786,8 +808,8 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The last five Svelte layout differences** — five files, no two of them alike, so each is its
-   own investigation and none of them moves the figure. Worth doing only against the corpus.
+1. **The last three Svelte differences** — three files, no two alike, each named above with what
+   it is. None moves the figure, and none changes what a component renders.
 2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so

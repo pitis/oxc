@@ -64,12 +64,19 @@ a parsing one. `ExpressionPosition` in `expression.rs` is the whole list:
 | :---------------------- | :---------------------------- | :------------------------------------------------------------------------------------------------------ |
 | `Braces`, `BlockHeader` | `svelte-expression`           | spliced bare between two braces, so a broken expression supplies its own indent                         |
 | `QuotedAttribute`       | `svelte-attribute-expression` | the same, inside a quoted value                                                                         |
-| `BindDirective`         | `ts-expression`               | the embed site wraps it in an indent already (Prettier's `surroundWithSoftline`)                        |
+| `EachSubject`           | `svelte-each-subject`         | as `BlockHeader`, but a top-level comma there is Svelte's index, not a sequence operator                |
+| `BindDirective`         | `svelte-bind-value`           | the embed site wraps it in an indent already, and a comma there is Svelte's `{get, set}` pair           |
 | `SnippetSignature`      | `svelte-snippet-signature`    | a function signature: the caller wraps it as `function name(params) {}` and the JS side prints the head |
 
 A block header is additionally flattened with `remove_lines` — it is one line however long it
 gets — but flattening keeps the hard lines a broken member chain is made of, so it still needs
 the route that indents.
+
+The two comma routes are not a nicety. A sequence expression at a fragment root keeps parentheses
+(`{#key a, b}` prints `{#key (a, b)}`), and Svelte spells two of its own forms with a comma in a
+slot it hands over whole: `{#each expr, index}` written without `as`, and `bind:x={get, set}`.
+Parenthesizing there joins two things Svelte reads separately — and for the `{#each}`, loses the
+index. Adding the rule without the two routes rewrote 127 corpus files.
 
 Four translations are worth knowing before changing anything:
 
