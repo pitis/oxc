@@ -911,6 +911,7 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatGroupedLastArgument<'a, '_> {
                     FormatFunctionOptions {
                         cache_mode: FunctionCacheMode::Cache,
                         call_argument_layout: Some(GroupedCallArgumentLayout::GroupedLastArgument),
+                        ..FormatFunctionOptions::default()
                     },
                 )
                 .fmt(f);

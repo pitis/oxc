@@ -15,13 +15,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.6%** byte-identical on 6,673 files  |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.7%** byte-identical on 6,673 files  |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-99.6% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
+99.7% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
 now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
 
 That Svelte figure is new, and it is a correction: until it was measured the file claimed Svelte
@@ -61,7 +61,7 @@ and `{…}` inside it reach `oxc_formatter` and `oxc_formatter_css` through the 
 ` ```svelte ` block inside Markdown or MDX gets the same formatter.
 
 Conformance runs `prettier-plugin-svelte`'s own fixture suite, plus edge cases of this fork's own,
-against **real Prettier** as the oracle — currently 83/86 at both option sets, with each remaining difference recorded
+against **real Prettier** as the oracle — currently 84/87 at both option sets, with each remaining difference recorded
 as a deliberate divergence in `crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer
 this category used `prettier-plugin-svelte` as both implementation and oracle and reported 80/80,
 which measured nothing.
@@ -82,13 +82,13 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `skeletonlabs/skeleton`    |   686 |     686 (100.0%) |
 | `huntabyte/bits-ui`        |   617 |     617 (100.0%) |
 | `carbon-components-svelte` |  1408 |     1407 (99.9%) |
-| `huntabyte/shadcn-svelte`  |  1681 |     1670 (99.3%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1678 (99.8%) |
 | `immich-app/immich` (web)  |   415 |     415 (100.0%) |
-| `windmill-labs/windmill`   |  1866 |     1851 (99.2%) |
-| **Total**                  |  6673 | **6646 (99.6%)** |
+| `windmill-labs/windmill`   |  1866 |     1853 (99.3%) |
+| **Total**                  |  6673 | **6656 (99.7%)** |
 
 Neither tool failed on any of them. Read the spread rather than the total: three of the six are exact, and none is
-below 99.2%, where the first measurement had **windmill — the one large application —
+below 99.3%, where the first measurement had **windmill — the one large application —
 at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
@@ -187,7 +187,19 @@ printer edits except for one Svelte fixture that now passes. That is the evidenc
 were not carrying anything: they only ever differed for a separator with no break in it, which is a
 shape only text produces.
 
-What is left has no dominant class: 27 files, and the largest cluster among them is small enough
+**A `{#snippet}` header is a function signature**, worth 10 more files, and this one was wrong
+rather than merely differently laid out. The header was formatted as an expression, where
+`name(params)` is a call — so `(tightTop = false)` came back as `((tightTop = false))`, because an
+assignment in argument position is parenthesized, and `({ node, level }: { node: X })` did not
+parse at all and was kept as the author wrote it, tabs and all. Prettier wraps the header into
+`function name(params) {}`, formats that, and drops the keyword and the body off the printed
+document. Doing the same here — a `FunctionSignature` fragment context, and a `signature_only`
+option on the function printer that leaves those two pieces out rather than slicing them off —
+gives the parameters a signature's layout and a parameter's meaning. Quote style had to come with
+it: every fragment context other than an expression is treated as sitting inside an attribute,
+where single quotes are preferred, and a `{#snippet …}` header is delimited by braces instead.
+
+What is left has no dominant class: 17 files, and the largest cluster among them is small enough
 that each is its own investigation.
 
 Two findings are bugs rather than layout, and both are what a corpus is for:
@@ -736,7 +748,7 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The long tail of Svelte layout differences** — 27 files with no dominant class, so this is
+1. **The long tail of Svelte layout differences** — 17 files with no dominant class, so this is
    many small investigations rather than one. Worth doing only against the corpus, a cluster at a
    time. About half are still whole-file re-wraps, identical once whitespace is normalised, which
    is where any remaining fill difference would show.

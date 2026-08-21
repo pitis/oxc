@@ -179,15 +179,17 @@ fn write_key_block<'a>(key: &KeyBlock<'a>, f: &mut SvelteFormatter<'_, 'a>) {
 
 fn write_snippet_block<'a>(snippet: &SnippetBlock<'a>, f: &mut SvelteFormatter<'_, 'a>) {
     write!(f, token("{#snippet "));
-    // The header is one JavaScript expression: `name(params)` reads as a
-    // call, and that is what gives the parameter list a function signature's
-    // layout instead of an argument list's. No parens at all is not valid
-    // Svelte, but the parser recovered it, and then the name is all there is.
+    // The header is a function signature with the keyword left out, and it is
+    // formatted as one: read as an expression instead, `name(params)` is a
+    // call, whose parentheses hold arguments rather than parameters. That is a
+    // different layout and, for `(tightTop = false)` or `({ a }: { a: X })`,
+    // a different meaning. No parens at all is not valid Svelte, but the
+    // parser recovered it, and then the name is all there is.
     if let Some(params) = &snippet.params {
         let source = f.context().source_text().as_str();
         let start = snippet.name_span.start as usize;
         let end = (params.span.end as usize + 1).min(source.len());
-        write_expression(&source[start..end], ExpressionPosition::Braces, f);
+        write_expression(&source[start..end], ExpressionPosition::SnippetSignature, f);
     } else {
         write!(f, text(snippet.name));
     }

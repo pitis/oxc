@@ -43,7 +43,9 @@ pub(crate) use oxc_formatter_core::{best_fitting, format_args, write};
 pub(crate) use oxc_formatter_core::{Buffer, Format};
 
 use self::formatter::prelude::tag::Label;
-use crate::print::{FormatFunctionParams, FormatTypeParameters};
+use crate::print::{
+    FormatFunction, FormatFunctionOptions, FormatFunctionParams, FormatTypeParameters,
+};
 
 /// Usage context a JS/TS fragment is placed in js-in-xxx.
 /// Drives context-dependent formatting decisions (e.g. forced parentheses, quote style).
@@ -68,6 +70,18 @@ pub enum FragmentContext {
     ///
     /// Input wrap: `type T<PARAMS> = any`
     TypeParameters,
+    /// A function signature written without the `function` keyword — a Svelte
+    /// `{#snippet name(params)}` header.
+    ///
+    /// Input wrap: `function NAME(PARAMS) {}`
+    ///
+    /// Read as a call expression instead, `name(params)` comes back with an
+    /// argument list's layout and an argument's meaning: `(tightTop = false)`
+    /// is a default value in one reading and an assignment needing parentheses
+    /// in the other, and `({ a }: { a: X })` does not parse as an expression at
+    /// all. Prettier wraps it the same way and slices the two extra pieces off
+    /// the printed document afterwards.
+    FunctionSignature,
     /// A bare expression (e.g. Vue `v-if` / `v-bind` values, `{{ ... }}` interpolations).
     ///
     /// Input: the raw expression text, NOT pre-wrapped.
@@ -386,8 +400,13 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
     // (utils/string.rs) is what actually prevents the surrounding attribute
     // delimiter from being reintroduced when the string's own content forces
     // the other quote.
-    let in_html_attribute =
-        !matches!(context, FragmentContext::Expression { in_html_attribute: false, .. });
+    // A snippet header is markup rather than an attribute value: `{#snippet …}`
+    // is delimited by braces, so a `"` in it has nothing to clash with.
+    let in_html_attribute = !matches!(
+        context,
+        FragmentContext::Expression { in_html_attribute: false, .. }
+            | FragmentContext::FunctionSignature
+    );
     let embed_flags = EmbedFlags {
         in_html_attribute,
         vue_expression: matches!(context, FragmentContext::Expression { vue_expression: true, .. }),
@@ -420,6 +439,27 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
                 && (1 < params.items.len() || params.rest.is_some());
             let node = AstNode::new(params, AstNodes::Dummy(), allocator);
             let content = FormatFunctionParams::new(&node, with_parens);
+            finish.finish(
+                session,
+                options,
+                &content,
+                program.source_text,
+                source_type,
+                &program.comments,
+                embed_flags,
+            )
+        }
+        FragmentContext::FunctionSignature => {
+            let Some(Statement::FunctionDeclaration(func)) = program.body.first() else {
+                return Err(OxcDiagnostic::error(
+                    "Expected fragment wrapped as `function NAME(...) {}`",
+                ));
+            };
+            let node = AstNode::new(&**func, AstNodes::Dummy(), allocator);
+            let content = FormatFunction::new_with_options(
+                &node,
+                FormatFunctionOptions { signature_only: true, ..FormatFunctionOptions::default() },
+            );
             finish.finish(
                 session,
                 options,

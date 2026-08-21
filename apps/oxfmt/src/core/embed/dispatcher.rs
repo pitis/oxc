@@ -263,6 +263,12 @@ pub fn route(language: &str) -> Route {
         "vue-generic" => {
             Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::TypeParameters))
         }
+        // A `{#snippet name(params)}` header, wrapped by the caller as
+        // `function name(params) {}`: it is a function signature, and its
+        // parameters are parameters rather than arguments.
+        "svelte-snippet-signature" => {
+            Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::FunctionSignature))
+        }
         "css" => Route::Native(NativeLanguage::Css(CssVariant::Css, CssFragmentKind::Stylesheet)),
         "scss" => Route::Native(NativeLanguage::Css(CssVariant::Scss, CssFragmentKind::Stylesheet)),
         "less" => Route::Native(NativeLanguage::Css(CssVariant::Less, CssFragmentKind::Stylesheet)),

@@ -35,6 +35,9 @@ pub enum ExpressionPosition {
     /// A `bind:` directive's value, which gets a break of its own to move to
     /// when the tag wraps (Prettier's `surroundWithSoftline`).
     BindDirective,
+    /// A `{#snippet name(params)}` header, already wrapped by the caller as
+    /// `function name(params) {}` (Prettier's `asFunction`).
+    SnippetSignature,
 }
 
 /// Print a `{…}` in a text position, which may be a declaration tag.
@@ -144,10 +147,16 @@ pub fn write_expression<'a>(
         ExpressionPosition::Braces => "svelte-expression",
         ExpressionPosition::BlockHeader | ExpressionPosition::BindDirective => "ts-expression",
         ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
+        ExpressionPosition::SnippetSignature => "svelte-snippet-signature",
     };
+    // A snippet header is a function signature with the keyword left out, so
+    // it is put back before the fragment is handed over — and left out of the
+    // fallback below, which is the header as the author wrote it.
+    let wrapped = matches!(position, ExpressionPosition::SnippetSignature)
+        .then(|| f.allocator().alloc_str(&format!("function {} {{}}", expression.trim())));
     let response = f.session().dispatch(DispatchRequest {
         language,
-        text: expression,
+        text: wrapped.unwrap_or(expression),
         input_kind: InputKind::Fragment,
         parent_context: None,
     });

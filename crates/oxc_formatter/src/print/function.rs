@@ -31,6 +31,16 @@ pub struct FormatFunctionOptions {
     pub call_argument_layout: Option<GroupedCallArgumentLayout>,
     // Determine whether the signature and body should be cached.
     pub cache_mode: FunctionCacheMode,
+    /// Print only `name(params): ReturnType`, without the `function` keyword
+    /// and without the body.
+    ///
+    /// A Svelte `{#snippet name(params)}` header is a function signature that
+    /// is not spelled as one. Prettier formats it by wrapping it into
+    /// `function name(params) {}` and dropping those two pieces off the
+    /// printed document afterwards; reading them off here instead keeps the
+    /// parameter layout — a signature's, not an argument list's — identical to
+    /// what it is everywhere else, which is the whole point of the wrap.
+    pub signature_only: bool,
 }
 
 pub struct FormatFunction<'a, 'b> {
@@ -61,6 +71,10 @@ impl<'a, 'b> FormatFunction<'a, 'b> {
     #[inline]
     pub fn format(&self, f: &mut JsFormatter<'_, 'a>) {
         let head = format_with(|f| {
+            if self.options.signature_only {
+                write!(f, [self.id(), group(&self.type_parameters())]);
+                return;
+            }
             write!(
                 f,
                 [
@@ -120,6 +134,10 @@ impl<'a, 'b> FormatFunction<'a, 'b> {
                 write!(f, [format_return_type]);
             }))]
         );
+
+        if self.options.signature_only {
+            return;
+        }
 
         if let Some(body) = self.body() {
             write!(
