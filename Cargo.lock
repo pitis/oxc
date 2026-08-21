@@ -2189,6 +2189,7 @@ dependencies = [
  "oxc_diagnostics",
  "oxc_formatter_core",
  "oxc_span",
+ "rustc-hash",
  "vue_sfc_parser",
 ]
 

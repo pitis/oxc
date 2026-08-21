@@ -17,6 +17,7 @@ description.workspace = true
 workspace = true
 
 [dependencies]
+rustc-hash = { workspace = true }
 cow-utils = { workspace = true }
 oxc_allocator = { workspace = true }
 oxc_diagnostics = { workspace = true }

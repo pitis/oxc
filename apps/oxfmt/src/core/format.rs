@@ -341,13 +341,11 @@ impl SourceFormatter {
             };
         }
 
-        // Only the external formatter (Prettier) reports non-fatal warnings today;
-        // every Rust-side strategy leaves this empty, so the pure-Rust build has
-        // nothing to mutate.
-        #[cfg(feature = "napi")]
+        // Non-fatal problems a strategy hit: an embedded fragment that did not
+        // parse and was therefore left as written. Prettier reports them from
+        // the JS side; the native Vue printer reports its own, so this is
+        // mutable in every build.
         let mut warnings: Vec<String> = vec![];
-        #[cfg(not(feature = "napi"))]
-        let warnings: Vec<String> = vec![];
         let (result, insert_final_newline) = match resolved {
             FormatStrategy::OxcFormatter {
                 path,
@@ -438,6 +436,7 @@ impl SourceFormatter {
                     &config,
                     core,
                     sort_imports,
+                    &mut warnings,
                 ),
                 insert_final_newline,
             ),
@@ -696,6 +695,7 @@ impl SourceFormatter {
         config: &Arc<FormatConfig>,
         core: CoreFormatOptions,
         sort_imports: Option<SortImportsOptions>,
+        warnings: &mut Vec<String>,
     ) -> Result<String, OxcDiagnostic> {
         let allocator = self.allocator_pool.get();
         let session = {
@@ -706,6 +706,10 @@ impl SourceFormatter {
         };
         let formatted =
             oxc_formatter_vue::format_with_session(&session, source_text, format_options)?;
+        // A `<script>` or a template expression the JS formatter could not
+        // parse is kept as written, which is the safe answer but a silent one;
+        // the warning is what tells the user their template has a syntax error.
+        warnings.extend(formatted.context().warnings());
         let printed = formatted.print().map_err(|err| {
             OxcDiagnostic::error(format!(
                 "Failed to print formatted Vue: {}\n{err}",

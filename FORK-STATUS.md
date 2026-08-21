@@ -16,14 +16,13 @@ against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust, no Prettier in the path                  |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | Prettier via NAPI; native printer at **100%**         |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
 The short version: **Svelte can drop both tools today. Vue can drop both today for any config
 this fork covers — a stock Nuxt config is now fully covered. Node/NestJS backends can drop both
-today**, subject to the tsconfig caveat below. `.vue` _formatting_ still runs Prettier inside
-`oxfmt`; see [Vue](#vue).
+today**, subject to the tsconfig caveat below.
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
 its config names a rule it does not implement.**
@@ -237,10 +236,8 @@ declaration produced 554 findings in real templates. It caught one real defect �
 block exposes the binding `defineEmits()` returns to the template, so `@x="emit('y')"` is an emit
 call just as `$emit('y')` is, and looking only for `$emit` missed it.
 
-**Format — Tier 3, with a native printer at 100%.** By default `.vue` still goes to Prettier
-through NAPI, and that is what every existing project's output depends on. `oxc_formatter_vue`
-exists alongside it, opt-in behind `OXFMT_NATIVE_VUE=1`, built on the sibling `vue_sfc_parser`
-crate.
+**Format — Tier 1, native.** `oxc_formatter_vue` is the only printer for `.vue`; Prettier is no
+longer in that path. Built on the sibling `vue_sfc_parser` crate.
 
 It is a port of Prettier's own HTML printer rather than of `prettier-plugin-svelte`, because
 that is what a `.vue` file actually goes through: `oxc_formatter_svelte`'s architecture carried
@@ -270,6 +267,30 @@ break is taken — so `style="color: red; margin: 0"` stays on the line and the 
 `;` per line. The parser already reported a top-level declaration as a recoverable error that the
 css-in-js path tolerated; the attribute kind tolerates the same one. The formatter conformance
 suite is unchanged by it: CSS stays 221/221, SCSS and Less unmoved.
+
+**One bug gates recommending Tailwind sorting on `.vue`, and it is older than this printer.**
+`DispatchPayload::into_doc` merges a child's Tailwind classes by rewriting the indices in the
+child's IR, and that rewrite only reaches the top level — a `TailwindClass` inside an `Interned`
+subtree keeps a stale index. With `sortTailwindcss` on, a component holding a Tailwind function
+call (`clsx("p-4 flex")`) hits it: a debug build panics on the `debug_assert`, and a release build
+silently prints the wrong classes whenever the parent had already collected some of its own.
+
+It is **not** new, and not Vue's: the same input in a `.svelte` file panics identically on
+`fork/main` with nothing changed, because `oxc_formatter_svelte` merges its `<script>` the same
+way. Moving `.vue` onto the native printer gives the defect a second host rather than creating it.
+The fix is the session-shared collector the `TailwindCollector` doc comment already describes as
+deferred — children allocating parent indices directly, so no remap exists to fall short. That is
+a change to the layer every language shares and belongs in its own commit.
+
+Reproduce with `sortTailwindcss` enabled on either:
+
+```html
+<script>
+  import clsx from "clsx";
+  const c = clsx("p-4 flex");
+</script>
+<div class="flex p-4">x</div>
+```
 
 **One known deviation, and it is in the shared printer, not in this crate.** `oxc_formatter_core`
 records a group's print mode while _measuring_ whether an earlier group fits; Prettier's `fits`
@@ -369,16 +390,16 @@ making them.
 
 ## oxfmt in general
 
-| Language                                          | Implementation                                                                      |
-| :------------------------------------------------ | :---------------------------------------------------------------------------------- |
-| JS, TS, JSX, TSX                                  | `oxc_formatter`                                                                     |
-| JSON, JSONC, `package.json`                       | `oxc_formatter_json`                                                                |
-| CSS, SCSS, Less                                   | `oxc_formatter_css`                                                                 |
-| YAML                                              | `oxc_formatter_yaml`                                                                |
-| GraphQL                                           | `oxc_formatter_graphql`                                                             |
-| **Svelte**                                        | `oxc_formatter_svelte`                                                              |
-| TOML                                              | taplo (Rust)                                                                        |
-| **Vue, HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI (Vue: native printer at 100%, `OXFMT_NATIVE_VUE=1`) |
+| Language                                     | Implementation                  |
+| :------------------------------------------- | :------------------------------ |
+| JS, TS, JSX, TSX                             | `oxc_formatter`                 |
+| JSON, JSONC, `package.json`                  | `oxc_formatter_json`            |
+| CSS, SCSS, Less                              | `oxc_formatter_css`             |
+| YAML                                         | `oxc_formatter_yaml`            |
+| GraphQL                                      | `oxc_formatter_graphql`         |
+| **Svelte**                                   | `oxc_formatter_svelte`          |
+| TOML                                         | taplo (Rust)                    |
+| **HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI |
 
 Prettier is still bundled inside `oxfmt`'s own `dist/` for that last row, so a project's manifest
 can be Prettier-free even where Prettier code still runs. Removing the bundle means writing native

@@ -11,8 +11,10 @@
 //! rewritten into something that does not mean the same thing.
 
 use cow_utils::CowUtils;
+use oxc_allocator::ArenaVec;
 use oxc_formatter_core::{
-    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, FormatElement, InputKind,
+    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, ExpressionHugsDelimiters,
+    FormatElement, InputKind,
     builders::{expand_parent, indent, soft_line_break_or_space, space, text},
     write,
 };
@@ -110,19 +112,8 @@ pub fn write_formatted<'a>(
     source: &'a str,
     f: &mut VueFormatter<'_, 'a>,
 ) -> bool {
-    if source.trim().is_empty() {
-        return false;
-    }
-    let response = f.session().dispatch(DispatchRequest {
-        language,
-        text: source,
-        input_kind: InputKind::Fragment,
-        parent_context: None,
-    });
-    let Ok(DispatchResponse::Formatted(payload)) = response else {
-        return false;
-    };
-    let mut ir = payload.into_doc(f.context_mut());
+    let Some(fragment) = dispatch(language, source, source, f) else { return false };
+    let mut ir = fragment.ir;
     // A whole-program IR ends with the newline a *file* wants. Here the
     // element's own layout supplies it.
     while matches!(ir.last(), Some(FormatElement::Line(_))) {
@@ -133,4 +124,68 @@ pub fn write_formatted<'a>(
     }
     f.write_elements(ir);
     true
+}
+
+/// Hand `source` to the formatter that owns `language` and return its IR.
+///
+/// `snippet` is what the *author* wrote, which is not always `source`: a
+/// binding list is wrapped as `function _(…) {}` before it can be parsed, and
+/// a warning has to quote the value, not the wrapper.
+///
+/// A fragment that does not parse is recorded rather than passed over: the
+/// printer keeps it as written either way, but silently keeping a syntax
+/// error is how a broken `v-if` survives a format run unnoticed.
+pub fn dispatch<'a>(
+    language: &'static str,
+    source: &str,
+    snippet: &str,
+    f: &mut VueFormatter<'_, 'a>,
+) -> Option<Fragment<'a>> {
+    if source.trim().is_empty() {
+        return None;
+    }
+    let response = f.session().dispatch(DispatchRequest {
+        language,
+        text: source,
+        input_kind: InputKind::Fragment,
+        parent_context: None,
+    });
+    let Ok(DispatchResponse::Formatted(payload)) = response else {
+        if let Some(context) = warning_context(language) {
+            f.context_mut().report_fragment_failure(snippet, context);
+        }
+        return None;
+    };
+    f.context_mut().report_fragment_success(snippet);
+    // Whether the fragment's own brackets can hold the host's indentation:
+    // only the language that parsed it can say, so it travels back with the IR.
+    let hugs = payload
+        .child_context
+        .as_ref()
+        .and_then(|context| context.downcast_ref::<ExpressionHugsDelimiters>())
+        .is_none_or(|hugs| hugs.0);
+    Some(Fragment { ir: payload.into_doc(f.context_mut()), hugs })
+}
+
+/// A formatted fragment, with the layout answer its language gave.
+pub struct Fragment<'a> {
+    pub ir: ArenaVec<'a, FormatElement<'a>>,
+    pub hugs: bool,
+}
+
+/// What a fragment of this language is called in a warning, in the vocabulary
+/// the Prettier-side channel already uses, or `None` for the languages that
+/// channel never covered — CSS is reported by nobody.
+fn warning_context(language: &str) -> Option<&'static str> {
+    Some(match language {
+        "ts-attribute-expression" | "js-attribute-expression" => "expression-attribute",
+        "vue-attribute-expression" => "vue-expression-attribute",
+        "vue-expression" => "vue-expression-interpolation",
+        "vue-event-handler" => "event-handler",
+        "vue-v-for-left" => "vue-for-binding-left",
+        "vue-binding-params" => "vue-bindings",
+        "vue-generic" => "vue-script-generic",
+        "js" | "ts" | "jsx" | "tsx" => "vue-script",
+        _ => return None,
+    })
 }

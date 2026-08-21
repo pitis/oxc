@@ -16,8 +16,7 @@ use std::cell::RefCell;
 use cow_utils::CowUtils;
 use oxc_allocator::ArenaVec;
 use oxc_formatter_core::{
-    Buffer, BufferExtensions, DispatchRequest, DispatchResponse, ExpressionHugsDelimiters, Format,
-    FormatElement, InputKind, TailwindCollector,
+    Buffer, BufferExtensions, Format, FormatElement, TailwindCollector,
     builders::{group, indent, soft_line_break, space, text, token},
     write,
 };
@@ -167,12 +166,12 @@ fn write_printed_value<'a>(
                 write!(f, token("=\"\""));
                 return true;
             }
-            let Some(value) = dispatch("css-style-attribute", raw, f) else { return false };
+            let Some(value) = dispatch("css-style-attribute", raw, raw, f) else { return false };
             write_value_doc(Value { hugs: false, ..value }, f);
             true
         }
         ValuePrinter::Expression(language) => {
-            let Some(value) = dispatch(language, raw, f) else { return false };
+            let Some(value) = dispatch(language, raw, raw, f) else { return false };
             write_value_doc(value, f);
             true
         }
@@ -180,21 +179,21 @@ fn write_printed_value<'a>(
         // statements when it does not parse as one — which is what keeps
         // `@click="doThing($event)"` a call rather than a statement list.
         ValuePrinter::EventHandler => {
-            let value = dispatch("ts-attribute-expression", raw, f)
-                .or_else(|| dispatch("vue-event-handler", raw, f));
+            let value = dispatch("ts-attribute-expression", raw, raw, f)
+                .or_else(|| dispatch("vue-event-handler", raw, raw, f));
             let Some(value) = value else { return false };
             write_value_doc(value, f);
             true
         }
         ValuePrinter::Bindings => {
             let wrapped = f.allocator().alloc_str(&format!("function _({raw}) {{}}"));
-            let Some(value) = dispatch("vue-binding-params", wrapped, f) else { return false };
+            let Some(value) = dispatch("vue-binding-params", wrapped, raw, f) else { return false };
             write_value_doc(value, f);
             true
         }
         ValuePrinter::Generic => {
             let wrapped = f.allocator().alloc_str(&format!("type T<{raw}> = any"));
-            let Some(value) = dispatch("vue-generic", wrapped, f) else { return false };
+            let Some(value) = dispatch("vue-generic", wrapped, raw, f) else { return false };
             write_value_doc(value, f);
             true
         }
@@ -207,8 +206,12 @@ fn write_printed_value<'a>(
 fn write_v_for<'a>(raw: &'a str, f: &mut VueFormatter<'_, 'a>) -> bool {
     let Some(parsed) = parse_v_for(raw) else { return false };
     let wrapped = f.allocator().alloc_str(&format!("function _({}) {{}}", parsed.left));
-    let Some(left) = dispatch("vue-v-for-left", wrapped, f) else { return false };
-    let Some(right) = dispatch("ts-attribute-expression", parsed.right, f) else { return false };
+    let Some(left) = dispatch("vue-v-for-left", wrapped, parsed.left.as_str(), f) else {
+        return false;
+    };
+    let Some(right) = dispatch("ts-attribute-expression", parsed.right, parsed.right, f) else {
+        return false;
+    };
 
     let left = Doc::new(left.ir);
     let right = Doc::new(right.ir);
@@ -261,31 +264,20 @@ struct Value<'a> {
 }
 
 /// Format `source` as `language`, or `None` when nothing can.
+///
+/// `snippet` is the value the author wrote, which differs from `source` for
+/// the contexts that have to be wrapped before they parse.
 fn dispatch<'a>(
     language: &'static str,
     source: &str,
+    snippet: &str,
     f: &mut VueFormatter<'_, 'a>,
 ) -> Option<Value<'a>> {
-    if source.trim().is_empty() {
+    let fragment = super::embed::dispatch(language, source, snippet, f)?;
+    if fragment.ir.is_empty() {
         return None;
     }
-    let response = f.session().dispatch(DispatchRequest {
-        language,
-        text: source,
-        input_kind: InputKind::Fragment,
-        parent_context: None,
-    });
-    let Ok(DispatchResponse::Formatted(payload)) = response else { return None };
-    let hugs = payload
-        .child_context
-        .as_ref()
-        .and_then(|context| context.downcast_ref::<ExpressionHugsDelimiters>())
-        .is_none_or(|hugs| hugs.0);
-    let ir = payload.into_doc(f.context_mut());
-    if ir.is_empty() {
-        return None;
-    }
-    Some(Value { ir, hugs })
+    Some(Value { ir: fragment.ir, hugs: fragment.hugs })
 }
 
 /// A child document's IR, written once into whatever position the layout puts

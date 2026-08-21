@@ -81,12 +81,45 @@ pub fn format_with_session<'a>(
 /// Why this component cannot be safely reprinted, if it cannot.
 ///
 /// The parser recovers rather than failing, so a file it had to guess at is
-/// refused instead of being rewritten from that guess.
+/// refused instead of being rewritten from that guess. Printing an element
+/// the author never closed would mean *writing the closing tag for them*, at
+/// whatever nesting the recovery happened to pick — which silently changes
+/// what the page renders.
 fn not_well_formed(nodes: &[Node<'_>]) -> Option<&'static str> {
-    nodes
-        .iter()
-        .any(|node| matches!(node, Node::Element(element) if element.unclosed))
-        .then_some("a top-level block is never closed")
+    fn has_unclosed(nodes: &[Node<'_>]) -> bool {
+        nodes.iter().any(|node| {
+            let Node::Element(element) = node else { return false };
+            (element.unclosed && !is_closed_by_parent(element.name))
+                || has_unclosed(&element.children)
+        })
+    }
+    has_unclosed(nodes).then_some("an element is never closed")
+}
+
+/// Elements whose end tag HTML makes optional, so a parent's closing tag
+/// legitimately closes them and `<ul><li>a<li>b</ul>` is not malformed.
+///
+/// This is the `closedByParent` set of the parser Prettier uses, derived by
+/// asking Prettier which of the candidates it accepts rather than by reading
+/// the spec — note `dd` is in it and `dt` is not, and `tbody`/`tfoot` are and
+/// `thead` is not, which is easy to get wrong in either direction.
+fn is_closed_by_parent(name: &str) -> bool {
+    matches!(
+        name,
+        "p" | "li"
+            | "dd"
+            | "rb"
+            | "rt"
+            | "rtc"
+            | "rp"
+            | "optgroup"
+            | "option"
+            | "tbody"
+            | "tfoot"
+            | "tr"
+            | "td"
+            | "th"
+    )
 }
 
 /// The whole component.

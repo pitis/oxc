@@ -40,11 +40,46 @@ describe("Format non-js", () => {
   });
 
   it("should surface Prettier parse errors as-is", async () => {
+    // `.html` is still Prettier's; `.vue` went native and has its own message,
+    // covered by the test below.
+    const brokenHtml = `<div><span></div>`;
+    const result = await format("broken.html", brokenHtml, {});
+
+    expect(result.code).toBe(brokenHtml);
+    expect(result.errors[0]?.message).toMatch(/Unexpected closing tag/);
+  });
+
+  it("should refuse a .vue file with an element that is never closed", async () => {
+    // Printing this would mean writing the `</div>` for the author, at
+    // whatever nesting the parser's recovery happened to pick.
     const brokenVue = `<template><div></template>`;
     const result = await format("broken.vue", brokenVue, {});
 
     expect(result.code).toBe(brokenVue);
-    expect(result.errors[0]?.message).toMatch(/Unexpected closing tag/);
+    expect(result.errors[0]?.message).toMatch(/an element is never closed/);
+  });
+
+  it("should format a .vue file whose end tags HTML makes optional", async () => {
+    const result = await format("list.vue", `<template><ul><li>a<li>b</ul></template>`, {});
+
+    expect(result.code).toBe(
+      `<template>\n  <ul>\n    <li>a</li>\n    <li>b</li>\n  </ul>\n</template>\n`,
+    );
+    expect(result.errors).toStrictEqual([]);
+  });
+
+  it("should warn when a template expression cannot be parsed", async () => {
+    const result = await format(
+      "broken-expression.vue",
+      `<template><div v-if="a &&& b" /></template>`,
+      {},
+    );
+
+    // The fragment is kept exactly as written rather than guessed at, and the
+    // user is told, which is the whole point of the warning channel.
+    expect(result.code).toContain(`v-if="a &&& b"`);
+    expect(result.errors).toStrictEqual([]);
+    expect(result.warnings[0]?.message).toMatch(/expression-attribute fragment left unformatted/);
   });
 });
 
