@@ -2,7 +2,7 @@
 source: crates/oxc_formatter/tests/conformance.rs
 expression: report
 ---
-ts compatibility: 636/659 (96.51%), 16 files skipped
+ts compatibility: 638/659 (96.81%), 16 files skipped
 
 # Failed
 
@@ -18,15 +18,13 @@ ts compatibility: 636/659 (96.51%), 16 files skipped
 | typescript/intersection/consistent-with-flow/intersection-parens.ts | 💥 | 97.67% |
 | typescript/intersection/consistent-with-flow/single-member.ts | 💥 | 88.24% |
 | typescript/property-signature/consistent-with-flow/comments.ts | 💥 | 80.00% |
-| typescript/property-signature/consistent-with-flow/union.ts | 💥 | 80.00% |
 | typescript/template-literals/member-expression.ts | 💥 | 65.12% |
 | typescript/type-parameters-arguments/18041.ts | 💥 | 91.43% |
 | typescript/type-parameters-arguments/18604.ts | 💥 | 60.00% |
 | typescript/type-parameters-arguments/19505.ts | 💥 | 61.54% |
 | typescript/type-parameters-arguments/issue-6858.ts | 💥 | 60.61% |
-| typescript/union/5849.ts | 💥 | 95.38% |
 | typescript/union/union-parens.ts | 💥 | 97.67% |
-| typescript/union/comments/18106.ts | 💥 | 86.36% |
+| typescript/union/comments/18106.ts | 💥 | 96.70% |
 | typescript/union/consistent-with-flow/comment.ts | 💥 | 87.50% |
 | typescript/union/consistent-with-flow/conditional.ts | 💥 | 54.55% |
 | typescript/union/consistent-with-flow/leading-comments.ts | 💥 | 90.14% |

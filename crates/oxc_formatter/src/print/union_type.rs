@@ -277,8 +277,13 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSUnionType<'a>> {
             // breaking after instead would hoist the comment onto the `=` line
             // (`type A = /* c */`), which is not own-line anymore and not idempotent.
             // Conditional branches hug instead (no break, see `is_conditional_branch`).
+            // An end-of-line comment travels with the union: it stays on the
+            // operator's line while the members do (`a?: // c` then `A | null`),
+            // and moves down with them as soon as they take an indent of their
+            // own. `should_indent` is that question, and a soft break is enough
+            // to answer it — the members' own group is what decides.
             let breaks_before_comments = (has_own_line_comment
-                || (comment_info.has_end_of_line_comment && only_type))
+                || (comment_info.has_end_of_line_comment && (only_type || should_indent)))
                 && !is_conditional_branch;
             write!(
                 f,
