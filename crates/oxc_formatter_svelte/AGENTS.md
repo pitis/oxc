@@ -162,6 +162,8 @@ them before anyone tried.
   means something. Regenerating the snapshot needs `pnpm --filter oxfmt-app download-fixtures`
   first; a run without the externals rewrites the committed snapshot with a fraction of the
   fixtures.
+- The corpus differential is at **6,673 of 6,673**. That is the bar a change has to clear now: any
+  difference it reports is a regression, not a backlog item.
 - **A real-world differential.** Every bug found in this crate since the fixture suite went green
   came from formatting whole open-source repositories with both this and Prettier and diffing —
   not from the fixtures, which by construction only cover what someone already thought of. Two

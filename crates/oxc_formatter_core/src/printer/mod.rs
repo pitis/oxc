@@ -813,7 +813,14 @@ impl<'a> Printer<'a> {
                 unsafe {
                     self.state.buffer.print_byte_unchecked(b'\t');
                 }
-                self.options.indent_width().value() as usize
+                // Nothing, which is what [`TextWidth::from_text`] measured it as
+                // and what Prettier's `string-width` gives it. Structural
+                // indentation is the printer's own and arrives as `Indent`; a tab
+                // reaching here is content — inside a `<pre>`, a template literal,
+                // a comment — and counting it as `indent_width` here while
+                // measuring it as zero made the printer disagree with itself about
+                // where the line was, on exactly the lines it cannot re-indent.
+                0
             } else {
                 self.state.buffer.print_char(char);
                 char.width().unwrap_or(0)

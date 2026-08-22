@@ -15,21 +15,23 @@ the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prett
 
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **99.99%** byte-identical on 6,673 files |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files   |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
-The short version: **Svelte can drop ESLint today; dropping Prettier there is close but not done —
-99.99% of 6,673 real-world files come back byte-identical, and what is left is layout. Vue can drop both today for any config this fork covers — a stock Nuxt config is
-now fully covered. Node/NestJS backends can drop both today**, subject to the tsconfig caveat below.
+The short version: **Svelte can drop both today — every one of 6,673 real-world files comes back
+byte-identical to Prettier, and the three constructs where this printer deliberately differs are
+recorded below and appear in none of them. Vue can drop both today for any config this fork covers
+— a stock Nuxt config is now fully covered. Node/NestJS backends can drop both today**, subject to
+the tsconfig caveat below.
 
 That Svelte figure is new, and it began as a correction: until it was measured the file claimed
 Svelte could drop both tools, on the strength of one 21-file library and a fixture suite. What the
 corpus found was four differences that changed what a component means or renders — a dropped
 `then`, text re-wrapped inside a `<pre>`, a `{#snippet}` header parenthesized into a different
-signature, and a `generics` type mangled — none of which any fixture reached. All four are fixed,
-and everything that remains is layout. See
+signature, and a `generics` type mangled — none of which any fixture reached, and a long tail of
+layout differences behind them. All of it is fixed. See
 [The Svelte printer against a real-world corpus](#the-svelte-printer-against-a-real-world-corpus).
 
 One thing that is _not_ a coverage question and bites first: **`oxlint` exits with an error when
@@ -64,7 +66,7 @@ and `{…}` inside it reach `oxc_formatter` and `oxc_formatter_css` through the 
 ` ```svelte ` block inside Markdown or MDX gets the same formatter.
 
 Conformance runs `prettier-plugin-svelte`'s own fixture suite, plus edge cases of this fork's own,
-against **real Prettier** as the oracle — currently 89/92 at both option sets, with each remaining difference recorded
+against **real Prettier** as the oracle — currently 90/93 at both option sets, with each remaining difference recorded
 as a deliberate divergence in `crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer
 this category used `prettier-plugin-svelte` as both implementation and oracle and reported 80/80,
 which measured nothing.
@@ -85,13 +87,14 @@ each file formatted under **its own repo's Prettier config** resolved per file:
 | `skeletonlabs/skeleton`    |   686 |      686 (100.0%) |
 | `huntabyte/bits-ui`        |   617 |      617 (100.0%) |
 | `carbon-components-svelte` |  1408 |     1408 (100.0%) |
-| `huntabyte/shadcn-svelte`  |  1681 |      1680 (99.9%) |
+| `huntabyte/shadcn-svelte`  |  1681 |     1681 (100.0%) |
 | `immich-app/immich` (web)  |   415 |      415 (100.0%) |
 | `windmill-labs/windmill`   |  1866 |     1866 (100.0%) |
-| **Total**                  |  6673 | **6672 (99.99%)** |
+| **Total**                  |  6673 | **6673 (100.0%)** |
 
-Neither tool failed on any of them. Read the spread rather than the total: five of the six are exact, and the sixth is at 99.9%, where the first measurement had **windmill — the one large application —
-at 86.5%** against component libraries in the high nineties. Component libraries have short markup;
+Neither tool failed on any of them, and every one of them now comes back byte-identical. The first
+measurement had **windmill — the one large application — at 86.5%** against component libraries in
+the high nineties. Component libraries have short markup;
 an application has long `{#if …}` and `{#each …}` headers and long prose, and both are where the
 printer diverged. It is the same shape as the Vue result, where a uniform corpus concealed what a
 varied one exposed. `htmlWhitespaceSensitivity` was ruled out as a cause early on: forcing windmill
@@ -259,11 +262,18 @@ comment stranded on the `?:` line. Two of Prettier's own TypeScript fixtures now
 (`property-signature/consistent-with-flow/union.ts` and `union/5849.ts`), and a third went from 86%
 to 97%, which is a better witness than the corpus file that found it.
 
-What is left is one file, and it is layout:
+**A tab is worth nothing, and the printer has to agree with itself about that.** The last file was
+an element inside a `<pre>`, where the text is kept as written and the tags between it are still
+laid out — so the column an element starts at is the one the preserved text left the line on. The
+width measurement counted a literal tab as zero, as Prettier's `string-width` does; the printer
+counted it as a tab stop. Two levels of disagreement about where the line was, on exactly the lines
+the printer cannot re-indent, and elements that fit came back broken. Nothing else in the
+conformance suite moved when the two were reconciled.
 
-- `theme-customizer-code.svelte` — an element inside a `<pre>`, where the tags are laid out but
-  the text around them keeps the source's own tabs, so the column an element is measured at is
-  not the column it prints at.
+Nothing is left. The three differences the conformance suite still records are deliberate — a
+declaration tag with two declarators, an `{#each … as PATTERN}` binding, and a `#endregion` marker
+travelling with a hoisted section — each with its reason in
+`crates/oxc_formatter_svelte/AGENTS.md`, and none of the three occurs anywhere in the corpus.
 
 Five findings are bugs rather than layout, and all five are what a corpus is for — no fixture
 reached any of them. Three are printer bugs described above with the class they were found in:
@@ -816,20 +826,18 @@ Isolating one rule differs between the two: ESLint takes a config that enables o
 The native Vue printer and `attributes-order` both used to head this list, and both are done. What
 is left, in the order it costs the most:
 
-1. **The last Svelte difference** — one file, named above. It does not move the figure and does
-   not change what a component renders.
-2. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
+1. **Native Markdown**, and after it HTML, Angular and Glimmer — the four languages still routed to
    Prettier, and the reason `prettier` is still a runtime dependency of `oxfmt` rather than a
    build-time one. Markdown is the one that matters: nearly every repository has `.md` files, so
    in practice it is what keeps the Prettier sidecar loading at all.
-3. **The Tailwind class sorter.** Even with all four languages ported, `prettier-plugin-tailwindcss`
+2. **The Tailwind class sorter.** Even with all four languages ported, `prettier-plugin-tailwindcss`
    still pulls Prettier in for anyone who turns class sorting on. Porting the printer without it
    moves the dependency rather than removing it.
-4. `svelte/valid-compile` as a first-party JS plugin — 1 of the 3 absent Svelte rules, and the only
+3. `svelte/valid-compile` as a first-party JS plugin — 1 of the 3 absent Svelte rules, and the only
    one worth building.
-5. `vue/no-undef-components` and `vue/no-multiple-template-root`, the two named gap rules still
+4. `vue/no-undef-components` and `vue/no-multiple-template-root`, the two named gap rules still
    absent. No stock config enables either, which is why they have stayed at the bottom.
-6. The four conformance differences that are _not_ recorded as deliberate: `Xxx.extend` unrecognised
+5. The four conformance differences that are _not_ recorded as deliberate: `Xxx.extend` unrecognised
    as a styled-components tag (css-in-js), an own-line comment Prettier moves and this does not
    (gql-in-js), `<!-- #endregion -->` after a hoisted `<script>`/`<style>` (svelte), and one SCSS
    long-expression break position. Everything else in the suite is annotated as allowed,

@@ -45,6 +45,17 @@ Composite primitives translate rather than port 1:1:
   See `oxc_formatter_yaml`'s `mapping_item.rs` for the full pattern.
   Oxfmt's Doc→IR mechanical conversion maps `expandedStates` to the same `BestFitting` primitive.
 
+### A tab is worth nothing
+
+Both halves of the printer have to agree on that. `TextWidth::from_text` measures a literal tab as
+zero, matching Prettier's `string-width`, which strips control characters — structural indentation
+is the printer's own and arrives as `Indent`, so a tab reaching the text path is _content_: inside a
+`<pre>`, a template literal, a comment.
+
+The emitting half used to advance the column by `indent_width` for the same character, so the two
+disagreed about where the line was on exactly the lines the printer cannot re-indent, and content
+that fit came back broken. If either side changes, change both.
+
 ### The printer never trims
 
 Unlike Prettier's `printDocToString`, this printer emits exactly what was written:
