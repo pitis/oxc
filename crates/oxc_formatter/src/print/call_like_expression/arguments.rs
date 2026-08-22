@@ -648,7 +648,7 @@ fn write_grouped_arguments<'a>(
                         AstNodes::Function(function)
                             if !group_layout.is_grouped_first()
                                 && (!only_one_argument
-                                    || function_has_only_simple_parameters(&function.params)) =>
+                                    || function_has_only_simple_parameters(function)) =>
                         {
                             has_cached = true;
                             return write!(
@@ -904,7 +904,7 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatGroupedLastArgument<'a, '_> {
         // to remove any soft line breaks.
         match self.argument.as_ast_nodes() {
             AstNodes::Function(function)
-                if !self.is_only || function_has_only_simple_parameters(&function.params) =>
+                if !self.is_only || function_has_only_simple_parameters(function) =>
             {
                 FormatFunction::new_with_options(
                     function,
@@ -932,8 +932,27 @@ impl<'a> Format<'a, JsFormatContext<'a>> for FormatGroupedLastArgument<'a, '_> {
     }
 }
 
-fn function_has_only_simple_parameters(params: &FormalParameters<'_>) -> bool {
-    has_only_simple_parameters(params, false)
+/// Whether a function's parameters are all plain identifiers, the `this`
+/// parameter included.
+///
+/// `this` is a sibling field of [`FormalParameters`] here and a member of
+/// `params` in the AST Prettier reads, so a function declaring only
+/// `this: SomeType` looks parameterless to [`has_only_simple_parameters`] and
+/// simple by default. It is not: an annotated `this` is a parameter that can
+/// break, and calling it simple removed the line breaks that let it, so the
+/// sole-argument hug could never fit and the call broke its argument list
+/// instead:
+///
+/// ```ts
+/// vi.fn(function (
+///   this: TanstackQueryDevtoolsPanel,
+/// ) {
+///   this.mount = mountMock
+/// })
+/// ```
+fn function_has_only_simple_parameters(function: &Function<'_>) -> bool {
+    function.this_param.as_ref().is_none_or(|this_param| this_param.type_annotation.is_none())
+        && has_only_simple_parameters(&function.params, false)
 }
 
 /// Tests if this a simple module import like `import("module-name")` or `require("module-name")`.
