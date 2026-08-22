@@ -50,7 +50,7 @@
 
 ## html-in-js
 
-### Option 1: 192/194 (98.97%)
+### Option 1: 193/194 (99.48%)
 
 ```json
 {"printWidth":80}
@@ -58,7 +58,6 @@
 
 | File | Note |
 | :--- | :--- |
-| [externals/webawesome/number-input/number-input.styles.ts](diffs/html-in-js/externals__webawesome__number-input__number-input.styles.ts.md) | Layout-only: Prettier's fill fit-check breaks inside `var()` args in a long `calc()`; ours breaks after the operator. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/webawesome/page/page.styles.ts](diffs/html-in-js/externals__webawesome__page__page.styles.ts.md) | Layout-only: Prettier's fill fit-check breaks inside `::slotted()` after a long `:not(...)`; ours breaks inside `:not(...)`. See crates/oxc_formatter_css/AGENTS.md |
 
 ### Option 2: 194/194 (100.00%)

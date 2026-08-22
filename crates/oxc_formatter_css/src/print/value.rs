@@ -1791,7 +1791,7 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
             // a line break after a `-` is the one that could be read back
             // differently, `a -b` being a list where `a - b` is subtraction.
             if matches!(calc.op.kind, CalcOperatorKind::Minus)
-                && is_func_like(&calc.right)
+                && is_func_like(leftmost_flattened_operand(&calc.right, f))
                 && matches!(f.options().variant, crate::options::CssVariant::Scss)
             {
                 current.push(Piece::Space);
@@ -1800,6 +1800,28 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
             }
         }
         push_operand(&calc.right, f, chunks, current);
+    }
+
+    /// The operand that will be printed first out of `value`, following the same
+    /// descent `push_operand` makes: a nested unparenthesized operation prints
+    /// its own left operand first, and a parenthesized one prints its `(`.
+    ///
+    /// Prettier has no expression tree here — postcss gives it a flat token
+    /// stream — so its rules read the node that literally follows the operator.
+    /// `$a - var(--b) * 2` is `$a - (var(--b) * 2)` to this parser and
+    /// `$a`, `-`, `var(--b)`, `*`, `2` to Prettier.
+    fn leftmost_flattened_operand<'b, 'a>(
+        value: &'b ComponentValue<'a>,
+        f: &CssFormatter<'_, 'a>,
+    ) -> &'b ComponentValue<'a> {
+        let mut current = value;
+        while let ComponentValue::Calc(inner) = current {
+            if calc_operand_has_own_parens(current, f) {
+                break;
+            }
+            current = &inner.left;
+        }
+        current
     }
 
     fn push_operand<'b, 'a>(
