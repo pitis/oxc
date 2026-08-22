@@ -66,7 +66,13 @@ impl NeedsParentheses<'_> for AstNode<'_, TSInferType<'_>> {
     fn needs_parentheses(&self, _f: &JsFormatter<'_, '_>) -> bool {
         let parent = effective_parent(self.parent());
         match parent {
-            AstNodes::TSIntersectionType(_) | AstNodes::TSUnionType(_) => true,
+            // `infer R | X` reads the way it is written — the `infer` binds to
+            // its own name and the `|` starts a union. A *constrained* infer
+            // does not: in `infer R extends string | Y` the `| Y` joins the
+            // constraint, so that one keeps its parentheses.
+            AstNodes::TSIntersectionType(_) | AstNodes::TSUnionType(_) => {
+                self.type_parameter.constraint.is_some()
+            }
             AstNodes::TSRestType(_) => false,
             _ => operator_type_or_higher_needs_parens(self.span, parent),
         }
