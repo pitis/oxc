@@ -1851,6 +1851,31 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
         for piece in chunk {
             match piece {
                 Piece::Operand(operand, wrapped) => {
+                    // Restored source parens break like any other paren group
+                    // (Prettier's `group(["(", indent([softline, …]), softline,
+                    // ")"])`), so an operand too wide for its line opens them:
+                    // ```less
+                    // (
+                    //     round(…) /
+                    //     10
+                    //   ) -
+                    // ```
+                    // Printed as plain text they could not, and the operand had
+                    // to break somewhere inside itself instead.
+                    if *wrapped && !ctx.no_break {
+                        let inner = format_with(move |f: &mut CssFormatter<'_, 'a>| {
+                            write!(
+                                f,
+                                indent(&format_with(move |f: &mut CssFormatter<'_, 'a>| {
+                                    write!(f, soft_line_break());
+                                    write_component_value(operand, ctx, f);
+                                }))
+                            );
+                            write!(f, soft_line_break());
+                        });
+                        write!(f, [text("("), group(&inner), text(")")]);
+                        continue;
+                    }
                     if *wrapped {
                         write!(f, "(");
                     }
