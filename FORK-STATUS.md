@@ -1006,8 +1006,14 @@ is left, in the order it costs the most:
    Everything else in the suite is annotated as allowed, layout-only, a reduced port, or a
    Prettier 3.9.6 bug already fixed on Prettier main.
 
-SCSS went **203 → 215 / 217** at both option sets in the process, less **403 → 405 / 409**,
-html-in-js **192 → 193 / 194** and css-in-js **19 → 21 / 21**. The two SCSS files left are the two
+SCSS went **203 → 215 / 217** at both option sets in the process, **less to 409 / 409**,
+html-in-js **192 → 193 / 194** and css-in-js **19 → 21 / 21**. Most of that was one family: where
+we put a fill separator Prettier puts none, so its chunk is wider and breaks internally. postcss
+hands Prettier a flat token stream with no expression tree, so a `#{…}`'s interior, a Less
+arithmetic chain and the value around them are all peers in ONE fill; printing each as a nested
+fill of its own put a level of indent and a chunk boundary where Prettier has neither. Splitting
+the chunking from the writing (`sass_binary_runs`, `less_binary_chunks`) and splicing let the
+enclosing fill see through them. The two SCSS files left are the two
 that are _not_ layout: Prettier adds a trailing comma that turns `($spacer * 0.5)` into a
 one-element list, and drops the author's blank lines in maps with paren values
 (prettier/prettier#16824). Matching either would make the output worse, so they stay. Nine of those files were one
