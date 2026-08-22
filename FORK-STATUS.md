@@ -743,10 +743,10 @@ NestJS, axios and vue core — each formatted under its own resolved Prettier co
 | `withastro/astro` |       2881 |   2881 (**100%**) |
 | `nestjs/nest`     |       1904 |   1904 (**100%**) |
 | `vitejs/vite`     |       1560 |  1559 (**99.9%**) |
-| `TanStack/query`  |       1091 |  1087 (**99.6%**) |
+| `TanStack/query`  |       1091 |  1088 (**99.7%**) |
 | `vuejs/core`      |        527 |    527 (**100%**) |
 | `axios/axios`     |        242 |    242 (**100%**) |
-| **Total**         |       8205 | **8200 (99.94%)** |
+| **Total**         |       8205 | **8201 (99.95%)** |
 
 Six files are excluded because Prettier cannot parse them; oxfmt refuses none of the 8,211.
 `.prettierignore` is deliberately _not_ honoured — astro's ignores every `.ts` in the repo because
@@ -801,21 +801,33 @@ end of the line rather than measured into the statement, which ASI can put lines
 comment; a `prettier-ignore`d variable declaration still takes its semicolon; parentheses are kept
 only around a _constrained_ `infer`; and a block comment's first line is no longer trimmed.
 
-**Five files are left.** One is not a difference: `vitejs/vite`'s `create-vite/src/index.ts`
+**Four files are left.** One is not a difference: `vitejs/vite`'s `create-vite/src/index.ts`
 carries `// oxfmt-ignore`, which Prettier does not recognise, so the two disagree by design. Of the
 rest, two are the same `vi.fn(function (this: X) {…})` call-argument layout — Prettier hugs the
 call and breaks the function's parameters where this printer breaks the argument list, and telling
 the two apart needs a real port of how `printArgumentsList`'s `conditionalGroup` interacts with the
-object-property context rather than a guessed rule. The last two are single files with a diagnosis
-each:
+object-property context rather than a guessed rule. The last has a diagnosis and no fix:
 
 - A complex-parameter type alias with a union right-hand side, at _exactly_ 80 columns. This writes
   `" = "` where Prettier writes `" ="` and a `line`, because here the union owns its indent and in
   Prettier the assignment does. Inverting that ownership was tried and reverted: it costs
   `typescript/union/inlining.ts` and two `single-type` fixtures, ts 640 → 638.
-- A css-in-js interpolation inside a JSX attribute, where the line comes back at 81 columns. It is
-  specific to JSX-attribute depth — the same CSS at the same depth under a plain call agrees — so
-  the fault is in the embed's host-indent plumbing.
+
+The css-in-js interpolation that used to be the fifth is fixed, and it was two faults at once. A
+value whose components all join without a break built a fill holding exactly one entry, and a
+one-entry fill is not free: the entry's fit is measured on its own, without whatever shares its
+line after the value — here the `;` — so a declaration one column over the margin stayed flat at
+81 columns. That isolation is wanted for a sass interpolation and wrong otherwise. The
+interpolation then broke at the wrong column, because Prettier anchors an embedded `${expr}` to
+the column its line starts at _in the source_ (`addAlignmentToDoc` dedents to the root and rebuilds
+it) rather than letting the CSS printer's own indent stack on top.
+
+That anchoring is the one place this fork now deliberately reproduces a Prettier 3.9.6 wart: an
+interpolation written far out stays far out for a pass, so re-formatting moves it again. 3.9.6 is
+unstable there in exactly the same way, prettier/prettier#19725 drops the anchoring on Prettier
+main, and `template-expression-indent.js` records which way it goes and what flips it back. Every
+figure in this file is measured against 3.9.6, and a real file needs it. css-in-js conformance
+went 19/21 → **20/21**.
 
 ## oxlint in general
 
