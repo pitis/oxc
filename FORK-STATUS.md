@@ -993,9 +993,12 @@ is left, in the order it costs the most:
    one worth building.
 4. `vue/no-undef-components` and `vue/no-multiple-template-root`, the two named gap rules still
    absent. No stock config enables either, which is why they have stayed at the bottom.
-5. The three conformance differences that are _not_ recorded as deliberate: `Xxx.extend`
-   unrecognised as a styled-components tag (css-in-js), an own-line comment Prettier moves and this
-   does not (gql-in-js), and `<!-- #endregion -->` after a hoisted `<script>`/`<style>` (svelte).
+5. The conformance differences that are _not_ recorded as deliberate: an own-line comment Prettier
+   moves and this does not (gql-in-js), `<!-- #endregion -->` after a hoisted `<script>`/`<style>`
+   (svelte), a broken `${}` holding comments (xxx-in-js-comment), an over-indented comment after
+   `key: value` (yaml), and the fill-chunking residue below. `Xxx.extend` is fixed — a capitalised
+   object with an `extend` property is a styled-components tag of its own, and css-in-js is
+   **21/21**.
    The SCSS long-expression break position that used to head this list is fixed, and the entry in
    `crates/oxc_formatter_css/AGENTS.md` that mis-attributed it to the core `fill` fit-check is
    corrected: it is a CHUNKING difference, and one of the two rules behind it is still open (a
@@ -1003,7 +1006,8 @@ is left, in the order it costs the most:
    Everything else in the suite is annotated as allowed, layout-only, a reduced port, or a
    Prettier 3.9.6 bug already fixed on Prettier main.
 
-SCSS went **203 → 212 / 217** and **205 → 214 / 217** in the process. Nine of those files were one
+SCSS went **203 → 213 / 217** and **205 → 214 / 217** in the process, less **403 → 405 / 409**,
+html-in-js **192 → 193 / 194** and css-in-js **19 → 21 / 21**. Nine of those files were one
 divergence: a media feature value is flat text in Prettier — the source slice with numbers and
 strings adjusted and nothing else — so the spacing inside one is the author's, and Prettier cannot
 normalise arithmetic operators there at all (prettier/prettier#1811). This re-printed the value
