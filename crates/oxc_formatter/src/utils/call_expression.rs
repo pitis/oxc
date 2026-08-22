@@ -157,18 +157,24 @@ pub fn callee_name_iterator<'b>(expr: &'b Expression<'_>) -> Option<impl Iterato
 /// This function checks if a call expression matches a test framework pattern:
 ///
 /// ```text
-/// ├─ it[.only|skip|skipIf|runIf|concurrent|sequential|todo|fails]
-/// ├─ describe[.only|skip|skipIf|runIf|concurrent|sequential|shuffle|todo]
+/// ├─ it[.only|skip]
+/// ├─ describe[.only|skip]
 /// ├─ test
-/// │  ├─ [.only|skip|skipIf|runIf|concurrent|sequential|todo|fails|extend|step|fixme]
+/// │  ├─ [.only|skip|fixme|step]
 /// │  └─ .describe
 /// │     ├─ [.only|skip|fixme]
 /// │     ├─ .parallel[.only]
 /// │     └─ .serial[.only]
-/// ├─ bench[.only|skip|todo]
-/// ├─ skip|xit|xdescribe|xtest|fit|fdescribe|ftest
-/// └─ Deno.test
+/// └─ skip|xit|xdescribe|xtest|fit|fdescribe|ftest
 /// ```
+///
+/// This is Prettier's `testCallCalleePatterns`, exactly. Upstream oxc extends it
+/// with vitest's own spellings — `bench`, `Deno.test`, `.skipIf`, `.runIf`,
+/// `.concurrent`, `.sequential`, `.todo`, `.fails`, `.extend`, `.shuffle` — which
+/// is a better default for a vitest project and a difference a project migrating
+/// off Prettier would see. This fork exists so that migration is byte-identical,
+/// so the list is Prettier's. Three files in the JS/TS corpus turn on it, all
+/// `bench(…)`.
 ///
 /// Implementation (trie-tree) is inspired by the article:
 /// <https://craftinginterpreters.com/scanning-on-demand.html#tries-and-state-machines>
@@ -176,29 +182,14 @@ pub fn contains_a_test_pattern(expr: &Expression<'_>) -> bool {
     let Some(mut names) = callee_name_iterator(expr) else { return false };
 
     match names.next() {
-        Some("it") => match names.next() {
+        Some("it" | "describe") => match names.next() {
             None => true,
-            Some(
-                "only" | "skip" | "skipIf" | "runIf" | "concurrent" | "sequential" | "todo"
-                | "fails",
-            ) => names.next().is_none(),
+            Some("only" | "skip") => names.next().is_none(),
             _ => false,
         },
-        Some("describe") => match names.next() {
-            None => true,
-            Some(
-                "only" | "skip" | "skipIf" | "runIf" | "concurrent" | "sequential" | "shuffle"
-                | "todo",
-            ) => names.next().is_none(),
-            _ => false,
-        },
-        Some("Deno") => matches!(names.next(), Some("test")) && names.next().is_none(),
         Some("test") => match names.next() {
             None => true,
-            Some(
-                "only" | "skip" | "skipIf" | "runIf" | "concurrent" | "sequential" | "todo"
-                | "fails" | "extend" | "step" | "fixme",
-            ) => names.next().is_none(),
+            Some("only" | "skip" | "fixme" | "step") => names.next().is_none(),
             Some("describe") => match names.next() {
                 None => true,
                 Some("only" | "skip" | "fixme") => names.next().is_none(),
@@ -209,11 +200,6 @@ pub fn contains_a_test_pattern(expr: &Expression<'_>) -> bool {
                 },
                 _ => false,
             },
-            _ => false,
-        },
-        Some("bench") => match names.next() {
-            None => true,
-            Some("only" | "skip" | "todo") => names.next().is_none(),
             _ => false,
         },
         Some("skip" | "xit" | "xdescribe" | "xtest" | "fit" | "fdescribe" | "ftest") => true,
