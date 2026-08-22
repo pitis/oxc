@@ -18,7 +18,7 @@ Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.9.1 and `eslint-plugin-svelte` 3
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                   |
-| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.9%** on 8,205 files         |
+| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.98%** on 8,205 files        |
 
 The short version: **Svelte can drop both today — every one of 6,673 real-world files comes back
 byte-identical to Prettier, and the three constructs where this printer deliberately differs are
@@ -743,10 +743,10 @@ NestJS, axios and vue core — each formatted under its own resolved Prettier co
 | `withastro/astro` |       2881 |   2881 (**100%**) |
 | `nestjs/nest`     |       1904 |   1904 (**100%**) |
 | `vitejs/vite`     |       1560 |  1559 (**99.9%**) |
-| `TanStack/query`  |       1091 |  1088 (**99.7%**) |
+| `TanStack/query`  |       1091 |  1090 (**99.9%**) |
 | `vuejs/core`      |        527 |    527 (**100%**) |
 | `axios/axios`     |        242 |    242 (**100%**) |
-| **Total**         |       8205 | **8201 (99.95%)** |
+| **Total**         |       8205 | **8203 (99.98%)** |
 
 Six files are excluded because Prettier cannot parse them; oxfmt refuses none of the 8,211.
 `.prettierignore` is deliberately _not_ honoured — astro's ignores every `.ts` in the repo because
@@ -801,19 +801,27 @@ end of the line rather than measured into the statement, which ASI can put lines
 comment; a `prettier-ignore`d variable declaration still takes its semicolon; parentheses are kept
 only around a _constrained_ `infer`; and a block comment's first line is no longer trimmed.
 
-**Four files are left.** One is not a difference: `vitejs/vite`'s `create-vite/src/index.ts`
-carries `// oxfmt-ignore`, which Prettier does not recognise, so the two disagree by design. Of the
-rest, two are the same `vi.fn(function (this: X) {…})` call-argument layout — Prettier hugs the
-call and breaks the function's parameters where this printer breaks the argument list, and telling
-the two apart needs a real port of how `printArgumentsList`'s `conditionalGroup` interacts with the
-object-property context rather than a guessed rule. The last has a diagnosis and no fix:
+**Two files are left**, and one of them is not a difference: `vitejs/vite`'s
+`create-vite/src/index.ts` carries `// oxfmt-ignore`, which Prettier does not recognise, so the two
+disagree by design.
+
+The two `vi.fn(function (this: X) {…})` files that used to sit here were a single missing line in
+a predicate. A sole function argument is re-printed with the grouped-last-argument layout only when
+its parameters are all plain identifiers, because that layout strips the line breaks that would let
+them break. `this` is a sibling field of `FormalParameters` in this AST and a member of `params` in
+the one Prettier reads, so a function declaring only `this: SomeType` looked parameterless — and
+therefore simple, vacuously, over an empty iterator. Stripping its breaks left the hug unable to
+fit, so the call broke its argument list instead of its parameter list. A bare `this` stays simple,
+and a `this` beside an ordinary parameter was already right, because that parameter is annotated.
+
+The one real difference left has a diagnosis and no fix:
 
 - A complex-parameter type alias with a union right-hand side, at _exactly_ 80 columns. This writes
   `" = "` where Prettier writes `" ="` and a `line`, because here the union owns its indent and in
   Prettier the assignment does. Inverting that ownership was tried and reverted: it costs
   `typescript/union/inlining.ts` and two `single-type` fixtures, ts 640 → 638.
 
-The css-in-js interpolation that used to be the fifth is fixed, and it was two faults at once. A
+The css-in-js interpolation that sat here too was two faults at once. A
 value whose components all join without a break built a fill holding exactly one entry, and a
 one-entry fill is not free: the entry's fit is measured on its own, without whatever shares its
 line after the value — here the `;` — so a declaration one column over the margin stayed flat at
