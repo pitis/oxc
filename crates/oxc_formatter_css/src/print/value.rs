@@ -948,6 +948,56 @@ pub(super) fn write_comma_group<'a>(
             let run_start = i;
             let run_end_pos = to_span(values[run_end - 1].span()).end;
             let is_last_run = run_end == values.len();
+
+            // A `#{…}` wrapping arithmetic contributes its runs to THIS fill,
+            // with the delimiters glued to the first and last. postcss tokenizes
+            // straight through an interpolation, so Prettier chunks
+            // `0 #{$a * 3 / 4} $c` with break opportunities inside the braces
+            // and can fill across them:
+            // ```scss
+            // inset $gl-spacing-scale-1 $gl-spacing-scale-1 0 #{$gl-spacing-scale-2 * 3 /
+            //   4} $gray-100,
+            // ```
+            // Kept whole it is a single wide entry the fill can only break in
+            // front of. The interior chunking is `write_sass_binary`'s, the same
+            // one it uses for its own fill.
+            if run_end == run_start + 1
+                && !ctx.no_break
+                && let Some(binary) = sole_interpolation_binary(&values[run_start])
+            {
+                let (parts, runs) = sass_binary_runs(binary, source);
+                if runs.len() > 1 {
+                    let start = to_span(values[run_start].span()).start;
+                    for (k, run) in runs.iter().enumerate() {
+                        let slice = &parts[run.start..=run.end];
+                        let dfs = run.division_force_space;
+                        let is_first = k == 0;
+                        let is_last = k + 1 == runs.len();
+                        let piece = format_with(move |f: &mut CssFormatter<'_, 'a>| {
+                            if is_first {
+                                flush_value_comments(start, f);
+                                write!(f, text("#{"));
+                            }
+                            write_sass_binary_run(slice, dfs, ctx, f);
+                            if is_last {
+                                write!(f, text("}"));
+                            }
+                        });
+                        if is_first {
+                            match sep {
+                                Separator::Hard => filler.entry(&hard_line_break(), &piece),
+                                Separator::SoftBreak => filler.entry(&soft_line_break(), &piece),
+                                _ => filler.entry(&soft_line_break_or_space(), &piece),
+                            };
+                        } else {
+                            filler.entry(&soft_line_break_or_space(), &piece);
+                        }
+                    }
+                    i = run_end;
+                    continue;
+                }
+            }
+
             let content = format_with(move |f: &mut CssFormatter<'_, 'a>| {
                 write_value_run(values, run_start, run_end, ctx, source, f);
                 // Same-line `//` comments stay attached to this entry
@@ -1605,6 +1655,162 @@ fn flatten_sass_binary<'b, 'a>(
     }
 }
 
+/// The arithmetic inside a `#{…}` that wraps nothing else, so the interpolation
+/// is exactly one delimited expression and its runs can be spliced into the
+/// enclosing fill.
+fn sole_interpolation_binary<'b, 'a>(
+    value: &'b ComponentValue<'a>,
+) -> Option<&'b SassBinaryExpression<'a>> {
+    let ComponentValue::InterpolableIdent(InterpolableIdent::SassInterpolated(interp)) = value
+    else {
+        return None;
+    };
+    let [SassInterpolatedIdentElement::Expression(expr)] = interp.elements.as_slice() else {
+        return None;
+    };
+    match expr {
+        ComponentValue::SassBinaryExpression(binary) => Some(binary),
+        _ => None,
+    }
+}
+
+/// One operand of a flattened SCSS binary chain, with the operator that follows it.
+type SassBinaryPart<'b, 'a> = (&'b ComponentValue<'a>, Option<&'b SassBinaryOperator>);
+
+/// A run of [`SassBinaryPart`]s that prints as one fill entry, as an index range
+/// into the flattened parts plus whether its trailing `/` takes spaces.
+#[derive(Clone, Copy)]
+pub(super) struct SassBinaryRun {
+    start: usize,
+    end: usize,
+    division_force_space: bool,
+}
+
+/// Flattens a binary chain and groups it into the runs Prettier's fill would hold.
+///
+/// Split out from the writing so an interpolation can hand these runs to the fill
+/// that ENCLOSES it (`#{$a + $b} - c` chunks as `[#{$a +] line [$b} - c]`), which
+/// a nested fill of its own cannot do.
+pub(super) fn sass_binary_runs<'b, 'a>(
+    binary: &'b SassBinaryExpression<'a>,
+    source: SourceText<'a>,
+) -> (Vec<SassBinaryPart<'b, 'a>>, Vec<SassBinaryRun>) {
+    let mut parts = Vec::new();
+    flatten_sass_binary(&binary.left, &mut parts);
+    if let Some(last) = parts.last_mut() {
+        last.1 = Some(&binary.op);
+    }
+    flatten_sass_binary(&binary.right, &mut parts);
+
+    let mut runs = Vec::new();
+    let mut i = 0;
+    while i < parts.len() {
+        // Merge a run while operators are tight to the next operand.
+        // `*` never merges: Prettier excludes multiplication from the tight rules (`$m*100` → `$m * 100`).
+        // Word-like operands force spaces on BOTH sides even when glued (`$a+"str"` → `$a + "str"`),
+        // so they end the run too.
+        let mut run_end = i;
+        let mut division_force_space = false;
+        while let Some(op) = parts[run_end].1 {
+            if matches!(op.kind, SassBinaryOperatorKind::Multiply) {
+                break;
+            }
+            let op_span = to_span(&op.span);
+            let next = &parts[run_end + 1].0;
+            let operand = &parts[run_end].0;
+            // Division mirrors postcss-values lexing:
+            // a word-led chunk absorbs a directly attached `/` (`$w/2`, `$w/ 2` stay verbatim);
+            // otherwise word/func NEIGHBORS force spaces on both sides
+            // (`2/$w` -> `2 / $w`, `$w /2` -> `$w / 2`)
+            // while plain numbers keep the source gap (`10px/8px`, `1/2`).
+            if matches!(op.kind, SassBinaryOperatorKind::Division) {
+                let wf = |v: &ComponentValue<'_>| is_word_like(v) || is_func_like(v);
+                let left_absorbs = to_span(operand.span()).end == op_span.start && wf(operand);
+                if !left_absorbs {
+                    let near_wordish = wf(operand)
+                        || wf(next)
+                        || run_end.checked_sub(1).is_some_and(|k| wf(parts[k].0))
+                        || parts.get(run_end + 2).is_some_and(|(o, _)| wf(o));
+                    if near_wordish {
+                        division_force_space = true;
+                        break;
+                    }
+                }
+            }
+            let next_start = to_span(next.span()).start;
+            if matches!(source.text_for(&op_span), "+" | "-")
+                && (is_word_like(operand)
+                    || is_func_like(operand)
+                    || is_word_like(next)
+                    || is_func_like(next))
+            {
+                // An asymmetric `+`/`-` (whitespace BEFORE, glued AFTER) is a signed operand in postcss-values lexing,
+                // Prettier keeps it glued (`$a -$b` stays `$a -$b`, NOT `$a - $b`).
+                // It matters for the ambiguous Sass `margin: -$a -$b` list/subtraction case (dart-sass deprecates the binary reading).
+                // Merge it into this run so no fill space lands after the operator.
+                if to_span(operand.span()).end != op_span.start && op_span.end == next_start {
+                    run_end += 1;
+                    continue;
+                }
+                break;
+            }
+            if op_span.end == next_start {
+                run_end += 1;
+            } else {
+                break;
+            }
+        }
+        runs.push(SassBinaryRun { start: i, end: run_end, division_force_space });
+        i = run_end + 1;
+    }
+    (parts, runs)
+}
+
+/// Writes one [`SassBinaryRun`]'s operands and operators.
+pub(super) fn write_sass_binary_run<'a>(
+    run: &[SassBinaryPart<'_, 'a>],
+    division_force_space: bool,
+    ctx: ValueContext<'a>,
+    f: &mut CssFormatter<'_, 'a>,
+) {
+    let source = f.context().source_text();
+    for (j, (operand, op)) in run.iter().enumerate() {
+        write_component_value(operand, ctx, f);
+        if let Some(op) = op {
+            let op_span = to_span(&op.span);
+            let operand_end = to_span(operand.span()).end;
+            let next_start = run.get(j + 1).map(|(next, _)| to_span(next.span()).start);
+            // `op(paren)` fuses like a postcss function token,
+            // which always gets a space before it;
+            // word-like operands force spaces (`$a + $b` even when glued).
+            let fuses_paren = next_start == Some(op_span.end);
+            let op_text = source.text_for(&op_span);
+            let wordish = matches!(op_text, "+" | "-")
+                && (is_word_like(operand)
+                    || is_func_like(operand)
+                    || run
+                        .get(j + 1)
+                        .is_some_and(|(next, _)| is_word_like(next) || is_func_like(next)));
+            // Division: space before `/` unless a word-led operand absorbs it
+            // (see the run-merge rule above).
+            let division_spaces = op_text == "/" && division_force_space && j + 1 == run.len();
+            if operand_end != op_span.start
+                || wordish
+                || division_spaces
+                // `*` always spaces (it also ends its run above)
+                || op_text == "*"
+                || (fuses_paren
+                    && run.get(j + 1).is_some_and(|(next, _)| {
+                        matches!(next, ComponentValue::SassParenthesizedExpression(_))
+                    }))
+            {
+                write!(f, " ");
+            }
+            write!(f, text(source.text_for(&op_span)));
+        }
+    }
+}
+
 /// SCSS binary expression: a flat fill of `operand op` entries;
 /// spaces follow the source around each operator, breaking after operators.
 fn write_sass_binary<'a>(
@@ -1613,110 +1819,16 @@ fn write_sass_binary<'a>(
     f: &mut CssFormatter<'_, 'a>,
 ) {
     let source = f.context().source_text();
-    let mut parts = Vec::new();
-    flatten_sass_binary(&binary.left, &mut parts);
-    if let Some(last) = parts.last_mut() {
-        last.1 = Some(&binary.op);
-    }
-    flatten_sass_binary(&binary.right, &mut parts);
+    let (parts, runs) = sass_binary_runs(binary, source);
 
+    let (parts_ref, runs_ref) = (&parts, &runs);
     let body = format_with(move |f: &mut CssFormatter<'_, 'a>| {
         let mut filler = f.fill();
-        let mut i = 0;
-        while i < parts.len() {
-            // Merge a run while operators are tight to the next operand.
-            // `*` never merges: Prettier excludes multiplication from the tight rules (`$m*100` → `$m * 100`).
-            // Word-like operands force spaces on BOTH sides even when glued (`$a+"str"` → `$a + "str"`),
-            // so they end the run too.
-            let mut run_end = i;
-            let mut division_force_space = false;
-            while let Some(op) = parts[run_end].1 {
-                if matches!(op.kind, SassBinaryOperatorKind::Multiply) {
-                    break;
-                }
-                let op_span = to_span(&op.span);
-                let next = &parts[run_end + 1].0;
-                let operand = &parts[run_end].0;
-                // Division mirrors postcss-values lexing:
-                // a word-led chunk absorbs a directly attached `/` (`$w/2`, `$w/ 2` stay verbatim);
-                // otherwise word/func NEIGHBORS force spaces on both sides
-                // (`2/$w` -> `2 / $w`, `$w /2` -> `$w / 2`)
-                // while plain numbers keep the source gap (`10px/8px`, `1/2`).
-                if matches!(op.kind, SassBinaryOperatorKind::Division) {
-                    let wf = |v: &ComponentValue<'_>| is_word_like(v) || is_func_like(v);
-                    let left_absorbs = to_span(operand.span()).end == op_span.start && wf(operand);
-                    if !left_absorbs {
-                        let near_wordish = wf(operand)
-                            || wf(next)
-                            || run_end.checked_sub(1).is_some_and(|k| wf(parts[k].0))
-                            || parts.get(run_end + 2).is_some_and(|(o, _)| wf(o));
-                        if near_wordish {
-                            division_force_space = true;
-                            break;
-                        }
-                    }
-                }
-                let next_start = to_span(next.span()).start;
-                if matches!(source.text_for(&op_span), "+" | "-")
-                    && (is_word_like(operand)
-                        || is_func_like(operand)
-                        || is_word_like(next)
-                        || is_func_like(next))
-                {
-                    // An asymmetric `+`/`-` (whitespace BEFORE, glued AFTER) is a signed operand in postcss-values lexing,
-                    // Prettier keeps it glued (`$a -$b` stays `$a -$b`, NOT `$a - $b`).
-                    // It matters for the ambiguous Sass `margin: -$a -$b` list/subtraction case (dart-sass deprecates the binary reading).
-                    // Merge it into this run so no fill space lands after the operator.
-                    if to_span(operand.span()).end != op_span.start && op_span.end == next_start {
-                        run_end += 1;
-                        continue;
-                    }
-                    break;
-                }
-                if op_span.end == next_start {
-                    run_end += 1;
-                } else {
-                    break;
-                }
-            }
-            let run = &parts[i..=run_end];
+        for run in runs_ref {
+            let slice = &parts_ref[run.start..=run.end];
+            let dfs = run.division_force_space;
             let content = format_with(move |f: &mut CssFormatter<'_, 'a>| {
-                for (j, (operand, op)) in run.iter().enumerate() {
-                    write_component_value(operand, ctx, f);
-                    if let Some(op) = op {
-                        let op_span = to_span(&op.span);
-                        let operand_end = to_span(operand.span()).end;
-                        let next_start = run.get(j + 1).map(|(next, _)| to_span(next.span()).start);
-                        // `op(paren)` fuses like a postcss function token,
-                        // which always gets a space before it;
-                        // word-like operands force spaces (`$a + $b` even when glued).
-                        let fuses_paren = next_start == Some(op_span.end);
-                        let op_text = source.text_for(&op_span);
-                        let wordish = matches!(op_text, "+" | "-")
-                            && (is_word_like(operand)
-                                || is_func_like(operand)
-                                || run.get(j + 1).is_some_and(|(next, _)| {
-                                    is_word_like(next) || is_func_like(next)
-                                }));
-                        // Division: space before `/` unless a word-led operand absorbs it
-                        // (see the run-merge rule above).
-                        let division_spaces =
-                            op_text == "/" && division_force_space && j + 1 == run.len();
-                        if operand_end != op_span.start
-                            || wordish
-                            || division_spaces
-                            // `*` always spaces (it also ends its run above)
-                            || op_text == "*"
-                            || (fuses_paren
-                                && run.get(j + 1).is_some_and(|(next, _)| {
-                                    matches!(next, ComponentValue::SassParenthesizedExpression(_))
-                                }))
-                        {
-                            write!(f, " ");
-                        }
-                        write!(f, text(source.text_for(&op_span)));
-                    }
-                }
+                write_sass_binary_run(slice, dfs, ctx, f);
             });
             // Media feature values (`ValueContext::no_break`) are flat text and never break
             // (Prettier's `media-value`).
@@ -1725,7 +1837,6 @@ fn write_sass_binary<'a>(
             } else {
                 filler.entry(&soft_line_break_or_space(), &content);
             }
-            i = run_end + 1;
         }
         filler.finish();
     });
@@ -1749,13 +1860,21 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
         Operand(&'b ComponentValue<'a>, bool),
         Op(&'static str),
         Space,
+        /// One run of a `#{…}` operand's arithmetic, as indices into `sass_parts`.
+        /// The interpolation contributes its runs to THIS chunk list rather than
+        /// printing a fill of its own, so `#{$a + $b} - c` chunks as
+        /// `[#{$a +] line [$b} - c]` the way Prettier's flat token stream does.
+        SassRun(usize, usize),
     }
+
+    type SassOperand<'b, 'a> = (Vec<SassBinaryPart<'b, 'a>>, Vec<SassBinaryRun>);
 
     fn flatten<'b, 'a>(
         calc: &'b Calc<'a>,
         f: &CssFormatter<'_, 'a>,
         chunks: &mut Vec<Vec<Piece<'b, 'a>>>,
         current: &mut Vec<Piece<'b, 'a>>,
+        sass_parts: &mut Vec<SassOperand<'b, 'a>>,
     ) {
         let op_str: &'static str = match calc.op.kind {
             CalcOperatorKind::Plus => "+",
@@ -1769,7 +1888,7 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
         let op_span = to_span(&calc.op.span);
         let right_start = to_span(calc.right.span()).start;
 
-        push_operand(&calc.left, f, chunks, current);
+        push_operand(&calc.left, f, chunks, current, sass_parts);
         if left_end != op_span.start {
             current.push(Piece::Space);
         }
@@ -1799,7 +1918,7 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
                 chunks.push(std::mem::take(current));
             }
         }
-        push_operand(&calc.right, f, chunks, current);
+        push_operand(&calc.right, f, chunks, current, sass_parts);
     }
 
     /// The operand that will be printed first out of `value`, following the same
@@ -1829,20 +1948,41 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
         f: &CssFormatter<'_, 'a>,
         chunks: &mut Vec<Vec<Piece<'b, 'a>>>,
         current: &mut Vec<Piece<'b, 'a>>,
+        sass_parts: &mut Vec<SassOperand<'b, 'a>>,
     ) {
         let wrapped = calc_operand_has_own_parens(operand, f);
         if let ComponentValue::Calc(inner) = operand
             && !wrapped
         {
-            flatten(inner, f, chunks, current);
-        } else {
-            current.push(Piece::Operand(operand, wrapped));
+            flatten(inner, f, chunks, current, sass_parts);
+            return;
         }
+        // A `#{…}` around arithmetic splices its runs in, delimiters glued to
+        // the first and last, so the chunk boundaries inside it are this fill's.
+        if !wrapped && let Some(binary) = sole_interpolation_binary(operand) {
+            let (parts, runs) = sass_binary_runs(binary, f.context().source_text());
+            if runs.len() > 1 {
+                let index = sass_parts.len();
+                let run_count = runs.len();
+                sass_parts.push((parts, runs));
+                current.push(Piece::Op("#{"));
+                for k in 0..run_count {
+                    if k > 0 {
+                        chunks.push(std::mem::take(current));
+                    }
+                    current.push(Piece::SassRun(index, k));
+                }
+                current.push(Piece::Op("}"));
+                return;
+            }
+        }
+        current.push(Piece::Operand(operand, wrapped));
     }
 
     let mut chunks: Vec<Vec<Piece<'_, 'a>>> = vec![];
     let mut current: Vec<Piece<'_, 'a>> = vec![];
-    flatten(calc, f, &mut chunks, &mut current);
+    let mut sass_parts: Vec<SassOperand<'_, 'a>> = vec![];
+    flatten(calc, f, &mut chunks, &mut current, &mut sass_parts);
     if !current.is_empty() {
         chunks.push(current);
     }
@@ -1886,6 +2026,16 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
                 }
                 Piece::Op(op) => write!(f, token(op)),
                 Piece::Space => write!(f, " "),
+                Piece::SassRun(operand_index, run_index) => {
+                    let (parts, runs) = &sass_parts[*operand_index];
+                    let run = runs[*run_index];
+                    write_sass_binary_run(
+                        &parts[run.start..=run.end],
+                        run.division_force_space,
+                        ctx,
+                        f,
+                    );
+                }
             }
         }
     };
