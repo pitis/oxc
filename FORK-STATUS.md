@@ -8,8 +8,8 @@ Nothing here is submitted upstream; the upstream repository is read-only from th
 
 Everything below is measured, not estimated. Every figure names the command that produced it, so
 a stale number can be re-derived rather than trusted. Figures were last taken **2026-08-21**, and
-the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prettier 3.9.6,
-`eslint-plugin-vue` 10.7.0–10.9.1 and `eslint-plugin-svelte` 3.23.0.
+the Svelte, Vue and JS/TS formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1,
+Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.9.1 and `eslint-plugin-svelte` 3.23.0.
 
 ## Summary
 
@@ -18,7 +18,7 @@ the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prett
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                   |
-| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.8%** on 8,205 files         |
+| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.9%** on 8,205 files         |
 
 The short version: **Svelte can drop both today — every one of 6,673 real-world files comes back
 byte-identical to Prettier, and the three constructs where this printer deliberately differs are
@@ -734,19 +734,19 @@ corpus stayed at 6,673.
 ## The JS/TS printer against an open-source corpus
 
 Svelte and Vue both got a real-world differential; plain JS/TS is the surface underneath both and
-had only Prettier's own fixture suites (773/810 js, 639/659 ts). So the same check was run over
+had only Prettier's own fixture suites (773/810 js, 640/659 ts). So the same check was run over
 **8,211 `.js`/`.ts`/`.tsx`/… files in six open-source repositories** — vite, astro, TanStack Query,
 NestJS, axios and vue core — each formatted under its own resolved Prettier config:
 
 | Repository        | Comparable |         Identical |
 | :---------------- | ---------: | ----------------: |
-| `withastro/astro` |       2881 |  2877 (**99.9%**) |
-| `nestjs/nest`     |       1904 |  1902 (**99.9%**) |
-| `vitejs/vite`     |       1560 |  1558 (**99.9%**) |
-| `TanStack/query`  |       1091 |  1085 (**99.5%**) |
-| `vuejs/core`      |        527 |   524 (**99.4%**) |
+| `withastro/astro` |       2881 |   2881 (**100%**) |
+| `nestjs/nest`     |       1904 |   1904 (**100%**) |
+| `vitejs/vite`     |       1560 |  1559 (**99.9%**) |
+| `TanStack/query`  |       1091 |  1087 (**99.6%**) |
+| `vuejs/core`      |        527 |    527 (**100%**) |
 | `axios/axios`     |        242 |    242 (**100%**) |
-| **Total**         |       8205 | **8188 (99.79%)** |
+| **Total**         |       8205 | **8200 (99.94%)** |
 
 Six files are excluded because Prettier cannot parse them; oxfmt refuses none of the 8,211.
 `.prettierignore` is deliberately _not_ honoured — astro's ignores every `.ts` in the repo because
@@ -770,12 +770,52 @@ The first run was 8,177, and the differences fell into three classes worth fixin
   test carrying a comment, leading ones included, and the guard only looked inside the test's span.
   `js/if/condition-break/unary-expression.js` went from 87.5% to 91.2%.
 
-What is left is seventeen files, and the largest class is not a bug: three are vitest `bench(…)`
-calls, which upstream oxc deliberately treats as test calls (`feat(formatter): Support Vitest test
-functions`) and Prettier does not. The rest are single files each — a call-argument variant that
-keeps its function's parameters breakable where this printer flattens them, an `infer R` that keeps
-parentheses inside a union, a JSX comment's trailing space, a `prettier-ignore`d statement that
-still takes its semicolon.
+That run left seventeen files, and working through them fixed ten more classes. Four were the
+fork's own idea of what Prettier does rather than Prettier's:
+
+- **Vitest's test-call spellings.** Upstream oxc extends Prettier's `testCallCalleePatterns` with
+  `bench`, `Deno.test`, `.skipIf`, `.runIf`, `.concurrent`, `.sequential`, `.todo`, `.fails`,
+  `.extend` and `.shuffle` (`feat(formatter): Support Vitest test functions`). That is the better
+  default for a vitest project and a layout difference a project migrating off Prettier would see;
+  this fork exists so that migration is byte-identical, so the list is Prettier's. Three files.
+- **A cast in `new` callee position took no group of its own.** Prettier once left `new` out of
+  that test (prettier#18406) and the code carried a note saying so; as of 3.9.6 it does not, so
+  `new (X[Y] as any)()` breaks at the cast's parentheses rather than inside the member expression.
+  Prettier's own `typescript/cast/18406.ts` — named for the issue — now passes, and ts conformance
+  went 639 → **640/659**.
+- **A JSDoc `@type` cast is keyed on the parser, not the language.** Prettier keeps the
+  parentheses under `babel` and `babel-ts` and drops them under `typescript`, and every embedded
+  fragment goes to a babel parser — so a `.ts` file drops them, a `<script lang="ts">` block drops
+  them, and a `{…}` in Svelte markup or a `{{…}}` in a Vue template keeps them even when the
+  component declares `lang="ts"`. Keying it on the source type instead silently cost the Svelte
+  corpus two files, because markup expressions are parsed as TypeScript whatever the script says.
+- **The assignment layout tested its left-hand-side rules too early.** Prettier's `chooseLayout`
+  tests `isComplexDestructuringTarget` before the operator but the complex-annotation and
+  arrow-declarator rules after it, so an own-line comment after the `=` beats an annotated arrow.
+
+The other six were ordinary porting gaps: an arrow chain indents its whole signature list rather
+than each signature after the first (which left a breaking _first_ signature's parameters a level
+short); a type assertion hugs an expression that breaks, as Prettier's `conditionalGroup` does
+when the group is already marked broken; a `return`'s trailing **line** comment is deferred to the
+end of the line rather than measured into the statement, which ASI can put lines away from the
+comment; a `prettier-ignore`d variable declaration still takes its semicolon; parentheses are kept
+only around a _constrained_ `infer`; and a block comment's first line is no longer trimmed.
+
+**Five files are left.** One is not a difference: `vitejs/vite`'s `create-vite/src/index.ts`
+carries `// oxfmt-ignore`, which Prettier does not recognise, so the two disagree by design. Of the
+rest, two are the same `vi.fn(function (this: X) {…})` call-argument layout — Prettier hugs the
+call and breaks the function's parameters where this printer breaks the argument list, and telling
+the two apart needs a real port of how `printArgumentsList`'s `conditionalGroup` interacts with the
+object-property context rather than a guessed rule. The last two are single files with a diagnosis
+each:
+
+- A complex-parameter type alias with a union right-hand side, at _exactly_ 80 columns. This writes
+  `" = "` where Prettier writes `" ="` and a `line`, because here the union owns its indent and in
+  Prettier the assignment does. Inverting that ownership was tried and reverted: it costs
+  `typescript/union/inlining.ts` and two `single-type` fixtures, ts 640 → 638.
+- A css-in-js interpolation inside a JSX attribute, where the line comes back at 81 columns. It is
+  specific to JSX-attribute depth — the same CSS at the same depth under a plain call agrees — so
+  the fault is in the embed's host-indent plumbing.
 
 ## oxlint in general
 
@@ -834,12 +874,13 @@ making them.
 | YAML                                         | `oxc_formatter_yaml`            |
 | GraphQL                                      | `oxc_formatter_graphql`         |
 | **Svelte**                                   | `oxc_formatter_svelte`          |
+| **Vue**                                      | `oxc_formatter_vue`             |
 | TOML                                         | taplo (Rust)                    |
 | **HTML, Angular, Markdown, MDX, Handlebars** | delegated to Prettier over NAPI |
 
 Prettier is still bundled inside `oxfmt`'s own `dist/` for that last row, so a project's manifest
-can be Prettier-free even where Prettier code still runs. Removing the bundle means writing native
-printers for Markdown and Vue.
+can be Prettier-free even where Prettier code still runs. Removing the bundle means writing a
+native Markdown printer.
 
 Measured parity: **9,332 of 9,332 files across nine repositories are byte-identical to Prettier
 3.9.6.**
