@@ -1763,9 +1763,30 @@ fn write_comparison(kind: &MediaFeatureComparisonKind, f: &mut CssFormatter<'_, 
 }
 
 fn write_media_feature_value<'a>(value: &ComponentValue<'a>, f: &mut CssFormatter<'_, 'a>) {
-    // Prettier's `media-value` is flat TEXT (`adjustNumbers(adjustStrings(...))`),
-    // a media query never breaks inside a feature value, however long.
-    value::write_component_value(value, ValueContext { no_break: true, ..Default::default() }, f);
+    // Prettier's `media-value` is flat TEXT: the source slice with
+    // `adjustNumbers(adjustStrings(...))` over it and nothing else. A media
+    // query never breaks inside a feature value however long, and the spacing
+    // inside one is the author's — `map-get($grid-breakpoints, md)-1` keeps its
+    // glued `-`, and `10px  +  2px` keeps both of its double spaces.
+    //
+    // Re-printing it through the value printer instead normalised operator
+    // spacing, which Prettier cannot do here (prettier/prettier#1811) — nine
+    // files in the SCSS corpus turn on exactly that.
+    //
+    // A css-in-js interpolation is the exception: its `` `PLACEHOLDER-N` ``
+    // marker has to reach the substitution as its own element, so that value
+    // keeps the structured path (which is flat here anyway, `no_break`).
+    let raw = f.context().source_text().text_for(&to_span(value.span()));
+    if raw.contains(crate::TEMPLATE_PLACEHOLDER_PREFIX) {
+        value::write_component_value(
+            value,
+            ValueContext { no_break: true, ..Default::default() },
+            f,
+        );
+        return;
+    }
+    let adjusted = value::adjust_numbers_and_strings(raw, f.options());
+    write!(f, text(arena_cow_str(&adjusted, f)));
 }
 
 fn write_media_feature<'a>(feature: &MediaFeature<'a>, f: &mut CssFormatter<'_, 'a>) {
