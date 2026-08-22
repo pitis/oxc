@@ -313,14 +313,24 @@ Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notabl
     (inline when it fits; parens on their own lines + one selector per line on overflow, the same shape as Prettier's break)
 - Less: `func(x, + 20px)` unary gluing
   - Prettier prints `+20px`; `oxc-css-parser` ASTs `, +` as a comma-left binary operation, so matching is ad-hoc for a torture-test-only shape
-- Less: Nested math in a function arg / multi-value shorthand
-  - Prettier's fill fit-check breaks INSIDE the wide chunk; our core `fill` breaks the SEPARATOR instead.
-  - Principled fix is the shared core-fill fit-check change
-  - The "needs a JS-conformance impact experiment first" caveat has been answered for a neighbouring change:
-    core `fill` lost the two Biome-only cases (the ones keyed on whether the SEPARATOR fits on its own)
-    and gained Prettier's own over-the-width guard, and **the whole conformance suite was unchanged** by it
-    — CSS included, so this divergence class survived and is still open.
-    Start from the `fill` entry in `crates/oxc_formatter_core/AGENTS.md`: the algorithm is three cases now, not five.
+- Nested math in a function arg / multi-value shorthand
+  - Prettier's fill fit-check breaks INSIDE the wide chunk; ours breaks the SEPARATOR instead.
+  - NOT a core-fill fit-check difference, which is what this entry assumed for a long time.
+    Dumping Prettier's doc shows the divergence is in the CHUNKING: where we put a fill
+    separator, Prettier puts none, so its chunk is wider and has to break internally.
+    Two chunking rules were found; the first is implemented, the second is not:
+    - **SCSS `-` before a function** (`$a - var(--b)`) takes no separator, so the chunk carries
+      the function and an overlong one breaks inside its parentheses. `write_calc`'s `flatten`.
+      Only `-`, only SCSS: `+`/`*`/`/` break as usual, and so does every operator in CSS and Less.
+      A line break after `-` is the one that reads back differently (`a -b` is a list).
+    - **A `#{…}` interpolation's interior participates in the value fill** — Prettier chunks
+      `#{$a + $b}` as `[#{$a +] line [$b}]` and can break between them; we treat the whole
+      interpolation as one atomic chunk. This is what `_ide_theme_overrides.scss` and
+      `content_editor.scss` still turn on, and it needs the interpolation modelled as value
+      components rather than a unit.
+  - There is a third, smaller gap behind those two: when a chunk breaks internally, Prettier
+    indents its content one level deeper than we do (the fill's own continuation indent applies
+    to the chunk's interior breaks).
 - Less: Value-position `@{var}` interpolation
   - `oxc-css-parser` rejects it matching `lessc`; Prettier (postcss) accepts and prints verbatim
 - Less: Lookup with whitespace inside (`@config   [   option1]`)

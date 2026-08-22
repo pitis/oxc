@@ -993,11 +993,15 @@ is left, in the order it costs the most:
    one worth building.
 4. `vue/no-undef-components` and `vue/no-multiple-template-root`, the two named gap rules still
    absent. No stock config enables either, which is why they have stayed at the bottom.
-5. The four conformance differences that are _not_ recorded as deliberate: `Xxx.extend` unrecognised
-   as a styled-components tag (css-in-js), an own-line comment Prettier moves and this does not
-   (gql-in-js), `<!-- #endregion -->` after a hoisted `<script>`/`<style>` (svelte), and one SCSS
-   long-expression break position. Everything else in the suite is annotated as allowed,
-   layout-only, a reduced port, or a Prettier 3.9.6 bug already fixed on Prettier main.
+5. The three conformance differences that are _not_ recorded as deliberate: `Xxx.extend`
+   unrecognised as a styled-components tag (css-in-js), an own-line comment Prettier moves and this
+   does not (gql-in-js), and `<!-- #endregion -->` after a hoisted `<script>`/`<style>` (svelte).
+   The SCSS long-expression break position that used to head this list is fixed, and the entry in
+   `crates/oxc_formatter_css/AGENTS.md` that mis-attributed it to the core `fill` fit-check is
+   corrected: it is a CHUNKING difference, and one of the two rules behind it is still open (a
+   `#{…}` interpolation's interior participates in Prettier's value fill and not in ours).
+   Everything else in the suite is annotated as allowed, layout-only, a reduced port, or a
+   Prettier 3.9.6 bug already fixed on Prettier main.
 
 One test failure is known and pre-existing on `main`, unrelated to any of the above:
 `oxlint::lsp::server_linter::test::test_frameworks`. The `lint::suppression` tests that drive

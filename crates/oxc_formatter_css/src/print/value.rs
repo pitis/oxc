@@ -1775,7 +1775,29 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
         }
         current.push(Piece::Op(op_str));
         if op_span.end != right_start {
-            chunks.push(std::mem::take(current));
+            // In SCSS a function operand after `-` offers no break before it,
+            // so `$a - var(--b) - $c` chunks as `[$a - var(--b) -] line [$c]`
+            // and an overlong chunk breaks inside the function's own
+            // parentheses rather than in front of it:
+            // ```scss
+            // height: calc(
+            //   #{$viewport-height} -
+            //     #{$sticky-header-height} - var(--review-bar-height)
+            // );
+            // ```
+            // Only `-`, and only SCSS. `+`, `*` and `/` break before a function
+            // as usual, and so does every operator in plain CSS and in Less —
+            // where `$a - var(--b)` chunks in two and here in one. Which fits:
+            // a line break after a `-` is the one that could be read back
+            // differently, `a -b` being a list where `a - b` is subtraction.
+            if matches!(calc.op.kind, CalcOperatorKind::Minus)
+                && is_func_like(&calc.right)
+                && matches!(f.options().variant, crate::options::CssVariant::Scss)
+            {
+                current.push(Piece::Space);
+            } else {
+                chunks.push(std::mem::take(current));
+            }
         }
         push_operand(&calc.right, f, chunks, current);
     }

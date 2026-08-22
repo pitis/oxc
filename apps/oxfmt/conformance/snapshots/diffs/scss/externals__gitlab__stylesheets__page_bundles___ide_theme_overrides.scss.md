@@ -14,7 +14,7 @@
 ===================================================================
 --- prettier
 +++ oxfmt
-@@ -234,13 +234,10 @@
+@@ -234,13 +234,12 @@
    }
  
    @function calc-btn-hover-padding($original-padding, $original-border: 1px) {
@@ -24,8 +24,10 @@
 -          --ide-btn-hover-border-width,
 -          #{$original-border}
 -        )
-+      #{$original-padding + $original-border} -
-+        var(--ide-btn-hover-border-width, #{$original-border})
++      #{$original-padding + $original-border} - var(
++        --ide-btn-hover-border-width,
++        #{$original-border}
++      )
      );
    }
  
@@ -273,8 +275,10 @@
 
   @function calc-btn-hover-padding($original-padding, $original-border: 1px) {
     @return calc(
-      #{$original-padding + $original-border} -
-        var(--ide-btn-hover-border-width, #{$original-border})
+      #{$original-padding + $original-border} - var(
+        --ide-btn-hover-border-width,
+        #{$original-border}
+      )
     );
   }
 
@@ -1196,15 +1200,17 @@
 ===================================================================
 --- prettier
 +++ oxfmt
-@@ -230,10 +230,10 @@
+@@ -230,10 +230,12 @@
    }
  
    @function calc-btn-hover-padding($original-padding, $original-border: 1px) {
      @return calc(
 -      #{$original-padding +
 -        $original-border} - var(--ide-btn-hover-border-width, #{$original-border})
-+      #{$original-padding + $original-border} -
-+        var(--ide-btn-hover-border-width, #{$original-border})
++      #{$original-padding + $original-border} - var(
++        --ide-btn-hover-border-width,
++        #{$original-border}
++      )
      );
    }
  
@@ -1448,8 +1454,10 @@
 
   @function calc-btn-hover-padding($original-padding, $original-border: 1px) {
     @return calc(
-      #{$original-padding + $original-border} -
-        var(--ide-btn-hover-border-width, #{$original-border})
+      #{$original-padding + $original-border} - var(
+        --ide-btn-hover-border-width,
+        #{$original-border}
+      )
     );
   }
 
