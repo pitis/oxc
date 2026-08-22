@@ -66,8 +66,10 @@ and `{…}` inside it reach `oxc_formatter` and `oxc_formatter_css` through the 
 ` ```svelte ` block inside Markdown or MDX gets the same formatter.
 
 Conformance runs `prettier-plugin-svelte`'s own fixture suite, plus edge cases of this fork's own,
-against **real Prettier** as the oracle — currently 90/93 at both option sets, with each remaining difference recorded
-as a deliberate divergence in `crates/oxc_formatter_svelte/AGENTS.md`. Before the native printer
+against **real Prettier** as the oracle — currently **93/93 at both option sets**. The three
+reduced ports that used to sit here are done: a declaration tag is laid out as a declaration, an
+`{#each … as PATTERN}` binding is re-serialized the way the plugin's `expandNode` does (raw
+literals included), and a trailing `<!-- #endregion -->` travels with the section it closes. Before the native printer
 this category used `prettier-plugin-svelte` as both implementation and oracle and reported 80/80,
 which measured nothing.
 
