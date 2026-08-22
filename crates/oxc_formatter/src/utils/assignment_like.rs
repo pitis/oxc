@@ -430,27 +430,19 @@ impl<'a> AssignmentLike<'a, '_> {
             }
         }
 
-        if self.should_break_left_hand_side(left_may_break) {
+        // A destructuring target is the only left-hand-side rule Prettier tests
+        // before the operator: `isComplexDestructuringTarget` comes first in
+        // `chooseLayout`, while the complex-annotation and arrow-declarator
+        // rules come after both `shouldBreakAfterOperator` and the
+        // never-break group. Order decides `const f: (e: E) => void =` with an
+        // own-line comment after the `=`, where the comment breaks after the
+        // operator and the annotated arrow would otherwise break the left.
+        if self.is_complex_destructuring() {
             return AssignmentLikeLayout::BreakLeftHandSide;
         }
 
         if self.should_break_after_operator(right_expression, is_left_short, f) {
             return AssignmentLikeLayout::BreakAfterOperator;
-        }
-
-        if self.is_complex_type_alias() {
-            return AssignmentLikeLayout::BreakLeftHandSide;
-        }
-
-        // An alias-level union owns its break and indentation (leading soft line break per member, one indent level);
-        // the fluid group would stack a second indent on top when a long left-hand side makes it break before the union does.
-        // (The end-of-line-comment case takes `BreakAfterOperator` above.)
-        if matches!(
-            self,
-            AssignmentLike::TSTypeAliasDeclaration(decl)
-                if matches!(decl.type_annotation, TSType::TSUnionType(_))
-        ) {
-            return AssignmentLikeLayout::NeverBreakAfterOperator;
         }
 
         if !left_may_break
@@ -466,6 +458,21 @@ impl<'a> AssignmentLike<'a, '_> {
                     )
                 ))
         {
+            return AssignmentLikeLayout::NeverBreakAfterOperator;
+        }
+
+        if self.is_complex_type_alias() || self.should_break_left_hand_side(left_may_break) {
+            return AssignmentLikeLayout::BreakLeftHandSide;
+        }
+
+        // An alias-level union owns its break and indentation (leading soft line break per member, one indent level);
+        // the fluid group would stack a second indent on top when a long left-hand side makes it break before the union does.
+        // (The end-of-line-comment case takes `BreakAfterOperator` above.)
+        if matches!(
+            self,
+            AssignmentLike::TSTypeAliasDeclaration(decl)
+                if matches!(decl.type_annotation, TSType::TSUnionType(_))
+        ) {
             return AssignmentLikeLayout::NeverBreakAfterOperator;
         }
 
@@ -595,11 +602,10 @@ impl<'a> AssignmentLike<'a, '_> {
 
     /// Particular function that checks if the left hand side of a [AssignmentLike] should
     /// be broken on multiple lines
+    /// The left-hand-side rules Prettier tests *after* the operator:
+    /// a complex type annotation, and an arrow initializer whose left can break.
+    /// [`Self::is_complex_destructuring`] is tested before, by the caller.
     fn should_break_left_hand_side(&self, left_may_break: bool) -> bool {
-        if self.is_complex_destructuring() {
-            return true;
-        }
-
         let Self::VariableDeclarator(declarator) = self else {
             return false;
         };
