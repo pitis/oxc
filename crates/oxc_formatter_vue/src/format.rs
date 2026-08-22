@@ -95,7 +95,24 @@ fn not_well_formed(nodes: &[Node<'_>]) -> Option<&'static str> {
                 || has_unclosed(&element.children)
         })
     }
-    has_unclosed(nodes).then_some("an element is never closed")
+    // A `<` inside a tag is not markup. The HTML tokenizer reports one as a
+    // parse error, and what produces it here is another language borrowing the
+    // syntax — an EJS `<%= … %>` inside a scaffolding template's `<script>`
+    // tag, say. The attributes such a tag parses into are a guess at where its
+    // names and values are, and reprinting them rewrites that other language:
+    // `<script setup<%= useTs ? ' lang="ts"' : '' %>>` came back with an
+    // invented `=""` and its final `>` on a line of its own.
+    fn has_angle_in_tag(nodes: &[Node<'_>]) -> bool {
+        nodes.iter().any(|node| {
+            let Node::Element(element) = node else { return false };
+            element.attributes.iter().any(|attribute| attribute.name.contains('<'))
+                || has_angle_in_tag(&element.children)
+        })
+    }
+    if has_unclosed(nodes) {
+        return Some("an element is never closed");
+    }
+    has_angle_in_tag(nodes).then_some("a tag holds a `<`, so it is not markup")
 }
 
 /// Elements whose end tag HTML makes optional, so a parent's closing tag

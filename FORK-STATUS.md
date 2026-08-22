@@ -16,7 +16,7 @@ the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prett
 | Area                       | Lint                                                          | Format                                                |
 | :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files   |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust, no Prettier in the path                  |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files   |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
 | **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
 
@@ -692,6 +692,44 @@ same trap wearing a different hat.
 
 Verified on three production repos — 2,059, 2,735 and 2,530 files — with **zero** formatting
 differences against Prettier 3.9.6.
+
+### The Vue printer against an open-source corpus
+
+The 1,602 files above are one organisation's code, which is the uniformity this file keeps warning
+about. So the Svelte check was run again for Vue, over **5,245 `.vue` files in six open-source
+repositories**, each formatted under its own repo's Prettier config resolved per file:
+
+| Repository                  | Files |       Identical |
+| :-------------------------- | ----: | --------------: |
+| `primefaces/primevue`       |  2615 |   2615 (100.0%) |
+| `element-plus/element-plus` |  1008 |   1008 (100.0%) |
+| `nuxt/ui`                   |   731 |    729 (100.0%) |
+| `vbenjs/vue-vben-admin`     |   692 |    692 (100.0%) |
+| `vuejs/vitepress`           |   100 |     99 (100.0%) |
+| `epicmaxco/vuestic-admin`   |    99 |     99 (100.0%) |
+| **Total**                   |  5245 | **5242 (100%)** |
+
+Three files are missing from that count because **Prettier cannot parse them**, and what happens to
+those is the more interesting half:
+
+- Two are Prettier bugs. `{{ 'nuxt-ui make locale --code <code>' }}` is an interpolation whose
+  string contains `<code>`, and Prettier's HTML tokenizer reads it as a tag; the other is a `slot`
+  it decides was already closed. This printer formats both correctly.
+- One is a `.vitepress/template/` scaffolding file whose script tag is an EJS expression —
+  `<script setup<%= useTs ? ' lang="ts"' : '' %>>`. Prettier refuses it. **This printer formatted
+  it, and corrupted it**: the EJS parsed as attributes and came back with an invented `=""` and its
+  final `>` on a line of its own. A `<` inside a tag is not markup — the HTML tokenizer reports one
+  as a parse error — so the component is now refused, the same answer the Svelte printer gives to a
+  parse it had to recover.
+
+The first run of the differential was 5,238 of 5,242, and all four differences were one class: an
+interface whose heritage clause carries a comment. `interface A extends /** @vue-ignore */ Omit<…>`
+broke before `extends` where Prettier keeps the clause on the name's line and breaks the type
+arguments. The rule counted a comment anywhere between the name and the heritage type, and the
+range spans the `extends` keyword — but a comment _after_ the keyword leads the type rather than
+following the name. What tells the two apart without finding the keyword is whether everything from
+the name to the comment is whitespace. Nothing else in the conformance suite moved, and the Svelte
+corpus stayed at 6,673.
 
 ## oxlint in general
 

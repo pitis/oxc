@@ -1,12 +1,12 @@
 ## js-in-vue
 
-### Option 1: 428/428 (100.00%)
+### Option 1: 429/429 (100.00%)
 
 ```json
 {"printWidth":80}
 ```
 
-### Option 2: 428/428 (100.00%)
+### Option 2: 429/429 (100.00%)
 
 ```json
 {"printWidth":100,"vueIndentScriptAndStyle":true,"singleQuote":true}

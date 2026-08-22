@@ -102,6 +102,19 @@ fn a_component_with_no_closing_tag_is_refused() {
     assert!(result.is_err(), "an unclosed block must not be reformatted from a guess");
 }
 
+/// A `<` inside a tag is not markup — the HTML tokenizer reports one as a parse
+/// error, and what produces it is another language borrowing the syntax. The
+/// attributes such a tag parses into are a guess at where its names and values
+/// are, and reprinting them rewrites that other language: this one came back
+/// with an invented `=""` and its final `>` on a line of its own.
+#[test]
+fn a_tag_holding_a_template_language_is_refused() {
+    let allocator = Allocator::new();
+    let source = "<script setup<%= useTs ? ' lang=\"ts\"' : '' %>>\nlet a = 1\n</script>\n";
+    let result = format(&allocator, source, VueFormatOptions::default());
+    assert!(result.is_err(), "a tag this printer cannot reproduce must not be reprinted");
+}
+
 #[test]
 fn a_file_ends_with_exactly_one_newline() {
     check("<style></style>", "<style></style>\n");

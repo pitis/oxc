@@ -1748,12 +1748,28 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSInterfaceDeclaration<'a>> {
         // Determines whether to use group mode for formatting the `extends` clause.
         // 1. If there are multiple `extends`, we always use group mode.
         // 2. If there is a single `extends` that is a member expression without type arguments, we use group mode.
-        // 3. If there are comments between the `id` and the `extends`, we use group mode.
+        // 3. If there is a comment between the `id` and the `extends` keyword, we use group mode.
+        //
+        // Between the *keyword* and the heritage type is a different place: a
+        // comment there leads the type — `interface A extends /** c */ Omit<…>`
+        // — and Prettier keeps the clause on the name's line for it, breaking
+        // the type arguments instead. A comment is on the name's side when
+        // everything from the name to it is whitespace, which is what tells the
+        // two apart without having to find the keyword: anything after
+        // `extends` has the keyword in the gap.
         let group_mode = extends.len() > 1
             || extends.as_ref().first().is_some_and(|first| {
                 (first.type_name.is_qualified_name() && first.type_arguments.is_none()) || {
                     let prev_span = type_parameters.as_ref().map_or(id.span(), GetSpan::span);
-                    f.comments().has_comment_in_range(prev_span.end, first.span().start)
+                    f.context().comments().comments_before(first.span().start).iter().any(
+                        |comment| {
+                            comment.span.start >= prev_span.end
+                                && f.source_text()
+                                    .slice_range(prev_span.end, comment.span.start)
+                                    .trim()
+                                    .is_empty()
+                        },
+                    )
                 }
             });
 
