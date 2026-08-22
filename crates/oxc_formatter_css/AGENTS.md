@@ -326,11 +326,21 @@ Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notabl
       the function and an overlong one breaks inside its parentheses. `write_calc`'s `flatten`.
       Only `-`, only SCSS: `+`/`*`/`/` break as usual, and so does every operator in CSS and Less.
       A line break after `-` is the one that reads back differently (`a -b` is a list).
-    - **A `#{…}` interpolation's interior participates in the value fill** — Prettier chunks
-      `#{$a + $b}` as `[#{$a +] line [$b}]` and can break between them; we treat the whole
-      interpolation as one atomic chunk. This is what `_ide_theme_overrides.scss` and
-      `content_editor.scss` still turn on, and it needs the interpolation modelled as value
-      components rather than a unit.
+    - **A `#{…}` interpolation's interior participates in the enclosing fill** — Prettier chunks
+      `#{$a + $b}` as `[#{$a +] line [$b}]` and can break between them; we print the whole
+      interpolation as one entry holding a NESTED fill, which the enclosing fill can only measure
+      as a unit and break in front of. `_ide_theme_overrides.scss` and `content_editor.scss` are
+      both down to exactly this, and nothing else.
+      - Our chunking of the interior already matches Prettier's; only the nesting differs.
+      - The interior is a `SassBinaryExpression`, so the chunks come from `write_sass_binary`,
+        whose run-merging (division/word-neighbour spacing, `*` never merging, source-driven
+        gaps) is ~80 lines that currently write straight into a fill it owns. Splicing needs
+        that chunk computation extracted from the writing.
+      - Two enclosing fills need to consume it: `write_calc`'s (the interpolation as a calc
+        operand — `_ide_theme_overrides`) and `write_comma_group`'s run loop (the interpolation
+        as one item of a space-separated list — `content_editor`).
+      - A `Calc`-only version of this was tried and reverted as dead code: inside `#{…}` the
+        arithmetic parses as `SassBinaryExpression`, never `Calc`.
   - There is a third, smaller gap behind those two: when a chunk breaks internally, Prettier
     indents its content one level deeper than we do (the fill's own continuation indent applies
     to the chunk's interior breaks).
