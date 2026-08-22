@@ -13,12 +13,12 @@ the Svelte formatting ones **2026-08-22**, against ESLint 9.39.4 / 10.8.1, Prett
 
 ## Summary
 
-| Area                       | Lint                                                          | Format                                                |
-| :------------------------- | :------------------------------------------------------------ | :---------------------------------------------------- |
-| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files   |
-| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files   |
-| **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                     |
-| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust for JS/TS, JSON, CSS, YAML, GraphQL, TOML |
+| Area                       | Lint                                                          | Format                                              |
+| :------------------------- | :------------------------------------------------------------ | :-------------------------------------------------- |
+| **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files |
+| **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files |
+| **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                   |
+| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.8%** on 8,205 files         |
 
 The short version: **Svelte can drop both today — every one of 6,673 real-world files comes back
 byte-identical to Prettier, and the three constructs where this printer deliberately differs are
@@ -730,6 +730,52 @@ range spans the `extends` keyword — but a comment _after_ the keyword leads th
 following the name. What tells the two apart without finding the keyword is whether everything from
 the name to the comment is whitespace. Nothing else in the conformance suite moved, and the Svelte
 corpus stayed at 6,673.
+
+## The JS/TS printer against an open-source corpus
+
+Svelte and Vue both got a real-world differential; plain JS/TS is the surface underneath both and
+had only Prettier's own fixture suites (773/810 js, 639/659 ts). So the same check was run over
+**8,211 `.js`/`.ts`/`.tsx`/… files in six open-source repositories** — vite, astro, TanStack Query,
+NestJS, axios and vue core — each formatted under its own resolved Prettier config:
+
+| Repository        | Comparable |         Identical |
+| :---------------- | ---------: | ----------------: |
+| `withastro/astro` |       2881 |  2877 (**99.9%**) |
+| `nestjs/nest`     |       1904 |  1902 (**99.9%**) |
+| `vitejs/vite`     |       1560 |  1558 (**99.9%**) |
+| `TanStack/query`  |       1091 |  1085 (**99.5%**) |
+| `vuejs/core`      |        527 |   524 (**99.4%**) |
+| `axios/axios`     |        242 |    242 (**100%**) |
+| **Total**         |       8205 | **8188 (99.79%)** |
+
+Six files are excluded because Prettier cannot parse them; oxfmt refuses none of the 8,211.
+`.prettierignore` is deliberately _not_ honoured — astro's ignores every `.ts` in the repo because
+it formats with Biome instead, and dropping those would have removed a third of the corpus for a
+reason that has nothing to do with whether two formatters agree. Only generated and vendored trees
+are skipped, by directory name.
+
+The first run was 8,177, and the differences fell into three classes worth fixing:
+
+- **A union inside parentheses expanded one member per line.** `(A | B | C)[]` and `(A | B) & {}`
+  came back with a leading `|` per member where Prettier keeps the members on one line between the
+  broken parentheses. The members need a group of their own inside the parentheses' break — the
+  same split the unparenthesized path already made, and for the same reason. Six files, and
+  Prettier's `typescript/union/union-parens.ts` went from 97.7% to 99.1%.
+- **A conditional type's branch broke after the `?`.** `? | keyof O` came back as `?` then the
+  union indented under it. A branch's union takes no indent of its own: the conditional already
+  aligns both branches two columns past the operator. Four files, and
+  `typescript/union/consistent-with-flow/conditional.ts` went from 54.5% to **passing**.
+- **A negated clause hugged its parentheses past a leading comment** — `if (// why\n!(a || b))`.
+  That one was this fork's own, introduced with the clause-hug port: Prettier refuses to hug any
+  test carrying a comment, leading ones included, and the guard only looked inside the test's span.
+  `js/if/condition-break/unary-expression.js` went from 87.5% to 91.2%.
+
+What is left is seventeen files, and the largest class is not a bug: three are vitest `bench(…)`
+calls, which upstream oxc deliberately treats as test calls (`feat(formatter): Support Vitest test
+functions`) and Prettier does not. The rest are single files each — a call-argument variant that
+keeps its function's parameters breakable where this printer flattens them, an `infer R` that keeps
+parentheses inside a union, a JSX comment's trailing space, a `prettier-ignore`d statement that
+still takes its semicolon.
 
 ## oxlint in general
 

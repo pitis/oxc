@@ -177,10 +177,13 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSUnionType<'a>> {
                 AstNodes::TSTypeAssertion(_)
                 | AstNodes::TSTupleType(_)
                 | AstNodes::TSTypeParameterInstantiation(_) => false,
-                // A check/extends-position union falls through to `_ => true`
-                AstNodes::TSConditionalType(_) if is_conditional_branch => {
-                    before_pipe_comments.is_empty()
-                }
+                // A check/extends-position union falls through to `_ => true`.
+                //
+                // A branch's union takes no indent of its own: the conditional
+                // already aligns both branches two columns past the `?`/`:`, and
+                // the members hug the operator rather than start a line under it.
+                // `? | keyof O` then `  | (string & …)`, not a break after `?`.
+                AstNodes::TSConditionalType(_) if is_conditional_branch => false,
                 _ => true,
             }
         };
@@ -234,7 +237,20 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSUnionType<'a>> {
             // type Some = B & (C | A) & D
             // ```
             if self.needs_parentheses(f) {
-                return write!(f, [indent(&types_shared_group), soft_line_break()]);
+                // The members take a group of their own inside the parentheses'
+                // break, which is the same split the plain path makes and for
+                // the same reason: a union too wide for the line the
+                // parentheses open on still fits *between* them.
+                // `(\n  A | B | C\n)[]`, not one member per line. Prettier
+                // writes it `group([indent([softline, group([ifBreak("| "),
+                // …members…])]), softline])`.
+                return write!(
+                    f,
+                    [
+                        indent(&format_args!(soft_line_break(), group(&types_split_group))),
+                        soft_line_break()
+                    ]
+                );
             }
 
             let is_inside_complex_tuple_type = match self.parent() {

@@ -39,7 +39,7 @@ js compatibility: 773/810 (95.43%), 23 files skipped
 | js/if/comment-between-condition-and-body.js | 💥 | 92.11% |
 | js/if/if_comments.js | 💥 | 91.89% |
 | js/if/condition-break/boolean-expression.js | 💥 | 94.03% |
-| js/if/condition-break/unary-expression.js | 💥 | 87.50% |
+| js/if/condition-break/unary-expression.js | 💥 | 91.24% |
 | js/last-argument-expansion/dangling-comment-in-arrow-function.js | 💥 | 0.00% |
 | js/logical-expressions/in-unary-expression.js | 💥 | 79.49% |
 | js/template-literals/expression-break.js | 💥 | 80.00% |

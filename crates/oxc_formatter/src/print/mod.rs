@@ -862,7 +862,16 @@ fn clause_hugs_parens<'a>(test: &AstNode<'a, Expression<'a>>, f: &JsFormatter<'_
     }
 
     let span = test.span();
-    if f.comments().has_comment_in_span(span)
+    // Prettier's `ym` refuses any test carrying a comment, and that includes a
+    // leading one: `if (\n  // why\n  !(a || b)\n)` has nowhere to put the
+    // comment in the hugged form. A comment leads the test when only whitespace
+    // separates the two.
+    let has_leading_comment =
+        f.context().comments().comments_before(span.start).last().is_some_and(|comment| {
+            f.source_text().slice_range(comment.span.end, span.start).trim().is_empty()
+        });
+    if has_leading_comment
+        || f.comments().has_comment_in_span(span)
         || !f.comments().comments_before_character(span.end, b')').is_empty()
     {
         return false;
