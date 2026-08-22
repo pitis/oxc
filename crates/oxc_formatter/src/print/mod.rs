@@ -2191,6 +2191,33 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSTypeAssertion<'a>> {
             let format_cast = format_cast.memoized();
             let format_expression = self.expression().memoized();
 
+            // An expression that breaks on its own takes the last variant
+            // outright, as Prettier's `conditionalGroup` does when the group is
+            // already marked broken (`if (doc.break) push(mostExpanded)`). The
+            // last variant is the first one again — the expression printed
+            // where it stands — so it hugs and breaks inside itself:
+            // ```ts
+            // const mutate = <CreateMutateFunction<TData, TError>>((
+            //   variables,
+            //   mutateOptions,
+            // ) => {
+            //   observer.mutate(variables, mutateOptions).catch(noop)
+            // })
+            // ```
+            // Measuring the variants instead settles on the second, which wraps
+            // the expression in parentheses it already carries.
+            //
+            // The cast is inspected first even though its answer is unused:
+            // inspecting formats, and formatting consumes comments in print
+            // order. Reaching the expression first would take a comment that
+            // leads the *type* (`<\n  // c\n  string\n>0`) and print it after
+            // the cast instead.
+            let _ = format_cast.inspect(f);
+            if format_expression.inspect(f).will_break() {
+                write!(f, [format_cast, format_expression]);
+                return;
+            }
+
             write!(
                 f,
                 [best_fitting![
