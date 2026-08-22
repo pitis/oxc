@@ -114,7 +114,19 @@ fn layout<'a>(
         _ => false,
     };
 
-    if !is_nested && matches!(object, Expression::Identifier(_)) {
+    // `a.b`: an identifier read once, which is not worth a break of its own.
+    //
+    // A cast target is not that, however bare the identifier inside it looks:
+    // Prettier keeps a `ParenthesizedExpression` node there, so its object is
+    // the parenthesis and the rule does not fire. Without paren nodes the
+    // classification is what says so, and `/** @type {T} */ (event).shiftKey`
+    // keeps the break that lets the lookup move down — the parentheses stay
+    // where they are, as the identical `(event || window).shiftKey` already
+    // does through the same branch.
+    if !is_nested
+        && matches!(object, Expression::Identifier(_))
+        && !f.comments().is_marked_as_type_cast_node(object)
+    {
         return StaticMemberLayout::NoBreak;
     }
 

@@ -1003,6 +1003,15 @@ fn is_poorly_breakable_member_or_call_chain<'a>(
     let mut expression = expression.as_ast_nodes();
 
     loop {
+        // A cast keeps its parentheses, and Prettier's node there is the
+        // `ParenthesizedExpression` — neither a link in a chain nor a head for
+        // one, so a chain that reaches a cast is not poorly breakable and the
+        // assignment does not break after its operator to protect it. Same
+        // reproduction as the whole-RHS case above, one level down:
+        // `x = /** @type {T} */ (event).shiftKey` breaks at the `.`.
+        if classify_type_cast(expression.span(), f).is_target() {
+            break;
+        }
         expression = match expression {
             AstNodes::TSNonNullExpression(assertion) => assertion.expression().as_ast_nodes(),
             AstNodes::CallExpression(call_expression) => {
