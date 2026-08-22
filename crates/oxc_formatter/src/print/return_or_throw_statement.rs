@@ -125,16 +125,49 @@ impl<'a> Format<'a, JsFormatContext<'a>> for ReturnAndThrowStatement<'a, '_> {
         write!(f, OptionalSemicolon);
 
         if !dangling_comments.is_empty() {
-            write!(
-                f,
-                [
-                    space(),
-                    FormatDanglingComments::Comments {
-                        comments: dangling_comments,
-                        indent: DanglingIndentMode::None
-                    }
-                ]
-            );
+            let content = format_with(|f| {
+                write!(
+                    f,
+                    [
+                        space(),
+                        FormatDanglingComments::Comments {
+                            comments: dangling_comments,
+                            indent: DanglingIndentMode::None
+                        }
+                    ]
+                );
+            });
+            // A line comment ends the line, so it is deferred to it and the
+            // statement is measured without it; a block comment is written
+            // inline and counts, which is what makes this return break:
+            // ```js
+            // return (
+            //   aLongLongLongLongLongCondition && anotherLongLongLongLongCondition
+            // ); /* moves */
+            // ```
+            //
+            // Deferring matters beyond the comment's own line, because ASI can
+            // put the `;` that ends the statement lines away from it:
+            // ```js
+            // if (!nonce)
+            //   return // a comment
+            //   // more comments
+            // ;(window).__nonce__ = nonce
+            // ```
+            // The last line's `;` terminates the `return`, so the comment falls
+            // inside the statement's span and reaches here instead of the
+            // statement-level trailing pass. Written inline it broke the `if`
+            // clause that Prettier hugs.
+            //
+            // No `expand_parent` beside the `line_suffix`, unlike
+            // `FormatTrailingComments`: that pass runs outside the clause's
+            // group, where propagating a break reaches only the statement list
+            // that breaks anyway. Here it would reach the clause group itself.
+            if dangling_comments.last().is_some_and(|comment| comment.is_line()) {
+                write!(f, line_suffix(&content));
+            } else {
+                write!(f, content);
+            }
         }
     }
 }
