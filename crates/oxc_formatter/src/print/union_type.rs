@@ -172,7 +172,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, TSUnionType<'a>> {
             // These parents have indent for their content, so we don't need to indent here
             match parent {
                 AstNodes::TSTypeAliasDeclaration(alias) => {
-                    should_indent_alias_union(alias, comment_info, f)
+                    should_indent_alias_union(alias, union_type_at_top, comment_info, f)
                 }
                 AstNodes::TSTypeAssertion(_)
                 | AstNodes::TSTupleType(_)
@@ -384,9 +384,30 @@ pub fn alias_union_breaks_after_operator(
 
 fn should_indent_alias_union<'a>(
     alias: &AstNode<'a, TSTypeAliasDeclaration<'a>>,
+    union: &AstNode<'a, TSUnionType<'a>>,
     comment_info: LeadingCommentsInfo,
     f: &JsFormatter<'_, 'a>,
 ) -> bool {
+    // A union that does not hug never indents itself under a type alias: the
+    // assignment breaks after the operator and supplies the indent, and the
+    // union supplies only its members. That is Prettier's shape, and it is what
+    // lets the left-hand side be measured against the `=` alone —
+    //
+    // ```ts
+    // export type DefinedQueryObserverResult<TData = unknown, TError = DefaultError> =
+    //   | QueryObserverRefetchErrorResult<TData, TError>
+    //   | QueryObserverSuccessResult<TData, TError>
+    // ```
+    //
+    // where the space this printer writes after the `=` instead is one column
+    // too many for a name that long, and breaks the parameters.
+    //
+    // A hugging union keeps the operator's line (`= null | { … } | void`) and
+    // owns its break, unless a comment ends the `=` line — see
+    // [`alias_union_breaks_after_operator`].
+    if !should_hug_type(union, f) {
+        return false;
+    }
     !alias_union_breaks_after_operator(
         alias,
         comment_info.has_trailing_own_line_jsdoc_comment,

@@ -18,6 +18,7 @@ use crate::{
         member_chain::is_member_call_chain,
         object::{format_property_key, write_member_name},
         typecast::classify_type_cast,
+        typescript::should_hug_type,
     },
     write,
 };
@@ -620,6 +621,24 @@ impl<'a> AssignmentLike<'a, '_> {
                     .is_some_and(|expr| matches!(expr, Expression::ArrowFunctionExpression(_))))
     }
 
+    /// Whether this is a type alias whose union takes the operator-side break and
+    /// indent because it does not hug, rather than because a comment ends the `=`
+    /// line. Both routes reach [`AssignmentLikeLayout::BreakAfterOperator`]; only
+    /// the comment one needs the ungrouped variant that keeps comment order.
+    fn alias_union_takes_operator_side_by_shape(&self, f: &JsFormatter<'_, 'a>) -> bool {
+        let Self::TSTypeAliasDeclaration(decl) = self else { return false };
+        let TSType::TSUnionType(union) = &decl.type_annotation else { return false };
+        let comments = f.context().comments();
+        !should_hug_type(union, f)
+            && !alias_union_breaks_after_operator(
+                decl,
+                comments
+                    .comments_before_iter(decl.type_annotation.span().start)
+                    .any(is_trailing_own_line_jsdoc_comment),
+                comments,
+            )
+    }
+
     /// Checks if the current assignment is eligible for [AssignmentLikeLayout::BreakAfterOperator]
     ///
     /// This function is small wrapper around [should_break_after_operator] because it has to work
@@ -654,15 +673,20 @@ impl<'a> AssignmentLike<'a, '_> {
                         || is_generic(&conditional_type.extends_type)
                         || comments.has_leading_own_line_comment(annotation_start)
                 }
-                // `TSUnionType` has its own indentation logic,
+                // A hugging `TSUnionType` has its own indentation logic,
                 // EXCEPT when the union suppresses it and relies on the operator-side break + indent instead.
-                TSType::TSUnionType(_) => alias_union_breaks_after_operator(
-                    decl,
-                    comments
-                        .comments_before_iter(annotation_start)
-                        .any(is_trailing_own_line_jsdoc_comment),
-                    comments,
-                ),
+                // Every other union relies on it always: it prints only its members,
+                // so the break and the indent have to come from here (`should_indent_alias_union`).
+                TSType::TSUnionType(union) => {
+                    !should_hug_type(union, f)
+                        || alias_union_breaks_after_operator(
+                            decl,
+                            comments
+                                .comments_before_iter(annotation_start)
+                                .any(is_trailing_own_line_jsdoc_comment),
+                            comments,
+                        )
+                }
                 // For a single-member `TSIntersectionType`,
                 // we need to check for leading own-line comments before the type inside the `TSIntersectionType`.
                 // This is because Prettier treats a single-member `TSIntersectionType` as the literal type inside of it,
@@ -877,12 +901,22 @@ impl<'a> Format<'a, JsFormatContext<'a>> for AssignmentLike<'a, '_> {
             // when the left side printed an end-of-line line comment, and for non-conditional type aliases,
             // those also reach the arm via own-line-comment paths where nothing was printed,
             // and their union interplay needs the ungrouped variant.
-            let keeps_comment_order = matches!(
+            //
+            // A union that takes the operator side for its SHAPE rather than for a
+            // comment is the exception: there is no comment to keep in order, and
+            // ungrouped it would break after the `=` whenever anything else on the
+            // line did — including the type parameters it was meant to keep whole:
+            // ```ts
+            // export type Plugin<
+            //   P = any,
+            // > = FunctionPlugin<P> | ObjectPlugin<P>
+            // ```
+            let keeps_comment_order = (matches!(
                 self,
                 AssignmentLike::TSTypeAliasDeclaration(decl)
                     if !matches!(decl.type_annotation, TSType::TSConditionalType(_))
-            ) || self
-                .left_printed_eol_line_comment(f.context().comments());
+            ) && !self.alias_union_takes_operator_side_by_shape(f))
+                || self.left_printed_eol_line_comment(f.context().comments());
 
             let inner_content = format_with(|f| {
                 if matches!(&layout, AssignmentLikeLayout::BreakLeftHandSide) {
