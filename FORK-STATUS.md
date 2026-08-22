@@ -18,7 +18,7 @@ Prettier 3.9.6, `eslint-plugin-vue` 10.7.0–10.9.1 and `eslint-plugin-svelte` 3
 | **Svelte**                 | 83 / 86 rules; `recommended` **37 / 37**                      | native Rust; **100%** byte-identical on 6,673 files |
 | **Vue**                    | 118 / 250 rules; a stock Nuxt config is **100%** covered      | native Rust; **100%** byte-identical on 5,245 files |
 | **TypeScript, type-aware** | 40 / 40 of `strictTypeChecked`; **99.9%** finding-for-finding | —                                                   |
-| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.98%** on 8,205 files        |
+| **Everything else**        | 1,029 rules, 157 more than upstream                           | native Rust; JS/TS **99.99%** on 8,205 files        |
 
 The short version: **Svelte can drop both today — every one of 6,673 real-world files comes back
 byte-identical to Prettier, and the three constructs where this printer deliberately differs are
@@ -743,10 +743,10 @@ NestJS, axios and vue core — each formatted under its own resolved Prettier co
 | `withastro/astro` |       2881 |   2881 (**100%**) |
 | `nestjs/nest`     |       1904 |   1904 (**100%**) |
 | `vitejs/vite`     |       1560 |  1559 (**99.9%**) |
-| `TanStack/query`  |       1091 |  1090 (**99.9%**) |
+| `TanStack/query`  |       1091 |   1091 (**100%**) |
 | `vuejs/core`      |        527 |    527 (**100%**) |
 | `axios/axios`     |        242 |    242 (**100%**) |
-| **Total**         |       8205 | **8203 (99.98%)** |
+| **Total**         |       8205 | **8204 (99.99%)** |
 
 Six files are excluded because Prettier cannot parse them; oxfmt refuses none of the 8,211.
 `.prettierignore` is deliberately _not_ honoured — astro's ignores every `.ts` in the repo because
@@ -801,9 +801,9 @@ end of the line rather than measured into the statement, which ASI can put lines
 comment; a `prettier-ignore`d variable declaration still takes its semicolon; parentheses are kept
 only around a _constrained_ `infer`; and a block comment's first line is no longer trimmed.
 
-**Two files are left**, and one of them is not a difference: `vitejs/vite`'s
-`create-vite/src/index.ts` carries `// oxfmt-ignore`, which Prettier does not recognise, so the two
-disagree by design.
+**One file is left, and it is not a difference:** `vitejs/vite`'s `create-vite/src/index.ts`
+carries `// oxfmt-ignore`, which Prettier does not recognise, so the two disagree by design. Every
+repository in the corpus is otherwise byte-identical.
 
 The two `vi.fn(function (this: X) {…})` files that used to sit here were a single missing line in
 a predicate. A sole function argument is re-printed with the grouped-last-argument layout only when
@@ -814,12 +814,17 @@ therefore simple, vacuously, over an empty iterator. Stripping its breaks left t
 fit, so the call broke its argument list instead of its parameter list. A bare `this` stays simple,
 and a `this` beside an ordinary parameter was already right, because that parameter is annotated.
 
-The one real difference left has a diagnosis and no fix:
-
-- A complex-parameter type alias with a union right-hand side, at _exactly_ 80 columns. This writes
-  `" = "` where Prettier writes `" ="` and a `line`, because here the union owns its indent and in
-  Prettier the assignment does. Inverting that ownership was tried and reverted: it costs
-  `typescript/union/inlining.ts` and two `single-type` fixtures, ts 640 → 638.
+The type alias that sat here last — a complex-parameter one with a union right-hand side, at
+_exactly_ 80 columns — turned on which of two shapes Prettier gives an alias union, and
+`shouldHugType` picks. A hugging union keeps the operator's line and owns its break
+(`= null | { … } | void`); every other union prints only its members and relies on the assignment
+to break after the `=` and supply the indent. This fork had the second shape but reached it only
+when a comment ended the `=` line; by shape it wrote a space after the operator and let the union
+indent itself, one column more than Prettier before the right-hand side starts. Flipping it for
+every alias union was tried first and cost ts 640 → 638, because the hugging ones lost the
+operator's line; keying it on the hug test keeps them. The operator-side break also had to be the
+_grouped_ variant, or it broke after the `=` whenever anything else on the line did — including the
+type parameters it was meant to keep whole.
 
 The css-in-js interpolation that sat here too was two faults at once. A
 value whose components all join without a break built a fill holding exactly one entry, and a
