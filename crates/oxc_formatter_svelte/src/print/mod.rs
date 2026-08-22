@@ -100,6 +100,15 @@ fn section_of(nodes: &[Node<'_>], index: usize, node: &Node<'_>) -> Section {
         // it. A `prettier-ignore` directive does not: it is about the node
         // after it wherever that node ends up.
         Node::Comment(comment) if !is_ignore_directive(comment.content) => {
+            // A `#endregion` closing a hoisted section travels with it, or the
+            // region it closes would be left open around whatever the ordering
+            // moved into its place (Prettier's
+            // `extractRegionEndTrailAfterHoistedEnd`).
+            if is_region_end(comment.content)
+                && let Some(section) = region_end_owner_section(nodes, index)
+            {
+                return section;
+            }
             leading_comment_section(nodes, index)
         }
         // Whitespace between two sections belongs to neither: the blank line
@@ -113,6 +122,29 @@ fn section_of(nodes: &[Node<'_>], index: usize, node: &Node<'_>) -> Section {
 
 fn is_ignore_directive(content: &str) -> bool {
     matches!(content.trim(), "prettier-ignore" | "prettier-ignore-start" | "prettier-ignore-end")
+}
+
+/// A `<!-- #endregion -->` marker, with or without a trailing label.
+fn is_region_end(content: &str) -> bool {
+    let rest = content.trim().strip_prefix("#endregion");
+    rest.is_some_and(|rest| rest.is_empty() || rest.starts_with(char::is_whitespace))
+}
+
+/// The hoisted section a `#endregion` closes: the one the element right before
+/// it belongs to, when that element is hoisted at all. Only whitespace may sit
+/// between them — anything else and the marker closes a region around that
+/// instead.
+fn region_end_owner_section(nodes: &[Node<'_>], index: usize) -> Option<Section> {
+    let (previous_index, previous) = nodes[..index].iter().enumerate().rev().find(
+        |(_, node)| !matches!(node, Node::Text(text) if is_only_collapsible_whitespace(text.value)),
+    )?;
+    if !matches!(previous, Node::Element(_)) {
+        return None;
+    }
+    match section_of(nodes, previous_index, previous) {
+        Section::Markup => None,
+        section => Some(section),
+    }
 }
 
 /// The section a top-level comment belongs to: the one the next real node is
@@ -191,25 +223,34 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatRoot<'_, 'a> {
             // between them is not carried across — they are separated by a
             // blank line wherever they came from.
             Some(section) => {
-                let mut groups: Vec<(Vec<usize>, usize)> = Vec::new();
+                let mut groups: Vec<(Vec<usize>, usize, Vec<usize>)> = Vec::new();
                 let mut comments: Vec<usize> = Vec::new();
                 for index in 0..self.nodes.len() {
                     if section_of(self.nodes, index, &self.nodes[index]) != section {
                         continue;
                     }
                     match &self.nodes[index] {
+                        // A `#endregion` that closes the element just printed
+                        // stays behind it; every other comment leads the next.
+                        Node::Comment(comment)
+                            if is_region_end(comment.content)
+                                && comments.is_empty()
+                                && !groups.is_empty() =>
+                        {
+                            groups.last_mut().expect("checked above").2.push(index);
+                        }
                         Node::Comment(_) => comments.push(index),
                         Node::Element(_) => {
-                            groups.push((std::mem::take(&mut comments), index));
+                            groups.push((std::mem::take(&mut comments), index, Vec::new()));
                         }
                         _ => {}
                     }
                 }
                 if section == Section::Scripts {
                     // `<script module>` comes first however it was written.
-                    groups.sort_by_key(|(_, index)| !is_module_script(&self.nodes[*index]));
+                    groups.sort_by_key(|(_, index, _)| !is_module_script(&self.nodes[*index]));
                 }
-                for (position, (comments, index)) in groups.iter().enumerate() {
+                for (position, (comments, index, trailing)) in groups.iter().enumerate() {
                     if position > 0 {
                         write!(f, empty_line());
                     }
@@ -222,6 +263,16 @@ impl<'a> Format<'a, SvelteFormatContext<'a>> for FormatRoot<'_, 'a> {
                         }
                     }
                     write_node(&self.nodes[*index], ChildLayout::default(), f);
+                    let mut previous = *index;
+                    for &comment in trailing {
+                        if blank_line_after(self.nodes, previous) {
+                            write!(f, empty_line());
+                        } else {
+                            write!(f, hard_line_break());
+                        }
+                        write_node(&self.nodes[comment], ChildLayout::default(), f);
+                        previous = comment;
+                    }
                 }
             }
         }
