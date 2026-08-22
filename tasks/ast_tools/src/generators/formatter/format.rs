@@ -63,6 +63,7 @@ const AST_NODE_WITH_CUSTOM_SUPPRESSED_FORMATTING: &[&str] = &[
     "LabeledStatement",
     "ReturnStatement",
     "ThrowStatement",
+    "VariableDeclaration",
     "WhileStatement",
     "WithStatement",
 ];

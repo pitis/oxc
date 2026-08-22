@@ -1937,7 +1937,7 @@ impl<'a> Format<'a, JsFormatContext<'a>> for AstNode<'a, VariableDeclaration<'a>
         let is_suppressed = f.comments().is_suppressed(self.span().start);
         self.format_leading_comments(f);
         if is_suppressed {
-            FormatSuppressedNode(self.span()).fmt(f);
+            self.write_suppressed(f);
         } else {
             self.write(f);
         }

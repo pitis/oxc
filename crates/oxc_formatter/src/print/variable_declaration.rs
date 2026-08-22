@@ -4,6 +4,7 @@ use oxc_formatter_core::{Buffer, Format};
 use oxc_span::GetSpan;
 
 use crate::print::semicolon::{FormatContentWithSemicolon, keeps_trailing_comment_inside_parens};
+use crate::print::{semicolon_terminated_content_end, write_suppressed_statement_with_semicolon};
 use crate::utils::assignment_like::AssignmentLike;
 use crate::{
     ast_nodes::{AstNode, AstNodes},
@@ -16,6 +17,30 @@ use crate::{
 use super::FormatWrite;
 
 impl<'a> FormatWrite<'a> for AstNode<'a, VariableDeclaration<'a>> {
+    /// A suppressed declaration keeps its declarators as written and is still
+    /// terminated by the formatter.
+    ///
+    /// Unlike `return` and `throw`, whose suppressed form only puts back a `;`
+    /// the ignored range had, a declaration gets one whether or not the source
+    /// wrote it — Prettier prints the ignored range for the declarator list and
+    /// the terminator separately, so `semi` still decides it and a `for` head
+    /// gets one it would not otherwise have:
+    ///
+    /// ```js
+    /// for (
+    ///   // prettier-ignore
+    ///   let i = 0;;
+    ///   i < 3;
+    ///   i++
+    /// ) {}
+    /// ```
+    fn write_suppressed(&self, f: &mut JsFormatter<'_, 'a>) {
+        let declarations_end =
+            self.declarations().as_ref().last().map_or(self.span().end, |d| d.span().end);
+        let (content_end, _) = semicolon_terminated_content_end(declarations_end, self.span(), f);
+        write_suppressed_statement_with_semicolon(self.span().start, content_end, f);
+    }
+
     fn write(&self, f: &mut JsFormatter<'_, 'a>) {
         let semicolon = match self.parent() {
             AstNodes::ForStatement(stmt) => {
