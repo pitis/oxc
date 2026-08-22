@@ -92,6 +92,17 @@ pub enum FragmentContext {
     /// happens to print the same, and two come back as the sequence expression
     /// `(a = 1), (b = 2)` — a different declaration, and not one that parses.
     VariableDeclarators,
+    /// A Svelte `{#each … as PATTERN}` / `{:then PATTERN}` binding.
+    ///
+    /// Input wrap: `function _(PATTERN) {}`
+    ///
+    /// `prettier-plugin-svelte` re-serializes these with `expandNode`, a small
+    /// printer of its own rather than the estree one: it canonicalises spacing
+    /// and never breaks, but prints a literal from its RAW source, so
+    /// `{ a = 'x', b = "y" }` keeps both spellings where the estree printer
+    /// would settle them on the configured quote. Anything outside its handful
+    /// of node types it throws on; this keeps the source instead.
+    BindingPatternAsWritten,
     /// A bare expression (e.g. Vue `v-if` / `v-bind` values, `{{ ... }}` interpolations).
     ///
     /// Input: the raw expression text, NOT pre-wrapped.
@@ -519,6 +530,33 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
                 embed_flags,
             )
         }
+        FragmentContext::BindingPatternAsWritten => {
+            let Some(Statement::FunctionDeclaration(func)) = program.body.first() else {
+                return Err(OxcDiagnostic::error(
+                    "Expected fragment wrapped as `function _(PATTERN) {}`",
+                ));
+            };
+            let Some(parameter) = func.params.items.first() else {
+                return Err(OxcDiagnostic::error("Expected one binding pattern"));
+            };
+            let mut out = String::new();
+            if !expand_binding_pattern(&parameter.pattern, program.source_text, &mut out) {
+                return Err(OxcDiagnostic::error("Unsupported binding pattern"));
+            }
+            let text = allocator.alloc_str(&out);
+            let content = formatter::prelude::format_with(|f| {
+                write!(f, formatter::prelude::text(text));
+            });
+            finish.finish(
+                session,
+                options,
+                &content,
+                program.source_text,
+                source_type,
+                &program.comments,
+                embed_flags,
+            )
+        }
         FragmentContext::TypeParameters => {
             let Some(Statement::TSTypeAliasDeclaration(decl)) = program.body.first() else {
                 return Err(OxcDiagnostic::error(
@@ -833,6 +871,104 @@ impl Label for JsLabels {
             Self::MemberChain => "MemberChain",
             Self::ImportDeclaration => "ImportDeclaration",
             Self::Comment => "Comment",
+        }
+    }
+}
+
+/// Serializes a binding pattern the way `prettier-plugin-svelte`'s `expandNode`
+/// does: canonical spacing, never a line break, and every literal printed from
+/// its raw source so `{ a = 'x', b = "y" }` keeps both spellings.
+///
+/// Returns `false` for anything the plugin does not handle — it throws there,
+/// and the caller keeps the source rather than inventing a layout for it.
+fn expand_binding_pattern(pattern: &BindingPattern<'_>, source: &str, out: &mut String) -> bool {
+    use oxc_span::GetSpan;
+
+    match pattern {
+        BindingPattern::BindingIdentifier(identifier) => {
+            out.push_str(identifier.name.as_str());
+            true
+        }
+        BindingPattern::ObjectPattern(object) => {
+            out.push('{');
+            let mut first = true;
+            for property in &object.properties {
+                out.push_str(if first { " " } else { ", " });
+                first = false;
+                if !property.shorthand {
+                    // The key's span excludes a computed key's brackets.
+                    if property.computed {
+                        out.push('[');
+                    }
+                    out.push_str(
+                        &source
+                            [property.key.span().start as usize..property.key.span().end as usize],
+                    );
+                    if property.computed {
+                        out.push(']');
+                    }
+                    out.push_str(": ");
+                }
+                if !expand_binding_pattern(&property.value, source, out) {
+                    return false;
+                }
+            }
+            if let Some(rest) = &object.rest {
+                out.push_str(if first { " ..." } else { ", ..." });
+                first = false;
+                if !expand_binding_pattern(&rest.argument, source, out) {
+                    return false;
+                }
+            }
+            out.push_str(if first { "}" } else { " }" });
+            true
+        }
+        BindingPattern::ArrayPattern(array) => {
+            out.push('[');
+            for (index, element) in array.elements.iter().enumerate() {
+                if index > 0 {
+                    out.push_str(", ");
+                }
+                // A hole (`[a, , b]`) prints as nothing between the commas.
+                if let Some(element) = element
+                    && !expand_binding_pattern(element, source, out)
+                {
+                    return false;
+                }
+            }
+            if let Some(rest) = &array.rest {
+                if !array.elements.is_empty() {
+                    out.push_str(", ");
+                }
+                out.push_str("...");
+                if !expand_binding_pattern(&rest.argument, source, out) {
+                    return false;
+                }
+            }
+            out.push(']');
+            true
+        }
+        BindingPattern::AssignmentPattern(assignment) => {
+            if !expand_binding_pattern(&assignment.left, source, out) {
+                return false;
+            }
+            out.push_str(" = ");
+            // `expandNode` prints only an identifier or a literal here, both of
+            // which are their own source text; it throws on anything else.
+            match &assignment.right {
+                Expression::Identifier(_)
+                | Expression::StringLiteral(_)
+                | Expression::NumericLiteral(_)
+                | Expression::BooleanLiteral(_)
+                | Expression::NullLiteral(_)
+                | Expression::BigIntLiteral(_)
+                | Expression::RegExpLiteral(_) => {
+                    let span = assignment.right.span();
+                    out.push_str(&source[span.start as usize..span.end as usize]);
+                    true
+                }
+                _ => false,
+            }
         }
     }
 }

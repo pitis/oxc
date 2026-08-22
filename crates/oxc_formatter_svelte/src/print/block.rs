@@ -90,7 +90,8 @@ fn write_each_block<'a>(each: &EachBlock<'a>, f: &mut SvelteFormatter<'_, 'a>) {
             // The `as` pattern and the index name are bindings, not
             // expressions: they keep the spelling the author gave them.
             if let Some(context) = &each.context {
-                write!(f, [token(" as "), text(context.text.trim())]);
+                write!(f, token(" as "));
+                write_expression(context.text, ExpressionPosition::BindingPattern, f);
             }
             if let Some(index) = &each.index {
                 write!(f, [token(", "), text(index.text.trim())]);
@@ -226,15 +227,15 @@ fn write_slot<'a>(slot: &ExpressionSlot<'a>, f: &mut SvelteFormatter<'_, 'a>) {
     write_expression(slot.text, ExpressionPosition::BlockHeader, f);
 }
 
-/// A `{:then value}` / `{:catch error}` binding, which keeps its spelling and
-/// brings its own leading space when there is one.
+/// A `{:then value}` / `{:catch error}` binding, which brings its own leading
+/// space when there is one.
 fn write_binding<'a>(slot: Option<&ExpressionSlot<'a>>, f: &mut SvelteFormatter<'_, 'a>) {
     let Some(slot) = slot else { return };
-    let text_value = slot.text.trim();
-    if text_value.is_empty() {
+    if slot.text.trim().is_empty() {
         return;
     }
-    write!(f, [token(" "), text(text_value)]);
+    write!(f, token(" "));
+    write_expression(slot.text, ExpressionPosition::BindingPattern, f);
 }
 
 /// A block branch's children, indented, with the whitespace the author left

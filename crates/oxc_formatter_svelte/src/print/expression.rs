@@ -46,6 +46,8 @@ pub enum ExpressionPosition {
     /// A `{const x = 1}` / `{let a = 1, b = 2}` tag's contents, keyword
     /// included — a declaration, laid out as one.
     DeclarationTag,
+    /// A `{#each … as PATTERN}` / `{:then PATTERN}` binding.
+    BindingPattern,
 }
 
 /// Print a `{…}` in a text position, which may be a declaration tag.
@@ -132,12 +134,20 @@ pub fn write_expression<'a>(
         ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
         ExpressionPosition::SnippetSignature => "svelte-snippet-signature",
         ExpressionPosition::DeclarationTag => "svelte-declaration-tag",
+        ExpressionPosition::BindingPattern => "svelte-binding-pattern",
     };
     // A snippet header is a function signature with the keyword left out, so
     // it is put back before the fragment is handed over — and left out of the
     // fallback below, which is the header as the author wrote it.
-    let wrapped = matches!(position, ExpressionPosition::SnippetSignature)
-        .then(|| f.allocator().alloc_str(&format!("function {} {{}}", expression.trim())));
+    let wrapped = match position {
+        ExpressionPosition::SnippetSignature => {
+            Some(f.allocator().alloc_str(&format!("function {} {{}}", expression.trim())))
+        }
+        ExpressionPosition::BindingPattern => {
+            Some(f.allocator().alloc_str(&format!("function _({}) {{}}", expression.trim())))
+        }
+        _ => None,
+    };
     let response = f.session().dispatch(DispatchRequest {
         language,
         text: wrapped.unwrap_or(expression),

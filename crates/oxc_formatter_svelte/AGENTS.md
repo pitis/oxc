@@ -128,16 +128,22 @@ Each is either a Prettier bug that corrupts a component, or a reduced port with 
 
 **Reduced ports:**
 
-- `{let a = 1, b = 2}` keeps its spelling. A declaration tag's single declarator is formatted
-  through the expression path; two of them would come back as the sequence expression
-  `(a = 1), (b = 2)`, a different declaration that does not parse as one.
-- An `{#each … as PATTERN}` / `{:then PATTERN}` binding keeps its spelling. Prettier
-  re-serializes it with a bespoke pattern printer (`expandNode`) that preserves literal spelling
-  and never breaks lines; the fragment path here would reach it through the estree printer,
-  which does neither. Canonical spacing already matches.
-- A `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` does not travel with
-  it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The
-  _leading_ comment does.
+The three that used to head this list are done, and the suite is 93/93:
+
+- A declaration tag is laid out as a declaration. `FragmentContext::VariableDeclarators` takes
+  the declarator text and prints the declarator list; the host still writes the keyword, and the
+  `}` closes the tag in place of a semicolon. Reading it as an expression is what turned
+  `{let a = 1, b = 2}` into the sequence expression `(a = 1), (b = 2)`.
+- An `{#each … as PATTERN}` / `{:then PATTERN}` binding goes through
+  `FragmentContext::BindingPatternAsWritten`, a port of `prettier-plugin-svelte`'s `expandNode`:
+  canonical spacing, never a line break, and every literal printed from its RAW source, so
+  `{ a = 'x', b = "y" }` keeps both spellings where the estree printer would settle them on the
+  configured quote. `expandNode` throws outside its handful of node types (`{ a = 1 + 2 }` fails
+  to format under Prettier at all); this keeps the source there instead.
+- A `<!-- #endregion -->` after a hoisted `<script>`/`<style>` travels with it
+  (`extractRegionEndTrailAfterHoistedEnd`). Only whitespace may sit between the two — anything
+  else and the marker closes a region around that instead.
+
 - `@format` / `requirePragma` / `insertPragma`: oxfmt supports these for no language.
 - `svelteSortOrder` must name all four sections. Prettier requires only `options` and silently
   drops whatever is left out, which deletes that section's content rather than moving it.

@@ -300,6 +300,12 @@ pub fn route(language: &str) -> Route {
         // A `{#snippet name(params)}` header, wrapped by the caller as
         // `function name(params) {}`: it is a function signature, and its
         // parameters are parameters rather than arguments.
+        // `{#each … as PATTERN}` / `{:then PATTERN}`: a binding, re-serialized
+        // the way `prettier-plugin-svelte`'s `expandNode` does.
+        "svelte-binding-pattern" => Route::Native(NativeLanguage::JsFragment(
+            ts(),
+            FragmentContext::BindingPatternAsWritten,
+        )),
         // `{const x = 1}` / `{let a = 1, b = 2}`: a declaration, not an
         // expression. Always TypeScript for the same reason the other Svelte
         // routes are.
