@@ -1003,6 +1003,16 @@ is left, in the order it costs the most:
    Everything else in the suite is annotated as allowed, layout-only, a reduced port, or a
    Prettier 3.9.6 bug already fixed on Prettier main.
 
+SCSS went **203 → 212 / 217** and **205 → 214 / 217** in the process. Nine of those files were one
+divergence: a media feature value is flat text in Prettier — the source slice with numbers and
+strings adjusted and nothing else — so the spacing inside one is the author's, and Prettier cannot
+normalise arithmetic operators there at all (prettier/prettier#1811). This re-printed the value
+through the value printer, which normalised it; gitlab writes
+`@media (max-width: map-get($grid-breakpoints, md)-1)` nine times. The comment above the function
+already stated Prettier's rule, and the implementation did not follow it — worth remembering when
+an entry in this file says "allowed": several of the SCSS ones were describing an implementation
+detail rather than a decision.
+
 One test failure is known and pre-existing on `main`, unrelated to any of the above:
 `oxlint::lsp::server_linter::test::test_frameworks`. The `lint::suppression` tests that drive
 `oxlint-tsgolint` also fail locally, there because the spawned binary takes a `SIGPIPE`.
