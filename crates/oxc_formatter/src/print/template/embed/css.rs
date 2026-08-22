@@ -7,7 +7,8 @@ use crate::{
     embed_context::CssInJsTemplate,
     formatter::prelude::*,
     print::template::{
-        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateExpression,
+        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateElementIndention,
+        TemplateExpression,
     },
     write,
 };
@@ -108,6 +109,35 @@ pub(super) fn format_css_doc<'a>(
         return false;
     }
 
+    // The indentation each expression is anchored at: the whitespace after the
+    // last newline of the quasi before it, as written. Prettier reaches the same
+    // place through `addAlignmentToDoc`, which dedents the expression to the root
+    // and rebuilds that column, so the CSS printer's own indent for the
+    // declaration value does not stack on top of it — the expression breaks one
+    // level under the line it started on, wherever the CSS ended up being
+    // printed:
+    //
+    // ```css
+    // background: ${t(
+    //   colors.gray[200],
+    // )}${alpha[80]};
+    // ```
+    //
+    // It is the *source* column, not the printed one, so a template whose
+    // interpolation was indented oddly keeps that oddity for a pass. Prettier
+    // does the same, and the two agree the pass after.
+    let tab_width = u32::from(f.options().indent_width.value());
+    let mut indention = TemplateElementIndention::default();
+    let mut indentions = Vec::with_capacity(expressions.len());
+    for quasi_elem in quasis.iter().take(expressions.len()) {
+        indention = TemplateElementIndention::after_last_new_line(
+            quasi_elem.value.raw.as_str(),
+            tab_width,
+            indention,
+        );
+        indentions.push(indention);
+    }
+
     // Phase 3: Replace each `${exprN}` placeholder with the formatted expression.
     // Two kinds survive SCSS formatting:
     // - the typed `EmbedPlaceholder(N)` marker (the main path) -> a breakable group
@@ -120,12 +150,12 @@ pub(super) fn format_css_doc<'a>(
                     let Some(&expr) = expressions.get(index as usize) else {
                         continue;
                     };
-                    // Prettier prints embedded `${expr}` with `printEmbeddedTemplateExpressions()`:
-                    // the plain-template expression logic minus source-indentation preservation.
-                    // Default options (zero indention) are exactly that (same as graphql.rs).
                     let te = TemplateExpression::Expression(expr);
-                    FormatTemplateExpression::new(&te, FormatTemplateExpressionOptions::default())
-                        .fmt(f);
+                    let options = FormatTemplateExpressionOptions {
+                        indention: indentions.get(index as usize).copied().unwrap_or_default(),
+                        after_new_line: false,
+                    };
+                    FormatTemplateExpression::new(&te, options).fmt(f);
                 }
                 // A sentinel inside a string / `url()` is always inline `${expr}`.
                 // Same scan as html.rs: `split_on_placeholders` yields alternating

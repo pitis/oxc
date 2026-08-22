@@ -785,6 +785,34 @@ pub(super) fn is_single_sass_interpolation(values: &[ComponentValue<'_>]) -> boo
         )
 }
 
+/// One run of components joined without a break: a fill entry's body, and the
+/// whole value when the run turns out to be the only one.
+fn write_value_run<'a>(
+    values: &[ComponentValue<'a>],
+    run_start: usize,
+    run_end: usize,
+    ctx: ValueContext<'a>,
+    source: SourceText<'a>,
+    f: &mut CssFormatter<'_, 'a>,
+) {
+    flush_value_comments(to_span(values[run_start].span()).start, f);
+    for (offset, value) in values[run_start..run_end].iter().enumerate() {
+        if offset > 0 {
+            let sep = separator_between(values, run_start + offset, ctx, source);
+            if sep == Separator::Space {
+                write!(f, " ");
+            }
+            // A word continuation prints raw, not normalized
+            // (`sandstone.10`, `[0.50]` must survive as-is).
+            if sep == Separator::Word {
+                write!(f, text(source.text_for(&to_span(value.span()))));
+                continue;
+            }
+        }
+        write_component_value(value, ctx, f);
+    }
+}
+
 /// Mirrors Prettier's `printCommaSeparatedValueGroup`.
 /// Joins components with `line`, except for pairs that must stay tight.
 pub(super) fn write_comma_group<'a>(
@@ -836,9 +864,41 @@ pub(super) fn write_comma_group<'a>(
                     .any(|c| c.span.start >= prev_end && c.span.end <= start)
             }
         });
+    // Whether every component joins the next without a break, so the loop below
+    // would build a fill holding exactly one entry.
+    //
+    // A one-entry fill is not filling anything, and it is not free: the entry's
+    // fit is measured on its own, without whatever shares its line after the
+    // value — the `;`, a trailing comment — so a value one column over the
+    // margin stays flat. That isolation is wanted for a sass interpolation
+    // (see `is_single_sass_interpolation`) and wrong here. Prettier prints these
+    // as `group(indent([…]))` with no fill at all, which is what the direct
+    // write below produces:
+    //
+    // ```css
+    // background: ${t(
+    //   colors.gray[200],
+    //   colors.darkGray[400],
+    // )}${alpha[80]};
+    // ```
+    //
+    // A tail bound is excluded because its comments become entries of their own.
+    let single_run = ctx.tail_bound.is_none()
+        && (1..values.len()).all(|i| {
+            matches!(
+                separator_between(values, i, ctx, source),
+                Separator::Tight | Separator::Word | Separator::Space
+            )
+        });
+
     let body = format_with(move |f: &mut CssFormatter<'_, 'a>| {
         if grid_did_break {
             write!(f, hard_line_break());
+        }
+
+        if single_run {
+            write_value_run(values, 0, values.len(), ctx, source, f);
+            return;
         }
         // Snapshot of pending comments inside the value
         // (for separator decisions; consumption happens inside the entries).
@@ -886,27 +946,10 @@ pub(super) fn write_comma_group<'a>(
                 run_end += 1;
             }
             let run_start = i;
-            let run = &values[i..run_end];
-            let start = to_span(values[i].span()).start;
             let run_end_pos = to_span(values[run_end - 1].span()).end;
             let is_last_run = run_end == values.len();
             let content = format_with(move |f: &mut CssFormatter<'_, 'a>| {
-                flush_value_comments(start, f);
-                for (j, v) in run.iter().enumerate() {
-                    if j > 0 {
-                        let sep = separator_between(values, run_start + j, ctx, source);
-                        if sep == Separator::Space {
-                            write!(f, " ");
-                        }
-                        // A word continuation prints raw, not normalized
-                        // (`sandstone.10`, `[0.50]` must survive as-is).
-                        if sep == Separator::Word {
-                            write!(f, text(source.text_for(&to_span(v.span()))));
-                            continue;
-                        }
-                    }
-                    write_component_value(v, ctx, f);
-                }
+                write_value_run(values, run_start, run_end, ctx, source, f);
                 // Same-line `//` comments stay attached to this entry
                 // (a separate entry would break with the expanded group).
                 if !is_last_run {

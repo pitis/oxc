@@ -38,7 +38,7 @@
 
 ## css-in-js
 
-### Option 1: 19/21 (90.48%)
+### Option 1: 20/21 (95.24%)
 
 ```json
 {"printWidth":80}
@@ -46,10 +46,9 @@
 
 | File | Note |
 | :--- | :--- |
-| [edge-cases/css-in-js/template-expression-indent.js](diffs/css-in-js/edge-cases__css-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 | [externals/prettier/js/multiparser-css/styled-components.js](diffs/css-in-js/externals__prettier__js__multiparser-css__styled-components.js.md) | `Xxx.extend` not recognized as tag |
 
-### Option 2: 19/21 (90.48%)
+### Option 2: 20/21 (95.24%)
 
 ```json
 {"printWidth":100}
@@ -57,7 +56,6 @@
 
 | File | Note |
 | :--- | :--- |
-| [edge-cases/css-in-js/template-expression-indent.js](diffs/css-in-js/edge-cases__css-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 | [externals/prettier/js/multiparser-css/styled-components.js](diffs/css-in-js/externals__prettier__js__multiparser-css__styled-components.js.md) | `Xxx.extend` not recognized as tag |
 
 ## html-in-js
