@@ -544,6 +544,27 @@ impl<'a> Format<'a, JsFormatContext<'a>> for ArrowChain<'a, '_> {
                 .assignment_layout
                 .is_some_and(|layout| layout != AssignmentLikeLayout::BreakAfterOperator);
 
+        // Where that single indent goes. Around the whole signature list, as in
+        // Prettier's `group(indent([…, joinArrowFunctionSignatures(…)]))`, it
+        // also reaches a *first* signature that breaks its own parameters:
+        // ```ts
+        // return (
+        //     data?,
+        //     ...pipes: Pipe[],
+        //   ): ParameterDecorator =>
+        //   (target, key, index) => {};
+        // ```
+        // Around each signature after the first it does not, and the parameters
+        // come back a level short. Prettier writes it the second way only when
+        // the tail body takes a line of its own, where the chain is read down
+        // the left edge and the head's parameters are not where it breaks:
+        // ```js
+        // a || ((b) =>
+        //   (c) =>
+        //     0);
+        // ```
+        let indents_signature_list = has_initial_indent || !body_on_separate_line;
+
         let format_arrow_signatures = format_with(|f| {
             let join_signatures = format_with(|f| {
                 let mut is_first_in_chain = true;
@@ -604,11 +625,9 @@ impl<'a> Format<'a, JsFormatContext<'a>> for ArrowChain<'a, '_> {
                     //     (b) =>
                     //     (c) =>
                     //       0
-                    // Because the chain is printed as a flat list, each entry needs to set
-                    // its own indention. This ensures that the first item keeps the same
-                    // level as the surrounding content, and then each subsequent item has
-                    // one additional level, as shown above.
-                    if is_first_in_chain || has_initial_indent {
+                    // Under `indents_signature_list` one indent around the
+                    // whole list does it, and each entry prints bare.
+                    if is_first_in_chain || indents_signature_list {
                         is_first_in_chain = false;
                         write!(f, [formatted_signature]);
                     } else {
@@ -688,21 +707,42 @@ impl<'a> Format<'a, JsFormatContext<'a>> for ArrowChain<'a, '_> {
         let group_id = f.group_id("arrow-chain");
 
         let format_inner = format_with(|f| {
-            if has_initial_indent {
-                write!(
-                    f,
-                    [group(&indent(&format_args!(soft_line_break(), format_arrow_signatures)))
-                        .with_group_id(Some(group_id))
-                        .should_expand(break_signatures)]
-                );
-            } else {
-                write!(
-                    f,
-                    group(&format_arrow_signatures)
-                        .with_group_id(Some(group_id))
-                        .should_expand(break_signatures)
-                );
-            }
+            // The signature list is always indented, as in Prettier's
+            // `group(indent([…, signatures]))`. Only the break that opens a
+            // line for the first signature is conditional: a callee or an
+            // assignment's right-hand side moves the chain down before it
+            // starts, and everywhere else the chain begins where it stands.
+            //
+            // The indent still reaches the signatures after the first, whose
+            // breaks are inside it — and a first signature whose own parameters
+            // break, which is what a bare list would leave a level short:
+            // ```ts
+            // return (
+            //     data?,
+            //     ...pipes: Pipe[],
+            //   ): ParameterDecorator =>
+            //   (target, key, index) => {};
+            // ```
+            let signatures = format_with(|f| {
+                if indents_signature_list {
+                    write!(
+                        f,
+                        indent(&format_args!(
+                            has_initial_indent.then_some(soft_line_break()),
+                            format_arrow_signatures
+                        ))
+                    );
+                } else {
+                    write!(
+                        f,
+                        [has_initial_indent.then_some(soft_line_break()), format_arrow_signatures]
+                    );
+                }
+            });
+            write!(
+                f,
+                [group(&signatures).with_group_id(Some(group_id)).should_expand(break_signatures)]
+            );
 
             write!(f, [space(), "=>"]);
 
