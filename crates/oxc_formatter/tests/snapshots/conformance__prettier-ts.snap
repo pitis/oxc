@@ -2,7 +2,7 @@
 source: crates/oxc_formatter/tests/conformance.rs
 expression: report
 ---
-ts compatibility: 639/659 (96.97%), 16 files skipped
+ts compatibility: 640/659 (97.12%), 16 files skipped
 
 # Failed
 
@@ -10,7 +10,6 @@ ts compatibility: 639/659 (96.97%), 16 files skipped
 | :-------- | :--------------: | :---------: |
 | typescript/as/comments/17407.ts | 💥 | 47.06% |
 | typescript/call/callee-comments.ts | 💥 | 75.00% |
-| typescript/cast/18406.ts | 💥 | 84.21% |
 | typescript/comments/method_types.ts | 💥 | 82.05% |
 | typescript/comments/type-parameters.ts | 💥 | 81.82% |
 | typescript/comments/first-argument/first-argument.ts | 💥 | 81.16% |

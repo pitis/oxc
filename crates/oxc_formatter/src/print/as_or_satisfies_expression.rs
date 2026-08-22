@@ -80,11 +80,18 @@ fn is_callee_or_object_context(span: Span, parent: &AstNodes<'_>) -> bool {
         // Static member
         AstNodes::StaticMemberExpression(_) => true,
         AstNodes::ComputedMemberExpression(member) => member.object.span() == span,
-        // Or CallExpression callee (Not NewExpression, to align with Prettier)
-        // https://github.com/prettier/prettier/blob/fdfa6701767f5140a85902ecc9fb6444f5b4e3f8/src/language-js/print/cast-expression.js#L28-L33
-        // NOTE: We may revert this if resolved: https://github.com/prettier/prettier/issues/18406
-        // _ => parent.is_call_like_callee_span(span),
+        // Or a callee, `new` included. Prettier once left `new` out
+        // (https://github.com/prettier/prettier/issues/18406); as of 3.9.6 it
+        // does not, and `new (X[Y] as any)()` breaks at the parentheses the
+        // cast is wrapped in rather than inside the member expression:
+        //
+        // ```ts
+        // const instance = new (
+        //   HttpErrorByCode[HttpStatus.HTTP_VERSION_NOT_SUPPORTED] as any
+        // )();
+        // ```
         AstNodes::CallExpression(call) => call.callee.span() == span,
+        AstNodes::NewExpression(new_expression) => new_expression.callee.span() == span,
         _ => false,
     }
 }
