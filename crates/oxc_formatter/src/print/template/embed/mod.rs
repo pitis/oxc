@@ -39,7 +39,23 @@ fn get_tag_name<'a>(expr: &'a Expression<'a>) -> Option<&'a str> {
     let expr = expr.get_inner_expression();
     match expr {
         Expression::Identifier(ident) => Some(ident.name.as_str()),
-        Expression::StaticMemberExpression(member) => get_tag_name(&member.object),
+        Expression::StaticMemberExpression(member) => {
+            // `Button.extend` is a styled-components tag of its own (Prettier's
+            // `isStyledExtend`): a capitalised object with an `extend` property
+            // is how styled-components v3 derived a component, and the derived
+            // one's body is CSS just like `styled.button`'s. Reaching the root
+            // identifier finds only `Button`, which names nothing.
+            if member.property.name == "extend"
+                && matches!(
+                    member.object.get_inner_expression(),
+                    Expression::Identifier(ident)
+                        if ident.name.chars().next().is_some_and(char::is_uppercase)
+                )
+            {
+                return Some("styled");
+            }
+            get_tag_name(&member.object)
+        }
         Expression::ComputedMemberExpression(exp) => get_tag_name(&exp.object),
         Expression::CallExpression(call) => get_tag_name(&call.callee),
         _ => None,

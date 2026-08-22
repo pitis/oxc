@@ -36,25 +36,17 @@
 
 ## css-in-js
 
-### Option 1: 20/21 (95.24%)
+### Option 1: 21/21 (100.00%)
 
 ```json
 {"printWidth":80}
 ```
 
-| File | Note |
-| :--- | :--- |
-| [externals/prettier/js/multiparser-css/styled-components.js](diffs/css-in-js/externals__prettier__js__multiparser-css__styled-components.js.md) | `Xxx.extend` not recognized as tag |
-
-### Option 2: 20/21 (95.24%)
+### Option 2: 21/21 (100.00%)
 
 ```json
 {"printWidth":100}
 ```
-
-| File | Note |
-| :--- | :--- |
-| [externals/prettier/js/multiparser-css/styled-components.js](diffs/css-in-js/externals__prettier__js__multiparser-css__styled-components.js.md) | `Xxx.extend` not recognized as tag |
 
 ## html-in-js
 
@@ -181,7 +173,7 @@
 
 ## less
 
-### Option 1: 403/409 (98.53%)
+### Option 1: 404/409 (98.78%)
 
 ```json
 {"printWidth":80}
@@ -190,7 +182,6 @@
 | File | Note |
 | :--- | :--- |
 | [externals/ng-zorro-antd/components/style/themes/compact.less](diffs/less/externals__ng-zorro-antd__components__style__themes__compact.less.md) | Allowed (layout-only): nested Less math — Prettier's fill fit-check breaks inside the wide chunk, ours breaks the separator (biome fill). See crates/oxc_formatter_css/AGENTS.md |
-| [externals/ng-zorro-antd/components/style/themes/dark.less](diffs/less/externals__ng-zorro-antd__components__style__themes__dark.less.md) | Allowed: trailing `// comment` rides a line_suffix, never counts toward print width; Prettier only treats CSS-family `//` inline and breaks the value. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/ng-zorro-antd/components/style/themes/default.less](diffs/less/externals__ng-zorro-antd__components__style__themes__default.less.md) | Allowed (layout-only): nested Less math — Prettier's fill fit-check breaks inside the wide chunk, ours breaks the separator (biome fill). See crates/oxc_formatter_css/AGENTS.md<br>Allowed: trailing `// comment` rides a line_suffix, never counts toward print width; Prettier only treats CSS-family `//` inline and breaks the value. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/ng-zorro-antd/components/style/themes/variable.less](diffs/less/externals__ng-zorro-antd__components__style__themes__variable.less.md) | Allowed (layout-only): nested Less math — Prettier's fill fit-check breaks inside the wide chunk, ours breaks the separator (biome fill). See crates/oxc_formatter_css/AGENTS.md<br>Allowed: trailing `// comment` rides a line_suffix, never counts toward print width; Prettier only treats CSS-family `//` inline and breaks the value. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/ng-zorro-antd/components/table/style/index.less](diffs/less/externals__ng-zorro-antd__components__table__style__index.less.md) | Allowed (layout-only): nested Less math — Prettier's fill fit-check breaks inside the wide chunk, ours breaks the separator (biome fill). See crates/oxc_formatter_css/AGENTS.md |
@@ -256,7 +247,7 @@
 
 ## scss
 
-### Option 1: 212/217 (97.70%)
+### Option 1: 213/217 (98.16%)
 
 ```json
 {"printWidth":80}
@@ -268,7 +259,6 @@
 | [externals/gitlab/stylesheets/framework/variables_overrides.scss](diffs/scss/externals__gitlab__stylesheets__framework__variables_overrides.scss.md) | Allowed (semantics): Prettier adds a trailing comma to non-comma-list map-item parens (`1: ($spacer * 0.5)` → 1-element list); we keep them inline. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/gitlab/stylesheets/highlight/conflict_colors.scss](diffs/scss/externals__gitlab__stylesheets__highlight__conflict_colors.scss.md) | Allowed: Prettier drops blank lines in SCSS maps with paren values; ours preserves (prettier/prettier#16824) |
 | [externals/gitlab/stylesheets/page_bundles/_ide_theme_overrides.scss](diffs/scss/externals__gitlab__stylesheets__page_bundles___ide_theme_overrides.scss.md) | Layout-only: Prettier's fill fit-check breaks inside `var()` args in a long `calc()`; ours breaks after the operator. See crates/oxc_formatter_css/AGENTS.md |
-| [externals/gitlab/stylesheets/pages/profile.scss](diffs/scss/externals__gitlab__stylesheets__pages__profile.scss.md) | Allowed: trailing `// comment` rides a line_suffix, never counts toward print width; Prettier only treats CSS-family `//` inline and breaks the value. See crates/oxc_formatter_css/AGENTS.md |
 
 ### Option 2: 214/217 (98.62%)
 
