@@ -300,6 +300,12 @@ pub fn route(language: &str) -> Route {
         // A `{#snippet name(params)}` header, wrapped by the caller as
         // `function name(params) {}`: it is a function signature, and its
         // parameters are parameters rather than arguments.
+        // `{const x = 1}` / `{let a = 1, b = 2}`: a declaration, not an
+        // expression. Always TypeScript for the same reason the other Svelte
+        // routes are.
+        "svelte-declaration-tag" => {
+            Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::VariableDeclarators))
+        }
         "svelte-snippet-signature" => {
             Route::Native(NativeLanguage::JsFragment(ts(), FragmentContext::FunctionSignature))
         }

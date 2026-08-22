@@ -43,6 +43,9 @@ pub enum ExpressionPosition {
     /// A `{#snippet name(params)}` header, already wrapped by the caller as
     /// `function name(params) {}` (Prettier's `asFunction`).
     SnippetSignature,
+    /// A `{const x = 1}` / `{let a = 1, b = 2}` tag's contents, keyword
+    /// included — a declaration, laid out as one.
+    DeclarationTag,
 }
 
 /// Print a `{…}` in a text position, which may be a declaration tag.
@@ -50,65 +53,36 @@ pub fn write_mustache<'a>(tag: &ExpressionTag<'a>, f: &mut SvelteFormatter<'_, '
     if !tag.unterminated
         && let Some((keyword, declarator)) = declaration_tag(tag.expression)
     {
-        // `{const x = 1}` declares a binding for the rest of the fragment.
-        // The declarator is the same shape `{@const x = 1}` carries, so it
-        // goes through the expression path: `x = 1` reads as an assignment
-        // and `{ a, b } = obj` as one to a destructuring pattern, both of
-        // which the JavaScript formatter lays out the way Prettier does.
+        // `{const x = 1}` declares a binding for the rest of the fragment. The
+        // declarators go to the JavaScript formatter as the declarators they
+        // are, so `{let a = 1, b = 2}` lays out as one declaration rather than
+        // coming back as the sequence expression `(a = 1), (b = 2)`.
         write!(f, [token("{"), text(keyword), token(" ")]);
-        write_expression(declarator, ExpressionPosition::Braces, f);
+        write_expression(declarator, ExpressionPosition::DeclarationTag, f);
         write!(f, token("}"));
         return;
     }
     write_expression_tag(tag, ExpressionPosition::Braces, f);
 }
 
-/// Split a declaration tag's text into its keyword and what follows.
+/// Split a declaration tag's text into its keyword and its declarators.
 ///
 /// `type` is left alone: what follows it is a type, not an expression, and
-/// this printer has no way to lay one out on its own. So is a declaration of
-/// more than one binding — `{let a = 1, b = 2}` — because the single
-/// declarator goes through the expression path, and two of them would come
-/// back as the sequence expression `(a = 1), (b = 2)`, which is not the same
-/// declaration and does not parse as one.
+/// this printer has no way to lay one out on its own.
 fn declaration_tag(expression: &str) -> Option<(&'static str, &str)> {
-    let expression = expression.trim_start();
+    let trimmed = expression.trim_start();
     for keyword in ["const", "let"] {
-        if let Some(rest) = expression.strip_prefix(keyword)
+        if let Some(rest) = trimmed.strip_prefix(keyword)
             && rest.starts_with(|c: char| c.is_whitespace())
         {
             let declarator = rest.trim_start();
-            if declarator.is_empty() || has_top_level_comma(declarator) {
+            if declarator.is_empty() {
                 return None;
             }
             return Some((keyword, declarator));
         }
     }
     None
-}
-
-/// Whether a `,` separates two declarators rather than sitting inside one.
-fn has_top_level_comma(text: &str) -> bool {
-    let mut depth = 0i32;
-    let mut quote = None;
-    let mut escaped = false;
-    for byte in text.bytes() {
-        if escaped {
-            escaped = false;
-            continue;
-        }
-        match (quote, byte) {
-            (Some(_), b'\\') => escaped = true,
-            (Some(open), byte) if byte == open => quote = None,
-            (None, b'"' | b'\'' | b'`') => quote = Some(byte),
-            (None, b'(' | b'[' | b'{') => depth += 1,
-            (None, b')' | b']' | b'}') => depth -= 1,
-            (None, b',') if depth == 0 => return true,
-            // Anything else is part of a declarator, inside a string or not.
-            _ => {}
-        }
-    }
-    false
 }
 
 /// Print `{expr}`, with the expression formatted by whoever owns JavaScript.
@@ -157,6 +131,7 @@ pub fn write_expression<'a>(
         ExpressionPosition::BindDirective => "svelte-bind-value",
         ExpressionPosition::QuotedAttribute => "svelte-attribute-expression",
         ExpressionPosition::SnippetSignature => "svelte-snippet-signature",
+        ExpressionPosition::DeclarationTag => "svelte-declaration-tag",
     };
     // A snippet header is a function signature with the keyword left out, so
     // it is put back before the fragment is handed over — and left out of the

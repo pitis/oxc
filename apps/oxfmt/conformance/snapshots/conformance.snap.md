@@ -118,7 +118,7 @@
 
 ## svelte
 
-### Option 1: 90/93 (96.77%)
+### Option 1: 91/93 (97.85%)
 
 ```json
 {"printWidth":80,"svelte":{}}
@@ -126,11 +126,10 @@
 
 | File | Note |
 | :--- | :--- |
-| [externals/plugin-svelte/declaration-tag.svelte](diffs/svelte/externals__plugin-svelte__declaration-tag.svelte.md) | Reduced port: `{let a = 1, b = 2}` keeps its spelling. A declaration tag's single declarator is formatted through the expression path, where two of them would come back as the sequence expression `(a = 1), (b = 2)` — a different declaration that does not parse as one. See crates/oxc_formatter_svelte/AGENTS.md |
 | [externals/plugin-svelte/each-await-block-destructuring.svelte](diffs/svelte/externals__plugin-svelte__each-await-block-destructuring.svelte.md) | Reduced port: an `{#each … as PATTERN}` / `{:then PATTERN}` binding keeps its spelling. Prettier re-serializes it with a bespoke pattern printer (`expandNode`) that preserves literal spelling and never breaks; the fragment path here would reach it through the estree printer, which does neither. Canonical spacing already matches. See crates/oxc_formatter_svelte/AGENTS.md |
 | [externals/plugin-svelte/region-markers.svelte](diffs/svelte/externals__plugin-svelte__region-markers.svelte.md) | Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not |
 
-### Option 2: 90/93 (96.77%)
+### Option 2: 91/93 (97.85%)
 
 ```json
 {"printWidth":120,"singleQuote":true,"htmlWhitespaceSensitivity":"ignore","bracketSameLine":true,"svelteIndentScriptAndStyle":true,"svelteSortOrder":"options-scripts-styles-markup","svelte":{"indentScriptAndStyle":true,"sortOrder":"options-scripts-styles-markup"}}
@@ -138,7 +137,6 @@
 
 | File | Note |
 | :--- | :--- |
-| [externals/plugin-svelte/declaration-tag.svelte](diffs/svelte/externals__plugin-svelte__declaration-tag.svelte.md) | Reduced port: `{let a = 1, b = 2}` keeps its spelling. A declaration tag's single declarator is formatted through the expression path, where two of them would come back as the sequence expression `(a = 1), (b = 2)` — a different declaration that does not parse as one. See crates/oxc_formatter_svelte/AGENTS.md |
 | [externals/plugin-svelte/each-await-block-destructuring.svelte](diffs/svelte/externals__plugin-svelte__each-await-block-destructuring.svelte.md) | Reduced port: an `{#each … as PATTERN}` / `{:then PATTERN}` binding keeps its spelling. Prettier re-serializes it with a bespoke pattern printer (`expandNode`) that preserves literal spelling and never breaks; the fragment path here would reach it through the estree printer, which does neither. Canonical spacing already matches. See crates/oxc_formatter_svelte/AGENTS.md |
 | [externals/plugin-svelte/region-markers.svelte](diffs/svelte/externals__plugin-svelte__region-markers.svelte.md) | Not implemented: a `<!-- #endregion -->` immediately after a hoisted `<script>`/`<style>` travels with it when sections are reordered (Prettier's `extractRegionEndTrailAfterHoistedEnd`). The *leading* comment does travel; only the trailing marker does not |
 

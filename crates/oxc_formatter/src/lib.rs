@@ -82,6 +82,16 @@ pub enum FragmentContext {
     /// all. Prettier wraps it the same way and slices the two extra pieces off
     /// the printed document afterwards.
     FunctionSignature,
+    /// A Svelte declaration tag's declarators — what follows the keyword in
+    /// `{const x = 1}` / `{let a = 1, b = 2}`. The host prints the keyword.
+    ///
+    /// Input: the declarator text, NOT pre-wrapped (`format_fragment` wraps it
+    /// as `let DECLARATORS\n;`; the wrap keyword never reaches the output).
+    ///
+    /// Read as an expression instead, one declarator is an assignment that
+    /// happens to print the same, and two come back as the sequence expression
+    /// `(a = 1), (b = 2)` — a different declaration, and not one that parses.
+    VariableDeclarators,
     /// A bare expression (e.g. Vue `v-if` / `v-bind` values, `{{ ... }}` interpolations).
     ///
     /// Input: the raw expression text, NOT pre-wrapped.
@@ -402,6 +412,8 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
     // `parse_for_format`, so the synthetic parens leave no AST node behind.
     let source_text = if matches!(context, FragmentContext::Expression { .. }) {
         allocator.alloc_str(&format!("({source_text}\n);"))
+    } else if matches!(context, FragmentContext::VariableDeclarators) {
+        allocator.alloc_str(&format!("let {source_text}\n;"))
     } else {
         source_text
     };
@@ -421,6 +433,7 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
         context,
         FragmentContext::Expression { in_html_attribute: false, .. }
             | FragmentContext::FunctionSignature
+            | FragmentContext::VariableDeclarators
     );
     let embed_flags = EmbedFlags {
         in_html_attribute,
@@ -476,6 +489,26 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
                 &node,
                 FormatFunctionOptions { signature_only: true, ..FormatFunctionOptions::default() },
             );
+            finish.finish(
+                session,
+                options,
+                &content,
+                program.source_text,
+                source_type,
+                &program.comments,
+                embed_flags,
+            )
+        }
+        FragmentContext::VariableDeclarators => {
+            let Some(Statement::VariableDeclaration(declaration)) = program.body.first() else {
+                return Err(OxcDiagnostic::error("Expected fragment wrapped as `let x = 1;`"));
+            };
+            let node = AstNode::new(&**declaration, AstNodes::Dummy(), allocator);
+            // Only the declarators: the host prints the keyword, and a tag is
+            // closed by its `}` rather than a semicolon.
+            let content = formatter::prelude::format_with(|f| {
+                write!(f, node.declarations());
+            });
             finish.finish(
                 session,
                 options,
