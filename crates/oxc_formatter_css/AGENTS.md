@@ -316,8 +316,8 @@ Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notabl
     (inline when it fits; parens on their own lines + one selector per line on overflow, the same shape as Prettier's break)
 - Less: `func(x, + 20px)` unary gluing
   - Prettier prints `+20px`; `oxc-css-parser` ASTs `, +` as a comma-left binary operation, so matching is ad-hoc for a torture-test-only shape
-- Nested math in a function arg / multi-value shorthand
-  - Prettier's fill fit-check breaks INSIDE the wide chunk; ours breaks the SEPARATOR instead.
+- ~~Nested math in a function arg / multi-value shorthand~~ FIXED (less is 409/409)
+  - Prettier's fill fit-check breaks INSIDE the wide chunk; ours broke the SEPARATOR instead.
   - NOT a core-fill fit-check difference, which is what this entry assumed for a long time.
     Dumping Prettier's doc shows the divergence is in the CHUNKING: where we put a fill
     separator, Prettier puts none, so its chunk is wider and has to break internally.
@@ -340,6 +340,16 @@ Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notabl
         inside the braces. Delimiters glue to the first and last run.
       - Only for an interpolation that wraps exactly one expression and yields more than one
         run; anything else still prints as a unit, which is identical output.
+    - **Less arithmetic participates in the enclosing fill**, same shape and same fix:
+      `less_binary_chunks` / `write_less_chunk` split the chunking from the writing, and
+      `write_comma_group`'s run loop splices them. postcss has no expression tree, so
+      `(@a / 2) - @b @c` is a paren group, `-`, `@b` and `@c` all peer in ONE fill; the nested
+      fill put a level of indent and a chunk boundary where Prettier has neither, and `@c`
+      landed on its own line instead of joining `@b`.
+    - **No break opportunity before a value written with a leading `-`** — that break is the one
+      that could be read back as subtraction (`10px -5px` is two values, `10px - 5px` is one),
+      so a run of them stays on its line however far past the margin. Any leading `-` counts
+      (number, ident, `@variable`, function); `--` does not.
   - There is a third, smaller gap behind those two: when a chunk breaks internally, Prettier
     indents its content one level deeper than we do (the fill's own continuation indent applies
     to the chunk's interior breaks).

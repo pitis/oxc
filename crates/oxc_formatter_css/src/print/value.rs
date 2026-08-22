@@ -998,6 +998,42 @@ pub(super) fn write_comma_group<'a>(
                 }
             }
 
+            // Less arithmetic contributes its chunks to THIS fill too, for the
+            // same reason: postcss has no expression tree, so `(@a / 2) - @b @c`
+            // is a paren group, `-`, `@b` and `@c` all peer in one fill. Keeping
+            // the chain's own nested fill put a level of indent and a chunk
+            // boundary where Prettier has neither — `@c` landed on its own line
+            // instead of joining `@b`.
+            if run_end == run_start + 1
+                && !ctx.no_break
+                && let ComponentValue::LessBinaryOperation(operation) = &values[run_start]
+            {
+                let chunks = less_binary_chunks(operation);
+                if chunks.len() > 1 {
+                    let start = to_span(values[run_start].span()).start;
+                    for (k, chunk) in chunks.iter().enumerate() {
+                        let is_first = k == 0;
+                        let piece = format_with(move |f: &mut CssFormatter<'_, 'a>| {
+                            if is_first {
+                                flush_value_comments(start, f);
+                            }
+                            write_less_chunk(chunk, ctx, f);
+                        });
+                        if is_first {
+                            match sep {
+                                Separator::Hard => filler.entry(&hard_line_break(), &piece),
+                                Separator::SoftBreak => filler.entry(&soft_line_break(), &piece),
+                                _ => filler.entry(&soft_line_break_or_space(), &piece),
+                            };
+                        } else {
+                            filler.entry(&soft_line_break_or_space(), &piece);
+                        }
+                    }
+                    i = run_end;
+                    continue;
+                }
+            }
+
             let content = format_with(move |f: &mut CssFormatter<'_, 'a>| {
                 write_value_run(values, run_start, run_end, ctx, source, f);
                 // Same-line `//` comments stay attached to this entry
@@ -2091,22 +2127,28 @@ fn write_calc<'a>(calc: &Calc<'a>, ctx: ValueContext<'a>, f: &mut CssFormatter<'
 /// (`oxc-css-parser` only treats a whitespace-followed `+`/`-` as a binary operator,
 /// a signed value like `-@b` in a `margin` shorthand stays a separate `LessNegativeValue`, never an operand here),
 /// while `*`/`/` may be glued (`@base*2`).
-fn write_less_binary_operation<'a>(
-    op: &LessBinaryOperation<'a>,
-    ctx: ValueContext<'a>,
-    f: &mut CssFormatter<'_, 'a>,
-) {
-    enum Piece<'b, 'a> {
-        Operand(&'b ComponentValue<'a>),
-        Paren(&'b LessParenthesizedOperation<'a>),
-        Op(&'static str),
-        Space,
-    }
+/// One piece of a flattened Less arithmetic chain.
+pub(super) enum LessPiece<'b, 'a> {
+    Operand(&'b ComponentValue<'a>),
+    Paren(&'b LessParenthesizedOperation<'a>),
+    Op(&'static str),
+    Space,
+}
 
+/// Flattens a Less arithmetic chain into the chunks Prettier's fill would hold.
+///
+/// Split out from the writing so the chain can hand its chunks to the fill that
+/// ENCLOSES it. postcss has no expression tree — `(@a / 2) - @b @c` is a paren
+/// group, `-`, `@b`, `@c` all peer in one fill — so a chain that keeps its own
+/// nested fill puts a level of indent and a chunk boundary where Prettier has
+/// neither.
+pub(super) fn less_binary_chunks<'b, 'a>(
+    op: &'b LessBinaryOperation<'a>,
+) -> Vec<Vec<LessPiece<'b, 'a>>> {
     fn flatten<'b, 'a>(
         op: &'b LessBinaryOperation<'a>,
-        chunks: &mut Vec<Vec<Piece<'b, 'a>>>,
-        current: &mut Vec<Piece<'b, 'a>>,
+        chunks: &mut Vec<Vec<LessPiece<'b, 'a>>>,
+        current: &mut Vec<LessPiece<'b, 'a>>,
     ) {
         let op_str: &'static str = match op.op.kind {
             LessOperationOperatorKind::Multiply => "*",
@@ -2120,9 +2162,9 @@ fn write_less_binary_operation<'a>(
 
         push_operand(&op.left, chunks, current);
         if left_end != op_span.start {
-            current.push(Piece::Space);
+            current.push(LessPiece::Space);
         }
-        current.push(Piece::Op(op_str));
+        current.push(LessPiece::Op(op_str));
         // Break opportunity only when the source has a gap after the operator
         if op_span.end != right_start {
             chunks.push(std::mem::take(current));
@@ -2132,40 +2174,56 @@ fn write_less_binary_operation<'a>(
 
     fn push_operand<'b, 'a>(
         operand: &'b ComponentValue<'a>,
-        chunks: &mut Vec<Vec<Piece<'b, 'a>>>,
-        current: &mut Vec<Piece<'b, 'a>>,
+        chunks: &mut Vec<Vec<LessPiece<'b, 'a>>>,
+        current: &mut Vec<LessPiece<'b, 'a>>,
     ) {
         match operand {
             ComponentValue::LessBinaryOperation(inner) => flatten(inner, chunks, current),
-            ComponentValue::LessParenthesizedOperation(paren) => current.push(Piece::Paren(paren)),
-            _ => current.push(Piece::Operand(operand)),
+            ComponentValue::LessParenthesizedOperation(paren) => {
+                current.push(LessPiece::Paren(paren));
+            }
+            _ => current.push(LessPiece::Operand(operand)),
         }
     }
 
-    let mut chunks: Vec<Vec<Piece<'_, 'a>>> = vec![];
-    let mut current: Vec<Piece<'_, 'a>> = vec![];
+    let mut chunks: Vec<Vec<LessPiece<'_, 'a>>> = vec![];
+    let mut current: Vec<LessPiece<'_, 'a>> = vec![];
     flatten(op, &mut chunks, &mut current);
     if !current.is_empty() {
         chunks.push(current);
     }
+    chunks
+}
 
-    let write_chunk = |chunk: &[Piece<'_, 'a>], f: &mut CssFormatter<'_, 'a>| {
-        for piece in chunk {
-            match piece {
-                Piece::Operand(operand) => write_component_value(operand, ctx, f),
-                Piece::Paren(paren) => write_less_parenthesized_operation(paren, ctx, f),
-                Piece::Op(op) => write!(f, token(op)),
-                Piece::Space => write!(f, " "),
-            }
+/// Writes one chunk from [`less_binary_chunks`].
+pub(super) fn write_less_chunk<'a>(
+    chunk: &[LessPiece<'_, 'a>],
+    ctx: ValueContext<'a>,
+    f: &mut CssFormatter<'_, 'a>,
+) {
+    for piece in chunk {
+        match piece {
+            LessPiece::Operand(operand) => write_component_value(operand, ctx, f),
+            LessPiece::Paren(paren) => write_less_parenthesized_operation(paren, ctx, f),
+            LessPiece::Op(op) => write!(f, token(op)),
+            LessPiece::Space => write!(f, " "),
         }
-    };
+    }
+}
+
+fn write_less_binary_operation<'a>(
+    op: &LessBinaryOperation<'a>,
+    ctx: ValueContext<'a>,
+    f: &mut CssFormatter<'_, 'a>,
+) {
+    let chunks = less_binary_chunks(op);
 
     if ctx.no_break || chunks.len() == 1 {
         for (i, chunk) in chunks.iter().enumerate() {
             if i > 0 {
                 write!(f, " ");
             }
-            write_chunk(chunk, f);
+            write_less_chunk(chunk, ctx, f);
         }
         return;
     }
@@ -2175,7 +2233,7 @@ fn write_less_binary_operation<'a>(
         let mut filler = f.fill();
         for chunk in chunks_ref {
             let content = format_with(move |f: &mut CssFormatter<'_, 'a>| {
-                write_chunk(chunk, f);
+                write_less_chunk(chunk, ctx, f);
             });
             filler.entry(&soft_line_break_or_space(), &content);
         }
