@@ -1131,6 +1131,23 @@ fn separator_between(
             Separator::Space
         };
     }
+
+    // Prettier opens no break before a value written with a leading `-`: a line
+    // break there is the one that could be read back as subtraction, `10px -5px`
+    // being two values where `10px - 5px` is one. So a run of them stays on the
+    // line it started on, however far past the margin that goes:
+    // ```less
+    // margin: -@table-padding-vertical -@table-padding-horizontal -@table-padding-vertical
+    //   (@table-expand-column-width - @table-padding-horizontal);
+    // ```
+    // Any leading `-` counts — number, ident, `@variable`, function — but `--`
+    // does not, since it can never be an operator.
+    if matches!(sep, Separator::Line) {
+        let text = source.text_for(&to_span(values[i].span()));
+        if text.starts_with('-') && !text.starts_with("--") {
+            return Separator::Space;
+        }
+    }
     sep
 }
 
