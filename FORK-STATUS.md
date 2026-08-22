@@ -839,8 +839,14 @@ That anchoring is the one place this fork now deliberately reproduces a Prettier
 interpolation written far out stays far out for a pass, so re-formatting moves it again. 3.9.6 is
 unstable there in exactly the same way, prettier/prettier#19725 drops the anchoring on Prettier
 main, and `template-expression-indent.js` records which way it goes and what flips it back. Every
-figure in this file is measured against 3.9.6, and a real file needs it. css-in-js conformance
-went 19/21 → **20/21**.
+figure in this file is measured against 3.9.6, and real files need it.
+
+The graphql and html embeds do the same thing and were still passing a zero indention, so the fork
+briefly matched 3.9.6 in one embed and Prettier main in the other two. They flip together now, and
+each carries the note. Conformance: css-in-js 19/21 → **20/21**, gql-in-js 11/13 → **12/13**,
+html-in-js 188/194 → **192/194** and 190/194 → **194/194** — four more files this fork had been
+rewriting differently from the Prettier a project runs today, three of them real
+(`webawesome`'s carousel, color-picker and input).
 
 ## oxlint in general
 
