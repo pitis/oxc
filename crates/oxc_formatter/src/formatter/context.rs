@@ -124,6 +124,14 @@ pub struct JsFormatContext<'ast> {
     /// since it is a fact about the *host file*, not about this source.
     type_parameters: TypeParameterAmbiguity,
 
+    /// Whether this source is an embedded *fragment* — a template expression, a
+    /// directive value, a snippet header — rather than a whole program.
+    ///
+    /// Prettier hands fragments to `babel`/`babel-ts` and whole files to the
+    /// parser their extension names, and a JSDoc type cast is honoured by the
+    /// former and dropped by the latter. See [`crate::utils::typecast`].
+    embedded_fragment: bool,
+
     /// Whether the formatted code sits inside an HTML `{{ ... }}` interpolation,
     /// mirroring Prettier's `__isInHtmlInterpolation`. With `bracketSpacing:
     /// false`, an object expression whose closing `}` would touch a following
@@ -182,6 +190,7 @@ impl<'ast> JsFormatContext<'ast> {
             embedded_vue_expression: false,
             fragment_host_indents: true,
             type_parameters: TypeParameterAmbiguity::default(),
+            embedded_fragment: false,
             embedded_in_html_interpolation: false,
         }
     }
@@ -232,6 +241,18 @@ impl<'ast> JsFormatContext<'ast> {
     /// See [`TypeParameterAmbiguity`].
     pub fn type_parameters(&self) -> TypeParameterAmbiguity {
         self.type_parameters
+    }
+
+    /// See the `embedded_fragment` field.
+    #[must_use]
+    pub fn with_embedded_fragment(mut self, yes: bool) -> Self {
+        self.embedded_fragment = yes;
+        self
+    }
+
+    /// See the `embedded_fragment` field.
+    pub fn embedded_fragment(&self) -> bool {
+        self.embedded_fragment
     }
 
     /// See the `embedded_in_html_interpolation` field.

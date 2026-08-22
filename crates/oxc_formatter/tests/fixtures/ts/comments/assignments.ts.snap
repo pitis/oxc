@@ -38,9 +38,8 @@ const jestPackageJson =
 
 {
   sourcemap =
-    /** @type {'inline' | 'hidden' | 'sourcemap'} */ (
-      process.env.WORKER_MODE
-    ) || sourcemap;
+    /** @type {'inline' | 'hidden' | 'sourcemap'} */ process.env.WORKER_MODE ||
+    sourcemap;
 }
 
 class A {
@@ -62,8 +61,7 @@ const jestPackageJson =
   require(jestPath);
 
 {
-  sourcemap =
-    /** @type {'inline' | 'hidden' | 'sourcemap'} */ (process.env.WORKER_MODE) || sourcemap;
+  sourcemap = /** @type {'inline' | 'hidden' | 'sourcemap'} */ process.env.WORKER_MODE || sourcemap;
 }
 
 class A {

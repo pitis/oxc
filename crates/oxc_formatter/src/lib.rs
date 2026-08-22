@@ -187,6 +187,8 @@ struct EmbedFlags {
     in_html_interpolation: bool,
     /// See [`JsFormatContext::fragment_host_indents`].
     host_indents: bool,
+    /// See [`JsFormatContext::embedded_fragment`].
+    is_fragment: bool,
 }
 
 /// Result of [`format_fragment`]: the formatted IR plus fragment metadata.
@@ -375,6 +377,7 @@ impl<'a> FragmentFinish<'a> for ToEmbeddedIr {
             .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
             .with_embedded_vue_expression(embed_flags.vue_expression)
             .with_fragment_host_indents(embed_flags.host_indents)
+            .with_embedded_fragment(embed_flags.is_fragment)
             .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
         formatter::format_embedded(
             context,
@@ -429,6 +432,7 @@ fn format_fragment_inner<'a, Finish: FragmentFinish<'a>>(
             context,
             FragmentContext::Expression { in_html_attribute: false, .. }
         ),
+        is_fragment: true,
     };
     let options = if in_html_attribute {
         JsFormatOptions { quote_style: QuoteStyle::Single, ..options }
@@ -763,6 +767,7 @@ fn format_node<'a, F: Format<'a, JsFormatContext<'a>>>(
     let context = JsFormatContext::new(source_text, source_type, comments, options)
         .with_embedded_in_html_attribute(embed_flags.in_html_attribute)
         .with_embedded_vue_expression(embed_flags.vue_expression)
+        .with_embedded_fragment(embed_flags.is_fragment)
         .with_embedded_in_html_interpolation(embed_flags.in_html_interpolation);
     formatter::format(
         context,

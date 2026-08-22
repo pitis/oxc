@@ -58,6 +58,32 @@ impl TypeCast<'_> {
 /// This is the single source of truth for cast binding;
 /// both [`format_type_cast_comment_node`] and [`format_leading_comments_and_open_paren`] consume it.
 pub fn classify_type_cast<'a>(span: Span, f: &JsFormatter<'_, 'a>) -> TypeCast<'a> {
+    // A JSDoc `@type` cast says nothing in TypeScript — the language has `as`
+    // for that — so the parentheses it would otherwise hold onto are just
+    // redundant parentheses, and Prettier removes them: `/** @type {Foo} */ (bar)`
+    // comes back `/** @type {Foo} */ bar` in a `.ts` file and unchanged in a `.js`
+    // one. The comment is still a comment; it just no longer binds.
+    //
+    // Which happens is decided by the *parser*, not by the language, and the two
+    // do not line up. Prettier keeps the parentheses under `babel` and `babel-ts`
+    // and drops them under `typescript` — so a TypeScript **fragment** keeps them,
+    // because every embedded fragment goes to a babel parser. Measured across the
+    // hosts (`(event.currentTarget)` after a `/** @type */`):
+    //
+    // | position                     | parens |
+    // | ---------------------------- | ------ |
+    // | `.js` / `.svelte` `<script>`  | kept   |
+    // | `.ts` / `<script lang="ts">`  | dropped|
+    // | `{…}` markup, plain or `ts`   | kept   |
+    // | `{{…}}` / `@click`, either    | kept   |
+    //
+    // A `.svelte` or `.vue` template is read as TypeScript when the component
+    // declares `lang="ts"` — `foo<bar>(baz)` is a generic call there and two
+    // comparisons otherwise — so the source type alone cannot tell these apart.
+    if f.context().source_type().is_typescript() && !f.context().embedded_fragment() {
+        return TypeCast::None;
+    }
+
     let comments = f.context().comments();
 
     // The cast comment may already be printed:
