@@ -1006,8 +1006,11 @@ is left, in the order it costs the most:
    Everything else in the suite is annotated as allowed, layout-only, a reduced port, or a
    Prettier 3.9.6 bug already fixed on Prettier main.
 
-SCSS went **203 → 213 / 217** and **205 → 214 / 217** in the process, less **403 → 405 / 409**,
-html-in-js **192 → 193 / 194** and css-in-js **19 → 21 / 21**. Nine of those files were one
+SCSS went **203 → 215 / 217** at both option sets in the process, less **403 → 405 / 409**,
+html-in-js **192 → 193 / 194** and css-in-js **19 → 21 / 21**. The two SCSS files left are the two
+that are _not_ layout: Prettier adds a trailing comma that turns `($spacer * 0.5)` into a
+one-element list, and drops the author's blank lines in maps with paren values
+(prettier/prettier#16824). Matching either would make the output worse, so they stay. Nine of those files were one
 divergence: a media feature value is flat text in Prettier — the source slice with numbers and
 strings adjusted and nothing else — so the spacing inside one is the author's, and Prettier cannot
 normalise arithmetic operators there at all (prettier/prettier#1811). This re-printed the value
