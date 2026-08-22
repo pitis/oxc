@@ -109,9 +109,18 @@ pub fn write_trailing_same_line_comments(
         });
 
         // NOTE: Prettier does not distinguish between `// c` and `/* c */` at EOL only for CSS/SCSS/Less.
-        // All other formatters treat EOL-line comments as line suffixes, so we are consistent with them.
+        // A `//` comment is written inline, like a block one, so its width counts
+        // toward the line the way Prettier's does — the value before it breaks to
+        // make room:
+        // ```scss
+        // transform: scale(
+        //   200%
+        // ); // Slack logo SVG is scaled down 50% and has empty space around it
+        // ```
+        // Ordering needs no `line_suffix`: this runs at the top of the next
+        // statement's turn in the loop, so the `;` is already out.
         if comment.inline {
-            write!(f, [line_suffix(&content), expand_parent()]);
+            write!(f, [content]);
             return;
         }
 

@@ -200,15 +200,18 @@ NOT covered: `$(var)` interpolation (`margin-$(dir): 10px`, `.icon.is-$(network)
 
 Admission reasons and rules: see FORMATTER_POLICY.md "Known divergences". Notable divergences are:
 
-- An end-of-line trailing `//` comment never counts toward the print width (reason 3)
+- ~~An end-of-line trailing `//` comment never counts toward the print width~~ FIXED
   - Prettier's postcss printer does not distinguish `//` from `/* */`: it prints both inline,
-    measures them, and breaks the preceding value on overflow
-  - We emit the `//` as a `line_suffix`, the treatment every other formatter crate,
-    and Prettier itself outside the CSS family, gives line comments
-  - Scope: END-OF-LINE positions (statement-level trailing, SCSS map/config trailing).
-    A value-interior `//` (before `)`, glued to an argument, inside a fill entry) stays inline,
-    because tokens still follow on the line and a `line_suffix` would move the comment across them
-  - Trailing `/* */` comments still count, matching Prettier (both here and in the JS formatter, self-delimiting comments are inline content)
+    measures them, and breaks the preceding value on overflow. So do we now, at statement level:
+    `write_trailing_same_line_comments` writes the comment inline instead of as a `line_suffix`.
+    Ordering needs no `line_suffix` — it runs at the top of the NEXT statement's turn in the
+    loop, so the `;` is already out. Worth `scss/pages/profile.scss` and `less/themes/dark.less`
+  - Still a `line_suffix` in SCSS map/config trailing position
+    (`scss::write_same_line_trailing_comments`), where those bodies hard-break anyway so the
+    width never decides anything. Move it if a fixture ever shows otherwise
+  - A value-interior `//` (before `)`, glued to an argument, inside a fill entry) was always
+    inline, because tokens still follow on the line and a `line_suffix` would move the comment
+    across them
 - A COMMENTED keyframe selector list is formatted structurally (one selector per line, comments per the separator rule: `60% /* mid */,`)
   - Prettier keeps the whole list verbatim on one line, interior spacing included (`60%   /* mid */  ,   70%` survives untouched)
   - Ours prints commented and uncommented lists with the same layout; layout-only, rare trigger
