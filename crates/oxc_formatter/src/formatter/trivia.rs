@@ -525,11 +525,18 @@ impl<'a> Format<'a, JsFormatContext<'a>> for Comment {
                         write!(f, [hard_line_break(), " ", text(line.trim())]);
                     }
                 } else {
-                    // Normalize line endings `\r\n` to `\n`
+                    // Normalize line endings `\r\n` to `\n` — the splitter has
+                    // already dropped the terminator, so this only rejoins.
+                    //
+                    // Every line goes in as it stands, the first included: a
+                    // comment that is not being realigned is the author's text,
+                    // and trailing whitespace inside it is theirs. Trimming only
+                    // the first line also made the comment inconsistent with
+                    // itself, since the rest were kept.
                     let mut string =
                         ArenaStringBuilder::with_capacity_in(content.len(), f.allocator());
                     // `unwrap` is safe because `content` contains at least one line.
-                    string.push_str(lines.next().unwrap().trim_end());
+                    string.push_str(lines.next().unwrap());
 
                     for str in lines {
                         string.push('\n');
