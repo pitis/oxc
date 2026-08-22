@@ -14,7 +14,7 @@
 
 ## gql-in-js
 
-### Option 1: 11/13 (84.62%)
+### Option 1: 12/13 (92.31%)
 
 ```json
 {"printWidth":80}
@@ -22,10 +22,9 @@
 
 | File | Note |
 | :--- | :--- |
-| [edge-cases/gql-in-js/template-expression-indent.js](diffs/gql-in-js/edge-cases__gql-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 | [externals/prettier/js/multiparser-graphql/graphql-tag.js](diffs/gql-in-js/externals__prettier__js__multiparser-graphql__graphql-tag.js.md) | Prettier moves `query Test { # c` own-line comment to next line, we keep |
 
-### Option 2: 11/13 (84.62%)
+### Option 2: 12/13 (92.31%)
 
 ```json
 {"printWidth":100}
@@ -33,7 +32,6 @@
 
 | File | Note |
 | :--- | :--- |
-| [edge-cases/gql-in-js/template-expression-indent.js](diffs/gql-in-js/edge-cases__gql-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 | [externals/prettier/js/multiparser-graphql/graphql-tag.js](diffs/gql-in-js/externals__prettier__js__multiparser-graphql__graphql-tag.js.md) | Prettier moves `query Test { # c` own-line comment to next line, we keep |
 
 ## css-in-js
@@ -60,7 +58,7 @@
 
 ## html-in-js
 
-### Option 1: 188/194 (96.91%)
+### Option 1: 192/194 (98.97%)
 
 ```json
 {"printWidth":80}
@@ -68,25 +66,14 @@
 
 | File | Note |
 | :--- | :--- |
-| [edge-cases/html-in-js/template-expression-indent.js](diffs/html-in-js/edge-cases__html-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/carousel/carousel.ts](diffs/html-in-js/externals__webawesome__carousel__carousel.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/color-picker/color-picker.ts](diffs/html-in-js/externals__webawesome__color-picker__color-picker.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/input/input.ts](diffs/html-in-js/externals__webawesome__input__input.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 | [externals/webawesome/number-input/number-input.styles.ts](diffs/html-in-js/externals__webawesome__number-input__number-input.styles.ts.md) | Layout-only: Prettier's fill fit-check breaks inside `var()` args in a long `calc()`; ours breaks after the operator. See crates/oxc_formatter_css/AGENTS.md |
 | [externals/webawesome/page/page.styles.ts](diffs/html-in-js/externals__webawesome__page__page.styles.ts.md) | Layout-only: Prettier's fill fit-check breaks inside `::slotted()` after a long `:not(...)`; ours breaks inside `:not(...)`. See crates/oxc_formatter_css/AGENTS.md |
 
-### Option 2: 190/194 (97.94%)
+### Option 2: 194/194 (100.00%)
 
 ```json
 {"printWidth":100,"htmlWhitespaceSensitivity":"ignore"}
 ```
-
-| File | Note |
-| :--- | :--- |
-| [edge-cases/html-in-js/template-expression-indent.js](diffs/html-in-js/edge-cases__html-in-js__template-expression-indent.js.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/carousel/carousel.ts](diffs/html-in-js/externals__webawesome__carousel__carousel.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/color-picker/color-picker.ts](diffs/html-in-js/externals__webawesome__color-picker__color-picker.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
-| [externals/webawesome/input/input.ts](diffs/html-in-js/externals__webawesome__input__input.ts.md) | We match Prettier main (prettier/prettier#19725); 3.9.6 still preserves source indent non-idempotently |
 
 ## angular-in-js
 

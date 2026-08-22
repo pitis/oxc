@@ -11,7 +11,8 @@ use crate::{
     format_args,
     formatter::prelude::*,
     print::template::{
-        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateExpression,
+        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateElementIndention,
+        TemplateExpression,
     },
     write,
 };
@@ -148,11 +149,24 @@ pub(super) fn format_html_doc<'a>(
 
     // Format every expression exactly once.
     // These elements are cloned into all `BestFitting` variants.
+    //
+    // Each is anchored at the indentation of the line it starts on in the
+    // source, the same as Prettier's `addAlignmentToDoc`. See the note in
+    // `css.rs` — the anchor is the *source* column, and matching Prettier 3.9.6
+    // there is deliberate.
+    let tab_width = u32::from(f.options().indent_width.value());
+    let mut indention = TemplateElementIndention::default();
     let mut formatted_expressions = Vec::with_capacity(expressions.len());
-    for expr in expressions {
+    for (idx, expr) in expressions.iter().enumerate() {
+        indention = TemplateElementIndention::after_last_new_line(
+            quasis[idx].value.raw.as_str(),
+            tab_width,
+            indention,
+        );
         let te = TemplateExpression::Expression(expr);
+        let options = FormatTemplateExpressionOptions { indention, after_new_line: false };
         let element = f
-            .intern(&FormatTemplateExpression::new(&te, FormatTemplateExpressionOptions::default()))
+            .intern(&FormatTemplateExpression::new(&te, options))
             .expect("a template expression always emits non-empty IR");
         formatted_expressions.push(element);
     }

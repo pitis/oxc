@@ -9,7 +9,8 @@ use crate::{
     ast_nodes::AstNode,
     formatter::prelude::*,
     print::template::{
-        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateExpression,
+        FormatTemplateExpression, FormatTemplateExpressionOptions, TemplateElementIndention,
+        TemplateExpression,
     },
     write,
 };
@@ -104,6 +105,22 @@ pub(super) fn format_graphql_doc<'a>(
         return true;
     }
 
+    // The indentation each expression is anchored at: the whitespace after the
+    // last newline of the quasi before it, as written. Prettier reaches the same
+    // place through `addAlignmentToDoc`. See the note in `css.rs` — the anchor
+    // is the *source* column, and matching Prettier 3.9.6 there is deliberate.
+    let tab_width = u32::from(f.options().indent_width.value());
+    let mut indention = TemplateElementIndention::default();
+    let mut indentions = Vec::with_capacity(expressions.len());
+    for quasi_elem in quasis.iter().take(expressions.len()) {
+        indention = TemplateElementIndention::after_last_new_line(
+            quasi_elem.value.raw.as_str(),
+            tab_width,
+            indention,
+        );
+        indentions.push(indention);
+    }
+
     // Phase 4: Write the template structure
     // `["`", indent([hardline, join(hardline, parts)]), hardline, "`"]`
     // https://github.com/prettier/prettier/blob/90983f40dce5e20beea4e5618b5e0426a6a7f4f0/src/language-js/embed/graphql.js#L68C10-L68C73
@@ -139,8 +156,11 @@ pub(super) fn format_graphql_doc<'a>(
                         write!(f, [hard_line_break()]);
                     }
                     let te = TemplateExpression::Expression(expr);
-                    FormatTemplateExpression::new(&te, FormatTemplateExpressionOptions::default())
-                        .fmt(f);
+                    let options = FormatTemplateExpressionOptions {
+                        indention: indentions.get(idx).copied().unwrap_or_default(),
+                        after_new_line: false,
+                    };
+                    FormatTemplateExpression::new(&te, options).fmt(f);
                     has_prev_part = true;
                 }
             }
